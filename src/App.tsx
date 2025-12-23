@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminLayout } from "@/components/AdminLayout";
 import Home from "./pages/Home";
 import Shop from "./pages/Shop";
+import ProductDetail from "./pages/ProductDetail";
 import Checkout from "./pages/Checkout";
 import CustomerAuth from "./pages/CustomerAuth";
 import Auth from "./pages/Auth";
@@ -24,6 +25,7 @@ import Categories from "./pages/admin/Categories";
 import Inventory from "./pages/admin/Inventory";
 import RawMaterials from "./pages/admin/RawMaterials";
 import AdminOrders from "./pages/admin/Orders";
+import AdminReviews from "./pages/admin/Reviews";
 import Invoices from "./pages/admin/Invoices";
 import NotFound from "./pages/NotFound";
 
@@ -39,6 +41,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/shop" element={<Shop />} />
+            <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/checkout/:productId" element={<Checkout />} />
             <Route path="/login" element={<CustomerAuth />} />
             <Route path="/auth" element={<Auth />} />
@@ -55,6 +58,7 @@ const App = () => (
             <Route path="/admin/inventory" element={<ProtectedRoute requireAdmin><AdminLayout><Inventory /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/raw-materials" element={<ProtectedRoute requireAdmin><AdminLayout><RawMaterials /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/orders" element={<ProtectedRoute requireAdmin><AdminLayout><AdminOrders /></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/reviews" element={<ProtectedRoute requireAdmin><AdminLayout><AdminReviews /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/invoices" element={<ProtectedRoute requireAdmin><AdminLayout><Invoices /></AdminLayout></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>

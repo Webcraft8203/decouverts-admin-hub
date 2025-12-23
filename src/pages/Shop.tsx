@@ -4,10 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { PublicFooter } from "@/components/PublicFooter";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShoppingCart, Package, Search, Plus, ChevronLeft, ChevronRight, Star } from "lucide-react";
+import { ShoppingCart, Package, Search, Plus, Star, ArrowRight, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -74,7 +74,7 @@ const Shop = () => {
   const addToCartMutation = useMutation({
     mutationFn: async (productId: string) => {
       if (!user) throw new Error("Not authenticated");
-      
+
       const { data: existingItem } = await supabase
         .from("cart_items")
         .select("id, quantity")
@@ -100,35 +100,18 @@ const Shop = () => {
       queryClient.invalidateQueries({ queryKey: ["cart-items"] });
       toast.success("Added to cart!");
     },
-    onError: () => {
-      toast.error("Failed to add to cart");
-    },
+    onError: () => toast.error("Failed to add to cart"),
   });
 
-  const handleAddToCart = (productId: string) => {
+  const handleAddToCart = (e: React.MouseEvent, productId: string) => {
+    e.stopPropagation();
     if (!user) {
       toast.info("Please login to add items to cart", {
-        action: {
-          label: "Login",
-          onClick: () => navigate("/login"),
-        },
+        action: { label: "Login", onClick: () => navigate("/login") },
       });
       return;
     }
     addToCartMutation.mutate(productId);
-  };
-
-  const handleBuyNow = (product: Product) => {
-    if (!user) {
-      toast.info("Please login to purchase", {
-        action: {
-          label: "Login",
-          onClick: () => navigate("/login"),
-        },
-      });
-      return;
-    }
-    navigate(`/checkout/${product.id}`);
   };
 
   const filteredProducts = products?.filter(
@@ -138,7 +121,7 @@ const Shop = () => {
   );
 
   const highlightedProducts = products?.filter((p) => p.is_highlighted) || [];
-  
+
   const getProductsByCategory = (categoryId: string) => {
     return filteredProducts?.filter((p) => p.category_id === categoryId) || [];
   };
@@ -146,115 +129,133 @@ const Shop = () => {
   const uncategorizedProducts = filteredProducts?.filter((p) => !p.category_id) || [];
 
   const ProductCard = ({ product }: { product: Product }) => (
-    <Card className="overflow-hidden border-border hover:border-primary/30 transition-all hover:shadow-lg group h-full flex flex-col">
-      <div className="relative h-48 bg-muted overflow-hidden">
+    <Card
+      onClick={() => navigate(`/product/${product.id}`)}
+      className="group cursor-pointer overflow-hidden border-0 bg-card/50 backdrop-blur-sm hover:bg-card transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1"
+    >
+      <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-muted to-muted/50">
         {product.images && product.images.length > 0 ? (
           <img
             src={product.images[0]}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Package className="w-16 h-16 text-muted-foreground/30" />
+            <Package className="w-16 h-16 text-muted-foreground/20" />
           </div>
         )}
-        {product.categories && (
-          <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground">
-            {product.categories.name}
-          </Badge>
-        )}
-        {product.is_highlighted && (
-          <Badge className="absolute top-3 right-3 bg-warning text-warning-foreground">
-            <Star className="w-3 h-3 mr-1 fill-current" />
-            Featured
-          </Badge>
-        )}
+        
+        {/* Overlay on hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        
+        {/* Quick Add Button */}
+        <Button
+          size="sm"
+          onClick={(e) => handleAddToCart(e, product.id)}
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 bg-white text-black hover:bg-white/90 rounded-full px-6 shadow-lg"
+        >
+          <Plus className="w-4 h-4 mr-1" /> Add to Cart
+        </Button>
+
+        {/* Badges */}
+        <div className="absolute top-3 left-3 flex flex-col gap-2">
+          {product.is_highlighted && (
+            <Badge className="bg-warning/90 text-warning-foreground backdrop-blur-sm">
+              <Sparkles className="w-3 h-3 mr-1" /> Featured
+            </Badge>
+          )}
+          {product.stock_quantity <= 5 && (
+            <Badge variant="destructive" className="backdrop-blur-sm">
+              Only {product.stock_quantity} left
+            </Badge>
+          )}
+        </div>
       </div>
-      <CardContent className="p-4 flex-1">
-        <h3 className="font-semibold text-foreground text-lg mb-2 line-clamp-1">
+
+      <CardContent className="p-5">
+        {product.categories && (
+          <p className="text-xs font-medium text-primary mb-2 uppercase tracking-wider">
+            {product.categories.name}
+          </p>
+        )}
+        <h3 className="font-semibold text-foreground text-lg mb-2 line-clamp-1 group-hover:text-primary transition-colors">
           {product.name}
         </h3>
-        <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
+        <p className="text-muted-foreground text-sm mb-4 line-clamp-2 leading-relaxed">
           {product.description || "Premium quality product"}
         </p>
         <div className="flex items-center justify-between">
-          <span className="text-2xl font-bold text-primary">
+          <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
             ₹{product.price.toLocaleString()}
           </span>
-          <span className="text-sm text-muted-foreground">
-            {product.stock_quantity} in stock
-          </span>
+          <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
         </div>
       </CardContent>
-      <CardFooter className="p-4 pt-0 flex gap-2">
-        <Button
-          variant="outline"
-          onClick={() => handleAddToCart(product.id)}
-          disabled={addToCartMutation.isPending}
-          className="flex-1 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-        >
-          <Plus className="w-4 h-4 mr-1" />
-          Add to Cart
-        </Button>
-        <Button
-          onClick={() => handleBuyNow(product)}
-          className="flex-1 bg-accent text-accent-foreground hover:bg-accent/90"
-        >
-          <ShoppingCart className="w-4 h-4 mr-1" />
-          Buy Now
-        </Button>
-      </CardFooter>
     </Card>
   );
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <PublicNavbar />
 
       <main className="flex-1 pt-20">
-        {/* Header */}
-        <section className="bg-gradient-to-br from-accent to-accent/90 text-accent-foreground py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
-              Shop <span className="text-primary">Premium Products</span>
-            </h1>
-            <p className="text-accent-foreground/70 text-lg max-w-2xl">
-              Browse our curated collection of high-quality products.
-            </p>
+        {/* Hero Section */}
+        <section className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
+          
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+            <div className="max-w-3xl">
+              <Badge className="mb-6 px-4 py-1.5 text-sm font-medium bg-primary/10 text-primary hover:bg-primary/20 border-0">
+                <Sparkles className="w-4 h-4 mr-2" /> Premium Collection
+              </Badge>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
+                Discover
+                <span className="block bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
+                  Premium Products
+                </span>
+              </h1>
+              <p className="text-lg sm:text-xl text-muted-foreground mb-8 leading-relaxed max-w-xl">
+                Explore our curated collection of high-quality products designed to elevate your experience.
+              </p>
 
-            {/* Search */}
-            <div className="mt-8 max-w-md">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              {/* Search */}
+              <div className="relative max-w-md">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   placeholder="Search products..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-background/10 border-accent-foreground/20 text-accent-foreground placeholder:text-accent-foreground/50"
+                  className="pl-12 h-14 text-lg bg-card/50 backdrop-blur-sm border-border/50 rounded-2xl focus:ring-2 focus:ring-primary/20"
                 />
               </div>
             </div>
           </div>
         </section>
 
-        {/* Highlighted Products Carousel */}
+        {/* Featured Products Carousel */}
         {highlightedProducts.length > 0 && (
-          <section className="py-12 bg-gradient-to-b from-background to-muted/30">
+          <section className="py-16 bg-gradient-to-b from-primary/5 to-background">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center gap-3 mb-8">
-                <Star className="w-6 h-6 text-warning fill-warning" />
-                <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Featured Products</h2>
+              <div className="flex items-center justify-between mb-10">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-warning/10 rounded-2xl">
+                    <Star className="w-6 h-6 text-warning fill-warning" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Featured Products</h2>
+                    <p className="text-muted-foreground">Hand-picked favorites just for you</p>
+                  </div>
+                </div>
               </div>
-              
+
               <Carousel
-                opts={{
-                  align: "start",
-                  loop: true,
-                }}
+                opts={{ align: "start", loop: true }}
                 plugins={[
                   Autoplay({
-                    delay: 4000,
+                    delay: 5000,
                     stopOnInteraction: true,
                     stopOnMouseEnter: true,
                   }),
@@ -263,75 +264,68 @@ const Shop = () => {
               >
                 <CarouselContent className="-ml-4">
                   {highlightedProducts.map((product) => (
-                    <CarouselItem key={product.id} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
-                      <div className="h-full">
-                        <Card className="overflow-hidden border-2 border-warning/30 hover:border-warning transition-all hover:shadow-xl group h-full flex flex-col bg-gradient-to-br from-background to-warning/5">
-                          <div className="relative h-56 bg-muted overflow-hidden">
-                            {product.images && product.images.length > 0 ? (
-                              <img
-                                src={product.images[0]}
-                                alt={product.name}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <Package className="w-20 h-20 text-muted-foreground/30" />
-                              </div>
-                            )}
-                            <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/40 to-transparent p-4">
-                              <Badge className="bg-warning text-warning-foreground">
-                                <Star className="w-3 h-3 mr-1 fill-current" />
-                                Featured
-                              </Badge>
+                    <CarouselItem key={product.id} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
+                      <Card
+                        onClick={() => navigate(`/product/${product.id}`)}
+                        className="group cursor-pointer overflow-hidden border-2 border-warning/20 hover:border-warning/50 bg-gradient-to-br from-warning/5 to-background transition-all duration-300 hover:shadow-xl hover:shadow-warning/10"
+                      >
+                        <div className="relative aspect-[4/3] overflow-hidden">
+                          {product.images && product.images.length > 0 ? (
+                            <img
+                              src={product.images[0]}
+                              alt={product.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-muted flex items-center justify-center">
+                              <Package className="w-20 h-20 text-muted-foreground/20" />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                          <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                            <Badge className="mb-3 bg-warning text-warning-foreground">
+                              <Star className="w-3 h-3 mr-1 fill-current" /> Featured
+                            </Badge>
+                            <h3 className="text-xl font-bold mb-2 line-clamp-1">{product.name}</h3>
+                            <div className="flex items-center justify-between">
+                              <span className="text-2xl font-bold">₹{product.price.toLocaleString()}</span>
+                              <Button
+                                size="sm"
+                                className="bg-white text-black hover:bg-white/90 rounded-full"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/product/${product.id}`);
+                                }}
+                              >
+                                View <ArrowRight className="w-4 h-4 ml-1" />
+                              </Button>
                             </div>
                           </div>
-                          <CardContent className="p-5 flex-1">
-                            <h3 className="font-bold text-foreground text-xl mb-2 line-clamp-1">
-                              {product.name}
-                            </h3>
-                            <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                              {product.description || "Premium quality product"}
-                            </p>
-                            <div className="flex items-center justify-between">
-                              <span className="text-3xl font-bold text-primary">
-                                ₹{product.price.toLocaleString()}
-                              </span>
-                            </div>
-                          </CardContent>
-                          <CardFooter className="p-5 pt-0">
-                            <Button
-                              onClick={() => handleBuyNow(product)}
-                              className="w-full bg-warning text-warning-foreground hover:bg-warning/90 font-semibold"
-                              size="lg"
-                            >
-                              <ShoppingCart className="w-5 h-5 mr-2" />
-                              Shop Now
-                            </Button>
-                          </CardFooter>
-                        </Card>
-                      </div>
+                        </div>
+                      </Card>
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="hidden sm:flex -left-4" />
-                <CarouselNext className="hidden sm:flex -right-4" />
+                <CarouselPrevious className="hidden sm:flex -left-4 bg-background/80 backdrop-blur-sm" />
+                <CarouselNext className="hidden sm:flex -right-4 bg-background/80 backdrop-blur-sm" />
               </Carousel>
             </div>
           </section>
         )}
 
-        {/* Category-wise Products */}
-        <section className="py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+        {/* Products by Category */}
+        <section className="py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20">
             {productsLoading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {[...Array(8)].map((_, i) => (
-                  <Card key={i} className="overflow-hidden">
-                    <Skeleton className="h-48 w-full" />
-                    <CardContent className="p-4">
+                  <Card key={i} className="overflow-hidden border-0 bg-card/50">
+                    <Skeleton className="aspect-square" />
+                    <CardContent className="p-5">
+                      <Skeleton className="h-4 w-1/3 mb-2" />
                       <Skeleton className="h-6 w-3/4 mb-2" />
-                      <Skeleton className="h-4 w-full mb-2" />
-                      <Skeleton className="h-4 w-1/2" />
+                      <Skeleton className="h-4 w-full mb-4" />
+                      <Skeleton className="h-8 w-1/2" />
                     </CardContent>
                   </Card>
                 ))}
@@ -341,15 +335,17 @@ const Shop = () => {
                 {categories?.map((category) => {
                   const categoryProducts = getProductsByCategory(category.id);
                   if (categoryProducts.length === 0) return null;
-                  
+
                   return (
                     <div key={category.id}>
-                      <div className="flex items-center gap-3 mb-6">
-                        <div className="h-8 w-1 bg-primary rounded-full" />
-                        <h2 className="text-2xl font-bold text-foreground">{category.name}</h2>
-                        <Badge variant="secondary" className="ml-2">
-                          {categoryProducts.length} products
-                        </Badge>
+                      <div className="flex items-center gap-4 mb-8">
+                        <div className="h-12 w-1.5 bg-gradient-to-b from-primary to-primary/50 rounded-full" />
+                        <div>
+                          <h2 className="text-2xl sm:text-3xl font-bold text-foreground">{category.name}</h2>
+                          <p className="text-muted-foreground">
+                            {categoryProducts.length} product{categoryProducts.length !== 1 ? "s" : ""}
+                          </p>
+                        </div>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {categoryProducts.map((product) => (
@@ -360,15 +356,16 @@ const Shop = () => {
                   );
                 })}
 
-                {/* Uncategorized Products */}
                 {uncategorizedProducts.length > 0 && (
                   <div>
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="h-8 w-1 bg-muted-foreground rounded-full" />
-                      <h2 className="text-2xl font-bold text-foreground">Other Products</h2>
-                      <Badge variant="secondary" className="ml-2">
-                        {uncategorizedProducts.length} products
-                      </Badge>
+                    <div className="flex items-center gap-4 mb-8">
+                      <div className="h-12 w-1.5 bg-gradient-to-b from-muted-foreground to-muted-foreground/50 rounded-full" />
+                      <div>
+                        <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Other Products</h2>
+                        <p className="text-muted-foreground">
+                          {uncategorizedProducts.length} product{uncategorizedProducts.length !== 1 ? "s" : ""}
+                        </p>
+                      </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                       {uncategorizedProducts.map((product) => (
@@ -379,7 +376,7 @@ const Shop = () => {
                 )}
 
                 {filteredProducts && filteredProducts.length === 0 && (
-                  <div className="text-center py-20">
+                  <div className="text-center py-24">
                     <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
                       <Package className="w-12 h-12 text-primary" />
                     </div>
@@ -387,15 +384,15 @@ const Shop = () => {
                       {searchQuery ? "No products found" : "Products Coming Soon"}
                     </h2>
                     <p className="text-muted-foreground text-lg max-w-md mx-auto mb-8">
-                      {searchQuery 
-                        ? "Try adjusting your search query." 
-                        : "We're preparing an amazing collection of premium products. Check back soon for exciting offerings!"}
+                      {searchQuery
+                        ? "Try adjusting your search query."
+                        : "We're preparing an amazing collection of premium products."}
                     </p>
                     {searchQuery && (
                       <Button
                         variant="outline"
                         onClick={() => setSearchQuery("")}
-                        className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                        className="rounded-full px-8"
                       >
                         Clear Search
                       </Button>
