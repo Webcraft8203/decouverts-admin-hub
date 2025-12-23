@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PublicNavbar } from "@/components/PublicNavbar";
@@ -7,7 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShoppingCart, Package, Search, Plus, Star, ArrowRight, Sparkles, Share2 } from "lucide-react";
+import { 
+  ShoppingCart, 
+  Package, 
+  Search, 
+  Plus, 
+  Star, 
+  ChevronRight, 
+  ChevronLeft,
+  Share2,
+  Sparkles,
+  Tag,
+  Layers
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -36,10 +48,12 @@ interface Product {
 interface Category {
   id: string;
   name: string;
+  description: string | null;
 }
 
 const Shop = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -137,11 +151,13 @@ const Shop = () => {
     }
   };
 
-  const filteredProducts = products?.filter(
-    (product) =>
+  const filteredProducts = products?.filter((product) => {
+    const matchesSearch = 
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      product.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   const highlightedProducts = products?.filter((p) => p.is_highlighted) || [];
 
@@ -149,47 +165,47 @@ const Shop = () => {
     return filteredProducts?.filter((p) => p.category_id === categoryId) || [];
   };
 
-  const uncategorizedProducts = filteredProducts?.filter((p) => !p.category_id) || [];
+  // Horizontal scroll helper
+  const scrollContainer = (ref: React.RefObject<HTMLDivElement>, direction: 'left' | 'right') => {
+    if (ref.current) {
+      const scrollAmount = 300;
+      ref.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
 
-  const ProductCard = ({ product }: { product: Product }) => (
+  // Product Card Component
+  const ProductCard = ({ product, compact = false }: { product: Product; compact?: boolean }) => (
     <Card
       onClick={() => navigate(`/product/${product.id}`)}
-      className="group cursor-pointer overflow-hidden border-0 bg-card/50 backdrop-blur-sm hover:bg-card transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1"
+      className={`group cursor-pointer flex-shrink-0 overflow-hidden border border-border/50 bg-card hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 ${
+        compact ? 'w-[180px] sm:w-[200px]' : 'w-[220px] sm:w-[260px]'
+      }`}
     >
-      <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-muted to-muted/50">
+      <div className={`relative overflow-hidden bg-muted ${compact ? 'h-[140px] sm:h-[160px]' : 'h-[180px] sm:h-[220px]'}`}>
         {product.images && product.images.length > 0 ? (
           <img
             src={product.images[0]}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Package className="w-16 h-16 text-muted-foreground/20" />
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
+            <Package className="w-12 h-12 text-muted-foreground/30" />
           </div>
         )}
         
-        {/* Overlay on hover */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        
-        {/* Quick Add Button */}
-        <Button
-          size="sm"
-          onClick={(e) => handleAddToCart(e, product.id)}
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 bg-white text-black hover:bg-white/90 rounded-full px-6 shadow-lg"
-        >
-          <Plus className="w-4 h-4 mr-1" /> Add to Cart
-        </Button>
-
         {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-2">
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
           {product.is_highlighted && (
-            <Badge className="bg-warning/90 text-warning-foreground backdrop-blur-sm">
+            <Badge className="bg-primary text-primary-foreground text-xs px-2 py-0.5">
               <Sparkles className="w-3 h-3 mr-1" /> Featured
             </Badge>
           )}
           {product.stock_quantity <= 5 && (
-            <Badge variant="destructive" className="backdrop-blur-sm">
+            <Badge variant="destructive" className="text-xs px-2 py-0.5">
               Only {product.stock_quantity} left
             </Badge>
           )}
@@ -200,242 +216,330 @@ const Shop = () => {
           size="icon"
           variant="secondary"
           onClick={(e) => handleShare(e, product)}
-          className="absolute top-3 right-3 w-9 h-9 rounded-full bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-background"
+          className="absolute top-2 right-2 w-8 h-8 rounded-full bg-background/90 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-background"
         >
-          <Share2 className="w-4 h-4" />
+          <Share2 className="w-3.5 h-3.5" />
         </Button>
       </div>
 
-      <CardContent className="p-5">
+      <CardContent className={`${compact ? 'p-3' : 'p-4'}`}>
         {product.categories && (
-          <p className="text-xs font-medium text-primary mb-2 uppercase tracking-wider">
+          <p className="text-[10px] font-medium text-primary uppercase tracking-wider mb-1">
             {product.categories.name}
           </p>
         )}
-        <h3 className="font-semibold text-foreground text-lg mb-2 line-clamp-1 group-hover:text-primary transition-colors">
+        <h3 className={`font-medium text-foreground line-clamp-2 group-hover:text-primary transition-colors ${
+          compact ? 'text-sm mb-1' : 'text-base mb-2'
+        }`}>
           {product.name}
         </h3>
-        <p className="text-muted-foreground text-sm mb-4 line-clamp-2 leading-relaxed">
-          {product.description || "Premium quality product"}
-        </p>
         <div className="flex items-center justify-between">
-          <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+          <span className={`font-bold text-foreground ${compact ? 'text-base' : 'text-lg'}`}>
             ₹{product.price.toLocaleString()}
           </span>
-          <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+          <Button
+            size="sm"
+            onClick={(e) => handleAddToCart(e, product.id)}
+            className="h-8 px-3 bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-medium"
+          >
+            <Plus className="w-3.5 h-3.5 mr-1" /> Add
+          </Button>
         </div>
       </CardContent>
     </Card>
   );
 
+  // Horizontal Product Section Component
+  const HorizontalProductSection = ({ 
+    title, 
+    products, 
+    icon: Icon,
+    bgColor = "bg-card"
+  }: { 
+    title: string; 
+    products: Product[];
+    icon?: React.ElementType;
+    bgColor?: string;
+  }) => {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    
+    if (products.length === 0) return null;
+
+    return (
+      <section className={`py-6 ${bgColor}`}>
+        <div className="max-w-[1400px] mx-auto px-4">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              {Icon && (
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <Icon className="w-5 h-5 text-primary" />
+                </div>
+              )}
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground">{title}</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-9 w-9 rounded-full border-border/50 hidden sm:flex"
+                onClick={() => scrollContainer(scrollRef, 'left')}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-9 w-9 rounded-full border-border/50 hidden sm:flex"
+                onClick={() => scrollContainer(scrollRef, 'right')}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+          
+          <div 
+            ref={scrollRef}
+            className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin snap-x snap-mandatory"
+          >
+            {products.map((product) => (
+              <div key={product.id} className="snap-start">
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-secondary/30">
       <PublicNavbar />
 
-      <main className="flex-1 pt-20">
-        {/* Hero Section */}
-        <section className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
-          <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
-          
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-            <div className="max-w-3xl">
-              <Badge className="mb-6 px-4 py-1.5 text-sm font-medium bg-primary/10 text-primary hover:bg-primary/20 border-0">
-                <Sparkles className="w-4 h-4 mr-2" /> Premium Collection
-              </Badge>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
-                Discover
-                <span className="block bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
-                  Premium Products
-                </span>
-              </h1>
-              <p className="text-lg sm:text-xl text-muted-foreground mb-8 leading-relaxed max-w-xl">
-                Explore our curated collection of high-quality products designed to elevate your experience.
-              </p>
-
-              {/* Search */}
-              <div className="relative max-w-md">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 h-14 text-lg bg-card/50 backdrop-blur-sm border-border/50 rounded-2xl focus:ring-2 focus:ring-primary/20"
-                />
-              </div>
+      <main className="flex-1 pt-16">
+        {/* Category Strip */}
+        <section className="bg-card border-b border-border/50 shadow-sm sticky top-16 z-30">
+          <div className="max-w-[1400px] mx-auto px-4">
+            <div className="flex items-center gap-2 py-3 overflow-x-auto scrollbar-thin">
+              <Button
+                variant={selectedCategory === null ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setSelectedCategory(null)}
+                className={`flex-shrink-0 rounded-full ${
+                  selectedCategory === null 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'hover:bg-muted'
+                }`}
+              >
+                <Layers className="w-4 h-4 mr-2" />
+                All
+              </Button>
+              {categories?.map((category) => (
+                <Button
+                  key={category.id}
+                  variant={selectedCategory === category.id ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`flex-shrink-0 rounded-full ${
+                    selectedCategory === category.id 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'hover:bg-muted'
+                  }`}
+                >
+                  <Tag className="w-4 h-4 mr-2" />
+                  {category.name}
+                </Button>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* Featured Products Carousel */}
-        {highlightedProducts.length > 0 && (
-          <section className="py-16 bg-gradient-to-b from-primary/5 to-background">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center justify-between mb-10">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-warning/10 rounded-2xl">
-                    <Star className="w-6 h-6 text-warning fill-warning" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Featured Products</h2>
-                    <p className="text-muted-foreground">Hand-picked favorites just for you</p>
-                  </div>
-                </div>
-              </div>
+        {/* Search Bar */}
+        <section className="bg-card border-b border-border/50">
+          <div className="max-w-[1400px] mx-auto px-4 py-4">
+            <div className="relative max-w-2xl mx-auto">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                placeholder="Search for products, brands and more..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-12 h-12 text-base bg-secondary/50 border-border/50 rounded-lg focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+          </div>
+        </section>
 
+        {/* Hero Banner Carousel */}
+        {highlightedProducts.length > 0 && !searchQuery && !selectedCategory && (
+          <section className="bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10">
+            <div className="max-w-[1400px] mx-auto">
               <Carousel
                 opts={{ align: "start", loop: true }}
                 plugins={[
                   Autoplay({
-                    delay: 5000,
+                    delay: 4000,
                     stopOnInteraction: true,
                     stopOnMouseEnter: true,
                   }),
                 ]}
                 className="w-full"
               >
-                <CarouselContent className="-ml-4">
-                  {highlightedProducts.map((product) => (
-                    <CarouselItem key={product.id} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
-                      <Card
+                <CarouselContent>
+                  {highlightedProducts.slice(0, 5).map((product) => (
+                    <CarouselItem key={product.id}>
+                      <div 
                         onClick={() => navigate(`/product/${product.id}`)}
-                        className="group cursor-pointer overflow-hidden border-2 border-warning/20 hover:border-warning/50 bg-gradient-to-br from-warning/5 to-background transition-all duration-300 hover:shadow-xl hover:shadow-warning/10"
+                        className="cursor-pointer relative h-[200px] sm:h-[280px] md:h-[350px] flex items-center px-6 sm:px-12"
                       >
-                        <div className="relative aspect-[4/3] overflow-hidden">
-                          {product.images && product.images.length > 0 ? (
-                            <img
-                              src={product.images[0]}
-                              alt={product.name}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-muted flex items-center justify-center">
-                              <Package className="w-20 h-20 text-muted-foreground/20" />
-                            </div>
-                          )}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                          <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                            <Badge className="mb-3 bg-warning text-warning-foreground">
+                        <div className="flex items-center justify-between w-full max-w-6xl mx-auto">
+                          <div className="flex-1 pr-6 sm:pr-12">
+                            <Badge className="mb-3 bg-primary text-primary-foreground">
                               <Star className="w-3 h-3 mr-1 fill-current" /> Featured
                             </Badge>
-                            <h3 className="text-xl font-bold mb-2 line-clamp-1">{product.name}</h3>
-                            <div className="flex items-center justify-between">
-                              <span className="text-2xl font-bold">₹{product.price.toLocaleString()}</span>
-                              <Button
-                                size="sm"
-                                className="bg-white text-black hover:bg-white/90 rounded-full"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigate(`/product/${product.id}`);
-                                }}
-                              >
-                                View <ArrowRight className="w-4 h-4 ml-1" />
-                              </Button>
-                            </div>
+                            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2 line-clamp-2">
+                              {product.name}
+                            </h2>
+                            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-2">
+                              From ₹{product.price.toLocaleString()}
+                            </p>
+                            <p className="text-muted-foreground text-sm sm:text-base line-clamp-2 mb-4 hidden sm:block">
+                              {product.description || "Discover premium quality"}
+                            </p>
+                            <Button 
+                              className="bg-primary text-primary-foreground hover:bg-primary/90"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/product/${product.id}`);
+                              }}
+                            >
+                              Shop Now <ChevronRight className="w-4 h-4 ml-1" />
+                            </Button>
+                          </div>
+                          <div className="w-[120px] sm:w-[180px] md:w-[280px] h-[120px] sm:h-[180px] md:h-[280px] flex-shrink-0">
+                            {product.images && product.images.length > 0 ? (
+                              <img
+                                src={product.images[0]}
+                                alt={product.name}
+                                className="w-full h-full object-contain drop-shadow-2xl"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-muted rounded-2xl flex items-center justify-center">
+                                <Package className="w-20 h-20 text-muted-foreground/30" />
+                              </div>
+                            )}
                           </div>
                         </div>
-                      </Card>
+                      </div>
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="hidden sm:flex -left-4 bg-background/80 backdrop-blur-sm" />
-                <CarouselNext className="hidden sm:flex -right-4 bg-background/80 backdrop-blur-sm" />
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                  {highlightedProducts.slice(0, 5).map((_, index) => (
+                    <div
+                      key={index}
+                      className="w-2 h-2 rounded-full bg-primary/30"
+                    />
+                  ))}
+                </div>
+                <CarouselPrevious className="left-2 sm:left-4 bg-background/80 backdrop-blur-sm border-border/50" />
+                <CarouselNext className="right-2 sm:right-4 bg-background/80 backdrop-blur-sm border-border/50" />
               </Carousel>
             </div>
           </section>
         )}
 
-        {/* Products by Category */}
-        <section className="py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20">
-            {productsLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {[...Array(8)].map((_, i) => (
-                  <Card key={i} className="overflow-hidden border-0 bg-card/50">
-                    <Skeleton className="aspect-square" />
-                    <CardContent className="p-5">
-                      <Skeleton className="h-4 w-1/3 mb-2" />
-                      <Skeleton className="h-6 w-3/4 mb-2" />
-                      <Skeleton className="h-4 w-full mb-4" />
-                      <Skeleton className="h-8 w-1/2" />
+        {/* Loading State */}
+        {productsLoading ? (
+          <section className="py-8">
+            <div className="max-w-[1400px] mx-auto px-4">
+              <Skeleton className="h-8 w-48 mb-4" />
+              <div className="flex gap-4 overflow-hidden">
+                {[...Array(6)].map((_, i) => (
+                  <Card key={i} className="flex-shrink-0 w-[220px] overflow-hidden border-0">
+                    <Skeleton className="h-[180px]" />
+                    <CardContent className="p-4">
+                      <Skeleton className="h-3 w-1/3 mb-2" />
+                      <Skeleton className="h-5 w-3/4 mb-2" />
+                      <Skeleton className="h-6 w-1/2" />
                     </CardContent>
                   </Card>
                 ))}
               </div>
-            ) : (
-              <>
-                {categories?.map((category) => {
-                  const categoryProducts = getProductsByCategory(category.id);
-                  if (categoryProducts.length === 0) return null;
-
-                  return (
-                    <div key={category.id}>
-                      <div className="flex items-center gap-4 mb-8">
-                        <div className="h-12 w-1.5 bg-gradient-to-b from-primary to-primary/50 rounded-full" />
-                        <div>
-                          <h2 className="text-2xl sm:text-3xl font-bold text-foreground">{category.name}</h2>
-                          <p className="text-muted-foreground">
-                            {categoryProducts.length} product{categoryProducts.length !== 1 ? "s" : ""}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {categoryProducts.map((product) => (
-                          <ProductCard key={product.id} product={product} />
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {uncategorizedProducts.length > 0 && (
-                  <div>
-                    <div className="flex items-center gap-4 mb-8">
-                      <div className="h-12 w-1.5 bg-gradient-to-b from-muted-foreground to-muted-foreground/50 rounded-full" />
-                      <div>
-                        <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Other Products</h2>
-                        <p className="text-muted-foreground">
-                          {uncategorizedProducts.length} product{uncategorizedProducts.length !== 1 ? "s" : ""}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                      {uncategorizedProducts.map((product) => (
-                        <ProductCard key={product.id} product={product} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {filteredProducts && filteredProducts.length === 0 && (
-                  <div className="text-center py-24">
-                    <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <Package className="w-12 h-12 text-primary" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-foreground mb-4">
-                      {searchQuery ? "No products found" : "Products Coming Soon"}
-                    </h2>
-                    <p className="text-muted-foreground text-lg max-w-md mx-auto mb-8">
-                      {searchQuery
-                        ? "Try adjusting your search query."
-                        : "We're preparing an amazing collection of premium products."}
-                    </p>
-                    {searchQuery && (
-                      <Button
-                        variant="outline"
-                        onClick={() => setSearchQuery("")}
-                        className="rounded-full px-8"
-                      >
-                        Clear Search
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </>
+            </div>
+          </section>
+        ) : (
+          <>
+            {/* Featured Products Section */}
+            {highlightedProducts.length > 0 && !selectedCategory && (
+              <HorizontalProductSection 
+                title="Top Deals" 
+                products={highlightedProducts}
+                icon={Star}
+                bgColor="bg-card"
+              />
             )}
-          </div>
-        </section>
+
+            {/* Category Sections */}
+            {categories?.map((category) => {
+              const categoryProducts = getProductsByCategory(category.id);
+              if (categoryProducts.length === 0) return null;
+
+              return (
+                <HorizontalProductSection 
+                  key={category.id}
+                  title={category.name} 
+                  products={categoryProducts}
+                  icon={Tag}
+                  bgColor="bg-background"
+                />
+              );
+            })}
+
+            {/* Uncategorized Products */}
+            {(() => {
+              const uncategorizedProducts = filteredProducts?.filter((p) => !p.category_id) || [];
+              if (uncategorizedProducts.length === 0) return null;
+              
+              return (
+                <HorizontalProductSection 
+                  title="More Products" 
+                  products={uncategorizedProducts}
+                  icon={Package}
+                  bgColor="bg-card"
+                />
+              );
+            })()}
+
+            {/* Empty State */}
+            {filteredProducts && filteredProducts.length === 0 && (
+              <div className="text-center py-24 px-4">
+                <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Package className="w-12 h-12 text-primary" />
+                </div>
+                <h2 className="text-2xl font-bold text-foreground mb-4">
+                  {searchQuery ? "No products found" : "Products Coming Soon"}
+                </h2>
+                <p className="text-muted-foreground text-lg max-w-md mx-auto mb-8">
+                  {searchQuery
+                    ? "Try adjusting your search query or browse categories."
+                    : "We're preparing an amazing collection of premium products."}
+                </p>
+                {(searchQuery || selectedCategory) && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSelectedCategory(null);
+                    }}
+                    className="rounded-full px-8"
+                  >
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
+            )}
+          </>
+        )}
       </main>
 
       <PublicFooter />
