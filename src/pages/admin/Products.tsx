@@ -8,8 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Upload, X, Image, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Upload, X, Image, Loader2, Star } from "lucide-react";
 
 interface Product {
   id: string;
@@ -20,6 +21,7 @@ interface Product {
   stock_quantity: number;
   availability_status: string;
   images: string[] | null;
+  is_highlighted: boolean;
 }
 
 interface Category {
@@ -33,7 +35,7 @@ export default function Products() {
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [formData, setFormData] = useState({ name: "", description: "", price: "", category_id: "", stock_quantity: "", availability_status: "in_stock" });
+  const [formData, setFormData] = useState({ name: "", description: "", price: "", category_id: "", stock_quantity: "", availability_status: "in_stock", is_highlighted: false });
   const [productImages, setProductImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -97,7 +99,8 @@ export default function Products() {
       category_id: formData.category_id || null, 
       stock_quantity: parseInt(formData.stock_quantity) || 0, 
       availability_status: formData.availability_status,
-      images: productImages.length > 0 ? productImages : null
+      images: productImages.length > 0 ? productImages : null,
+      is_highlighted: formData.is_highlighted
     };
     
     if (editingProduct) {
@@ -118,15 +121,37 @@ export default function Products() {
     toast({ title: "Product deleted" }); fetchData();
   };
 
+  const toggleHighlight = async (product: Product) => {
+    const { error } = await supabase
+      .from("products")
+      .update({ is_highlighted: !product.is_highlighted })
+      .eq("id", product.id);
+    
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: product.is_highlighted ? "Removed from highlights" : "Added to highlights" });
+    fetchData();
+  };
+
   const resetForm = () => { 
-    setFormData({ name: "", description: "", price: "", category_id: "", stock_quantity: "", availability_status: "in_stock" }); 
+    setFormData({ name: "", description: "", price: "", category_id: "", stock_quantity: "", availability_status: "in_stock", is_highlighted: false }); 
     setEditingProduct(null);
     setProductImages([]);
   };
 
   const openEdit = (product: Product) => {
     setEditingProduct(product);
-    setFormData({ name: product.name, description: product.description || "", price: String(product.price), category_id: product.category_id || "", stock_quantity: String(product.stock_quantity), availability_status: product.availability_status });
+    setFormData({ 
+      name: product.name, 
+      description: product.description || "", 
+      price: String(product.price), 
+      category_id: product.category_id || "", 
+      stock_quantity: String(product.stock_quantity), 
+      availability_status: product.availability_status,
+      is_highlighted: product.is_highlighted
+    });
     setProductImages(product.images || []);
     setDialogOpen(true);
   };
@@ -147,7 +172,22 @@ export default function Products() {
                 <div><Label>Stock Quantity</Label><Input type="number" value={formData.stock_quantity} onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })} required /></div>
               </div>
               <div><Label>Category</Label><Select value={formData.category_id} onValueChange={(v) => setFormData({ ...formData, category_id: v })}><SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger><SelectContent>{categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select></div>
-              <div><Label>Availability Status</Label><Select value={formData.availability_status} onValueChange={(v) => setFormData({ ...formData, availability_status: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="in_stock">In Stock</SelectItem><SelectItem value="out_of_stock">Out of Stock</SelectItem></SelectContent></Select></div>
+              <div><Label>Availability Status</Label><Select value={formData.availability_status} onValueChange={(v) => setFormData({ ...formData, availability_status: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="in_stock">In Stock</SelectItem><SelectItem value="low_stock">Low Stock</SelectItem><SelectItem value="out_of_stock">Out of Stock</SelectItem></SelectContent></Select></div>
+              
+              {/* Highlight Toggle */}
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
+                <div className="flex items-center gap-3">
+                  <Star className="h-5 w-5 text-warning" />
+                  <div>
+                    <Label className="text-base">Highlight Product</Label>
+                    <p className="text-sm text-muted-foreground">Show this product in the featured slideshow</p>
+                  </div>
+                </div>
+                <Switch 
+                  checked={formData.is_highlighted} 
+                  onCheckedChange={(checked) => setFormData({ ...formData, is_highlighted: checked })} 
+                />
+              </div>
               
               {/* Image Upload Section */}
               <div className="space-y-3">
@@ -215,14 +255,15 @@ export default function Products() {
               <TableHead>Price</TableHead>
               <TableHead>Stock</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead className="text-center">Featured</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={6} className="text-center py-8">Loading...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center py-8">Loading...</TableCell></TableRow>
             ) : products.length === 0 ? (
-              <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No products yet</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No products yet</TableCell></TableRow>
             ) : products.map((p) => (
               <TableRow key={p.id}>
                 <TableCell>
@@ -238,9 +279,25 @@ export default function Products() {
                 <TableCell>₹{p.price}</TableCell>
                 <TableCell>{p.stock_quantity}</TableCell>
                 <TableCell>
-                  <span className={`px-2 py-1 rounded-full text-xs ${p.availability_status === "in_stock" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
-                    {p.availability_status === "in_stock" ? "In Stock" : "Out of Stock"}
+                  <span className={`px-2 py-1 rounded-full text-xs ${
+                    p.availability_status === "in_stock" 
+                      ? "bg-success/10 text-success" 
+                      : p.availability_status === "low_stock"
+                      ? "bg-warning/10 text-warning"
+                      : "bg-destructive/10 text-destructive"
+                  }`}>
+                    {p.availability_status === "in_stock" ? "In Stock" : p.availability_status === "low_stock" ? "Low Stock" : "Out of Stock"}
                   </span>
+                </TableCell>
+                <TableCell className="text-center">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => toggleHighlight(p)}
+                    className={p.is_highlighted ? "text-warning" : "text-muted-foreground"}
+                  >
+                    <Star className={`h-5 w-5 ${p.is_highlighted ? "fill-warning" : ""}`} />
+                  </Button>
                 </TableCell>
                 <TableCell className="text-right">
                   <Button variant="ghost" size="icon" onClick={() => openEdit(p)}><Pencil className="h-4 w-4" /></Button>
