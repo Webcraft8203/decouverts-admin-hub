@@ -338,6 +338,7 @@ const Checkout = () => {
     const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
     if (itemsError) {
       console.error("Order items creation error:", itemsError);
+      throw new Error("Failed to create order items. Please try again.");
     }
 
     // Clear cart if cart checkout
