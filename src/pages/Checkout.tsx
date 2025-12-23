@@ -23,7 +23,9 @@ import {
   Plus,
   AlertCircle,
   Phone,
-  Banknote
+  Banknote,
+  Ticket,
+  X
 } from "lucide-react";
 import {
   Dialog,
@@ -91,6 +93,18 @@ const Checkout = () => {
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [step, setStep] = useState<"address" | "review" | "payment">("address");
   const [paymentMethod, setPaymentMethod] = useState<"razorpay" | "cod">("razorpay");
+  
+  // Promo code state
+  const [promoCode, setPromoCode] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<{
+    id: string;
+    code: string;
+    discount_type: "fixed" | "percentage";
+    discount_value: number;
+    max_discount_amount: number | null;
+  } | null>(null);
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoError, setPromoError] = useState("");
 
   const isCartCheckout = productId === "cart";
 
@@ -213,10 +227,29 @@ const Checkout = () => {
 
   const selectedAddress = addresses?.find((a) => a.id === selectedAddressId);
   
-  // Calculate total amount based on checkout type
-  const totalAmount = isCartCheckout
+  const subtotalAmount = isCartCheckout
     ? cartItems?.reduce((sum, item) => sum + (item.products?.price || 0) * item.quantity, 0) || 0
     : product ? product.price * quantity : 0;
+
+  // Calculate discount
+  const calculateDiscount = () => {
+    if (!appliedPromo) return 0;
+    
+    let discount = 0;
+    if (appliedPromo.discount_type === "percentage") {
+      discount = (subtotalAmount * appliedPromo.discount_value) / 100;
+      if (appliedPromo.max_discount_amount && discount > appliedPromo.max_discount_amount) {
+        discount = appliedPromo.max_discount_amount;
+      }
+    } else {
+      discount = appliedPromo.discount_value;
+    }
+    
+    return Math.min(discount, subtotalAmount);
+  };
+
+  const discountAmount = calculateDiscount();
+  const totalAmount = subtotalAmount - discountAmount;
 
   // Get items for display and order creation
   const checkoutItems = isCartCheckout
@@ -273,6 +306,69 @@ const Checkout = () => {
     return { valid: true };
   };
 
+  const handleApplyPromoCode = async () => {
+    if (!promoCode.trim()) {
+      setPromoError("Please enter a promo code");
+      return;
+    }
+
+    setPromoLoading(true);
+    setPromoError("");
+
+    try {
+      const { data, error } = await supabase
+        .from("promo_codes")
+        .select("*")
+        .eq("code", promoCode.trim().toUpperCase())
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (!data) {
+        setPromoError("Invalid promo code");
+        return;
+      }
+
+      // Check if expired
+      if (data.expires_at && new Date(data.expires_at) < new Date()) {
+        setPromoError("This promo code has expired");
+        return;
+      }
+
+      // Check usage limit
+      if (data.used_count >= data.max_uses) {
+        setPromoError("This promo code has been fully redeemed");
+        return;
+      }
+
+      // Check minimum order amount
+      if (data.min_order_amount && subtotalAmount < data.min_order_amount) {
+        setPromoError(`Minimum order amount of ₹${data.min_order_amount} required`);
+        return;
+      }
+
+      setAppliedPromo({
+        id: data.id,
+        code: data.code,
+        discount_type: data.discount_type as "fixed" | "percentage",
+        discount_value: data.discount_value,
+        max_discount_amount: data.max_discount_amount,
+      });
+      setPromoCode("");
+      toast.success(`Promo code "${data.code}" applied!`);
+    } catch (err) {
+      setPromoError("Failed to apply promo code");
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
+  const removePromoCode = () => {
+    setAppliedPromo(null);
+    toast.info("Promo code removed");
+  };
+
   const handleProceedToReview = () => {
     const check = canProceedToReview();
     if (!check.valid) {
@@ -303,6 +399,8 @@ const Checkout = () => {
     const base = {
       addressId: selectedAddress.id,
       payment: paymentPayload,
+      promoCodeId: appliedPromo?.id || null,
+      discountAmount: discountAmount,
     };
 
     const body = isCartCheckout
@@ -1043,11 +1141,63 @@ const Checkout = () => {
                         ))}
                       </div>
 
+                      {/* Promo Code Section */}
+                      <div className="border-t pt-4">
+                        {appliedPromo ? (
+                          <div className="flex items-center justify-between p-3 bg-green-500/10 rounded-lg">
+                            <div className="flex items-center gap-2">
+                              <Ticket className="w-4 h-4 text-green-600" />
+                              <span className="text-sm font-medium text-green-600">{appliedPromo.code}</span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={removePromoCode}
+                              className="h-7 px-2 text-muted-foreground hover:text-destructive"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <div className="flex gap-2">
+                              <Input
+                                placeholder="Enter promo code"
+                                value={promoCode}
+                                onChange={(e) => {
+                                  setPromoCode(e.target.value.toUpperCase());
+                                  setPromoError("");
+                                }}
+                                className="flex-1 h-9 text-sm"
+                              />
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={handleApplyPromoCode}
+                                disabled={promoLoading}
+                                className="h-9"
+                              >
+                                {promoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Apply"}
+                              </Button>
+                            </div>
+                            {promoError && (
+                              <p className="text-xs text-destructive">{promoError}</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
                       <div className="border-t pt-4 space-y-2">
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">Subtotal ({checkoutItems.length} items)</span>
-                          <span>₹{totalAmount.toLocaleString()}</span>
+                          <span>₹{subtotalAmount.toLocaleString()}</span>
                         </div>
+                        {discountAmount > 0 && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-green-600">Discount</span>
+                            <span className="text-green-600">-₹{discountAmount.toLocaleString()}</span>
+                          </div>
+                        )}
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">Shipping</span>
                           <span className="text-green-600">Free</span>

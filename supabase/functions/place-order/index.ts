@@ -10,6 +10,8 @@ type PlaceOrderBody =
   | {
       checkoutMode: "cart";
       addressId: string;
+      promoCodeId?: string | null;
+      discountAmount?: number;
       payment: {
         method: "razorpay" | "cod";
         status: "paid" | "pending";
@@ -21,6 +23,8 @@ type PlaceOrderBody =
       addressId: string;
       productId: string;
       quantity: number;
+      promoCodeId?: string | null;
+      discountAmount?: number;
       payment: {
         method: "razorpay" | "cod";
         status: "paid" | "pending";
@@ -35,7 +39,6 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     const authHeader = req.headers.get("authorization") || "";
@@ -113,6 +116,68 @@ serve(async (req) => {
       subtotal += Number(p.price) * item.quantity;
     }
 
+    // Handle promo code
+    let promoCodeId = body.promoCodeId || null;
+    let discountAmount = body.discountAmount || 0;
+
+    // Validate and update promo code usage if provided
+    if (promoCodeId) {
+      const { data: promoCode, error: promoError } = await supabase
+        .from("promo_codes")
+        .select("*")
+        .eq("id", promoCodeId)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (promoError) {
+        console.error("Promo code lookup error:", promoError);
+        promoCodeId = null;
+        discountAmount = 0;
+      } else if (!promoCode) {
+        console.log("Promo code not found or inactive");
+        promoCodeId = null;
+        discountAmount = 0;
+      } else {
+        // Validate promo code
+        const now = new Date();
+        const isExpired = promoCode.expires_at && new Date(promoCode.expires_at) < now;
+        const isExhausted = promoCode.used_count >= promoCode.max_uses;
+        const belowMinOrder = promoCode.min_order_amount && subtotal < promoCode.min_order_amount;
+
+        if (isExpired || isExhausted || belowMinOrder) {
+          console.log("Promo code invalid:", { isExpired, isExhausted, belowMinOrder });
+          promoCodeId = null;
+          discountAmount = 0;
+        } else {
+          // Calculate and validate discount
+          let calculatedDiscount = 0;
+          if (promoCode.discount_type === "percentage") {
+            calculatedDiscount = (subtotal * promoCode.discount_value) / 100;
+            if (promoCode.max_discount_amount && calculatedDiscount > promoCode.max_discount_amount) {
+              calculatedDiscount = promoCode.max_discount_amount;
+            }
+          } else {
+            calculatedDiscount = promoCode.discount_value;
+          }
+          
+          // Use the minimum of calculated and provided discount for security
+          discountAmount = Math.min(calculatedDiscount, discountAmount, subtotal);
+
+          // Increment promo code usage
+          const { error: updateError } = await supabase
+            .from("promo_codes")
+            .update({ used_count: promoCode.used_count + 1 })
+            .eq("id", promoCodeId);
+
+          if (updateError) {
+            console.error("Failed to update promo code usage:", updateError);
+          }
+        }
+      }
+    }
+
+    const totalAmount = subtotal - discountAmount;
+
     // Create order
     const { data: orderNumberRow, error: orderNumberError } = await supabase.rpc("generate_order_number");
     if (orderNumberError) throw orderNumberError;
@@ -138,7 +203,9 @@ serve(async (req) => {
         subtotal,
         tax_amount: 0,
         shipping_amount: 0,
-        total_amount: subtotal,
+        discount_amount: discountAmount,
+        promo_code_id: promoCodeId,
+        total_amount: totalAmount,
         status: "pending",
         payment_status: body.payment?.status ?? "pending",
         payment_id: body.payment?.paymentId ?? null,
@@ -183,6 +250,8 @@ serve(async (req) => {
       const { error: clearError } = await supabase.from("cart_items").delete().eq("user_id", user.id);
       if (clearError) throw clearError;
     }
+
+    console.log("Order placed successfully:", newOrder.order_number, "Discount:", discountAmount);
 
     return new Response(JSON.stringify({ orderId: newOrder.id, orderNumber: newOrder.order_number }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

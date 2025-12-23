@@ -176,12 +176,14 @@ export type Database = {
         Row: {
           address_id: string | null
           created_at: string
+          discount_amount: number | null
           id: string
           invoice_url: string | null
           notes: string | null
           order_number: string
           payment_id: string | null
           payment_status: string | null
+          promo_code_id: string | null
           shipping_address: Json | null
           shipping_amount: number
           status: string
@@ -194,12 +196,14 @@ export type Database = {
         Insert: {
           address_id?: string | null
           created_at?: string
+          discount_amount?: number | null
           id?: string
           invoice_url?: string | null
           notes?: string | null
           order_number: string
           payment_id?: string | null
           payment_status?: string | null
+          promo_code_id?: string | null
           shipping_address?: Json | null
           shipping_amount?: number
           status?: string
@@ -212,12 +216,14 @@ export type Database = {
         Update: {
           address_id?: string | null
           created_at?: string
+          discount_amount?: number | null
           id?: string
           invoice_url?: string | null
           notes?: string | null
           order_number?: string
           payment_id?: string | null
           payment_status?: string | null
+          promo_code_id?: string | null
           shipping_address?: Json | null
           shipping_amount?: number
           status?: string
@@ -233,6 +239,13 @@ export type Database = {
             columns: ["address_id"]
             isOneToOne: false
             referencedRelation: "user_addresses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            isOneToOne: false
+            referencedRelation: "promo_codes"
             referencedColumns: ["id"]
           },
         ]
@@ -355,6 +368,54 @@ export type Database = {
           id?: string
           phone_number?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      promo_codes: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          discount_type: string
+          discount_value: number
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_discount_amount: number | null
+          max_uses: number
+          min_order_amount: number | null
+          updated_at: string
+          used_count: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          discount_type?: string
+          discount_value: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_discount_amount?: number | null
+          max_uses?: number
+          min_order_amount?: number | null
+          updated_at?: string
+          used_count?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          discount_type?: string
+          discount_value?: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_discount_amount?: number | null
+          max_uses?: number
+          min_order_amount?: number | null
+          updated_at?: string
+          used_count?: number
         }
         Relationships: []
       }
