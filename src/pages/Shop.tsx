@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShoppingCart, Package, Search, Plus, Star, ArrowRight, Sparkles } from "lucide-react";
+import { ShoppingCart, Package, Search, Plus, Star, ArrowRight, Sparkles, Share2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -114,6 +114,29 @@ const Shop = () => {
     addToCartMutation.mutate(productId);
   };
 
+  const handleShare = async (e: React.MouseEvent, product: Product) => {
+    e.stopPropagation();
+    const productUrl = `${window.location.origin}/product/${product.id}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: product.name,
+          text: product.description || `Check out ${product.name}`,
+          url: productUrl,
+        });
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          await navigator.clipboard.writeText(productUrl);
+          toast.success("Link copied to clipboard!");
+        }
+      }
+    } else {
+      await navigator.clipboard.writeText(productUrl);
+      toast.success("Link copied to clipboard!");
+    }
+  };
+
   const filteredProducts = products?.filter(
     (product) =>
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -171,6 +194,16 @@ const Shop = () => {
             </Badge>
           )}
         </div>
+
+        {/* Share Button */}
+        <Button
+          size="icon"
+          variant="secondary"
+          onClick={(e) => handleShare(e, product)}
+          className="absolute top-3 right-3 w-9 h-9 rounded-full bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-background"
+        >
+          <Share2 className="w-4 h-4" />
+        </Button>
       </div>
 
       <CardContent className="p-5">
