@@ -11,11 +11,17 @@ import Shop from "./pages/Shop";
 import Checkout from "./pages/Checkout";
 import CustomerAuth from "./pages/CustomerAuth";
 import Auth from "./pages/Auth";
+import UserDashboard from "./pages/user/Dashboard";
+import UserCart from "./pages/user/Cart";
+import UserOrders from "./pages/user/Orders";
+import UserAddresses from "./pages/user/Addresses";
+import UserInvoices from "./pages/user/Invoices";
 import Dashboard from "./pages/admin/Dashboard";
 import Products from "./pages/admin/Products";
 import Categories from "./pages/admin/Categories";
 import Inventory from "./pages/admin/Inventory";
 import RawMaterials from "./pages/admin/RawMaterials";
+import AdminOrders from "./pages/admin/Orders";
 import Invoices from "./pages/admin/Invoices";
 import NotFound from "./pages/NotFound";
 
@@ -34,11 +40,17 @@ const App = () => (
             <Route path="/checkout/:productId" element={<Checkout />} />
             <Route path="/login" element={<CustomerAuth />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/dashboard" element={<UserDashboard />} />
+            <Route path="/dashboard/cart" element={<UserCart />} />
+            <Route path="/dashboard/orders" element={<UserOrders />} />
+            <Route path="/dashboard/addresses" element={<UserAddresses />} />
+            <Route path="/dashboard/invoices" element={<UserInvoices />} />
             <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminLayout><Dashboard /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/products" element={<ProtectedRoute requireAdmin><AdminLayout><Products /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/categories" element={<ProtectedRoute requireAdmin><AdminLayout><Categories /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/inventory" element={<ProtectedRoute requireAdmin><AdminLayout><Inventory /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/raw-materials" element={<ProtectedRoute requireAdmin><AdminLayout><RawMaterials /></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/orders" element={<ProtectedRoute requireAdmin><AdminLayout><AdminOrders /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/invoices" element={<ProtectedRoute requireAdmin><AdminLayout><Invoices /></AdminLayout></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
