@@ -47,7 +47,7 @@ const statusLabels: Record<string, string> = {
 const OrderDetails = () => {
   const { orderId } = useParams();
   const { user, isLoading: authLoading } = useAuth();
-  const { downloadInvoice, isDownloading } = useInvoiceDownload();
+  const { downloadInvoice, isDownloading, generateInvoice, isGenerating } = useInvoiceDownload();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -253,7 +253,7 @@ const OrderDetails = () => {
                       </span>
                     )}
                   </div>
-                  {order.invoice_url && (
+                  {order.invoice_url ? (
                     <Button
                       variant="outline"
                       className="w-full mt-4"
@@ -261,9 +261,24 @@ const OrderDetails = () => {
                       disabled={isDownloading}
                     >
                       <Download className="w-4 h-4 mr-2" />
-                      Download Invoice
+                      {isDownloading ? "Downloading..." : "Download Invoice"}
                     </Button>
-                  )}
+                  ) : order.payment_status === "paid" ? (
+                    <Button
+                      variant="outline"
+                      className="w-full mt-4"
+                      onClick={async () => {
+                        const success = await generateInvoice(order.id);
+                        if (success) {
+                          window.location.reload();
+                        }
+                      }}
+                      disabled={isGenerating}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      {isGenerating ? "Generating..." : "Generate Invoice"}
+                    </Button>
+                  ) : null}
                 </CardContent>
               </Card>
 

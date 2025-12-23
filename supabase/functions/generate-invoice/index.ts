@@ -6,8 +6,22 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Company details - update these as needed
+const COMPANY = {
+  name: "Decouverts Plus",
+  tagline: "Premium 3D Printing Solutions",
+  address: "123 Innovation Hub, Tech Park",
+  city: "Pune",
+  state: "Maharashtra",
+  pincode: "411001",
+  country: "India",
+  phone: "+91 98765 43210",
+  email: "info@decouvertsplus.com",
+  website: "www.decouvertsplus.com",
+  gst: "27XXXXX1234X1ZX", // GST Number
+};
+
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -25,7 +39,6 @@ serve(async (req) => {
 
     console.log("Generating invoice for order:", orderId);
 
-    // Fetch order details
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .select("*, order_items(*, products(name, images))")
@@ -39,10 +52,13 @@ serve(async (req) => {
 
     console.log("Order found:", order.order_number);
 
-    // Generate invoice number
     const invoiceNumber = `INV-${order.order_number.replace("DP-", "")}`;
+    const invoiceDate = new Date(order.created_at).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
 
-    // Prepare invoice items
     const items = order.order_items.map((item: any) => ({
       name: item.product_name,
       quantity: item.quantity,
@@ -50,20 +66,17 @@ serve(async (req) => {
       total: item.total_price,
     }));
 
-    // Get shipping address
     const shippingAddress = order.shipping_address as any;
     const clientAddress = shippingAddress
       ? `${shippingAddress.address_line1}${shippingAddress.address_line2 ? ", " + shippingAddress.address_line2 : ""}, ${shippingAddress.city}, ${shippingAddress.state} - ${shippingAddress.postal_code}, ${shippingAddress.country}`
       : "";
 
-    // Fetch user profile for email
     const { data: profile } = await supabase
       .from("profiles")
       .select("email, full_name")
       .eq("id", order.user_id)
       .single();
 
-    // Create invoice in database
     const { data: invoice, error: invoiceError } = await supabase
       .from("invoices")
       .insert({
@@ -95,105 +108,174 @@ serve(async (req) => {
   <meta charset="UTF-8">
   <title>Invoice ${invoiceNumber}</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 40px; color: #333; }
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
-    .company { font-size: 24px; font-weight: bold; color: #EAAB1C; }
-    .invoice-title { font-size: 32px; font-weight: bold; color: #333; }
-    .invoice-number { color: #666; margin-top: 5px; }
-    .details { display: flex; justify-content: space-between; margin-bottom: 30px; }
-    .bill-to h3 { margin: 0 0 10px 0; color: #666; font-size: 14px; }
-    .bill-to p { margin: 5px 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; background: #fff; padding: 20px; }
+    .invoice-container { max-width: 800px; margin: 0 auto; border: 1px solid #e0e0e0; padding: 40px; }
+    
+    /* Header */
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid #EAAB1C; }
+    .company-info { max-width: 50%; }
+    .company-name { font-size: 28px; font-weight: bold; color: #EAAB1C; margin-bottom: 5px; }
+    .company-tagline { color: #666; font-size: 12px; margin-bottom: 10px; }
+    .company-details { font-size: 11px; color: #555; line-height: 1.6; }
+    .invoice-meta { text-align: right; }
+    .invoice-title { font-size: 36px; font-weight: bold; color: #333; letter-spacing: 2px; }
+    .invoice-number { font-size: 14px; color: #666; margin-top: 5px; }
+    .invoice-date { font-size: 12px; color: #888; margin-top: 5px; }
+    
+    /* Billing Section */
+    .billing-section { display: flex; justify-content: space-between; margin: 30px 0; }
+    .bill-to, .order-info { width: 48%; }
+    .section-title { font-size: 11px; font-weight: bold; color: #EAAB1C; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .customer-name { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 5px; }
+    .customer-details { font-size: 12px; color: #555; line-height: 1.6; }
+    .order-info { text-align: right; }
+    .order-info p { font-size: 12px; color: #555; margin-bottom: 5px; }
+    .order-info strong { color: #333; }
+    
+    /* Items Table */
     table { width: 100%; border-collapse: collapse; margin: 30px 0; }
-    th { background: #f5f5f5; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; }
-    td { padding: 12px; border-bottom: 1px solid #eee; }
+    th { background: #f8f8f8; padding: 12px 15px; text-align: left; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; color: #555; border-bottom: 2px solid #EAAB1C; }
+    td { padding: 15px; border-bottom: 1px solid #eee; font-size: 13px; }
     .text-right { text-align: right; }
-    .summary { margin-left: auto; width: 300px; }
-    .summary-row { display: flex; justify-content: space-between; padding: 8px 0; }
-    .summary-total { border-top: 2px solid #333; font-weight: bold; font-size: 18px; }
-    .footer { margin-top: 60px; text-align: center; color: #666; font-size: 12px; }
+    .text-center { text-align: center; }
+    tr:last-child td { border-bottom: none; }
+    
+    /* Summary */
+    .summary-section { display: flex; justify-content: flex-end; margin-top: 20px; }
+    .summary { width: 280px; }
+    .summary-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; }
+    .summary-row span:first-child { color: #666; }
+    .summary-row span:last-child { color: #333; font-weight: 500; }
+    .summary-total { border-top: 2px solid #333; margin-top: 10px; padding-top: 10px; font-size: 16px; font-weight: bold; }
+    .summary-total span:last-child { color: #EAAB1C; }
+    
+    /* Footer */
+    .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; }
+    .footer-text { font-size: 11px; color: #888; margin-bottom: 5px; }
+    .footer-thanks { font-size: 14px; font-weight: 500; color: #333; margin-bottom: 10px; }
+    
+    /* GST Box */
+    .gst-box { background: #f9f9f9; border: 1px solid #eee; padding: 15px; margin-top: 20px; border-radius: 5px; }
+    .gst-title { font-size: 11px; font-weight: bold; color: #555; margin-bottom: 5px; }
+    .gst-number { font-size: 14px; font-weight: bold; color: #333; letter-spacing: 1px; }
+    
+    @media print {
+      body { padding: 0; }
+      .invoice-container { border: none; padding: 20px; }
+    }
   </style>
 </head>
 <body>
-  <div class="header">
-    <div>
-      <div class="company">Decouverts Plus</div>
-      <p style="color: #666; margin-top: 5px;">Premium 3D Printing Solutions</p>
+  <div class="invoice-container">
+    <div class="header">
+      <div class="company-info">
+        <div class="company-name">${COMPANY.name}</div>
+        <div class="company-tagline">${COMPANY.tagline}</div>
+        <div class="company-details">
+          ${COMPANY.address}<br>
+          ${COMPANY.city}, ${COMPANY.state} - ${COMPANY.pincode}<br>
+          ${COMPANY.country}<br>
+          Phone: ${COMPANY.phone}<br>
+          Email: ${COMPANY.email}<br>
+          <strong>GSTIN: ${COMPANY.gst}</strong>
+        </div>
+      </div>
+      <div class="invoice-meta">
+        <div class="invoice-title">INVOICE</div>
+        <div class="invoice-number">${invoiceNumber}</div>
+        <div class="invoice-date">Date: ${invoiceDate}</div>
+      </div>
     </div>
-    <div style="text-align: right;">
-      <div class="invoice-title">INVOICE</div>
-      <div class="invoice-number">${invoiceNumber}</div>
-      <div style="color: #666; margin-top: 10px;">Date: ${new Date(order.created_at).toLocaleDateString()}</div>
-    </div>
-  </div>
 
-  <div class="details">
-    <div class="bill-to">
-      <h3>BILL TO:</h3>
-      <p><strong>${shippingAddress?.full_name || "Customer"}</strong></p>
-      <p>${shippingAddress?.address_line1 || ""}</p>
-      ${shippingAddress?.address_line2 ? `<p>${shippingAddress.address_line2}</p>` : ""}
-      <p>${shippingAddress?.city || ""}, ${shippingAddress?.state || ""} - ${shippingAddress?.postal_code || ""}</p>
-      <p>Phone: ${shippingAddress?.phone || "N/A"}</p>
+    <div class="billing-section">
+      <div class="bill-to">
+        <div class="section-title">Bill To</div>
+        <div class="customer-name">${shippingAddress?.full_name || "Customer"}</div>
+        <div class="customer-details">
+          ${shippingAddress?.address_line1 || ""}<br>
+          ${shippingAddress?.address_line2 ? shippingAddress.address_line2 + "<br>" : ""}
+          ${shippingAddress?.city || ""}, ${shippingAddress?.state || ""} - ${shippingAddress?.postal_code || ""}<br>
+          ${shippingAddress?.country || "India"}<br>
+          Phone: ${shippingAddress?.phone || "N/A"}<br>
+          Email: ${profile?.email || "N/A"}
+        </div>
+      </div>
+      <div class="order-info">
+        <div class="section-title">Order Details</div>
+        <p><strong>Order No:</strong> ${order.order_number}</p>
+        <p><strong>Order Date:</strong> ${invoiceDate}</p>
+        <p><strong>Payment Status:</strong> ${order.payment_status === "paid" ? "✓ Paid" : "Pending"}</p>
+        ${order.payment_id ? `<p><strong>Payment ID:</strong> ${order.payment_id}</p>` : ""}
+      </div>
     </div>
-    <div style="text-align: right;">
-      <p><strong>Order Number:</strong> ${order.order_number}</p>
-      <p><strong>Payment Status:</strong> ${order.payment_status === "paid" ? "Paid" : "Pending"}</p>
-      ${order.payment_id ? `<p><strong>Payment ID:</strong> ${order.payment_id}</p>` : ""}
-    </div>
-  </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Item</th>
-        <th class="text-right">Qty</th>
-        <th class="text-right">Price</th>
-        <th class="text-right">Total</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${items
-        .map(
-          (item: any) => `
+    <table>
+      <thead>
         <tr>
-          <td>${item.name}</td>
-          <td class="text-right">${item.quantity}</td>
-          <td class="text-right">₹${Number(item.price).toLocaleString()}</td>
-          <td class="text-right">₹${Number(item.total).toLocaleString()}</td>
+          <th style="width: 50%">Description</th>
+          <th class="text-center" style="width: 15%">Qty</th>
+          <th class="text-right" style="width: 17%">Unit Price</th>
+          <th class="text-right" style="width: 18%">Amount</th>
         </tr>
-      `
-        )
-        .join("")}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        ${items
+          .map(
+            (item: any, index: number) => `
+          <tr>
+            <td>${index + 1}. ${item.name}</td>
+            <td class="text-center">${item.quantity}</td>
+            <td class="text-right">₹${Number(item.price).toLocaleString("en-IN")}</td>
+            <td class="text-right">₹${Number(item.total).toLocaleString("en-IN")}</td>
+          </tr>
+        `
+          )
+          .join("")}
+      </tbody>
+    </table>
 
-  <div class="summary">
-    <div class="summary-row">
-      <span>Subtotal:</span>
-      <span>₹${Number(order.subtotal).toLocaleString()}</span>
+    <div class="summary-section">
+      <div class="summary">
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span>₹${Number(order.subtotal).toLocaleString("en-IN")}</span>
+        </div>
+        ${Number(order.discount_amount) > 0 ? `
+        <div class="summary-row">
+          <span>Discount</span>
+          <span>-₹${Number(order.discount_amount).toLocaleString("en-IN")}</span>
+        </div>
+        ` : ""}
+        <div class="summary-row">
+          <span>Tax (GST)</span>
+          <span>₹${Number(order.tax_amount).toLocaleString("en-IN")}</span>
+        </div>
+        <div class="summary-row">
+          <span>Shipping</span>
+          <span>${Number(order.shipping_amount) === 0 ? "FREE" : `₹${Number(order.shipping_amount).toLocaleString("en-IN")}`}</span>
+        </div>
+        <div class="summary-row summary-total">
+          <span>Total</span>
+          <span>₹${Number(order.total_amount).toLocaleString("en-IN")}</span>
+        </div>
+      </div>
     </div>
-    <div class="summary-row">
-      <span>Tax:</span>
-      <span>₹${Number(order.tax_amount).toLocaleString()}</span>
-    </div>
-    <div class="summary-row">
-      <span>Shipping:</span>
-      <span>${Number(order.shipping_amount) === 0 ? "Free" : `₹${Number(order.shipping_amount).toLocaleString()}`}</span>
-    </div>
-    <div class="summary-row summary-total">
-      <span>Total:</span>
-      <span>₹${Number(order.total_amount).toLocaleString()}</span>
-    </div>
-  </div>
 
-  <div class="footer">
-    <p>Thank you for your business!</p>
-    <p>Decouverts Plus - Premium 3D Printing Solutions</p>
+    <div class="gst-box">
+      <div class="gst-title">Tax Invoice</div>
+      <div class="gst-number">GSTIN: ${COMPANY.gst}</div>
+    </div>
+
+    <div class="footer">
+      <div class="footer-thanks">Thank you for your business!</div>
+      <div class="footer-text">${COMPANY.name} | ${COMPANY.website}</div>
+      <div class="footer-text">This is a computer-generated invoice and does not require a signature.</div>
+    </div>
   </div>
 </body>
 </html>`;
 
-    // Store invoice HTML in storage bucket (private bucket; user_id folder)
     const fileName = `${invoiceNumber}.html`;
     const invoicePath = `${order.user_id}/${fileName}`;
 
@@ -209,7 +291,6 @@ serve(async (req) => {
       throw new Error("Failed to upload invoice");
     }
 
-    // Store the storage path in DB (not a public URL)
     await supabase.from("orders").update({ invoice_url: invoicePath }).eq("id", orderId);
     await supabase.from("invoices").update({ pdf_url: invoicePath }).eq("id", invoice.id);
 
