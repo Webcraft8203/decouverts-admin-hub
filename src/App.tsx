@@ -9,6 +9,7 @@ import { AdminLayout } from "@/components/AdminLayout";
 import Home from "./pages/Home";
 import Shop from "./pages/Shop";
 import Checkout from "./pages/Checkout";
+import CustomerAuth from "./pages/CustomerAuth";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/admin/Dashboard";
 import Products from "./pages/admin/Products";
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/" element={<Home />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/checkout/:productId" element={<Checkout />} />
+            <Route path="/login" element={<CustomerAuth />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminLayout><Dashboard /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/products" element={<ProtectedRoute requireAdmin><AdminLayout><Products /></AdminLayout></ProtectedRoute>} />

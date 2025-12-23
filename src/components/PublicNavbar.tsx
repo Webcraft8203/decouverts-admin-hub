@@ -59,7 +59,7 @@ export const PublicNavbar = () => {
             ) : (
               <Button 
                 variant="ghost" 
-                onClick={() => navigate("/auth")}
+                onClick={() => navigate("/login")}
                 className="text-foreground/80 hover:text-foreground"
               >
                 <User className="w-4 h-4 mr-2" />
@@ -122,7 +122,7 @@ export const PublicNavbar = () => {
                 <Button 
                   variant="ghost" 
                   onClick={() => {
-                    navigate("/auth");
+                    navigate("/login");
                     setIsMenuOpen(false);
                   }}
                   className="w-full"
