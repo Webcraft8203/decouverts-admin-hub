@@ -12,12 +12,14 @@ import {
   Menu,
   X,
   Shield,
+  ShoppingBag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 const navItems = [
   { to: "/admin", icon: LayoutDashboard, label: "Dashboard", exact: true },
+  { to: "/admin/orders", icon: ShoppingBag, label: "Orders" },
   { to: "/admin/products", icon: Package, label: "Products" },
   { to: "/admin/categories", icon: Layers, label: "Categories" },
   { to: "/admin/inventory", icon: Warehouse, label: "Inventory" },
