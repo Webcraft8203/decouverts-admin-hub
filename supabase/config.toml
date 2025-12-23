@@ -8,3 +8,7 @@ verify_jwt = false
 
 [functions.get-invoice-url]
 verify_jwt = false
+
+[functions.place-order]
+verify_jwt = false
+
