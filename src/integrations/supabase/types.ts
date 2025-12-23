@@ -245,6 +245,7 @@ export type Database = {
           description: string | null
           id: string
           images: string[] | null
+          is_highlighted: boolean
           name: string
           price: number
           stock_quantity: number
@@ -257,6 +258,7 @@ export type Database = {
           description?: string | null
           id?: string
           images?: string[] | null
+          is_highlighted?: boolean
           name: string
           price?: number
           stock_quantity?: number
@@ -269,6 +271,7 @@ export type Database = {
           description?: string | null
           id?: string
           images?: string[] | null
+          is_highlighted?: boolean
           name?: string
           price?: number
           stock_quantity?: number
