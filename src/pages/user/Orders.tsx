@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useInvoiceDownload } from "@/hooks/useInvoiceDownload";
 import { ShoppingBag, Package, Eye, Download } from "lucide-react";
 
 const statusColors: Record<string, string> = {
@@ -21,6 +22,7 @@ const statusColors: Record<string, string> = {
 
 const UserOrders = () => {
   const { user, isLoading: authLoading } = useAuth();
+  const { downloadInvoice, isDownloading } = useInvoiceDownload();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -120,11 +122,14 @@ const UserOrders = () => {
                       </Link>
                     </Button>
                     {order.invoice_url && (
-                      <Button variant="outline" size="sm" asChild>
-                        <a href={order.invoice_url} target="_blank" rel="noopener noreferrer">
-                          <Download className="w-4 h-4 mr-1" />
-                          Invoice
-                        </a>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => downloadInvoice(order.id)}
+                        disabled={isDownloading}
+                      >
+                        <Download className="w-4 h-4 mr-1" />
+                        Invoice
                       </Button>
                     )}
                   </div>

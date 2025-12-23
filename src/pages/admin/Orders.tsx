@@ -32,9 +32,9 @@ const statusOptions = [
   { value: "pending", label: "Pending Confirmation", icon: Timer, color: "bg-warning/10 text-warning" },
   { value: "confirmed", label: "Confirmed", icon: CheckCircle, color: "bg-blue-500/10 text-blue-500" },
   { value: "packing", label: "Packing", icon: Package, color: "bg-purple-500/10 text-purple-500" },
-  { value: "waiting_for_delivery", label: "Waiting for Pickup", icon: Timer, color: "bg-orange-500/10 text-orange-500" },
+  { value: "waiting-for-pickup", label: "Waiting for Pickup", icon: Timer, color: "bg-orange-500/10 text-orange-500" },
   { value: "shipped", label: "Shipped", icon: Truck, color: "bg-indigo-500/10 text-indigo-500" },
-  { value: "out_for_delivery", label: "Out for Delivery", icon: Truck, color: "bg-cyan-500/10 text-cyan-500" },
+  { value: "out-for-delivery", label: "Out for Delivery", icon: Truck, color: "bg-cyan-500/10 text-cyan-500" },
   { value: "delivered", label: "Delivered", icon: PackageCheck, color: "bg-green-500/10 text-green-500" },
   { value: "cancelled", label: "Cancelled", icon: XCircle, color: "bg-destructive/10 text-destructive" },
 ];
@@ -53,7 +53,7 @@ const AdminOrders = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("orders")
-        .select("*, order_items(*, products(name, images)), profiles(full_name, email, phone_number)")
+        .select("*, order_items(*, products(name, images))")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -133,16 +133,16 @@ const AdminOrders = () => {
                       <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-1">
                         <span className="flex items-center gap-1">
                           <User className="w-3 h-3" />
-                          {(order.profiles as any)?.full_name || (order.profiles as any)?.email || "Customer"}
+                          {(order.shipping_address as any)?.full_name || "Customer"}
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {new Date(order.created_at).toLocaleString()}
                         </span>
-                        {(order.profiles as any)?.phone_number && (
+                        {(order.shipping_address as any)?.phone && (
                           <span className="flex items-center gap-1">
                             <Phone className="w-3 h-3" />
-                            {(order.profiles as any).phone_number}
+                            {(order.shipping_address as any).phone}
                           </span>
                         )}
                       </div>

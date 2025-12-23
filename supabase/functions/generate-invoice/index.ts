@@ -88,7 +88,6 @@ serve(async (req) => {
 
     console.log("Invoice created:", invoice.invoice_number);
 
-    // Generate a simple HTML invoice and store as data URL
     const invoiceHtml = `
 <!DOCTYPE html>
 <html>
@@ -126,7 +125,7 @@ serve(async (req) => {
       <div style="color: #666; margin-top: 10px;">Date: ${new Date(order.created_at).toLocaleDateString()}</div>
     </div>
   </div>
-  
+
   <div class="details">
     <div class="bill-to">
       <h3>BILL TO:</h3>
@@ -142,7 +141,7 @@ serve(async (req) => {
       ${order.payment_id ? `<p><strong>Payment ID:</strong> ${order.payment_id}</p>` : ""}
     </div>
   </div>
-  
+
   <table>
     <thead>
       <tr>
@@ -153,36 +152,40 @@ serve(async (req) => {
       </tr>
     </thead>
     <tbody>
-      ${items.map((item: any) => `
+      ${items
+        .map(
+          (item: any) => `
         <tr>
           <td>${item.name}</td>
           <td class="text-right">${item.quantity}</td>
-          <td class="text-right">₹${item.price.toLocaleString()}</td>
-          <td class="text-right">₹${item.total.toLocaleString()}</td>
+          <td class="text-right">₹${Number(item.price).toLocaleString()}</td>
+          <td class="text-right">₹${Number(item.total).toLocaleString()}</td>
         </tr>
-      `).join("")}
+      `
+        )
+        .join("")}
     </tbody>
   </table>
-  
+
   <div class="summary">
     <div class="summary-row">
       <span>Subtotal:</span>
-      <span>₹${order.subtotal.toLocaleString()}</span>
+      <span>₹${Number(order.subtotal).toLocaleString()}</span>
     </div>
     <div class="summary-row">
       <span>Tax:</span>
-      <span>₹${order.tax_amount.toLocaleString()}</span>
+      <span>₹${Number(order.tax_amount).toLocaleString()}</span>
     </div>
     <div class="summary-row">
       <span>Shipping:</span>
-      <span>${order.shipping_amount === 0 ? "Free" : `₹${order.shipping_amount.toLocaleString()}`}</span>
+      <span>${Number(order.shipping_amount) === 0 ? "Free" : `₹${Number(order.shipping_amount).toLocaleString()}`}</span>
     </div>
     <div class="summary-row summary-total">
       <span>Total:</span>
-      <span>₹${order.total_amount.toLocaleString()}</span>
+      <span>₹${Number(order.total_amount).toLocaleString()}</span>
     </div>
   </div>
-  
+
   <div class="footer">
     <p>Thank you for your business!</p>
     <p>Decouverts Plus - Premium 3D Printing Solutions</p>
@@ -190,48 +193,34 @@ serve(async (req) => {
 </body>
 </html>`;
 
-    // Store invoice HTML in storage bucket
+    // Store invoice HTML in storage bucket (private bucket; user_id folder)
     const fileName = `${invoiceNumber}.html`;
+    const invoicePath = `${order.user_id}/${fileName}`;
+
     const { error: uploadError } = await supabase.storage
       .from("invoices")
-      .upload(fileName, invoiceHtml, {
+      .upload(invoicePath, invoiceHtml, {
         contentType: "text/html",
         upsert: true,
       });
 
     if (uploadError) {
       console.error("Upload error:", uploadError);
+      throw new Error("Failed to upload invoice");
     }
 
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from("invoices")
-      .getPublicUrl(fileName);
+    // Store the storage path in DB (not a public URL)
+    await supabase.from("orders").update({ invoice_url: invoicePath }).eq("id", orderId);
+    await supabase.from("invoices").update({ pdf_url: invoicePath }).eq("id", invoice.id);
 
-    const invoiceUrl = urlData?.publicUrl || null;
-
-    // Update order with invoice URL
-    if (invoiceUrl) {
-      await supabase
-        .from("orders")
-        .update({ invoice_url: invoiceUrl })
-        .eq("id", orderId);
-
-      // Update invoice with PDF URL
-      await supabase
-        .from("invoices")
-        .update({ pdf_url: invoiceUrl })
-        .eq("id", invoice.id);
-    }
-
-    console.log("Invoice generation complete:", invoiceUrl);
+    console.log("Invoice generation complete:", invoicePath);
 
     return new Response(
       JSON.stringify({
         success: true,
         invoiceId: invoice.id,
         invoiceNumber: invoice.invoice_number,
-        invoiceUrl: invoiceUrl,
+        invoicePath,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -240,12 +229,9 @@ serve(async (req) => {
     );
   } catch (error: any) {
     console.error("Error generating invoice:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 400,
-      }
-    );
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 400,
+    });
   }
 });
