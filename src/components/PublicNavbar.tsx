@@ -9,8 +9,23 @@ import logo from "@/assets/logo.png";
 
 export const PublicNavbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [logoClickCount, setLogoClickCount] = useState(0);
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const newCount = logoClickCount + 1;
+    setLogoClickCount(newCount);
+    
+    if (newCount >= 10) {
+      setLogoClickCount(0);
+      navigate("/auth");
+    } else {
+      // Reset count after 2 seconds of no clicks
+      setTimeout(() => setLogoClickCount(0), 2000);
+    }
+  };
 
   // Fetch cart items count
   const { data: cartCount = 0 } = useQuery({
@@ -32,7 +47,10 @@ export const PublicNavbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3">
+          <div 
+            onClick={handleLogoClick}
+            className="flex items-center gap-3 cursor-pointer"
+          >
             <img 
               src={logo} 
               alt="Decouverts Plus" 
@@ -41,7 +59,7 @@ export const PublicNavbar = () => {
             <span className="text-lg md:text-xl font-bold text-foreground hidden sm:block">
               Decouverts Plus
             </span>
-          </Link>
+          </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
