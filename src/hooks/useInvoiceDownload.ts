@@ -39,22 +39,24 @@ export function useInvoiceDownload() {
       const signedUrl = (data as any)?.signedUrl as string | undefined;
       if (!signedUrl) throw new Error("Invoice link not available");
 
-      // Fetch the HTML content and trigger download
       const response = await fetch(signedUrl);
-      const htmlContent = await response.text();
-      
-      // Create a blob and download it
-      const blob = new Blob([htmlContent], { type: "text/html" });
+      if (!response.ok) throw new Error("Failed to fetch invoice");
+
+      const contentType = response.headers.get("content-type") || "";
+      const blob = await response.blob();
+
+      const isPdf = contentType.includes("application/pdf") || signedUrl.toLowerCase().includes(".pdf");
+      const ext = isPdf ? "pdf" : "html";
+
       const url = URL.createObjectURL(blob);
-      
       const link = document.createElement("a");
       link.href = url;
-      link.download = `invoice-${orderId.slice(0, 8)}.html`;
+      link.download = `invoice-${orderId.slice(0, 8)}.${ext}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      
+
       toast.success("Invoice downloaded!");
     } catch (e: any) {
       console.error("Download invoice error:", e);

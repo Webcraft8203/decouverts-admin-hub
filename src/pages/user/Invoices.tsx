@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useInvoiceDownload } from "@/hooks/useInvoiceDownload";
 import { UserLayout } from "@/components/UserLayout";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +12,7 @@ import { FileText, Download, ShoppingBag } from "lucide-react";
 
 const UserInvoices = () => {
   const { user, isLoading: authLoading } = useAuth();
+  const { downloadInvoice, isDownloading, generateInvoice, isGenerating } = useInvoiceDownload();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,7 +26,7 @@ const UserInvoices = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("orders")
-        .select("id, order_number, total_amount, created_at, invoice_url, status")
+        .select("id, order_number, total_amount, created_at, invoice_url, status, payment_status")
         .eq("user_id", user!.id)
         .eq("payment_status", "paid")
         .order("created_at", { ascending: false });
@@ -72,16 +74,27 @@ const UserInvoices = () => {
                   <div className="flex items-center gap-4">
                     <p className="font-bold text-primary">₹{order.total_amount.toLocaleString()}</p>
                     {order.invoice_url ? (
-                      <Button variant="outline" size="sm" asChild>
-                        <a href={order.invoice_url} target="_blank" rel="noopener noreferrer">
-                          <Download className="w-4 h-4 mr-1" />
-                          Download PDF
-                        </a>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => downloadInvoice(order.id)}
+                        disabled={isDownloading}
+                      >
+                        <Download className="w-4 h-4 mr-1" />
+                        {isDownloading ? "Downloading..." : "Download Invoice"}
                       </Button>
                     ) : (
-                      <Button variant="outline" size="sm" disabled>
-                        <FileText className="w-4 h-4 mr-1" />
-                        Generating...
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          const success = await generateInvoice(order.id);
+                          if (success) await downloadInvoice(order.id);
+                        }}
+                        disabled={isGenerating}
+                      >
+                        <Download className="w-4 h-4 mr-1" />
+                        {isGenerating ? "Generating..." : "Generate & Download"}
                       </Button>
                     )}
                   </div>
