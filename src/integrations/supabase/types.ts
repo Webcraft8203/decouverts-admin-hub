@@ -422,6 +422,7 @@ export type Database = {
       raw_materials: {
         Row: {
           availability_status: string
+          cost_per_unit: number | null
           created_at: string
           description: string | null
           id: string
@@ -432,6 +433,7 @@ export type Database = {
         }
         Insert: {
           availability_status?: string
+          cost_per_unit?: number | null
           created_at?: string
           description?: string | null
           id?: string
@@ -442,6 +444,7 @@ export type Database = {
         }
         Update: {
           availability_status?: string
+          cost_per_unit?: number | null
           created_at?: string
           description?: string | null
           id?: string
