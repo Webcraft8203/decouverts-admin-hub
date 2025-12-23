@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { PublicFooter } from "@/components/PublicFooter";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShoppingCart, Package, Search } from "lucide-react";
+import { ShoppingCart, Package, Search, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,6 +17,7 @@ const Shop = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["public-products"],
@@ -32,6 +33,56 @@ const Shop = () => {
       return data;
     },
   });
+
+  const addToCartMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      if (!user) throw new Error("Not authenticated");
+      
+      // Check if item already exists in cart
+      const { data: existingItem } = await supabase
+        .from("cart_items")
+        .select("id, quantity")
+        .eq("user_id", user.id)
+        .eq("product_id", productId)
+        .maybeSingle();
+
+      if (existingItem) {
+        // Update quantity
+        const { error } = await supabase
+          .from("cart_items")
+          .update({ quantity: existingItem.quantity + 1 })
+          .eq("id", existingItem.id);
+        if (error) throw error;
+      } else {
+        // Insert new item
+        const { error } = await supabase
+          .from("cart_items")
+          .insert({ user_id: user.id, product_id: productId, quantity: 1 });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cart-count"] });
+      queryClient.invalidateQueries({ queryKey: ["cart-items"] });
+      toast.success("Added to cart!");
+    },
+    onError: () => {
+      toast.error("Failed to add to cart");
+    },
+  });
+
+  const handleAddToCart = (productId: string) => {
+    if (!user) {
+      toast.info("Please login to add items to cart", {
+        action: {
+          label: "Login",
+          onClick: () => navigate("/login"),
+        },
+      });
+      return;
+    }
+    addToCartMutation.mutate(productId);
+  };
 
   const filteredProducts = products?.filter(
     (product) =>
@@ -139,12 +190,21 @@ const Shop = () => {
                         </span>
                       </div>
                     </CardContent>
-                    <CardFooter className="p-4 pt-0">
+                    <CardFooter className="p-4 pt-0 flex gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => handleAddToCart(product.id)}
+                        disabled={addToCartMutation.isPending}
+                        className="flex-1 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Add to Cart
+                      </Button>
                       <Button
                         onClick={() => handleBuyNow(product)}
-                        className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
+                        className="flex-1 bg-accent text-accent-foreground hover:bg-accent/90"
                       >
-                        <ShoppingCart className="w-4 h-4 mr-2" />
+                        <ShoppingCart className="w-4 h-4 mr-1" />
                         Buy Now
                       </Button>
                     </CardFooter>
