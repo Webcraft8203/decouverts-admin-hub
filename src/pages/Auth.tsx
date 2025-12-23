@@ -41,6 +41,35 @@ export default function Auth() {
     setIsLoading(true);
 
     try {
+      // First, check if email belongs to a registered admin
+      const { data: checkData, error: checkError } = await supabase.functions.invoke("check-admin-email", {
+        body: { email },
+      });
+
+      if (checkError) {
+        console.error("Error checking admin status:", checkError);
+        setError("Failed to verify email. Please try again.");
+        toast({
+          title: "Error",
+          description: "Failed to verify email. Please try again.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (!checkData?.isAdmin) {
+        setError("This email is not registered as an admin.");
+        toast({
+          title: "Access Denied",
+          description: "This email is not registered as an admin.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Email is verified as admin, send magic link
       const redirectUrl = `${window.location.origin}/admin`;
       const { error } = await supabase.auth.signInWithOtp({
         email,
