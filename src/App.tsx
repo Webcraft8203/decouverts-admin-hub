@@ -43,16 +43,16 @@ const App = () => (
             <Route path="/" element={<Home />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/product/:id" element={<ProductDetail />} />
-            <Route path="/checkout/:productId" element={<Checkout />} />
+            <Route path="/checkout/:productId" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
             <Route path="/login" element={<CustomerAuth />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<UserDashboard />} />
-            <Route path="/dashboard/cart" element={<UserCart />} />
-            <Route path="/dashboard/orders" element={<UserOrders />} />
-            <Route path="/dashboard/orders/:orderId" element={<UserOrderDetails />} />
-            <Route path="/dashboard/addresses" element={<UserAddresses />} />
-            <Route path="/dashboard/invoices" element={<UserInvoices />} />
-            <Route path="/dashboard/profile" element={<UserProfile />} />
+            <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/cart" element={<ProtectedRoute><UserCart /></ProtectedRoute>} />
+            <Route path="/dashboard/orders" element={<ProtectedRoute><UserOrders /></ProtectedRoute>} />
+            <Route path="/dashboard/orders/:orderId" element={<ProtectedRoute><UserOrderDetails /></ProtectedRoute>} />
+            <Route path="/dashboard/addresses" element={<ProtectedRoute><UserAddresses /></ProtectedRoute>} />
+            <Route path="/dashboard/invoices" element={<ProtectedRoute><UserInvoices /></ProtectedRoute>} />
+            <Route path="/dashboard/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminLayout><Dashboard /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/products" element={<ProtectedRoute requireAdmin><AdminLayout><Products /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/categories" element={<ProtectedRoute requireAdmin><AdminLayout><Categories /></AdminLayout></ProtectedRoute>} />

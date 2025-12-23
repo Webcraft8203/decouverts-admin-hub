@@ -477,14 +477,15 @@ const Checkout = () => {
         }
       }
 
-      // Create Razorpay order
+      // Create Razorpay order - amount calculated server-side for security
       const { data: orderData, error: orderError } = await supabase.functions.invoke(
         "create-razorpay-order",
         {
           body: {
-            amount: totalAmount * 100,
-            currency: "INR",
-            items: checkoutItems.map(i => ({ name: i.product_name, qty: i.quantity })),
+            checkoutMode: isCartCheckout ? "cart" : "single",
+            productId: isCartCheckout ? undefined : checkoutItems[0]?.product_id,
+            quantity: isCartCheckout ? undefined : checkoutItems[0]?.quantity,
+            promoCodeId: appliedPromo?.id || null,
           },
         }
       );
