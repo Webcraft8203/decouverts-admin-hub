@@ -25,7 +25,6 @@ const Shop = () => {
       const { data, error } = await supabase
         .from("products")
         .select("*, categories(name)")
-        .eq("availability_status", "in_stock")
         .gt("stock_quantity", 0)
         .order("created_at", { ascending: false });
 
