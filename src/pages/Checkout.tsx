@@ -263,7 +263,7 @@ const Checkout = () => {
     }
     
     for (const item of checkoutItems) {
-      if (item.availability_status !== "in_stock") {
+      if (item.availability_status === "out_of_stock") {
         return { valid: false, message: `${item.product_name} is out of stock` };
       }
       if (item.stock_quantity < item.quantity) {
@@ -374,7 +374,7 @@ const Checkout = () => {
         if (error || !freshProduct) {
           throw new Error(`Failed to verify ${item.product_name}`);
         }
-        if (freshProduct.availability_status !== "in_stock" || freshProduct.stock_quantity < item.quantity) {
+        if (freshProduct.availability_status === "out_of_stock" || freshProduct.stock_quantity < item.quantity) {
           throw new Error(`${item.product_name} is no longer available in requested quantity`);
         }
       }
@@ -402,13 +402,51 @@ const Checkout = () => {
         order_id: orderData.orderId,
         handler: async function (response: any) {
           try {
-            await createOrder(response.razorpay_payment_id, "paid");
+            // Verify payment signature and create order server-side
+            const { data, error } = await supabase.functions.invoke("verify-razorpay-payment", {
+              body: {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                addressId: selectedAddress.id,
+                checkoutMode: isCartCheckout ? "cart" : "single",
+                productId: isCartCheckout ? undefined : checkoutItems[0]?.product_id,
+                quantity: isCartCheckout ? undefined : checkoutItems[0]?.quantity,
+              },
+            });
+
+            if (error) {
+              console.error("Payment verification error:", error);
+              setPaymentStatus("failed");
+              toast.error("Payment verification failed. Please contact support.");
+              setIsProcessing(false);
+              return;
+            }
+
+            const orderId = data?.orderId;
+            
+            // Refresh cart UI
+            if (isCartCheckout) {
+              queryClient.invalidateQueries({ queryKey: ["cart-items"] });
+              queryClient.invalidateQueries({ queryKey: ["cart-count"] });
+            }
+
+            // Generate invoice (best-effort)
+            try {
+              await supabase.functions.invoke("generate-invoice", {
+                body: { orderId },
+              });
+            } catch (invoiceError) {
+              console.error("Invoice generation error:", invoiceError);
+            }
+
             setPaymentStatus("success");
             toast.success("Payment successful! Your order has been placed.");
           } catch (error) {
             console.error("Order creation error:", error);
-            setPaymentStatus("success");
-            toast.success("Payment successful! Your order is being processed.");
+            setPaymentStatus("failed");
+            toast.error("Failed to process order. Please contact support.");
+            setIsProcessing(false);
           }
         },
         prefill: {
