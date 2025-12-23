@@ -511,6 +511,7 @@ const Checkout = () => {
                 checkoutMode: isCartCheckout ? "cart" : "single",
                 productId: isCartCheckout ? undefined : checkoutItems[0]?.product_id,
                 quantity: isCartCheckout ? undefined : checkoutItems[0]?.quantity,
+                promoCodeId: appliedPromo?.id || null,
               },
             });
 
