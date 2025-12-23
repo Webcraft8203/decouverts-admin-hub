@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
 import { 
   Package, 
   User, 
@@ -17,7 +18,9 @@ import {
   PackageCheck,
   Timer,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Search,
+  Trash2
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -27,6 +30,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const statusOptions = [
   { value: "pending", label: "Pending Confirmation", icon: Timer, color: "bg-warning/10 text-warning" },
@@ -46,6 +60,7 @@ const getStatusInfo = (status: string) => {
 const AdminOrders = () => {
   const queryClient = useQueryClient();
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
 
   const { data: orders, isLoading } = useQuery({
@@ -72,9 +87,52 @@ const AdminOrders = () => {
     onError: () => toast.error("Failed to update status"),
   });
 
-  const filteredOrders = orders?.filter(
-    (order) => filterStatus === "all" || order.status === filterStatus
-  );
+  const deleteOrderMutation = useMutation({
+    mutationFn: async (orderId: string) => {
+      // First delete order items
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .delete()
+        .eq("order_id", orderId);
+      if (itemsError) throw itemsError;
+      
+      // Then delete the order
+      const { error } = await supabase
+        .from("orders")
+        .delete()
+        .eq("id", orderId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      toast.success("Order deleted successfully");
+    },
+    onError: () => toast.error("Failed to delete order"),
+  });
+
+  const filteredOrders = orders?.filter((order) => {
+    // Status filter
+    const matchesStatus = filterStatus === "all" || order.status === filterStatus;
+    
+    // Search filter
+    if (!searchQuery.trim()) return matchesStatus;
+    
+    const query = searchQuery.toLowerCase();
+    const shippingAddress = order.shipping_address as any;
+    
+    const matchesSearch = 
+      order.order_number?.toLowerCase().includes(query) ||
+      shippingAddress?.full_name?.toLowerCase().includes(query) ||
+      shippingAddress?.phone?.toLowerCase().includes(query) ||
+      shippingAddress?.city?.toLowerCase().includes(query) ||
+      shippingAddress?.state?.toLowerCase().includes(query) ||
+      shippingAddress?.postal_code?.toLowerCase().includes(query) ||
+      order.payment_id?.toLowerCase().includes(query) ||
+      new Date(order.created_at).toLocaleDateString().includes(query) ||
+      new Date(order.created_at).toLocaleTimeString().includes(query);
+    
+    return matchesStatus && matchesSearch;
+  });
 
   const pendingCount = orders?.filter((o) => o.status === "pending").length || 0;
 
@@ -91,20 +149,33 @@ const AdminOrders = () => {
               {pendingCount} Pending
             </Badge>
           )}
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Orders</SelectItem>
-              {statusOptions.map((s) => (
-                <SelectItem key={s.value} value={s.value}>
-                  {s.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
+      </div>
+
+      {/* Search and Filter */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by order number, name, phone, city, date..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Orders</SelectItem>
+            {statusOptions.map((s) => (
+              <SelectItem key={s.value} value={s.value}>
+                {s.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {isLoading ? (
@@ -147,7 +218,7 @@ const AdminOrders = () => {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <Badge className={statusInfo.color}>
                         <StatusIcon className="w-3 h-3 mr-1" />
                         {statusInfo.label}
@@ -185,6 +256,30 @@ const AdminOrders = () => {
                           </div>
                         </DialogContent>
                       </Dialog>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Order?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete order <strong>{order.order_number}</strong> and all its items. This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteOrderMutation.mutate(order.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 </CardHeader>
@@ -282,7 +377,9 @@ const AdminOrders = () => {
         <Card>
           <CardContent className="py-16 text-center">
             <Package className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-            <p className="text-muted-foreground">No orders found</p>
+            <p className="text-muted-foreground">
+              {searchQuery ? "No orders match your search" : "No orders found"}
+            </p>
           </CardContent>
         </Card>
       )}
