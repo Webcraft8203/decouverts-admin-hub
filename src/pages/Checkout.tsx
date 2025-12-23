@@ -291,94 +291,56 @@ const Checkout = () => {
     setStep("payment");
   };
 
-  const createOrder = async (paymentId: string | null, paymentStatus: string) => {
+  const createOrder = async (paymentId: string | null, paymentStatus: "paid" | "pending") => {
     if (!user || !selectedAddress) throw new Error("Missing user or address");
 
-    const orderNumber = `DP-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    
-    const { data: newOrder, error: createOrderError } = await supabase
-      .from("orders")
-      .insert({
-        user_id: user.id,
-        order_number: orderNumber,
-        address_id: selectedAddress.id,
-        shipping_address: {
-          full_name: selectedAddress.full_name,
-          phone: selectedAddress.phone,
-          address_line1: selectedAddress.address_line1,
-          address_line2: selectedAddress.address_line2,
-          city: selectedAddress.city,
-          state: selectedAddress.state,
-          postal_code: selectedAddress.postal_code,
-          country: selectedAddress.country,
-        },
-        subtotal: totalAmount,
-        tax_amount: 0,
-        shipping_amount: 0,
-        total_amount: totalAmount,
-        status: "pending",
-        payment_status: paymentStatus,
-        payment_id: paymentId,
-      })
-      .select()
-      .single();
+    const paymentPayload = {
+      method: paymentMethod,
+      status: paymentStatus,
+      paymentId,
+    } as const;
 
-    if (createOrderError) throw createOrderError;
+    const base = {
+      addressId: selectedAddress.id,
+      payment: paymentPayload,
+    };
 
-    // Create order items
-    const orderItems = checkoutItems.map(item => ({
-      order_id: newOrder.id,
-      product_id: item.product_id,
-      product_name: item.product_name,
-      product_price: item.product_price,
-      quantity: item.quantity,
-      total_price: item.total_price,
-    }));
+    const body = isCartCheckout
+      ? ({ checkoutMode: "cart", ...base } as const)
+      : ({
+          checkoutMode: "single",
+          ...base,
+          productId: checkoutItems[0]?.product_id,
+          quantity: checkoutItems[0]?.quantity ?? 1,
+        } as const);
 
-    const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
-    if (itemsError) {
-      console.error("Order items creation error:", itemsError);
-      throw new Error("Failed to create order items. Please try again.");
-    }
+    const { data, error } = await supabase.functions.invoke("place-order", { body });
+    if (error) throw error;
 
-    // Clear cart if cart checkout
+    const orderId = (data as any)?.orderId as string | undefined;
+    if (!orderId) throw new Error("Failed to create order");
+
+    // Refresh cart UI (cart is cleared server-side for cart checkout)
     if (isCartCheckout) {
-      await supabase.from("cart_items").delete().eq("user_id", user.id);
       queryClient.invalidateQueries({ queryKey: ["cart-items"] });
       queryClient.invalidateQueries({ queryKey: ["cart-count"] });
     }
 
-    // Generate invoice
+    // Generate invoice (best-effort)
     try {
       await supabase.functions.invoke("generate-invoice", {
-        body: { orderId: newOrder.id },
+        body: { orderId },
       });
     } catch (invoiceError) {
       console.error("Invoice generation error:", invoiceError);
     }
 
-    return newOrder;
+    return { id: orderId, order_number: (data as any)?.orderNumber };
   };
 
   const handleCODPayment = async () => {
     setIsProcessing(true);
     try {
-      // Verify stock before creating order
-      for (const item of checkoutItems) {
-        const { data: freshProduct, error } = await supabase
-          .from("products")
-          .select("stock_quantity, availability_status")
-          .eq("id", item.product_id)
-          .single();
-
-        if (error || !freshProduct) {
-          throw new Error(`Failed to verify ${item.product_name}`);
-        }
-        if (freshProduct.availability_status !== "in_stock" || freshProduct.stock_quantity < item.quantity) {
-          throw new Error(`${item.product_name} is no longer available in requested quantity`);
-        }
-      }
-
       await createOrder(null, "pending");
       setPaymentStatus("success");
       toast.success("Order placed successfully! Pay on delivery.");
