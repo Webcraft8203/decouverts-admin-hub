@@ -133,7 +133,7 @@ export default function CustomerAuth() {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
@@ -144,9 +144,24 @@ export default function CustomerAuth() {
         } else {
           toast.error(error.message);
         }
-      } else {
-        toast.success("Welcome back!");
-        navigate("/shop");
+      } else if (data.user) {
+        // Check if user is an admin - admins should use /auth
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", data.user.id)
+          .eq("role", "admin")
+          .maybeSingle();
+
+        if (roleData) {
+          // Admin user trying to login through customer portal - sign them out
+          await supabase.auth.signOut();
+          setErrors({ email: "Admin accounts must use the Admin Login page." });
+          toast.error("Please use Admin Login for admin accounts.");
+        } else {
+          toast.success("Welcome back!");
+          navigate("/shop");
+        }
       }
     } catch (err) {
       toast.error("An unexpected error occurred. Please try again.");
