@@ -336,7 +336,7 @@ const Checkout = () => {
             if (createOrderError) throw createOrderError;
 
             // Create order item
-            await supabase.from("order_items").insert({
+            const { error: itemError } = await supabase.from("order_items").insert({
               order_id: newOrder.id,
               product_id: product.id,
               product_name: product.name,
@@ -344,6 +344,10 @@ const Checkout = () => {
               quantity: quantity,
               total_price: totalAmount,
             });
+
+            if (itemError) {
+              console.error("Order item creation error:", itemError);
+            }
 
             // Generate invoice automatically
             try {
