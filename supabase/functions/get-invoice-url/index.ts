@@ -14,20 +14,21 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     const authHeader = req.headers.get("authorization") || "";
+    console.log("Auth header present:", !!authHeader);
 
-    // Verify the caller (end-user)
-    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: { authorization: authHeader },
-      },
-    });
-
-    const { data: userData, error: userError } = await authClient.auth.getUser();
+    // Verify the caller (end-user) using the token from the header
+    const token = authHeader.replace("Bearer ", "");
+    
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    const { data: userData, error: userError } = await supabase.auth.getUser(token);
+    console.log("User lookup result:", userError ? userError.message : "success", userData?.user?.id);
+    
     if (userError || !userData?.user) {
+      console.error("Auth failed:", userError?.message);
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 401,
@@ -38,8 +39,6 @@ serve(async (req) => {
 
     const { orderId } = await req.json();
     if (!orderId) throw new Error("Order ID is required");
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { data: order, error: orderError } = await supabase
       .from("orders")
