@@ -13,6 +13,7 @@ import {
   X,
   Shield,
   ShoppingBag,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -22,6 +23,7 @@ const navItems = [
   { to: "/admin/orders", icon: ShoppingBag, label: "Orders" },
   { to: "/admin/products", icon: Package, label: "Products" },
   { to: "/admin/categories", icon: Layers, label: "Categories" },
+  { to: "/admin/reviews", icon: Star, label: "Reviews" },
   { to: "/admin/inventory", icon: Warehouse, label: "Inventory" },
   { to: "/admin/raw-materials", icon: Box, label: "Raw Materials" },
   { to: "/admin/invoices", icon: FileText, label: "Invoices" },
