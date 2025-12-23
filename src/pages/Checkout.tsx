@@ -345,6 +345,17 @@ const Checkout = () => {
               total_price: totalAmount,
             });
 
+            // Generate invoice automatically
+            try {
+              await supabase.functions.invoke("generate-invoice", {
+                body: { orderId: newOrder.id },
+              });
+              console.log("Invoice generated successfully");
+            } catch (invoiceError) {
+              console.error("Invoice generation error:", invoiceError);
+              // Don't fail the order if invoice generation fails
+            }
+
             setPaymentStatus("success");
             toast.success("Payment successful! Your order has been placed.");
           } catch (error) {
