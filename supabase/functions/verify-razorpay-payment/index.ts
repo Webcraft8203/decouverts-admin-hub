@@ -15,6 +15,7 @@ interface VerifyPaymentBody {
   checkoutMode: "cart" | "single";
   productId?: string;
   quantity?: number;
+  promoCodeId?: string | null;
 }
 
 async function verifySignature(
@@ -104,6 +105,29 @@ serve(async (req) => {
 
     console.log("Signature verified successfully");
 
+    // SECURITY: Check for duplicate payment to prevent replay attacks
+    const { data: existingOrder, error: duplicateCheckError } = await supabase
+      .from("orders")
+      .select("id, order_number")
+      .eq("payment_id", body.razorpay_payment_id)
+      .maybeSingle();
+
+    if (duplicateCheckError) {
+      console.error("Error checking for duplicate payment:", duplicateCheckError);
+    }
+
+    if (existingOrder) {
+      console.log("Duplicate payment detected, returning existing order:", existingOrder.order_number);
+      return new Response(JSON.stringify({ 
+        orderId: existingOrder.id, 
+        orderNumber: existingOrder.order_number,
+        message: "Order already processed" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     // Load address (must belong to the user)
     const { data: address, error: addressError } = await supabase
       .from("user_addresses")
@@ -155,6 +179,50 @@ serve(async (req) => {
       subtotal += Number(p.price) * item.quantity;
     }
 
+    // Handle promo code discount (if provided)
+    let promoCodeId: string | null = body.promoCodeId || null;
+    let discountAmount = 0;
+
+    if (promoCodeId) {
+      const { data: promoCode, error: promoError } = await supabase
+        .from("promo_codes")
+        .select("*")
+        .eq("id", promoCodeId)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (!promoError && promoCode) {
+        const now = new Date();
+        const isExpired = promoCode.expires_at && new Date(promoCode.expires_at) < now;
+        const isExhausted = promoCode.used_count >= promoCode.max_uses;
+        const belowMinOrder = promoCode.min_order_amount && subtotal < promoCode.min_order_amount;
+
+        if (!isExpired && !isExhausted && !belowMinOrder) {
+          if (promoCode.discount_type === "percentage") {
+            discountAmount = (subtotal * promoCode.discount_value) / 100;
+            if (promoCode.max_discount_amount && discountAmount > promoCode.max_discount_amount) {
+              discountAmount = promoCode.max_discount_amount;
+            }
+          } else {
+            discountAmount = promoCode.discount_value;
+          }
+          discountAmount = Math.min(discountAmount, subtotal);
+
+          // Increment promo code usage
+          await supabase
+            .from("promo_codes")
+            .update({ used_count: promoCode.used_count + 1 })
+            .eq("id", promoCodeId);
+        } else {
+          promoCodeId = null;
+        }
+      } else {
+        promoCodeId = null;
+      }
+    }
+
+    const totalAmount = subtotal - discountAmount;
+
     // Create order
     const { data: orderNumberRow, error: orderNumberError } = await supabase.rpc("generate_order_number");
     if (orderNumberError) throw orderNumberError;
@@ -180,7 +248,9 @@ serve(async (req) => {
         subtotal,
         tax_amount: 0,
         shipping_amount: 0,
-        total_amount: subtotal,
+        discount_amount: discountAmount,
+        promo_code_id: promoCodeId,
+        total_amount: totalAmount,
         status: "pending",
         payment_status: "paid",
         payment_id: body.razorpay_payment_id,
