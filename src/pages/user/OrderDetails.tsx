@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useInvoiceDownload } from "@/hooks/useInvoiceDownload";
 import { UserLayout } from "@/components/UserLayout";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,6 +47,7 @@ const statusLabels: Record<string, string> = {
 const OrderDetails = () => {
   const { orderId } = useParams();
   const { user, isLoading: authLoading } = useAuth();
+  const { downloadInvoice, isDownloading } = useInvoiceDownload();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -252,11 +254,14 @@ const OrderDetails = () => {
                     )}
                   </div>
                   {order.invoice_url && (
-                    <Button variant="outline" className="w-full mt-4" asChild>
-                      <a href={order.invoice_url} target="_blank" rel="noopener noreferrer">
-                        <Download className="w-4 h-4 mr-2" />
-                        Download Invoice
-                      </a>
+                    <Button
+                      variant="outline"
+                      className="w-full mt-4"
+                      onClick={() => downloadInvoice(order.id)}
+                      disabled={isDownloading}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download Invoice
                     </Button>
                   )}
                 </CardContent>
