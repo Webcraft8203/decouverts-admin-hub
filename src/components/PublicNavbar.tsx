@@ -1,14 +1,31 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ShoppingBag, User } from "lucide-react";
+import { Menu, X, ShoppingBag, ShoppingCart, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 
 export const PublicNavbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Fetch cart items count
+  const { data: cartCount = 0 } = useQuery({
+    queryKey: ["cart-count", user?.id],
+    queryFn: async () => {
+      if (!user) return 0;
+      const { data, error } = await supabase
+        .from("cart_items")
+        .select("quantity")
+        .eq("user_id", user.id);
+      if (error) throw error;
+      return data?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+    },
+    enabled: !!user,
+  });
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -27,7 +44,7 @@ export const PublicNavbar = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-6">
             <Link 
               to="/" 
               className="text-foreground/80 hover:text-foreground transition-colors font-medium"
@@ -48,14 +65,29 @@ export const PublicNavbar = () => {
               Shop Now
             </Button>
             {user ? (
-              <Button 
-                variant="outline" 
-                onClick={() => navigate("/admin")}
-                className="border-accent text-accent hover:bg-accent hover:text-accent-foreground"
-              >
-                <User className="w-4 h-4 mr-2" />
-                Dashboard
-              </Button>
+              <>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => navigate("/dashboard/cart")}
+                  className="relative text-foreground/80 hover:text-foreground"
+                >
+                  <ShoppingCart className="w-5 h-5" />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
+                      {cartCount > 99 ? "99+" : cartCount}
+                    </span>
+                  )}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate("/dashboard")}
+                  className="border-accent text-accent hover:bg-accent hover:text-accent-foreground"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  My Account
+                </Button>
+              </>
             ) : (
               <Button 
                 variant="ghost" 
@@ -69,13 +101,30 @@ export const PublicNavbar = () => {
           </div>
 
           {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2 text-foreground"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          <div className="md:hidden flex items-center gap-2">
+            {user && (
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => navigate("/dashboard/cart")}
+                className="relative text-foreground/80 hover:text-foreground"
+              >
+                <ShoppingCart className="w-5 h-5" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
+                    {cartCount > 99 ? "99+" : cartCount}
+                  </span>
+                )}
+              </Button>
+            )}
+            <button
+              className="p-2 text-foreground"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Navigation */}
@@ -110,13 +159,13 @@ export const PublicNavbar = () => {
                 <Button 
                   variant="outline" 
                   onClick={() => {
-                    navigate("/admin");
+                    navigate("/dashboard");
                     setIsMenuOpen(false);
                   }}
                   className="w-full"
                 >
                   <User className="w-4 h-4 mr-2" />
-                  Dashboard
+                  My Account
                 </Button>
               ) : (
                 <Button 
