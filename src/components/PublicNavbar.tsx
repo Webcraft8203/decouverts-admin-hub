@@ -57,13 +57,6 @@ export const PublicNavbar = () => {
             >
               Shop
             </Link>
-            <Button 
-              onClick={() => navigate("/shop")}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-6"
-            >
-              <ShoppingBag className="w-4 h-4 mr-2" />
-              Shop Now
-            </Button>
             {user ? (
               <>
                 <Button 
@@ -145,16 +138,6 @@ export const PublicNavbar = () => {
               >
                 Shop
               </Link>
-              <Button 
-                onClick={() => {
-                  navigate("/shop");
-                  setIsMenuOpen(false);
-                }}
-                className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold w-full"
-              >
-                <ShoppingBag className="w-4 h-4 mr-2" />
-                Shop Now
-              </Button>
               {user ? (
                 <Button 
                   variant="outline" 
