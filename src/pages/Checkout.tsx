@@ -23,7 +23,7 @@ import {
   Plus,
   AlertCircle,
   Phone,
-  User
+  Banknote
 } from "lucide-react";
 import {
   Dialog,
@@ -63,6 +63,21 @@ const addressSchema = z.object({
 
 type AddressFormData = z.infer<typeof addressSchema>;
 
+interface CartItemWithProduct {
+  id: string;
+  quantity: number;
+  product_id: string;
+  products: {
+    id: string;
+    name: string;
+    price: number;
+    images: string[] | null;
+    stock_quantity: number;
+    availability_status: string;
+    description: string | null;
+  };
+}
+
 const Checkout = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
@@ -75,6 +90,9 @@ const Checkout = () => {
   const [selectedAddressId, setSelectedAddressId] = useState<string>("");
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [step, setStep] = useState<"address" | "review" | "payment">("address");
+  const [paymentMethod, setPaymentMethod] = useState<"razorpay" | "cod">("razorpay");
+
+  const isCartCheckout = productId === "cart";
 
   const form = useForm<AddressFormData>({
     resolver: zodResolver(addressSchema),
@@ -113,7 +131,7 @@ const Checkout = () => {
     }
   }, [user, navigate]);
 
-  // Fetch product
+  // Fetch single product (for direct product checkout)
   const { data: product, isLoading: productLoading } = useQuery({
     queryKey: ["product", productId],
     queryFn: async () => {
@@ -126,7 +144,22 @@ const Checkout = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!productId,
+    enabled: !!productId && !isCartCheckout,
+  });
+
+  // Fetch cart items (for cart checkout)
+  const { data: cartItems, isLoading: cartLoading } = useQuery({
+    queryKey: ["cart-checkout", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cart_items")
+        .select("*, products(*)")
+        .eq("user_id", user!.id);
+
+      if (error) throw error;
+      return data as CartItemWithProduct[];
+    },
+    enabled: !!user && isCartCheckout,
   });
 
   // Fetch user addresses
@@ -179,7 +212,39 @@ const Checkout = () => {
   });
 
   const selectedAddress = addresses?.find((a) => a.id === selectedAddressId);
-  const totalAmount = product ? product.price * quantity : 0;
+  
+  // Calculate total amount based on checkout type
+  const totalAmount = isCartCheckout
+    ? cartItems?.reduce((sum, item) => sum + (item.products?.price || 0) * item.quantity, 0) || 0
+    : product ? product.price * quantity : 0;
+
+  // Get items for display and order creation
+  const checkoutItems = isCartCheckout
+    ? cartItems?.map(item => ({
+        product_id: item.product_id,
+        product_name: item.products.name,
+        product_price: item.products.price,
+        quantity: item.quantity,
+        total_price: item.products.price * item.quantity,
+        images: item.products.images,
+        stock_quantity: item.products.stock_quantity,
+        availability_status: item.products.availability_status,
+        description: item.products.description,
+      })) || []
+    : product ? [{
+        product_id: product.id,
+        product_name: product.name,
+        product_price: product.price,
+        quantity: quantity,
+        total_price: product.price * quantity,
+        images: product.images,
+        stock_quantity: product.stock_quantity,
+        availability_status: product.availability_status,
+        description: product.description,
+      }] : [];
+
+  const isLoading = isCartCheckout ? cartLoading : productLoading;
+  const hasItems = checkoutItems.length > 0;
 
   // Validation checks
   const canProceedToReview = (): { valid: boolean; message?: string } => {
@@ -193,14 +258,17 @@ const Checkout = () => {
   };
 
   const canProceedToPayment = (): { valid: boolean; message?: string } => {
-    if (!product) {
-      return { valid: false, message: "Product not found" };
+    if (!hasItems) {
+      return { valid: false, message: "No items to checkout" };
     }
-    if (product.availability_status !== "in_stock") {
-      return { valid: false, message: "This product is currently out of stock" };
-    }
-    if (product.stock_quantity < quantity) {
-      return { valid: false, message: `Only ${product.stock_quantity} items available` };
+    
+    for (const item of checkoutItems) {
+      if (item.availability_status !== "in_stock") {
+        return { valid: false, message: `${item.product_name} is out of stock` };
+      }
+      if (item.stock_quantity < item.quantity) {
+        return { valid: false, message: `Only ${item.stock_quantity} of ${item.product_name} available` };
+      }
     }
     return { valid: true };
   };
@@ -223,71 +291,139 @@ const Checkout = () => {
     setStep("payment");
   };
 
-  const handlePayment = async () => {
+  const createOrder = async (paymentId: string | null, paymentStatus: string) => {
+    if (!user || !selectedAddress) throw new Error("Missing user or address");
+
+    const orderNumber = `DP-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    
+    const { data: newOrder, error: createOrderError } = await supabase
+      .from("orders")
+      .insert({
+        user_id: user.id,
+        order_number: orderNumber,
+        address_id: selectedAddress.id,
+        shipping_address: {
+          full_name: selectedAddress.full_name,
+          phone: selectedAddress.phone,
+          address_line1: selectedAddress.address_line1,
+          address_line2: selectedAddress.address_line2,
+          city: selectedAddress.city,
+          state: selectedAddress.state,
+          postal_code: selectedAddress.postal_code,
+          country: selectedAddress.country,
+        },
+        subtotal: totalAmount,
+        tax_amount: 0,
+        shipping_amount: 0,
+        total_amount: totalAmount,
+        status: "pending",
+        payment_status: paymentStatus,
+        payment_id: paymentId,
+      })
+      .select()
+      .single();
+
+    if (createOrderError) throw createOrderError;
+
+    // Create order items
+    const orderItems = checkoutItems.map(item => ({
+      order_id: newOrder.id,
+      product_id: item.product_id,
+      product_name: item.product_name,
+      product_price: item.product_price,
+      quantity: item.quantity,
+      total_price: item.total_price,
+    }));
+
+    const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
+    if (itemsError) {
+      console.error("Order items creation error:", itemsError);
+    }
+
+    // Clear cart if cart checkout
+    if (isCartCheckout) {
+      await supabase.from("cart_items").delete().eq("user_id", user.id);
+      queryClient.invalidateQueries({ queryKey: ["cart-items"] });
+      queryClient.invalidateQueries({ queryKey: ["cart-count"] });
+    }
+
+    // Generate invoice
+    try {
+      await supabase.functions.invoke("generate-invoice", {
+        body: { orderId: newOrder.id },
+      });
+    } catch (invoiceError) {
+      console.error("Invoice generation error:", invoiceError);
+    }
+
+    return newOrder;
+  };
+
+  const handleCODPayment = async () => {
+    setIsProcessing(true);
+    try {
+      // Verify stock before creating order
+      for (const item of checkoutItems) {
+        const { data: freshProduct, error } = await supabase
+          .from("products")
+          .select("stock_quantity, availability_status")
+          .eq("id", item.product_id)
+          .single();
+
+        if (error || !freshProduct) {
+          throw new Error(`Failed to verify ${item.product_name}`);
+        }
+        if (freshProduct.availability_status !== "in_stock" || freshProduct.stock_quantity < item.quantity) {
+          throw new Error(`${item.product_name} is no longer available in requested quantity`);
+        }
+      }
+
+      await createOrder(null, "pending");
+      setPaymentStatus("success");
+      toast.success("Order placed successfully! Pay on delivery.");
+    } catch (error: any) {
+      console.error("COD order error:", error);
+      toast.error(error.message || "Failed to place order");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleRazorpayPayment = async () => {
     if (!razorpayLoaded) {
       toast.error("Payment gateway is loading. Please try again.");
       return;
     }
 
-    if (!product || !user || !selectedAddress) return;
-
-    // Final verification before payment
-    const reviewCheck = canProceedToReview();
-    const paymentCheck = canProceedToPayment();
-    
-    if (!reviewCheck.valid) {
-      toast.error(reviewCheck.message);
-      setStep("address");
-      return;
-    }
-    
-    if (!paymentCheck.valid) {
-      toast.error(paymentCheck.message);
-      setStep("review");
-      return;
-    }
+    if (!user || !selectedAddress || !hasItems) return;
 
     setIsProcessing(true);
 
     try {
-      // Verify product availability one more time
-      const { data: freshProduct, error: productError } = await supabase
-        .from("products")
-        .select("stock_quantity, availability_status")
-        .eq("id", product.id)
-        .single();
+      // Verify stock before payment
+      for (const item of checkoutItems) {
+        const { data: freshProduct, error } = await supabase
+          .from("products")
+          .select("stock_quantity, availability_status")
+          .eq("id", item.product_id)
+          .single();
 
-      if (productError || !freshProduct) {
-        throw new Error("Failed to verify product availability");
+        if (error || !freshProduct) {
+          throw new Error(`Failed to verify ${item.product_name}`);
+        }
+        if (freshProduct.availability_status !== "in_stock" || freshProduct.stock_quantity < item.quantity) {
+          throw new Error(`${item.product_name} is no longer available in requested quantity`);
+        }
       }
 
-      if (freshProduct.availability_status !== "in_stock" || freshProduct.stock_quantity < quantity) {
-        toast.error("Product is no longer available in the requested quantity");
-        setIsProcessing(false);
-        return;
-      }
-
-      // Create order via edge function
+      // Create Razorpay order
       const { data: orderData, error: orderError } = await supabase.functions.invoke(
         "create-razorpay-order",
         {
           body: {
             amount: totalAmount * 100,
             currency: "INR",
-            productId: product.id,
-            productName: product.name,
-            quantity,
-            addressId: selectedAddress.id,
-            shippingAddress: {
-              full_name: selectedAddress.full_name,
-              phone: selectedAddress.phone,
-              address_line1: selectedAddress.address_line1,
-              address_line2: selectedAddress.address_line2,
-              city: selectedAddress.city,
-              state: selectedAddress.state,
-              postal_code: selectedAddress.postal_code,
-              country: selectedAddress.country,
-            },
+            items: checkoutItems.map(i => ({ name: i.product_name, qty: i.quantity })),
           },
         }
       );
@@ -299,67 +435,11 @@ const Checkout = () => {
         amount: orderData.amount,
         currency: orderData.currency,
         name: "Decouverts Plus",
-        description: `Purchase: ${product.name}`,
+        description: isCartCheckout ? `Cart Order (${checkoutItems.length} items)` : checkoutItems[0]?.product_name,
         order_id: orderData.orderId,
         handler: async function (response: any) {
-          // Payment successful - create order in database
           try {
-            const orderNumber = `DP-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-            
-            const { data: newOrder, error: createOrderError } = await supabase
-              .from("orders")
-              .insert({
-                user_id: user.id,
-                order_number: orderNumber,
-                address_id: selectedAddress.id,
-                shipping_address: {
-                  full_name: selectedAddress.full_name,
-                  phone: selectedAddress.phone,
-                  address_line1: selectedAddress.address_line1,
-                  address_line2: selectedAddress.address_line2,
-                  city: selectedAddress.city,
-                  state: selectedAddress.state,
-                  postal_code: selectedAddress.postal_code,
-                  country: selectedAddress.country,
-                },
-                subtotal: totalAmount,
-                tax_amount: 0,
-                shipping_amount: 0,
-                total_amount: totalAmount,
-                status: "pending",
-                payment_status: "paid",
-                payment_id: response.razorpay_payment_id,
-              })
-              .select()
-              .single();
-
-            if (createOrderError) throw createOrderError;
-
-            // Create order item
-            const { error: itemError } = await supabase.from("order_items").insert({
-              order_id: newOrder.id,
-              product_id: product.id,
-              product_name: product.name,
-              product_price: product.price,
-              quantity: quantity,
-              total_price: totalAmount,
-            });
-
-            if (itemError) {
-              console.error("Order item creation error:", itemError);
-            }
-
-            // Generate invoice automatically
-            try {
-              await supabase.functions.invoke("generate-invoice", {
-                body: { orderId: newOrder.id },
-              });
-              console.log("Invoice generated successfully");
-            } catch (invoiceError) {
-              console.error("Invoice generation error:", invoiceError);
-              // Don't fail the order if invoice generation fails
-            }
-
+            await createOrder(response.razorpay_payment_id, "paid");
             setPaymentStatus("success");
             toast.success("Payment successful! Your order has been placed.");
           } catch (error) {
@@ -383,7 +463,7 @@ const Checkout = () => {
       };
 
       const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", function (response: any) {
+      rzp.on("payment.failed", function () {
         setPaymentStatus("failed");
         toast.error("Payment failed. Please try again.");
         setIsProcessing(false);
@@ -393,6 +473,14 @@ const Checkout = () => {
       console.error("Payment error:", error);
       toast.error(error.message || "Failed to initiate payment");
       setIsProcessing(false);
+    }
+  };
+
+  const handlePayment = () => {
+    if (paymentMethod === "cod") {
+      handleCODPayment();
+    } else {
+      handleRazorpayPayment();
     }
   };
 
@@ -412,7 +500,9 @@ const Checkout = () => {
               </div>
               <h2 className="text-2xl font-bold text-foreground mb-2">Order Placed Successfully!</h2>
               <p className="text-muted-foreground mb-6">
-                Thank you for your purchase. Your order is pending confirmation from the admin.
+                {paymentMethod === "cod" 
+                  ? "Thank you! Please pay when your order arrives."
+                  : "Thank you for your purchase. Your order is pending confirmation."}
               </p>
               <div className="space-y-3">
                 <Button onClick={() => navigate("/dashboard/orders")} className="w-full">
@@ -466,9 +556,9 @@ const Checkout = () => {
 
       <main className="flex-1 pt-20">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <Button variant="ghost" onClick={() => navigate("/shop")} className="mb-6">
+          <Button variant="ghost" onClick={() => navigate(isCartCheckout ? "/dashboard/cart" : "/shop")} className="mb-6">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Shop
+            {isCartCheckout ? "Back to Cart" : "Back to Shop"}
           </Button>
 
           <h1 className="text-3xl font-bold text-foreground mb-4">Checkout</h1>
@@ -734,64 +824,72 @@ const Checkout = () => {
                     </div>
 
                     {/* Product Details */}
-                    {productLoading ? (
+                    {isLoading ? (
                       <Skeleton className="h-32" />
-                    ) : product ? (
+                    ) : hasItems ? (
                       <div className="space-y-4">
-                        <div className="flex gap-4">
-                          <div className="w-24 h-24 bg-muted rounded-lg overflow-hidden flex-shrink-0">
-                            {product.images && product.images.length > 0 ? (
-                              <img
-                                src={product.images[0]}
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <Package className="w-8 h-8 text-muted-foreground/30" />
+                        {checkoutItems.map((item, idx) => (
+                          <div key={idx} className="flex gap-4">
+                            <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                              {item.images && item.images.length > 0 ? (
+                                <img
+                                  src={item.images[0]}
+                                  alt={item.product_name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <Package className="w-8 h-8 text-muted-foreground/30" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-foreground">{item.product_name}</h3>
+                              <p className="text-muted-foreground text-sm line-clamp-1">{item.description}</p>
+                              <div className="flex items-center justify-between mt-2">
+                                <span className="text-sm text-muted-foreground">Qty: {item.quantity}</span>
+                                <span className="text-primary font-bold">₹{item.total_price.toLocaleString()}</span>
                               </div>
-                            )}
+                              {item.availability_status !== "in_stock" && (
+                                <div className="flex items-center gap-1 text-destructive text-sm mt-1">
+                                  <AlertCircle className="w-4 h-4" />
+                                  Out of stock
+                                </div>
+                              )}
+                              {item.stock_quantity < item.quantity && item.availability_status === "in_stock" && (
+                                <div className="flex items-center gap-1 text-warning text-sm mt-1">
+                                  <AlertCircle className="w-4 h-4" />
+                                  Only {item.stock_quantity} available
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-foreground">{product.name}</h3>
-                            <p className="text-muted-foreground text-sm line-clamp-2">{product.description}</p>
-                            <p className="text-primary font-bold mt-2">₹{product.price.toLocaleString()} each</p>
-                          </div>
-                        </div>
+                        ))}
 
-                        {/* Stock Check */}
-                        {product.availability_status !== "in_stock" && (
-                          <div className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive rounded-lg">
-                            <AlertCircle className="w-5 h-5" />
-                            <span>This product is currently out of stock</span>
+                        {/* Quantity selector for single product */}
+                        {!isCartCheckout && product && (
+                          <div className="border-t pt-4">
+                            <Label htmlFor="quantity">Quantity</Label>
+                            <Input
+                              id="quantity"
+                              type="number"
+                              min="1"
+                              max={product.stock_quantity}
+                              value={quantity}
+                              onChange={(e) => setQuantity(Math.max(1, Math.min(product.stock_quantity, parseInt(e.target.value) || 1)))}
+                              className="mt-2 w-24"
+                            />
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {product.stock_quantity} available
+                            </p>
                           </div>
                         )}
-
-                        {product.stock_quantity < quantity && product.availability_status === "in_stock" && (
-                          <div className="flex items-center gap-2 p-3 bg-warning/10 text-warning rounded-lg">
-                            <AlertCircle className="w-5 h-5" />
-                            <span>Only {product.stock_quantity} items available</span>
-                          </div>
-                        )}
-
-                        <div className="border-t pt-4">
-                          <Label htmlFor="quantity">Quantity</Label>
-                          <Input
-                            id="quantity"
-                            type="number"
-                            min="1"
-                            max={product.stock_quantity}
-                            value={quantity}
-                            onChange={(e) => setQuantity(Math.max(1, Math.min(product.stock_quantity, parseInt(e.target.value) || 1)))}
-                            className="mt-2 w-24"
-                          />
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {product.stock_quantity} available
-                          </p>
-                        </div>
                       </div>
                     ) : (
-                      <p className="text-muted-foreground">Product not found</p>
+                      <div className="text-center py-8">
+                        <Package className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                        <p className="text-muted-foreground">No items to checkout</p>
+                      </div>
                     )}
 
                     <div className="flex gap-3">
@@ -816,29 +914,65 @@ const Checkout = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <CreditCard className="w-5 h-5 text-primary" />
-                      Payment
+                      Payment Method
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <div className="bg-muted/50 p-4 rounded-lg">
-                      <p className="text-sm text-muted-foreground mb-2">Payment Method</p>
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-8 bg-blue-600 rounded flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">RZP</span>
-                        </div>
-                        <span className="font-medium">Razorpay</span>
+                    <RadioGroup
+                      value={paymentMethod}
+                      onValueChange={(v) => setPaymentMethod(v as "razorpay" | "cod")}
+                      className="space-y-3"
+                    >
+                      {/* Razorpay Option */}
+                      <div
+                        className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${
+                          paymentMethod === "razorpay"
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/50"
+                        }`}
+                        onClick={() => setPaymentMethod("razorpay")}
+                      >
+                        <RadioGroupItem value="razorpay" id="razorpay" className="mt-1" />
+                        <label htmlFor="razorpay" className="flex-1 cursor-pointer">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-8 bg-blue-600 rounded flex items-center justify-center">
+                              <span className="text-white text-xs font-bold">RZP</span>
+                            </div>
+                            <div>
+                              <p className="font-medium">Pay Online (Razorpay)</p>
+                              <p className="text-sm text-muted-foreground">
+                                UPI, Cards, Net Banking, Wallets
+                              </p>
+                            </div>
+                          </div>
+                        </label>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Secure payment powered by Razorpay. Supports UPI, Cards, Net Banking & more.
-                      </p>
-                    </div>
 
-                    <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg">
-                      <p className="text-sm font-medium text-primary mb-1">Test Mode Active</p>
-                      <p className="text-xs text-muted-foreground">
-                        This is a test payment. No real money will be charged.
-                      </p>
-                    </div>
+                      {/* COD Option */}
+                      <div
+                        className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${
+                          paymentMethod === "cod"
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/50"
+                        }`}
+                        onClick={() => setPaymentMethod("cod")}
+                      >
+                        <RadioGroupItem value="cod" id="cod" className="mt-1" />
+                        <label htmlFor="cod" className="flex-1 cursor-pointer">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-8 bg-green-600 rounded flex items-center justify-center">
+                              <Banknote className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              <p className="font-medium">Cash on Delivery</p>
+                              <p className="text-sm text-muted-foreground">
+                                Pay when you receive your order
+                              </p>
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    </RadioGroup>
 
                     <div className="flex gap-3">
                       <Button variant="outline" onClick={() => setStep("review")} className="flex-1">
@@ -846,13 +980,18 @@ const Checkout = () => {
                       </Button>
                       <Button
                         onClick={handlePayment}
-                        disabled={isProcessing || !product || !razorpayLoaded}
+                        disabled={isProcessing || !hasItems || (paymentMethod === "razorpay" && !razorpayLoaded)}
                         className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
                       >
                         {isProcessing ? (
                           <>
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                             Processing...
+                          </>
+                        ) : paymentMethod === "cod" ? (
+                          <>
+                            <Banknote className="w-4 h-4 mr-2" />
+                            Place Order (₹{totalAmount.toLocaleString()})
                           </>
                         ) : (
                           <>
@@ -874,34 +1013,39 @@ const Checkout = () => {
                   <CardTitle className="text-lg">Order Summary</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {productLoading ? (
+                  {isLoading ? (
                     <Skeleton className="h-20" />
-                  ) : product ? (
+                  ) : hasItems ? (
                     <>
-                      <div className="flex gap-3">
-                        <div className="w-16 h-16 bg-muted rounded overflow-hidden flex-shrink-0">
-                          {product.images && product.images.length > 0 ? (
-                            <img
-                              src={product.images[0]}
-                              alt={product.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Package className="w-6 h-6 text-muted-foreground/30" />
+                      <div className="space-y-3 max-h-60 overflow-y-auto">
+                        {checkoutItems.map((item, idx) => (
+                          <div key={idx} className="flex gap-3">
+                            <div className="w-14 h-14 bg-muted rounded overflow-hidden flex-shrink-0">
+                              {item.images && item.images.length > 0 ? (
+                                <img
+                                  src={item.images[0]}
+                                  alt={item.product_name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <Package className="w-5 h-5 text-muted-foreground/30" />
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-sm line-clamp-2">{product.name}</h4>
-                          <p className="text-sm text-muted-foreground">Qty: {quantity}</p>
-                        </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-sm line-clamp-1">{item.product_name}</h4>
+                              <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                              <p className="text-sm font-medium">₹{item.total_price.toLocaleString()}</p>
+                            </div>
+                          </div>
+                        ))}
                       </div>
 
                       <div className="border-t pt-4 space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Subtotal</span>
-                          <span>₹{(product.price * quantity).toLocaleString()}</span>
+                          <span className="text-muted-foreground">Subtotal ({checkoutItems.length} items)</span>
+                          <span>₹{totalAmount.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">Shipping</span>
@@ -914,7 +1058,7 @@ const Checkout = () => {
                       </div>
                     </>
                   ) : (
-                    <p className="text-muted-foreground text-sm">Product not found</p>
+                    <p className="text-muted-foreground text-sm">No items in checkout</p>
                   )}
                 </CardContent>
               </Card>
