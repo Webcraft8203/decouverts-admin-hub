@@ -17,6 +17,7 @@ import UserOrders from "./pages/user/Orders";
 import UserOrderDetails from "./pages/user/OrderDetails";
 import UserAddresses from "./pages/user/Addresses";
 import UserInvoices from "./pages/user/Invoices";
+import UserProfile from "./pages/user/Profile";
 import Dashboard from "./pages/admin/Dashboard";
 import Products from "./pages/admin/Products";
 import Categories from "./pages/admin/Categories";
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/dashboard/orders/:orderId" element={<UserOrderDetails />} />
             <Route path="/dashboard/addresses" element={<UserAddresses />} />
             <Route path="/dashboard/invoices" element={<UserInvoices />} />
+            <Route path="/dashboard/profile" element={<UserProfile />} />
             <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminLayout><Dashboard /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/products" element={<ProtectedRoute requireAdmin><AdminLayout><Products /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/categories" element={<ProtectedRoute requireAdmin><AdminLayout><Categories /></AdminLayout></ProtectedRoute>} />
