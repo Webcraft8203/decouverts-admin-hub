@@ -269,14 +269,12 @@ const OrderDetails = () => {
                       className="w-full mt-4"
                       onClick={async () => {
                         const success = await generateInvoice(order.id);
-                        if (success) {
-                          window.location.reload();
-                        }
+                        if (success) await downloadInvoice(order.id);
                       }}
                       disabled={isGenerating}
                     >
                       <Download className="w-4 h-4 mr-2" />
-                      {isGenerating ? "Generating..." : "Generate Invoice"}
+                      {isGenerating ? "Generating..." : "Generate & Download"}
                     </Button>
                   ) : null}
                 </CardContent>
