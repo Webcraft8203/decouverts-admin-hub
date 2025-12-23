@@ -37,7 +37,7 @@ export default function Invoices() {
     const total = subtotal + tax;
     const invoiceNumber = `INV-${Date.now().toString(36).toUpperCase()}`;
     
-    const { error } = await supabase.from("invoices").insert({ invoice_number: invoiceNumber, client_name: formData.client_name, client_email: formData.client_email || null, client_address: formData.client_address || null, items: items, subtotal, tax_amount: tax, total_amount: total, notes: formData.notes || null, created_by: user?.id });
+    const { error } = await supabase.from("invoices").insert([{ invoice_number: invoiceNumber, client_name: formData.client_name, client_email: formData.client_email || null, client_address: formData.client_address || null, items: JSON.parse(JSON.stringify(items)), subtotal, tax_amount: tax, total_amount: total, notes: formData.notes || null, created_by: user?.id }]);
     
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Invoice created", description: `Invoice ${invoiceNumber} generated` });
