@@ -168,7 +168,7 @@ serve(async (req) => {
     for (const item of items) {
       const p = productsById.get(item.product_id)!;
       const newStock = p.stock_quantity - item.quantity;
-      const newStatus = newStock <= 0 ? "out_of_stock" : newStock < 10 ? "low_stock" : "in_stock";
+      const newStatus = newStock <= 0 ? "out_of_stock" : "in_stock";
 
       const { error: stockError } = await supabase
         .from("products")
