@@ -39,15 +39,18 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     const authHeader = req.headers.get("authorization") || "";
-    const token = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length) : "";
+    const token = authHeader.replace("Bearer ", "");
+    
+    console.log("Auth header present:", !!authHeader);
 
-    // Verify end-user
-    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { data: userData, error: userError } = await authClient.auth.getUser();
+    // Verify end-user using the token
+    const { data: userData, error: userError } = await supabase.auth.getUser(token);
+    console.log("User lookup result:", userError ? userError.message : "success", userData?.user?.id);
+    
     if (userError || !userData?.user) {
+      console.error("Auth failed:", userError?.message);
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 401,
@@ -58,10 +61,6 @@ serve(async (req) => {
     const body = (await req.json()) as PlaceOrderBody;
 
     if (!body?.addressId) throw new Error("Address ID is required");
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      global: { headers: { Authorization: `Bearer ${token}` } },
-    });
 
     // Load address (must belong to the user)
     const { data: address, error: addressError } = await supabase
