@@ -44,7 +44,7 @@ const Shop = () => {
       toast.info("Please login to purchase", {
         action: {
           label: "Login",
-          onClick: () => navigate("/auth"),
+          onClick: () => navigate("/login"),
         },
       });
       return;

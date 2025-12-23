@@ -45,7 +45,7 @@ const Checkout = () => {
   useEffect(() => {
     if (!user) {
       toast.error("Please login to checkout");
-      navigate("/auth");
+      navigate("/login");
     }
   }, [user, navigate]);
 
