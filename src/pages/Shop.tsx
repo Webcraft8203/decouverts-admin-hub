@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { WishlistButton } from "@/components/WishlistButton";
 import { 
   ShoppingCart, 
   Package, 
@@ -211,15 +212,18 @@ const Shop = () => {
           )}
         </div>
 
-        {/* Share Button */}
-        <Button
-          size="icon"
-          variant="secondary"
-          onClick={(e) => handleShare(e, product)}
-          className="absolute top-2 right-2 w-8 h-8 rounded-full bg-background/90 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-background"
-        >
-          <Share2 className="w-3.5 h-3.5" />
-        </Button>
+        {/* Wishlist & Share Buttons */}
+        <div className="absolute top-2 right-2 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <WishlistButton productId={product.id} size="sm" />
+          <Button
+            size="icon"
+            variant="secondary"
+            onClick={(e) => handleShare(e, product)}
+            className="w-8 h-8 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+          </Button>
+        </div>
       </div>
 
       <CardContent className={`${compact ? 'p-3' : 'p-4'}`}>
