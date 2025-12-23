@@ -78,7 +78,7 @@ export default function CustomerAuth() {
     setIsLoading(true);
 
     try {
-      const redirectUrl = `${window.location.origin}/shop`;
+      const redirectUrl = `https://decouvertsplus.vercel.app/shop`;
       const { error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,

@@ -70,7 +70,7 @@ export default function Auth() {
       }
 
       // Email is verified as admin, send magic link
-      const redirectUrl = `${window.location.origin}/admin`;
+      const redirectUrl = `https://decouvertsplus.vercel.app/admin`;
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
