@@ -20,8 +20,10 @@ import {
   XCircle,
   AlertCircle,
   Search,
-  Trash2
+  Trash2,
+  MessageSquare
 } from "lucide-react";
+import { AdminNotes } from "@/components/admin/AdminNotes";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -365,6 +367,11 @@ const AdminOrders = () => {
                             ID: {order.payment_id}
                           </p>
                         )}
+                      </div>
+
+                      {/* Admin Notes Section */}
+                      <div className="p-3 bg-muted/30 rounded-lg border border-border">
+                        <AdminNotes entityType="order" entityId={order.id} compact />
                       </div>
                     </div>
                   </div>

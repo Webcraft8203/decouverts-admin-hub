@@ -10,7 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Upload, X, Image, Loader2, Star } from "lucide-react";
+import { Plus, Pencil, Trash2, Upload, X, Image, Loader2, Star, MessageSquare } from "lucide-react";
+import { AdminNotes } from "@/components/admin/AdminNotes";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 interface Product {
   id: string;
@@ -300,6 +302,21 @@ export default function Products() {
                   </Button>
                 </TableCell>
                 <TableCell className="text-right">
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <Button variant="ghost" size="icon" title="Internal Notes">
+                        <MessageSquare className="h-4 w-4" />
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent>
+                      <SheetHeader>
+                        <SheetTitle>Notes for {p.name}</SheetTitle>
+                      </SheetHeader>
+                      <div className="mt-4">
+                        <AdminNotes entityType="product" entityId={p.id} />
+                      </div>
+                    </SheetContent>
+                  </Sheet>
                   <Button variant="ghost" size="icon" onClick={() => openEdit(p)}><Pencil className="h-4 w-4" /></Button>
                   <Button variant="ghost" size="icon" onClick={() => handleDelete(p.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                 </TableCell>
