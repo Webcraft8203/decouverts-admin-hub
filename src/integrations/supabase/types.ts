@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_notes: {
+        Row: {
+          admin_id: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          note_text: string
+          updated_at: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          note_text: string
+          updated_at?: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          note_text?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cart_items: {
         Row: {
           created_at: string
