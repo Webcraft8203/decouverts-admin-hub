@@ -16,6 +16,7 @@ import { OrderStatusChart } from "@/components/admin/analytics/OrderStatusChart"
 import { TopProductsTable } from "@/components/admin/analytics/TopProductsTable";
 import { CustomerInsights } from "@/components/admin/analytics/CustomerInsights";
 import { LowStockProducts } from "@/components/admin/analytics/LowStockProducts";
+import { LowStockMaterials } from "@/components/admin/LowStockMaterials";
 
 export default function Dashboard() {
   const {
@@ -27,6 +28,7 @@ export default function Dashboard() {
     lowProducts,
     lowStockProducts,
     customerStats,
+    rawMaterials,
     refetch,
   } = useAnalytics();
 
@@ -174,8 +176,9 @@ export default function Dashboard() {
               isLoading={isLoading}
             />
           </div>
-          <div>
+          <div className="space-y-6">
             <LowStockProducts products={lowStockProducts} isLoading={isLoading} />
+            <LowStockMaterials materials={rawMaterials} isLoading={isLoading} />
           </div>
         </div>
       </div>

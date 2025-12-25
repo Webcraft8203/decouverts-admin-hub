@@ -7,9 +7,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, IndianRupee, Package, TrendingDown } from "lucide-react";
+import { Plus, Pencil, Trash2, IndianRupee, Package, TrendingDown, AlertTriangle, PackageX } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { RawMaterialUsage } from "@/components/admin/RawMaterialUsage";
+import { RawMaterialLedger } from "@/components/admin/RawMaterialLedger";
+import { useAuth } from "@/hooks/useAuth";
 
 interface RawMaterial {
   id: string;
@@ -19,6 +22,7 @@ interface RawMaterial {
   unit: string;
   availability_status: string;
   cost_per_unit: number;
+  min_quantity: number;
 }
 
 export default function RawMaterials() {
@@ -31,10 +35,11 @@ export default function RawMaterials() {
     description: "",
     quantity: "",
     unit: "units",
-    availability_status: "available",
     cost_per_unit: "",
+    min_quantity: "10",
   });
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchData();
@@ -46,21 +51,56 @@ export default function RawMaterials() {
     setIsLoading(false);
   };
 
+  const getAutoStatus = (quantity: number, minQuantity: number): string => {
+    if (quantity <= 0) return "out_of_stock";
+    if (quantity <= minQuantity) return "low_stock";
+    return "available";
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const quantity = parseFloat(formData.quantity) || 0;
+    const minQuantity = parseFloat(formData.min_quantity) || 10;
+    
     const data = {
       name: formData.name,
       description: formData.description || null,
-      quantity: parseFloat(formData.quantity) || 0,
+      quantity: quantity,
       unit: formData.unit,
-      availability_status: formData.availability_status,
+      availability_status: getAutoStatus(quantity, minQuantity),
       cost_per_unit: parseFloat(formData.cost_per_unit) || 0,
+      min_quantity: minQuantity,
     };
+
     if (editing) {
+      // Log the change if quantity changed
+      if (quantity !== editing.quantity && user) {
+        await supabase.from("raw_material_ledger").insert({
+          raw_material_id: editing.id,
+          action_type: quantity > editing.quantity ? "add" : "adjust",
+          quantity_change: quantity - editing.quantity,
+          previous_quantity: editing.quantity,
+          new_quantity: quantity,
+          admin_id: user.id,
+          note: "Manual stock update via form",
+        });
+      }
       await supabase.from("raw_materials").update(data).eq("id", editing.id);
       toast({ title: "Material updated" });
     } else {
-      await supabase.from("raw_materials").insert(data);
+      const { data: newMaterial } = await supabase.from("raw_materials").insert(data).select().single();
+      // Log initial stock entry
+      if (newMaterial && user) {
+        await supabase.from("raw_material_ledger").insert({
+          raw_material_id: newMaterial.id,
+          action_type: "add",
+          quantity_change: quantity,
+          previous_quantity: 0,
+          new_quantity: quantity,
+          admin_id: user.id,
+          note: "Initial stock entry",
+        });
+      }
       toast({ title: "Material created" });
     }
     setDialogOpen(false);
@@ -74,8 +114,8 @@ export default function RawMaterials() {
       description: "",
       quantity: "",
       unit: "units",
-      availability_status: "available",
       cost_per_unit: "",
+      min_quantity: "10",
     });
     setEditing(null);
   };
@@ -87,29 +127,52 @@ export default function RawMaterials() {
       description: m.description || "",
       quantity: String(m.quantity),
       unit: m.unit,
-      availability_status: m.availability_status,
       cost_per_unit: String(m.cost_per_unit || 0),
+      min_quantity: String(m.min_quantity || 10),
     });
     setDialogOpen(true);
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this material?")) return;
+    if (!confirm("Delete this material? This will also delete all associated usage records and ledger entries.")) return;
     await supabase.from("raw_materials").delete().eq("id", id);
     toast({ title: "Material deleted" });
     fetchData();
   };
 
-  const statusColors: Record<string, string> = {
-    available: "bg-success/10 text-success",
-    low_stock: "bg-warning/10 text-warning",
-    unavailable: "bg-destructive/10 text-destructive",
+  const getStatusDisplay = (m: RawMaterial) => {
+    const isOutOfStock = m.quantity <= 0 || m.availability_status === "out_of_stock";
+    const isLowStock = !isOutOfStock && (m.quantity <= m.min_quantity || m.availability_status === "low_stock");
+    
+    if (isOutOfStock) {
+      return {
+        color: "bg-destructive/10 text-destructive border-destructive/20",
+        icon: <PackageX className="h-3 w-3" />,
+        label: "Out of Stock",
+      };
+    }
+    if (isLowStock) {
+      return {
+        color: "bg-warning/10 text-warning border-warning/20",
+        icon: <AlertTriangle className="h-3 w-3" />,
+        label: "Low Stock",
+      };
+    }
+    return {
+      color: "bg-success/10 text-success border-success/20",
+      icon: null,
+      label: "Normal",
+    };
   };
 
   // Calculate totals
   const totalCost = materials.reduce((sum, m) => sum + m.quantity * (m.cost_per_unit || 0), 0);
   const totalItems = materials.reduce((sum, m) => sum + m.quantity, 0);
-  const lowStockCount = materials.filter((m) => m.availability_status === "low_stock" || m.availability_status === "unavailable").length;
+  const outOfStockCount = materials.filter((m) => m.quantity <= 0 || m.availability_status === "out_of_stock").length;
+  const lowStockCount = materials.filter((m) => {
+    const isOutOfStock = m.quantity <= 0 || m.availability_status === "out_of_stock";
+    return !isOutOfStock && (m.quantity <= m.min_quantity || m.availability_status === "low_stock");
+  }).length;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-IN", {
@@ -121,102 +184,102 @@ export default function RawMaterials() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Raw Materials</h1>
-          <p className="text-muted-foreground">Internal inventory management</p>
+          <p className="text-muted-foreground">Internal inventory management with usage tracking</p>
         </div>
-        <Dialog
-          open={dialogOpen}
-          onOpenChange={(o) => {
-            setDialogOpen(o);
-            if (!o) resetForm();
-          }}
-        >
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Material
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{editing ? "Edit" : "Add"} Raw Material</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label>Name *</Label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                />
-              </div>
-              <div>
-                <Label>Description</Label>
-                <Textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-wrap gap-2">
+          <RawMaterialUsage materials={materials} onUsageRecorded={fetchData} />
+          <RawMaterialLedger materials={materials} />
+          <Dialog
+            open={dialogOpen}
+            onOpenChange={(o) => {
+              setDialogOpen(o);
+              if (!o) resetForm();
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Material
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{editing ? "Edit" : "Add"} Raw Material</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <Label>Quantity *</Label>
+                  <Label>Name *</Label>
                   <Input
-                    type="number"
-                    step="0.01"
-                    value={formData.quantity}
-                    onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required
                   />
                 </div>
                 <div>
-                  <Label>Unit</Label>
-                  <Input
-                    value={formData.unit}
-                    onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                  <Label>Description</Label>
+                  <Textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   />
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Cost per Unit (₹) *</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.cost_per_unit}
-                    onChange={(e) => setFormData({ ...formData, cost_per_unit: e.target.value })}
-                    placeholder="0.00"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Quantity *</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={formData.quantity}
+                      onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Unit</Label>
+                    <Input
+                      value={formData.unit}
+                      onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label>Status</Label>
-                  <Select
-                    value={formData.availability_status}
-                    onValueChange={(v) => setFormData({ ...formData, availability_status: v })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="available">Available</SelectItem>
-                      <SelectItem value="low_stock">Low Stock</SelectItem>
-                      <SelectItem value="unavailable">Unavailable</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Min Stock Threshold *</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={formData.min_quantity}
+                      onChange={(e) => setFormData({ ...formData, min_quantity: e.target.value })}
+                      placeholder="10"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Alert when stock falls below</p>
+                  </div>
+                  <div>
+                    <Label>Cost per Unit (₹)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={formData.cost_per_unit}
+                      onChange={(e) => setFormData({ ...formData, cost_per_unit: e.target.value })}
+                      placeholder="0.00"
+                    />
+                  </div>
                 </div>
-              </div>
-              <Button type="submit" className="w-full">
-                {editing ? "Update" : "Create"} Material
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+                <Button type="submit" className="w-full">
+                  {editing ? "Update" : "Create"} Material
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Card className="border-primary/20 bg-primary/5">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -250,7 +313,7 @@ export default function RawMaterials() {
         <Card className={`${lowStockCount > 0 ? "border-warning/20 bg-warning/5" : "border-success/20 bg-success/5"}`}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Needs Attention
+              Low Stock
             </CardTitle>
             <TrendingDown className={`h-4 w-4 ${lowStockCount > 0 ? "text-warning" : "text-success"}`} />
           </CardHeader>
@@ -259,7 +322,24 @@ export default function RawMaterials() {
               {lowStockCount}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {lowStockCount > 0 ? "Low stock or unavailable" : "All materials stocked"}
+              {lowStockCount > 0 ? "Below threshold" : "All stocked well"}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className={`${outOfStockCount > 0 ? "border-destructive/20 bg-destructive/5" : "border-success/20 bg-success/5"}`}>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Out of Stock
+            </CardTitle>
+            <PackageX className={`h-4 w-4 ${outOfStockCount > 0 ? "text-destructive" : "text-success"}`} />
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${outOfStockCount > 0 ? "text-destructive" : "text-success"}`}>
+              {outOfStockCount}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {outOfStockCount > 0 ? "Need immediate restock" : "All available"}
             </p>
           </CardContent>
         </Card>
@@ -268,59 +348,80 @@ export default function RawMaterials() {
       {/* Materials Table */}
       <Card>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Quantity</TableHead>
-                <TableHead>Unit</TableHead>
-                <TableHead>Cost/Unit</TableHead>
-                <TableHead>Total Cost</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
-                    Loading...
-                  </TableCell>
+                  <TableHead>Name</TableHead>
+                  <TableHead className="text-right">Quantity</TableHead>
+                  <TableHead className="text-right">Min Threshold</TableHead>
+                  <TableHead>Unit</TableHead>
+                  <TableHead className="text-right">Cost/Unit</TableHead>
+                  <TableHead className="text-right">Total Cost</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ) : materials.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    No materials added yet
-                  </TableCell>
-                </TableRow>
-              ) : (
-                materials.map((m) => (
-                  <TableRow key={m.id}>
-                    <TableCell className="font-medium">{m.name}</TableCell>
-                    <TableCell>{m.quantity.toLocaleString()}</TableCell>
-                    <TableCell>{m.unit}</TableCell>
-                    <TableCell>₹{(m.cost_per_unit || 0).toLocaleString()}</TableCell>
-                    <TableCell className="font-medium">
-                      ₹{(m.quantity * (m.cost_per_unit || 0)).toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs ${statusColors[m.availability_status]}`}>
-                        {m.availability_status.replace("_", " ")}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => handleEdit(m)}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(m.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8">
+                      Loading...
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : materials.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                      No materials added yet
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  materials.map((m) => {
+                    const status = getStatusDisplay(m);
+                    return (
+                      <TableRow key={m.id}>
+                        <TableCell>
+                          <div>
+                            <span className="font-medium">{m.name}</span>
+                            {m.description && (
+                              <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                                {m.description}
+                              </p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          {m.quantity.toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-right text-muted-foreground">
+                          {m.min_quantity.toLocaleString()}
+                        </TableCell>
+                        <TableCell>{m.unit}</TableCell>
+                        <TableCell className="text-right">₹{(m.cost_per_unit || 0).toLocaleString()}</TableCell>
+                        <TableCell className="text-right font-medium">
+                          ₹{(m.quantity * (m.cost_per_unit || 0)).toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={`text-xs ${status.color}`}>
+                            {status.icon && <span className="mr-1">{status.icon}</span>}
+                            {status.label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(m)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(m.id)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>
