@@ -35,6 +35,15 @@ interface CustomerStats {
   customersWithOrders: number;
 }
 
+interface RawMaterial {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: string;
+  min_quantity: number;
+  availability_status: string;
+}
+
 interface DashboardStats {
   totalOrders: number;
   totalRevenue: number;
@@ -76,6 +85,7 @@ export function useAnalytics() {
     returningCustomers: 0,
     customersWithOrders: 0,
   });
+  const [rawMaterials, setRawMaterials] = useState<RawMaterial[]>([]);
 
   useEffect(() => {
     fetchAllAnalytics();
@@ -91,6 +101,7 @@ export function useAnalytics() {
         fetchProductSales(),
         fetchLowStockProducts(),
         fetchCustomerStats(),
+        fetchRawMaterials(),
       ]);
     } catch (error) {
       console.error("Error fetching analytics:", error);
@@ -263,6 +274,14 @@ export function useAnalytics() {
     });
   };
 
+  const fetchRawMaterials = async () => {
+    const { data } = await supabase
+      .from("raw_materials")
+      .select("id, name, quantity, unit, min_quantity, availability_status")
+      .order("name");
+    setRawMaterials(data || []);
+  };
+
   return {
     isLoading,
     dashboardStats,
@@ -272,6 +291,7 @@ export function useAnalytics() {
     lowProducts,
     lowStockProducts,
     customerStats,
+    rawMaterials,
     refetch: fetchAllAnalytics,
   };
 }

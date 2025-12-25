@@ -449,6 +449,91 @@ export type Database = {
         }
         Relationships: []
       }
+      raw_material_ledger: {
+        Row: {
+          action_type: string
+          admin_id: string
+          created_at: string
+          id: string
+          new_quantity: number
+          note: string | null
+          previous_quantity: number
+          quantity_change: number
+          raw_material_id: string
+        }
+        Insert: {
+          action_type: string
+          admin_id: string
+          created_at?: string
+          id?: string
+          new_quantity: number
+          note?: string | null
+          previous_quantity: number
+          quantity_change: number
+          raw_material_id: string
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string
+          created_at?: string
+          id?: string
+          new_quantity?: number
+          note?: string | null
+          previous_quantity?: number
+          quantity_change?: number
+          raw_material_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "raw_material_ledger_raw_material_id_fkey"
+            columns: ["raw_material_id"]
+            isOneToOne: false
+            referencedRelation: "raw_materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      raw_material_usage: {
+        Row: {
+          admin_id: string
+          created_at: string
+          id: string
+          quantity_used: number
+          raw_material_id: string
+          reference_id: string | null
+          reference_note: string | null
+          usage_type: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          id?: string
+          quantity_used: number
+          raw_material_id: string
+          reference_id?: string | null
+          reference_note?: string | null
+          usage_type?: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          id?: string
+          quantity_used?: number
+          raw_material_id?: string
+          reference_id?: string | null
+          reference_note?: string | null
+          usage_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "raw_material_usage_raw_material_id_fkey"
+            columns: ["raw_material_id"]
+            isOneToOne: false
+            referencedRelation: "raw_materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       raw_materials: {
         Row: {
           availability_status: string
@@ -456,6 +541,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          min_quantity: number
           name: string
           quantity: number
           unit: string
@@ -467,6 +553,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          min_quantity?: number
           name: string
           quantity?: number
           unit?: string
@@ -478,6 +565,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          min_quantity?: number
           name?: string
           quantity?: number
           unit?: string
