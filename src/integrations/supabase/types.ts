@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          action_type: string
+          admin_id: string
+          created_at: string
+          description: string | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          action_type: string
+          admin_id: string
+          created_at?: string
+          description?: string | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string
+          created_at?: string
+          description?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: []
+      }
       admin_notes: {
         Row: {
           admin_id: string
@@ -373,6 +406,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_status: string
           age: number | null
           created_at: string
           email: string
@@ -382,6 +416,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_status?: string
           age?: number | null
           created_at?: string
           email: string
@@ -391,6 +426,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_status?: string
           age?: number | null
           created_at?: string
           email?: string

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useActivityLog } from "@/hooks/useActivityLog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,10 +21,10 @@ import {
   XCircle,
   AlertCircle,
   Search,
-  Trash2,
-  MessageSquare
+  Trash2
 } from "lucide-react";
 import { AdminNotes } from "@/components/admin/AdminNotes";
+import { OrderTimeline } from "@/components/admin/OrderTimeline";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -61,6 +62,7 @@ const getStatusInfo = (status: string) => {
 
 const AdminOrders = () => {
   const queryClient = useQueryClient();
+  const { logActivity } = useActivityLog();
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
@@ -78,19 +80,28 @@ const AdminOrders = () => {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({ id, status, orderNumber }: { id: string; status: string; orderNumber: string }) => {
       const { error } = await supabase.from("orders").update({ status }).eq("id", id);
       if (error) throw error;
+      return { id, status, orderNumber };
     },
-    onSuccess: () => {
+    onSuccess: async ({ id, status, orderNumber }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
       toast.success("Order status updated");
+      
+      await logActivity({
+        actionType: "order_status_change",
+        entityType: "order",
+        entityId: id,
+        description: `Order ${orderNumber} status changed to ${status}`,
+        metadata: { newStatus: status }
+      });
     },
     onError: () => toast.error("Failed to update status"),
   });
 
   const deleteOrderMutation = useMutation({
-    mutationFn: async (orderId: string) => {
+    mutationFn: async ({ orderId, orderNumber }: { orderId: string; orderNumber: string }) => {
       // First delete order items
       const { error: itemsError } = await supabase
         .from("order_items")
@@ -104,10 +115,18 @@ const AdminOrders = () => {
         .delete()
         .eq("id", orderId);
       if (error) throw error;
+      return { orderId, orderNumber };
     },
-    onSuccess: () => {
+    onSuccess: async ({ orderId, orderNumber }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
       toast.success("Order deleted successfully");
+      
+      await logActivity({
+        actionType: "order_delete",
+        entityType: "order",
+        entityId: orderId,
+        description: `Order ${orderNumber} deleted`,
+      });
     },
     onError: () => toast.error("Failed to delete order"),
   });
@@ -245,7 +264,7 @@ const AdminOrders = () => {
                                     variant={order.status === status.value ? "default" : "outline"}
                                     className="justify-start"
                                     onClick={() => {
-                                      updateStatusMutation.mutate({ id: order.id, status: status.value });
+                                      updateStatusMutation.mutate({ id: order.id, status: status.value, orderNumber: order.order_number });
                                     }}
                                     disabled={updateStatusMutation.isPending}
                                   >
@@ -274,7 +293,7 @@ const AdminOrders = () => {
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
-                              onClick={() => deleteOrderMutation.mutate(order.id)}
+                              onClick={() => deleteOrderMutation.mutate({ orderId: order.id, orderNumber: order.order_number })}
                               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             >
                               Delete
@@ -286,6 +305,11 @@ const AdminOrders = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
+                  {/* Order Timeline */}
+                  <div className="mb-4 pb-4 border-b">
+                    <OrderTimeline currentStatus={order.status} />
+                  </div>
+                  
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     {/* Order Items */}
                     <div className="lg:col-span-2 space-y-2">
