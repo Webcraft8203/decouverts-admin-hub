@@ -15,6 +15,8 @@ import {
   ShoppingBag,
   Star,
   Ticket,
+  Users,
+  Activity,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -29,6 +31,8 @@ const navItems = [
   { to: "/admin/inventory", icon: Warehouse, label: "Inventory" },
   { to: "/admin/raw-materials", icon: Box, label: "Raw Materials" },
   { to: "/admin/invoices", icon: FileText, label: "Invoices" },
+  { to: "/admin/customers", icon: Users, label: "Customers" },
+  { to: "/admin/activity-logs", icon: Activity, label: "Activity Logs" },
 ];
 
 interface AdminLayoutProps {
