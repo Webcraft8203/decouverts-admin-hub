@@ -136,6 +136,98 @@ export type Database = {
         }
         Relationships: []
       }
+      design_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          design_request_id: string
+          id: string
+          payment_status: string
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          design_request_id: string
+          id?: string
+          payment_status?: string
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          design_request_id?: string
+          id?: string
+          payment_status?: string
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "design_payments_design_request_id_fkey"
+            columns: ["design_request_id"]
+            isOneToOne: false
+            referencedRelation: "design_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      design_requests: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          description: string | null
+          file_name: string | null
+          file_url: string
+          final_amount: number | null
+          id: string
+          price_locked: boolean
+          quantity: number
+          quoted_amount: number | null
+          size: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          description?: string | null
+          file_name?: string | null
+          file_url: string
+          final_amount?: number | null
+          id?: string
+          price_locked?: boolean
+          quantity?: number
+          quoted_amount?: number | null
+          size?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          description?: string | null
+          file_name?: string | null
+          file_url?: string
+          final_amount?: number | null
+          id?: string
+          price_locked?: boolean
+          quantity?: number
+          quoted_amount?: number | null
+          size?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           client_address: string | null
@@ -484,6 +576,82 @@ export type Database = {
           used_count?: number
         }
         Relationships: []
+      }
+      quotation_messages: {
+        Row: {
+          created_at: string
+          design_request_id: string
+          id: string
+          is_read: boolean
+          message_text: string
+          sender_id: string
+          sender_role: string
+        }
+        Insert: {
+          created_at?: string
+          design_request_id: string
+          id?: string
+          is_read?: boolean
+          message_text: string
+          sender_id: string
+          sender_role: string
+        }
+        Update: {
+          created_at?: string
+          design_request_id?: string
+          id?: string
+          is_read?: boolean
+          message_text?: string
+          sender_id?: string
+          sender_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotation_messages_design_request_id_fkey"
+            columns: ["design_request_id"]
+            isOneToOne: false
+            referencedRelation: "design_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotation_negotiations: {
+        Row: {
+          created_at: string
+          design_request_id: string
+          id: string
+          message: string | null
+          proposed_amount: number
+          sender_id: string
+          sender_role: string
+        }
+        Insert: {
+          created_at?: string
+          design_request_id: string
+          id?: string
+          message?: string | null
+          proposed_amount: number
+          sender_id: string
+          sender_role: string
+        }
+        Update: {
+          created_at?: string
+          design_request_id?: string
+          id?: string
+          message?: string | null
+          proposed_amount?: number
+          sender_id?: string
+          sender_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotation_negotiations_design_request_id_fkey"
+            columns: ["design_request_id"]
+            isOneToOne: false
+            referencedRelation: "design_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       raw_material_ledger: {
         Row: {
