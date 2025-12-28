@@ -26,6 +26,9 @@ import {
   Lock,
   CheckCircle,
   XCircle,
+  ThumbsUp,
+  RotateCcw,
+  MessageCircle,
 } from "lucide-react";
 import {
   Select,
@@ -93,6 +96,9 @@ export default function AdminDesignRequestDetail() {
   const [showQuotationDialog, setShowQuotationDialog] = useState(false);
   const [showLockDialog, setShowLockDialog] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [showAcceptUserPriceDialog, setShowAcceptUserPriceDialog] = useState(false);
+  const [showStickToPreviousDialog, setShowStickToPreviousDialog] = useState(false);
+  const [showRejectNegotiationDialog, setShowRejectNegotiationDialog] = useState(false);
 
   // Fetch request details
   const { data: request, isLoading } = useQuery({
@@ -268,14 +274,15 @@ export default function AdminDesignRequestDetail() {
 
   // Lock price mutation
   const lockPriceMutation = useMutation({
-    mutationFn: async () => {
-      const finalAmount = request?.quoted_amount;
+    mutationFn: async (amountToLock?: number) => {
+      const finalAmount = amountToLock || request?.quoted_amount;
       if (!finalAmount) throw new Error("No quotation amount to lock");
 
       const { error } = await supabase
         .from("design_requests")
         .update({
           final_amount: finalAmount,
+          quoted_amount: finalAmount,
           price_locked: true,
           status: "payment_pending",
         })
@@ -292,10 +299,124 @@ export default function AdminDesignRequestDetail() {
     onSuccess: () => {
       toast.success("Price locked! User can now proceed with payment.");
       setShowLockDialog(false);
+      setShowAcceptUserPriceDialog(false);
+      setShowStickToPreviousDialog(false);
       queryClient.invalidateQueries({ queryKey: ["admin-design-request", id] });
+      queryClient.invalidateQueries({ queryKey: ["admin-design-negotiations", id] });
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to lock price");
+    },
+  });
+
+  // Accept user's proposed price
+  const acceptUserPriceMutation = useMutation({
+    mutationFn: async (userAmount: number) => {
+      // Add negotiation entry
+      const { error: negError } = await supabase.from("quotation_negotiations").insert({
+        design_request_id: id,
+        sender_role: "admin",
+        sender_id: user!.id,
+        proposed_amount: userAmount,
+        message: "Accepted user's proposed price",
+      });
+      if (negError) throw negError;
+
+      // Lock the price
+      const { error } = await supabase
+        .from("design_requests")
+        .update({
+          quoted_amount: userAmount,
+          final_amount: userAmount,
+          price_locked: true,
+          status: "payment_pending",
+        })
+        .eq("id", id);
+      if (error) throw error;
+
+      await logActivity({
+        actionType: "price_locked",
+        entityType: "design_request",
+        entityId: id!,
+        description: `Accepted user's price and locked: ₹${userAmount.toLocaleString()}`
+      });
+    },
+    onSuccess: () => {
+      toast.success("Accepted user's price and locked!");
+      setShowAcceptUserPriceDialog(false);
+      queryClient.invalidateQueries({ queryKey: ["admin-design-request", id] });
+      queryClient.invalidateQueries({ queryKey: ["admin-design-negotiations", id] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to accept price");
+    },
+  });
+
+  // Stick to previous price and lock
+  const stickToPreviousPriceMutation = useMutation({
+    mutationFn: async (previousAmount: number) => {
+      // Add negotiation entry
+      const { error: negError } = await supabase.from("quotation_negotiations").insert({
+        design_request_id: id,
+        sender_role: "admin",
+        sender_id: user!.id,
+        proposed_amount: previousAmount,
+        message: "Final price - sticking to previous quotation",
+      });
+      if (negError) throw negError;
+
+      // Lock the price
+      const { error } = await supabase
+        .from("design_requests")
+        .update({
+          final_amount: previousAmount,
+          price_locked: true,
+          status: "payment_pending",
+        })
+        .eq("id", id);
+      if (error) throw error;
+
+      await logActivity({
+        actionType: "price_locked",
+        entityType: "design_request",
+        entityId: id!,
+        description: `Locked at previous price: ₹${previousAmount.toLocaleString()}`
+      });
+    },
+    onSuccess: () => {
+      toast.success("Price locked at previous quotation!");
+      setShowStickToPreviousDialog(false);
+      queryClient.invalidateQueries({ queryKey: ["admin-design-request", id] });
+      queryClient.invalidateQueries({ queryKey: ["admin-design-negotiations", id] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to lock price");
+    },
+  });
+
+  // Reject negotiation (different from rejecting the whole request)
+  const rejectNegotiationMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("design_requests")
+        .update({ status: "rejected" })
+        .eq("id", id);
+      if (error) throw error;
+
+      await logActivity({
+        actionType: "rejected",
+        entityType: "design_request",
+        entityId: id!,
+        description: "Negotiation rejected - deal cancelled"
+      });
+    },
+    onSuccess: () => {
+      toast.success("Negotiation rejected");
+      setShowRejectNegotiationDialog(false);
+      queryClient.invalidateQueries({ queryKey: ["admin-design-request", id] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to reject negotiation");
     },
   });
 
@@ -408,10 +529,16 @@ export default function AdminDesignRequestDetail() {
   }
 
   const status = statusConfig[request.status] || { label: request.status, variant: "secondary" as const };
-  const canSendQuotation = ["pending_review", "negotiation_requested"].includes(request.status) && !request.price_locked;
+  const canSendQuotation = ["pending_review"].includes(request.status) && !request.price_locked;
+  const isNegotiationRequested = request.status === "negotiation_requested" && !request.price_locked;
   const canLockPrice = request.quoted_amount && !request.price_locked && ["quotation_sent", "revised_quotation_sent"].includes(request.status);
   const isPaid = request.status === "paid" || payments?.some((p) => p.payment_status === "success");
   const canUpdateProgress = isPaid && ["paid", "in_progress"].includes(request.status);
+  
+  // Get the latest user negotiation (counter-offer)
+  const latestUserNegotiation = negotiations?.filter(n => n.sender_role === "user").pop();
+  // Get the latest admin quotation
+  const latestAdminQuotation = negotiations?.filter(n => n.sender_role === "admin").pop();
 
   return (
     <AdminLayout>
@@ -518,7 +645,7 @@ export default function AdminDesignRequestDetail() {
               <CardContent className="space-y-4">
                 {request.quoted_amount && (
                   <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Current Quote</span>
+                    <span className="text-muted-foreground">Your Quote</span>
                     <span className="text-lg font-bold">
                       ₹{Number(request.quoted_amount).toLocaleString()}
                     </span>
@@ -537,9 +664,70 @@ export default function AdminDesignRequestDetail() {
                   </div>
                 )}
 
+                {/* Negotiation Response Section */}
+                {isNegotiationRequested && latestUserNegotiation && (
+                  <div className="border border-orange-500/30 bg-orange-500/10 rounded-lg p-4 space-y-4">
+                    <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
+                      <MessageCircle className="w-4 h-4" />
+                      <span className="font-medium">User Counter-Offer</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">User's Price</span>
+                      <span className="text-xl font-bold text-orange-600 dark:text-orange-400">
+                        ₹{Number(latestUserNegotiation.proposed_amount).toLocaleString()}
+                      </span>
+                    </div>
+                    {latestUserNegotiation.message && (
+                      <p className="text-sm text-muted-foreground italic">
+                        "{latestUserNegotiation.message}"
+                      </p>
+                    )}
+                    
+                    <Separator />
+                    
+                    <div className="grid gap-2">
+                      <Button 
+                        className="w-full" 
+                        variant="default"
+                        onClick={() => setShowAcceptUserPriceDialog(true)}
+                      >
+                        <ThumbsUp className="w-4 h-4 mr-2" />
+                        Accept ₹{Number(latestUserNegotiation.proposed_amount).toLocaleString()}
+                      </Button>
+                      
+                      <Button 
+                        className="w-full" 
+                        variant="secondary"
+                        onClick={() => setShowStickToPreviousDialog(true)}
+                      >
+                        <RotateCcw className="w-4 h-4 mr-2" />
+                        Stick to ₹{Number(request.quoted_amount).toLocaleString()}
+                      </Button>
+                      
+                      <Button 
+                        className="w-full" 
+                        variant="outline"
+                        onClick={() => setShowQuotationDialog(true)}
+                      >
+                        <MessageSquare className="w-4 h-4 mr-2" />
+                        Counter with Different Price
+                      </Button>
+                      
+                      <Button 
+                        className="w-full" 
+                        variant="destructive"
+                        onClick={() => setShowRejectNegotiationDialog(true)}
+                      >
+                        <XCircle className="w-4 h-4 mr-2" />
+                        Reject Deal
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
                 {canSendQuotation && (
                   <Button className="w-full" onClick={() => setShowQuotationDialog(true)}>
-                    {request.status === "negotiation_requested" ? "Send Revised Quote" : "Send Quotation"}
+                    Send Quotation
                   </Button>
                 )}
 
@@ -796,13 +984,89 @@ export default function AdminDesignRequestDetail() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => lockPriceMutation.mutate()}>
+            <AlertDialogAction onClick={() => lockPriceMutation.mutate(Number(request.quoted_amount))}>
               {lockPriceMutation.isPending ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : (
                 <Lock className="w-4 h-4 mr-2" />
               )}
               Lock Price
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Accept User Price Dialog */}
+      <AlertDialog open={showAcceptUserPriceDialog} onOpenChange={setShowAcceptUserPriceDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Accept User's Price?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will accept the user's counter-offer of ₹{latestUserNegotiation ? Number(latestUserNegotiation.proposed_amount).toLocaleString() : 0} and lock the price. The customer can then proceed with payment.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => latestUserNegotiation && acceptUserPriceMutation.mutate(Number(latestUserNegotiation.proposed_amount))}
+            >
+              {acceptUserPriceMutation.isPending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <ThumbsUp className="w-4 h-4 mr-2" />
+              )}
+              Accept & Lock
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Stick to Previous Price Dialog */}
+      <AlertDialog open={showStickToPreviousDialog} onOpenChange={setShowStickToPreviousDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Stick to Previous Price?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will decline the user's counter-offer and lock the price at your original quote of ₹{Number(request.quoted_amount).toLocaleString()}. The customer can then proceed with payment at this price.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => stickToPreviousPriceMutation.mutate(Number(request.quoted_amount))}
+            >
+              {stickToPreviousPriceMutation.isPending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Lock className="w-4 h-4 mr-2" />
+              )}
+              Lock at ₹{Number(request.quoted_amount).toLocaleString()}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Reject Negotiation Dialog */}
+      <AlertDialog open={showRejectNegotiationDialog} onOpenChange={setShowRejectNegotiationDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reject Deal?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will reject the negotiation and cancel the design request. The customer will be notified that the deal has been cancelled.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => rejectNegotiationMutation.mutate()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {rejectNegotiationMutation.isPending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <XCircle className="w-4 h-4 mr-2" />
+              )}
+              Reject Deal
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
