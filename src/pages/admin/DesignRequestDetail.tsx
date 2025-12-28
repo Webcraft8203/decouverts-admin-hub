@@ -247,12 +247,12 @@ export default function AdminDesignRequestDetail() {
         .eq("id", id);
       if (updateError) throw updateError;
 
-      await logActivity(
-        isRevised ? "revised_quotation" : "quotation_sent",
-        "design_request",
-        id!,
-        `${isRevised ? "Revised" : "Sent"} quotation: ₹${amount.toLocaleString()}`
-      );
+      await logActivity({
+        actionType: isRevised ? "revised_quotation" : "quotation_sent",
+        entityType: "design_request",
+        entityId: id!,
+        description: `${isRevised ? "Revised" : "Sent"} quotation: ₹${amount.toLocaleString()}`
+      });
     },
     onSuccess: () => {
       toast.success("Quotation sent successfully");
@@ -282,12 +282,12 @@ export default function AdminDesignRequestDetail() {
         .eq("id", id);
       if (error) throw error;
 
-      await logActivity(
-        "price_locked",
-        "design_request",
-        id!,
-        `Locked final price: ₹${Number(finalAmount).toLocaleString()}`
-      );
+      await logActivity({
+        actionType: "price_locked",
+        entityType: "design_request",
+        entityId: id!,
+        description: `Locked final price: ₹${Number(finalAmount).toLocaleString()}`
+      });
     },
     onSuccess: () => {
       toast.success("Price locked! User can now proceed with payment.");
@@ -308,12 +308,12 @@ export default function AdminDesignRequestDetail() {
         .eq("id", id);
       if (error) throw error;
 
-      await logActivity(
-        "status_change",
-        "design_request",
-        id!,
-        `Status changed to: ${statusOptions.find((s) => s.value === newStatus)?.label}`
-      );
+      await logActivity({
+        actionType: "status_change",
+        entityType: "design_request",
+        entityId: id!,
+        description: `Status changed to: ${statusOptions.find((s) => s.value === newStatus)?.label}`
+      });
     },
     onSuccess: () => {
       toast.success("Status updated");
@@ -333,7 +333,12 @@ export default function AdminDesignRequestDetail() {
         .eq("id", id);
       if (error) throw error;
 
-      await logActivity("rejected", "design_request", id!, "Design request rejected");
+      await logActivity({
+        actionType: "rejected",
+        entityType: "design_request",
+        entityId: id!,
+        description: "Design request rejected"
+      });
     },
     onSuccess: () => {
       toast.success("Request rejected");

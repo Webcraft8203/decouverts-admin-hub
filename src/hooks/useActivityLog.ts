@@ -8,9 +8,10 @@ export type ActionType =
   | "raw_material_add" | "raw_material_update" | "raw_material_consume" | "raw_material_adjust"
   | "order_status_change" | "order_update" | "order_delete"
   | "invoice_create"
-  | "customer_block" | "customer_unblock";
+  | "customer_block" | "customer_unblock"
+  | "quotation_sent" | "revised_quotation" | "price_locked" | "status_change" | "rejected";
 
-export type EntityType = "product" | "category" | "raw_material" | "order" | "invoice" | "user" | "system";
+export type EntityType = "product" | "category" | "raw_material" | "order" | "invoice" | "user" | "system" | "design_request";
 
 interface LogActivityParams {
   actionType: ActionType;
