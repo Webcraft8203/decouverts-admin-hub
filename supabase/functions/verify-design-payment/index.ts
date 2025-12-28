@@ -100,19 +100,23 @@ serve(async (req) => {
       throw new Error("Failed to update request status");
     }
 
-    // Log activity
-    await supabase.from("activity_logs").insert({
-      admin_id: user.id,
-      action_type: "payment_received",
-      entity_type: "design_request",
-      entity_id: design_request_id,
-      description: `Payment of ₹${request.final_amount} received for design request`,
-      metadata: {
-        payment_id: razorpay_payment_id,
-        order_id: razorpay_order_id,
-        amount: request.final_amount,
-      },
-    }).then(() => {}).catch(() => {}); // Don't fail if activity log fails
+    // Log activity (don't fail if this fails)
+    try {
+      await supabase.from("activity_logs").insert({
+        admin_id: user.id,
+        action_type: "payment_received",
+        entity_type: "design_request",
+        entity_id: design_request_id,
+        description: `Payment of ₹${request.final_amount} received for design request`,
+        metadata: {
+          payment_id: razorpay_payment_id,
+          order_id: razorpay_order_id,
+          amount: request.final_amount,
+        },
+      });
+    } catch {
+      // Ignore activity log errors
+    }
 
     console.log("Design payment verified successfully");
 
