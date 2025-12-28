@@ -20,3 +20,9 @@ verify_jwt = false
 
 [functions.send-magic-link-email]
 verify_jwt = false
+
+[functions.create-design-payment]
+verify_jwt = false
+
+[functions.verify-design-payment]
+verify_jwt = false
