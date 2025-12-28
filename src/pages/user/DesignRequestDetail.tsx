@@ -214,6 +214,21 @@ export default function DesignRequestDetail() {
     },
   });
 
+  // Load Razorpay script
+  const loadRazorpayScript = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   // Handle payment
   const handlePayment = async () => {
     if (!request?.final_amount || !request.price_locked) {
@@ -224,6 +239,12 @@ export default function DesignRequestDetail() {
     setIsProcessingPayment(true);
 
     try {
+      // Load Razorpay SDK first
+      const isLoaded = await loadRazorpayScript();
+      if (!isLoaded) {
+        throw new Error("Failed to load payment gateway");
+      }
+
       const { data, error } = await supabase.functions.invoke("create-design-payment", {
         body: { designRequestId: id },
       });
