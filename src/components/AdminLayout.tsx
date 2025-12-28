@@ -17,6 +17,7 @@ import {
   Ticket,
   Users,
   Activity,
+  Palette,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -24,6 +25,7 @@ import { useState } from "react";
 const navItems = [
   { to: "/admin", icon: LayoutDashboard, label: "Dashboard", exact: true },
   { to: "/admin/orders", icon: ShoppingBag, label: "Orders" },
+  { to: "/admin/design-requests", icon: Palette, label: "Design Requests" },
   { to: "/admin/products", icon: Package, label: "Products" },
   { to: "/admin/categories", icon: Layers, label: "Categories" },
   { to: "/admin/promo-codes", icon: Ticket, label: "Promo Codes" },

@@ -3,7 +3,7 @@ import { PublicNavbar } from "./PublicNavbar";
 import { PublicFooter } from "./PublicFooter";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { ShoppingBag, MapPin, FileText, User, ShoppingCart, Heart } from "lucide-react";
+import { ShoppingBag, MapPin, FileText, User, ShoppingCart, Heart, Palette, PenTool } from "lucide-react";
 
 interface UserLayoutProps {
   children: ReactNode;
@@ -13,6 +13,8 @@ const userNavItems = [
   { title: "My Orders", href: "/dashboard/orders", icon: ShoppingBag },
   { title: "My Cart", href: "/dashboard/cart", icon: ShoppingCart },
   { title: "Wishlist", href: "/dashboard/wishlist", icon: Heart },
+  { title: "Design Requests", href: "/dashboard/design-requests", icon: Palette },
+  { title: "Custom Print", href: "/dashboard/custom-print", icon: PenTool },
   { title: "Addresses", href: "/dashboard/addresses", icon: MapPin },
   { title: "Invoices", href: "/dashboard/invoices", icon: FileText },
   { title: "Profile", href: "/dashboard/profile", icon: User },
