@@ -21,6 +21,9 @@ import UserAddresses from "./pages/user/Addresses";
 import UserInvoices from "./pages/user/Invoices";
 import UserProfile from "./pages/user/Profile";
 import UserWishlist from "./pages/user/Wishlist";
+import UserDesignRequests from "./pages/user/DesignRequests";
+import UserDesignRequestDetail from "./pages/user/DesignRequestDetail";
+import CustomPrintRequest from "./pages/user/CustomPrintRequest";
 import Dashboard from "./pages/admin/Dashboard";
 import Products from "./pages/admin/Products";
 import Categories from "./pages/admin/Categories";
@@ -32,6 +35,8 @@ import AdminPromoCodes from "./pages/admin/PromoCodes";
 import Invoices from "./pages/admin/Invoices";
 import Customers from "./pages/admin/Customers";
 import ActivityLogs from "./pages/admin/ActivityLogs";
+import AdminDesignRequests from "./pages/admin/DesignRequests";
+import AdminDesignRequestDetail from "./pages/admin/DesignRequestDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -59,6 +64,9 @@ const App = () => (
               <Route path="/dashboard/invoices" element={<ProtectedRoute><UserInvoices /></ProtectedRoute>} />
               <Route path="/dashboard/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
               <Route path="/dashboard/wishlist" element={<ProtectedRoute><UserWishlist /></ProtectedRoute>} />
+              <Route path="/dashboard/design-requests" element={<ProtectedRoute><UserDesignRequests /></ProtectedRoute>} />
+              <Route path="/dashboard/design-requests/:id" element={<ProtectedRoute><UserDesignRequestDetail /></ProtectedRoute>} />
+              <Route path="/dashboard/custom-print" element={<ProtectedRoute><CustomPrintRequest /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminLayout><Dashboard /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/products" element={<ProtectedRoute requireAdmin><AdminLayout><Products /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/categories" element={<ProtectedRoute requireAdmin><AdminLayout><Categories /></AdminLayout></ProtectedRoute>} />
@@ -70,6 +78,8 @@ const App = () => (
               <Route path="/admin/invoices" element={<ProtectedRoute requireAdmin><AdminLayout><Invoices /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/customers" element={<ProtectedRoute requireAdmin><AdminLayout><Customers /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/activity-logs" element={<ProtectedRoute requireAdmin><AdminLayout><ActivityLogs /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/design-requests" element={<ProtectedRoute requireAdmin><AdminLayout><AdminDesignRequests /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/design-requests/:id" element={<ProtectedRoute requireAdmin><AdminLayout><AdminDesignRequestDetail /></AdminLayout></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
