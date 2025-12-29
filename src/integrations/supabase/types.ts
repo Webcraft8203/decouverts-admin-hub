@@ -180,6 +180,7 @@ export type Database = {
       design_requests: {
         Row: {
           admin_notes: string | null
+          converted_to_order: boolean
           created_at: string
           description: string | null
           file_name: string | null
@@ -196,6 +197,7 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
+          converted_to_order?: boolean
           created_at?: string
           description?: string | null
           file_name?: string | null
@@ -212,6 +214,7 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
+          converted_to_order?: boolean
           created_at?: string
           description?: string | null
           file_name?: string | null
@@ -331,11 +334,13 @@ export type Database = {
         Row: {
           address_id: string | null
           created_at: string
+          design_request_id: string | null
           discount_amount: number | null
           id: string
           invoice_url: string | null
           notes: string | null
           order_number: string
+          order_type: string
           payment_id: string | null
           payment_status: string | null
           promo_code_id: string | null
@@ -351,11 +356,13 @@ export type Database = {
         Insert: {
           address_id?: string | null
           created_at?: string
+          design_request_id?: string | null
           discount_amount?: number | null
           id?: string
           invoice_url?: string | null
           notes?: string | null
           order_number: string
+          order_type?: string
           payment_id?: string | null
           payment_status?: string | null
           promo_code_id?: string | null
@@ -371,11 +378,13 @@ export type Database = {
         Update: {
           address_id?: string | null
           created_at?: string
+          design_request_id?: string | null
           discount_amount?: number | null
           id?: string
           invoice_url?: string | null
           notes?: string | null
           order_number?: string
+          order_type?: string
           payment_id?: string | null
           payment_status?: string | null
           promo_code_id?: string | null
@@ -394,6 +403,13 @@ export type Database = {
             columns: ["address_id"]
             isOneToOne: false
             referencedRelation: "user_addresses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_design_request_id_fkey"
+            columns: ["design_request_id"]
+            isOneToOne: false
+            referencedRelation: "design_requests"
             referencedColumns: ["id"]
           },
           {

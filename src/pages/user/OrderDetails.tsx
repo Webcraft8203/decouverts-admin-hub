@@ -19,7 +19,8 @@ import {
   CreditCard, 
   Calendar,
   Download,
-  Truck
+  Truck,
+  Palette
 } from "lucide-react";
 
 const statusColors: Record<string, string> = {
@@ -61,7 +62,7 @@ const OrderDetails = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("orders")
-        .select("*, order_items(*, products(name, images, description))")
+        .select("*, order_items(*, products(name, images, description)), design_requests(file_url, file_name, size, quantity, description)")
         .eq("id", orderId)
         .eq("user_id", user!.id)
         .single();
@@ -118,47 +119,84 @@ const OrderDetails = () => {
                     <Package className="h-5 w-5 text-primary" />
                     Order Items
                   </CardTitle>
-                  <Badge variant="outline" className={statusColors[order.status]}>
-                    {statusLabels[order.status] || order.status}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    {(order as any).order_type === "custom_design" && (
+                      <Badge variant="secondary" className="bg-purple-500/10 text-purple-500 border-purple-500/20">
+                        <Palette className="w-3 h-3 mr-1" />
+                        Custom Print
+                      </Badge>
+                    )}
+                    <Badge variant="outline" className={statusColors[order.status]}>
+                      {statusLabels[order.status] || order.status}
+                    </Badge>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {order.order_items?.map((item: any) => (
-                    <div key={item.id} className="flex gap-4 p-4 bg-muted/30 rounded-lg">
-                      <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
-                        {item.products?.images && item.products.images.length > 0 ? (
-                          <img
-                            src={item.products.images[0]}
-                            alt={item.product_name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Package className="w-8 h-8 text-muted-foreground/30" />
-                          </div>
-                        )}
+                  {(order as any).order_type === "custom_design" && (order as any).design_requests ? (
+                    <div className="flex gap-4 p-4 bg-purple-500/10 rounded-lg">
+                      <div className="w-20 h-20 bg-purple-500/20 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center">
+                        <Palette className="w-10 h-10 text-purple-500" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-foreground">{item.product_name}</h3>
-                        {item.products?.description && (
-                          <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                            {item.products.description}
-                          </p>
-                        )}
+                        <h3 className="font-semibold text-foreground">
+                          Custom Print - {(order as any).design_requests?.file_name || "Design"}
+                        </h3>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {(order as any).design_requests?.description || "Custom print design order"}
+                        </p>
                         <div className="flex items-center gap-4 mt-2 text-sm">
+                          {(order as any).design_requests?.size && (
+                            <span className="text-muted-foreground">
+                              Size: {(order as any).design_requests.size}
+                            </span>
+                          )}
                           <span className="text-muted-foreground">
-                            Qty: {item.quantity}
-                          </span>
-                          <span className="text-muted-foreground">
-                            × ₹{item.product_price.toLocaleString()}
+                            Qty: {(order as any).design_requests?.quantity || 1}
                           </span>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-lg">₹{item.total_price.toLocaleString()}</p>
+                        <p className="font-bold text-lg">₹{order.total_amount.toLocaleString()}</p>
                       </div>
                     </div>
-                  ))}
+                  ) : (
+                    order.order_items?.map((item: any) => (
+                      <div key={item.id} className="flex gap-4 p-4 bg-muted/30 rounded-lg">
+                        <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                          {item.products?.images && item.products.images.length > 0 ? (
+                            <img
+                              src={item.products.images[0]}
+                              alt={item.product_name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Package className="w-8 h-8 text-muted-foreground/30" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-foreground">{item.product_name}</h3>
+                          {item.products?.description && (
+                            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                              {item.products.description}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-4 mt-2 text-sm">
+                            <span className="text-muted-foreground">
+                              Qty: {item.quantity}
+                            </span>
+                            <span className="text-muted-foreground">
+                              × ₹{item.product_price.toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-lg">₹{item.total_price.toLocaleString()}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </CardContent>
               </Card>
 
