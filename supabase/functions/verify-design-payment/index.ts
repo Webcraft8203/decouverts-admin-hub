@@ -60,7 +60,7 @@ serve(async (req) => {
 
     console.log("Payment signature verified");
 
-    // Verify the design request belongs to the user
+    // Verify the design request belongs to the user and get details
     const { data: request, error: requestError } = await supabase
       .from("design_requests")
       .select("*")
@@ -70,6 +70,11 @@ serve(async (req) => {
 
     if (requestError || !request) {
       throw new Error("Design request not found");
+    }
+
+    // Validate that price is locked and final amount is set
+    if (!request.price_locked || !request.final_amount) {
+      throw new Error("Price not locked or final amount not set");
     }
 
     // Update payment record
@@ -86,11 +91,88 @@ serve(async (req) => {
       console.error("Failed to update payment:", paymentUpdateError);
     }
 
-    // Update design request status
+    // Generate order number
+    const { data: orderNumberData, error: orderNumberError } = await supabase
+      .rpc("generate_order_number");
+
+    if (orderNumberError) {
+      console.error("Failed to generate order number:", orderNumberError);
+      throw new Error("Failed to generate order number");
+    }
+
+    const orderNumber = orderNumberData;
+
+    // Get user's default address for shipping
+    const { data: userAddress } = await supabase
+      .from("user_addresses")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("is_default", true)
+      .single();
+
+    // Create shipping address JSON from user address or use placeholder
+    const shippingAddress = userAddress ? {
+      full_name: userAddress.full_name,
+      phone: userAddress.phone,
+      address_line1: userAddress.address_line1,
+      address_line2: userAddress.address_line2,
+      city: userAddress.city,
+      state: userAddress.state,
+      postal_code: userAddress.postal_code,
+      country: userAddress.country,
+    } : null;
+
+    // Create order from design request
+    const { data: newOrder, error: orderError } = await supabase
+      .from("orders")
+      .insert({
+        user_id: user.id,
+        order_number: orderNumber,
+        order_type: "custom_design",
+        design_request_id: design_request_id,
+        status: "confirmed",
+        payment_status: "paid",
+        payment_id: razorpay_payment_id,
+        subtotal: request.final_amount,
+        tax_amount: 0,
+        shipping_amount: 0,
+        total_amount: request.final_amount,
+        shipping_address: shippingAddress,
+        address_id: userAddress?.id || null,
+        notes: `Custom Print Order - ${request.file_name || 'Design'} | Qty: ${request.quantity} | Size: ${request.size || 'Standard'}`,
+      })
+      .select()
+      .single();
+
+    if (orderError) {
+      console.error("Failed to create order:", orderError);
+      throw new Error("Failed to create order");
+    }
+
+    console.log("Order created:", newOrder.id);
+
+    // Create order item for the custom design
+    const { error: orderItemError } = await supabase
+      .from("order_items")
+      .insert({
+        order_id: newOrder.id,
+        product_name: `Custom Print - ${request.file_name || 'Design'}`,
+        product_price: request.final_amount,
+        quantity: request.quantity || 1,
+        total_price: request.final_amount,
+        product_id: null, // No linked product for custom designs
+      });
+
+    if (orderItemError) {
+      console.error("Failed to create order item:", orderItemError);
+    }
+
+    // Update design request status and mark as converted
     const { error: requestUpdateError } = await supabase
       .from("design_requests")
       .update({
         status: "paid",
+        converted_to_order: true,
         updated_at: new Date().toISOString(),
       })
       .eq("id", design_request_id);
@@ -100,28 +182,33 @@ serve(async (req) => {
       throw new Error("Failed to update request status");
     }
 
-    // Log activity (don't fail if this fails)
+    // Log activity
     try {
       await supabase.from("activity_logs").insert({
         admin_id: user.id,
-        action_type: "payment_received",
-        entity_type: "design_request",
-        entity_id: design_request_id,
-        description: `Payment of ₹${request.final_amount} received for design request`,
+        action_type: "custom_design_order_created",
+        entity_type: "order",
+        entity_id: newOrder.id,
+        description: `Custom design order ${orderNumber} created after payment of ₹${request.final_amount}`,
         metadata: {
           payment_id: razorpay_payment_id,
-          order_id: razorpay_order_id,
+          razorpay_order_id: razorpay_order_id,
           amount: request.final_amount,
+          design_request_id: design_request_id,
         },
       });
     } catch {
       // Ignore activity log errors
     }
 
-    console.log("Design payment verified successfully");
+    console.log("Design payment verified and order created successfully");
 
     return new Response(
-      JSON.stringify({ success: true }),
+      JSON.stringify({ 
+        success: true, 
+        order_id: newOrder.id,
+        order_number: orderNumber,
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,

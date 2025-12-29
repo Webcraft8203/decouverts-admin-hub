@@ -21,7 +21,8 @@ import {
   XCircle,
   AlertCircle,
   Search,
-  Trash2
+  Trash2,
+  Palette
 } from "lucide-react";
 import { AdminNotes } from "@/components/admin/AdminNotes";
 import { OrderTimeline } from "@/components/admin/OrderTimeline";
@@ -72,7 +73,7 @@ const AdminOrders = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("orders")
-        .select("*, order_items(*, products(name, images))")
+        .select("*, order_items(*, products(name, images)), design_requests(file_url, file_name, size, quantity)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -218,6 +219,12 @@ const AdminOrders = () => {
                     <div>
                       <CardTitle className="text-lg flex items-center gap-2">
                         {order.order_number}
+                        {(order as any).order_type === "custom_design" && (
+                          <Badge variant="secondary" className="bg-purple-500/10 text-purple-500 border-purple-500/20 text-xs">
+                            <Palette className="w-3 h-3 mr-1" />
+                            Custom Print
+                          </Badge>
+                        )}
                         {order.status === "pending" && (
                           <AlertCircle className="w-5 h-5 text-warning animate-pulse" />
                         )}
@@ -314,28 +321,46 @@ const AdminOrders = () => {
                     {/* Order Items */}
                     <div className="lg:col-span-2 space-y-2">
                       <h4 className="text-sm font-medium mb-2">Order Items</h4>
-                      {order.order_items?.map((item: any) => (
-                        <div key={item.id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                          {item.products?.images?.[0] ? (
-                            <img
-                              src={item.products.images[0]}
-                              alt={item.product_name}
-                              className="w-12 h-12 object-cover rounded"
-                            />
-                          ) : (
-                            <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
-                              <Package className="w-6 h-6 text-muted-foreground" />
-                            </div>
-                          )}
+                      {(order as any).order_type === "custom_design" && (order as any).design_requests ? (
+                        // Custom design order display
+                        <div className="flex items-center gap-3 p-3 bg-purple-500/10 rounded-lg">
+                          <div className="w-12 h-12 bg-purple-500/20 rounded flex items-center justify-center">
+                            <Palette className="w-6 h-6 text-purple-500" />
+                          </div>
                           <div className="flex-1">
-                            <p className="font-medium">{item.product_name}</p>
+                            <p className="font-medium">Custom Print - {(order as any).design_requests?.file_name || "Design"}</p>
                             <p className="text-sm text-muted-foreground">
-                              Qty: {item.quantity} × ₹{Number(item.product_price).toLocaleString()}
+                              {(order as any).design_requests?.size && `Size: ${(order as any).design_requests.size} | `}
+                              Qty: {(order as any).design_requests?.quantity || 1}
                             </p>
                           </div>
-                          <p className="font-semibold">₹{Number(item.total_price).toLocaleString()}</p>
+                          <p className="font-semibold">₹{Number(order.total_amount).toLocaleString()}</p>
                         </div>
-                      ))}
+                      ) : (
+                        // Standard order items
+                        order.order_items?.map((item: any) => (
+                          <div key={item.id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                            {item.products?.images?.[0] ? (
+                              <img
+                                src={item.products.images[0]}
+                                alt={item.product_name}
+                                className="w-12 h-12 object-cover rounded"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
+                                <Package className="w-6 h-6 text-muted-foreground" />
+                              </div>
+                            )}
+                            <div className="flex-1">
+                              <p className="font-medium">{item.product_name}</p>
+                              <p className="text-sm text-muted-foreground">
+                                Qty: {item.quantity} × ₹{Number(item.product_price).toLocaleString()}
+                              </p>
+                            </div>
+                            <p className="font-semibold">₹{Number(item.total_price).toLocaleString()}</p>
+                          </div>
+                        ))
+                      )}
                     </div>
 
                     {/* Shipping & Total */}
