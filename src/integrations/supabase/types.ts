@@ -333,9 +333,11 @@ export type Database = {
       orders: {
         Row: {
           address_id: string | null
+          courier_name: string | null
           created_at: string
           design_request_id: string | null
           discount_amount: number | null
+          expected_delivery_date: string | null
           id: string
           invoice_url: string | null
           notes: string | null
@@ -344,20 +346,25 @@ export type Database = {
           payment_id: string | null
           payment_status: string | null
           promo_code_id: string | null
+          shipped_at: string | null
           shipping_address: Json | null
           shipping_amount: number
           status: string
           subtotal: number
           tax_amount: number
           total_amount: number
+          tracking_id: string | null
+          tracking_url: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           address_id?: string | null
+          courier_name?: string | null
           created_at?: string
           design_request_id?: string | null
           discount_amount?: number | null
+          expected_delivery_date?: string | null
           id?: string
           invoice_url?: string | null
           notes?: string | null
@@ -366,20 +373,25 @@ export type Database = {
           payment_id?: string | null
           payment_status?: string | null
           promo_code_id?: string | null
+          shipped_at?: string | null
           shipping_address?: Json | null
           shipping_amount?: number
           status?: string
           subtotal?: number
           tax_amount?: number
           total_amount?: number
+          tracking_id?: string | null
+          tracking_url?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           address_id?: string | null
+          courier_name?: string | null
           created_at?: string
           design_request_id?: string | null
           discount_amount?: number | null
+          expected_delivery_date?: string | null
           id?: string
           invoice_url?: string | null
           notes?: string | null
@@ -388,12 +400,15 @@ export type Database = {
           payment_id?: string | null
           payment_status?: string | null
           promo_code_id?: string | null
+          shipped_at?: string | null
           shipping_address?: Json | null
           shipping_amount?: number
           status?: string
           subtotal?: number
           tax_amount?: number
           total_amount?: number
+          tracking_id?: string | null
+          tracking_url?: string | null
           updated_at?: string
           user_id?: string
         }
