@@ -22,10 +22,14 @@ import {
   AlertCircle,
   Search,
   Trash2,
-  Palette
+  Palette,
+  ExternalLink,
+  Calendar
 } from "lucide-react";
 import { AdminNotes } from "@/components/admin/AdminNotes";
 import { OrderTimeline } from "@/components/admin/OrderTimeline";
+import { ShippingDetailsModal } from "@/components/admin/ShippingDetailsModal";
+import { WhatsAppButton } from "@/components/admin/WhatsAppButton";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -67,6 +71,9 @@ const AdminOrders = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [shippingModalOpen, setShippingModalOpen] = useState(false);
+  const [pendingShipOrder, setPendingShipOrder] = useState<any>(null);
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ["admin-orders"],
@@ -81,21 +88,55 @@ const AdminOrders = () => {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status, orderNumber }: { id: string; status: string; orderNumber: string }) => {
-      const { error } = await supabase.from("orders").update({ status }).eq("id", id);
+    mutationFn: async ({ 
+      id, 
+      status, 
+      orderNumber,
+      shippingDetails 
+    }: { 
+      id: string; 
+      status: string; 
+      orderNumber: string;
+      shippingDetails?: {
+        courier_name: string;
+        tracking_id: string;
+        tracking_url: string;
+        expected_delivery_date: string;
+      };
+    }) => {
+      const updateData: any = { status };
+      
+      if (shippingDetails) {
+        updateData.courier_name = shippingDetails.courier_name;
+        updateData.tracking_id = shippingDetails.tracking_id;
+        updateData.tracking_url = shippingDetails.tracking_url || null;
+        updateData.expected_delivery_date = shippingDetails.expected_delivery_date;
+        updateData.shipped_at = new Date().toISOString();
+      }
+      
+      const { error } = await supabase.from("orders").update(updateData).eq("id", id);
       if (error) throw error;
-      return { id, status, orderNumber };
+      return { id, status, orderNumber, shippingDetails };
     },
-    onSuccess: async ({ id, status, orderNumber }) => {
+    onSuccess: async ({ id, status, orderNumber, shippingDetails }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
       toast.success("Order status updated");
+      setStatusDialogOpen(false);
+      setShippingModalOpen(false);
+      setPendingShipOrder(null);
+      
+      const metadata: any = { newStatus: status };
+      if (shippingDetails) {
+        metadata.courier_name = shippingDetails.courier_name;
+        metadata.tracking_id = shippingDetails.tracking_id;
+      }
       
       await logActivity({
         actionType: "order_status_change",
         entityType: "order",
         entityId: id,
-        description: `Order ${orderNumber} status changed to ${status}`,
-        metadata: { newStatus: status }
+        description: `Order ${orderNumber} status changed to ${status}${shippingDetails ? ` - Courier: ${shippingDetails.courier_name}` : ''}`,
+        metadata
       });
     },
     onError: () => toast.error("Failed to update status"),
@@ -246,14 +287,20 @@ const AdminOrders = () => {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <Badge className={statusInfo.color}>
                         <StatusIcon className="w-3 h-3 mr-1" />
                         {statusInfo.label}
                       </Badge>
-                      <Dialog>
+                      <Dialog open={statusDialogOpen && selectedOrder?.id === order.id} onOpenChange={(open) => {
+                        setStatusDialogOpen(open);
+                        if (open) setSelectedOrder(order);
+                      }}>
                         <DialogTrigger asChild>
-                          <Button variant="outline" size="sm" onClick={() => setSelectedOrder(order)}>
+                          <Button variant="outline" size="sm" onClick={() => {
+                            setSelectedOrder(order);
+                            setStatusDialogOpen(true);
+                          }}>
                             Update Status
                           </Button>
                         </DialogTrigger>
@@ -271,7 +318,17 @@ const AdminOrders = () => {
                                     variant={order.status === status.value ? "default" : "outline"}
                                     className="justify-start"
                                     onClick={() => {
-                                      updateStatusMutation.mutate({ id: order.id, status: status.value, orderNumber: order.order_number });
+                                      if (status.value === "shipped") {
+                                        setPendingShipOrder(order);
+                                        setShippingModalOpen(true);
+                                        setStatusDialogOpen(false);
+                                      } else {
+                                        updateStatusMutation.mutate({ 
+                                          id: order.id, 
+                                          status: status.value, 
+                                          orderNumber: order.order_number 
+                                        });
+                                      }
                                     }}
                                     disabled={updateStatusMutation.isPending}
                                   >
@@ -284,6 +341,18 @@ const AdminOrders = () => {
                           </div>
                         </DialogContent>
                       </Dialog>
+                      <WhatsAppButton 
+                        order={{
+                          order_number: order.order_number,
+                          total_amount: order.total_amount,
+                          status: order.status,
+                          courier_name: (order as any).courier_name,
+                          tracking_id: (order as any).tracking_id,
+                          tracking_url: (order as any).tracking_url,
+                          expected_delivery_date: (order as any).expected_delivery_date,
+                          shipping_address: order.shipping_address as any
+                        }}
+                      />
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="destructive" size="sm">
@@ -389,6 +458,35 @@ const AdminOrders = () => {
                         </div>
                       )}
 
+                      {/* Courier/Shipping Details */}
+                      {(order as any).courier_name && (
+                        <div className="p-3 bg-indigo-500/10 rounded-lg text-sm">
+                          <p className="font-medium flex items-center gap-1 mb-2">
+                            <Truck className="w-4 h-4" /> Shipping Details
+                          </p>
+                          <p className="font-medium">{(order as any).courier_name}</p>
+                          <p className="text-muted-foreground">
+                            Tracking: {(order as any).tracking_id}
+                          </p>
+                          {(order as any).expected_delivery_date && (
+                            <p className="text-muted-foreground flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              Expected: {new Date((order as any).expected_delivery_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </p>
+                          )}
+                          {(order as any).tracking_url && (
+                            <a 
+                              href={(order as any).tracking_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline flex items-center gap-1 mt-1"
+                            >
+                              <ExternalLink className="w-3 h-3" /> Track Package
+                            </a>
+                          )}
+                        </div>
+                      )}
+
                       <div className="p-3 bg-primary/10 rounded-lg">
                         <div className="flex justify-between text-sm mb-1">
                           <span className="text-muted-foreground">Subtotal</span>
@@ -439,6 +537,31 @@ const AdminOrders = () => {
           </CardContent>
         </Card>
       )}
+      {/* Shipping Details Modal */}
+      <ShippingDetailsModal
+        open={shippingModalOpen}
+        onOpenChange={(open) => {
+          setShippingModalOpen(open);
+          if (!open) setPendingShipOrder(null);
+        }}
+        onConfirm={(details) => {
+          if (pendingShipOrder) {
+            updateStatusMutation.mutate({
+              id: pendingShipOrder.id,
+              status: "shipped",
+              orderNumber: pendingShipOrder.order_number,
+              shippingDetails: details
+            });
+          }
+        }}
+        initialData={pendingShipOrder ? {
+          courier_name: (pendingShipOrder as any).courier_name || "",
+          tracking_id: (pendingShipOrder as any).tracking_id || "",
+          tracking_url: (pendingShipOrder as any).tracking_url || "",
+          expected_delivery_date: (pendingShipOrder as any).expected_delivery_date || "",
+        } : undefined}
+        isLoading={updateStatusMutation.isPending}
+      />
     </div>
   );
 };

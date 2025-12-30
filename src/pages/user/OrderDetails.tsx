@@ -20,7 +20,8 @@ import {
   Calendar,
   Download,
   Truck,
-  Palette
+  Palette,
+  ExternalLink
 } from "lucide-react";
 
 const statusColors: Record<string, string> = {
@@ -65,7 +66,7 @@ const OrderDetails = () => {
         .select("*, order_items(*, products(name, images, description)), design_requests(file_url, file_name, size, quantity, description)")
         .eq("id", orderId)
         .eq("user_id", user!.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;
@@ -246,6 +247,66 @@ const OrderDetails = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Shipping/Courier Details - Only show if order has shipping info */}
+              {(order as any).courier_name && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Truck className="h-5 w-5 text-primary" />
+                      Shipping Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid gap-3">
+                      <div className="flex justify-between items-center py-2 border-b">
+                        <span className="text-muted-foreground">Courier Service</span>
+                        <span className="font-medium">{(order as any).courier_name}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b">
+                        <span className="text-muted-foreground">Tracking ID</span>
+                        <span className="font-medium">{(order as any).tracking_id}</span>
+                      </div>
+                      {(order as any).expected_delivery_date && (
+                        <div className="flex justify-between items-center py-2 border-b">
+                          <span className="text-muted-foreground flex items-center gap-1">
+                            <Calendar className="h-4 w-4" /> Expected Delivery
+                          </span>
+                          <span className="font-medium">
+                            {new Date((order as any).expected_delivery_date).toLocaleDateString('en-IN', { 
+                              day: 'numeric', 
+                              month: 'short', 
+                              year: 'numeric' 
+                            })}
+                          </span>
+                        </div>
+                      )}
+                      {(order as any).shipped_at && (
+                        <div className="flex justify-between items-center py-2 border-b">
+                          <span className="text-muted-foreground">Shipped On</span>
+                          <span className="font-medium">
+                            {new Date((order as any).shipped_at).toLocaleDateString('en-IN', { 
+                              day: 'numeric', 
+                              month: 'short', 
+                              year: 'numeric' 
+                            })}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    {(order as any).tracking_url && (
+                      <Button
+                        variant="outline"
+                        className="w-full mt-4"
+                        onClick={() => window.open((order as any).tracking_url, "_blank")}
+                      >
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Track Package
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
             {/* Right Sidebar */}
