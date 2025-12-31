@@ -50,6 +50,7 @@ interface CustomerWithStats {
   phone_number: string | null;
   age: number | null;
   account_status: string;
+  is_blocked: boolean;
   created_at: string;
   total_orders: number;
   total_spent: number;
@@ -113,16 +114,19 @@ export default function Customers() {
   });
 
   const toggleBlockMutation = useMutation({
-    mutationFn: async ({ id, currentStatus }: { id: string; currentStatus: string }) => {
-      const newStatus = currentStatus === "active" ? "blocked" : "active";
+    mutationFn: async ({ id, isBlocked }: { id: string; isBlocked: boolean }) => {
+      const newBlockedState = !isBlocked;
       const { error } = await supabase
         .from("profiles")
-        .update({ account_status: newStatus })
+        .update({ 
+          is_blocked: newBlockedState,
+          account_status: newBlockedState ? "blocked" : "active"
+        })
         .eq("id", id);
       if (error) throw error;
-      return { id, newStatus };
+      return { id, newBlockedState };
     },
-    onMutate: async ({ id, currentStatus }) => {
+    onMutate: async ({ id, isBlocked }) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ["admin-customers"] });
       
@@ -130,28 +134,36 @@ export default function Customers() {
       const previousCustomers = queryClient.getQueryData<CustomerWithStats[]>(["admin-customers"]);
       
       // Optimistically update the cache
-      const newStatus = currentStatus === "active" ? "blocked" : "active";
+      const newBlockedState = !isBlocked;
       queryClient.setQueryData<CustomerWithStats[]>(["admin-customers"], (old) =>
         old?.map((customer) =>
-          customer.id === id ? { ...customer, account_status: newStatus } : customer
+          customer.id === id ? { 
+            ...customer, 
+            is_blocked: newBlockedState,
+            account_status: newBlockedState ? "blocked" : "active"
+          } : customer
         )
       );
       
       // Update selected customer if it's the one being modified
       if (selectedCustomer?.id === id) {
-        setSelectedCustomer(prev => prev ? { ...prev, account_status: newStatus } : null);
+        setSelectedCustomer(prev => prev ? { 
+          ...prev, 
+          is_blocked: newBlockedState,
+          account_status: newBlockedState ? "blocked" : "active"
+        } : null);
       }
       
       return { previousCustomers };
     },
-    onSuccess: async ({ id, newStatus }) => {
-      toast.success(`Customer ${newStatus === "blocked" ? "blocked" : "unblocked"} successfully`);
+    onSuccess: async ({ id, newBlockedState }) => {
+      toast.success(`Customer ${newBlockedState ? "blocked" : "unblocked"} successfully`);
       
       await logActivity({
-        actionType: newStatus === "blocked" ? "customer_block" : "customer_unblock",
+        actionType: newBlockedState ? "customer_block" : "customer_unblock",
         entityType: "user",
         entityId: id,
-        description: `Customer account ${newStatus === "blocked" ? "blocked" : "unblocked"}`,
+        description: `Customer account ${newBlockedState ? "blocked" : "unblocked"}`,
       });
     },
     onError: (err, variables, context) => {
@@ -161,7 +173,11 @@ export default function Customers() {
       }
       // Rollback selected customer
       if (selectedCustomer?.id === variables.id) {
-        setSelectedCustomer(prev => prev ? { ...prev, account_status: variables.currentStatus } : null);
+        setSelectedCustomer(prev => prev ? { 
+          ...prev, 
+          is_blocked: variables.isBlocked,
+          account_status: variables.isBlocked ? "blocked" : "active"
+        } : null);
       }
       toast.error("Failed to update customer status");
     },
@@ -197,8 +213,8 @@ export default function Customers() {
                   <User className="w-5 h-5" />
                   Profile
                 </span>
-                <Badge variant={selectedCustomer.account_status === "active" ? "default" : "destructive"}>
-                  {selectedCustomer.account_status}
+                <Badge variant={selectedCustomer.is_blocked ? "destructive" : "default"}>
+                  {selectedCustomer.is_blocked ? "blocked" : "active"}
                 </Badge>
               </CardTitle>
             </CardHeader>
@@ -248,18 +264,18 @@ export default function Customers() {
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button 
-                    variant={selectedCustomer.account_status === "active" ? "destructive" : "default"}
+                    variant={selectedCustomer.is_blocked ? "default" : "destructive"}
                     className="w-full"
                   >
-                    {selectedCustomer.account_status === "active" ? (
-                      <>
-                        <ShieldOff className="w-4 h-4 mr-2" />
-                        Block Customer
-                      </>
-                    ) : (
+                    {selectedCustomer.is_blocked ? (
                       <>
                         <Shield className="w-4 h-4 mr-2" />
                         Unblock Customer
+                      </>
+                    ) : (
+                      <>
+                        <ShieldOff className="w-4 h-4 mr-2" />
+                        Block Customer
                       </>
                     )}
                   </Button>
@@ -267,12 +283,12 @@ export default function Customers() {
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>
-                      {selectedCustomer.account_status === "active" ? "Block Customer?" : "Unblock Customer?"}
+                      {selectedCustomer.is_blocked ? "Unblock Customer?" : "Block Customer?"}
                     </AlertDialogTitle>
                     <AlertDialogDescription>
-                      {selectedCustomer.account_status === "active"
-                        ? "Blocked customers cannot log in or place orders. This action can be reversed."
-                        : "This will restore the customer's access to their account."}
+                      {selectedCustomer.is_blocked
+                        ? "This will restore the customer's access to their account."
+                        : "Blocked customers cannot log in or place orders. This action can be reversed."}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -280,7 +296,7 @@ export default function Customers() {
                     <AlertDialogAction
                       onClick={() => toggleBlockMutation.mutate({ 
                         id: selectedCustomer.id, 
-                        currentStatus: selectedCustomer.account_status 
+                        isBlocked: selectedCustomer.is_blocked 
                       })}
                     >
                       Confirm
@@ -422,8 +438,8 @@ export default function Customers() {
                       ₹{customer.total_spent.toLocaleString()}
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge variant={customer.account_status === "active" ? "default" : "destructive"}>
-                        {customer.account_status}
+                      <Badge variant={customer.is_blocked ? "destructive" : "default"}>
+                        {customer.is_blocked ? "blocked" : "active"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -436,14 +452,14 @@ export default function Customers() {
                           View
                         </Button>
                         <Button
-                          variant={customer.account_status === "active" ? "destructive" : "default"}
+                          variant={customer.is_blocked ? "default" : "destructive"}
                           size="sm"
                           onClick={() => toggleBlockMutation.mutate({ 
                             id: customer.id, 
-                            currentStatus: customer.account_status 
+                            isBlocked: customer.is_blocked 
                           })}
                         >
-                          {customer.account_status === "active" ? "Block" : "Unblock"}
+                          {customer.is_blocked ? "Unblock" : "Block"}
                         </Button>
                       </div>
                     </TableCell>
