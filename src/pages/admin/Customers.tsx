@@ -122,8 +122,29 @@ export default function Customers() {
       if (error) throw error;
       return { id, newStatus };
     },
+    onMutate: async ({ id, currentStatus }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["admin-customers"] });
+      
+      // Snapshot current data
+      const previousCustomers = queryClient.getQueryData<CustomerWithStats[]>(["admin-customers"]);
+      
+      // Optimistically update the cache
+      const newStatus = currentStatus === "active" ? "blocked" : "active";
+      queryClient.setQueryData<CustomerWithStats[]>(["admin-customers"], (old) =>
+        old?.map((customer) =>
+          customer.id === id ? { ...customer, account_status: newStatus } : customer
+        )
+      );
+      
+      // Update selected customer if it's the one being modified
+      if (selectedCustomer?.id === id) {
+        setSelectedCustomer(prev => prev ? { ...prev, account_status: newStatus } : null);
+      }
+      
+      return { previousCustomers };
+    },
     onSuccess: async ({ id, newStatus }) => {
-      queryClient.invalidateQueries({ queryKey: ["admin-customers"] });
       toast.success(`Customer ${newStatus === "blocked" ? "blocked" : "unblocked"} successfully`);
       
       await logActivity({
@@ -132,12 +153,21 @@ export default function Customers() {
         entityId: id,
         description: `Customer account ${newStatus === "blocked" ? "blocked" : "unblocked"}`,
       });
-
-      if (selectedCustomer?.id === id) {
-        setSelectedCustomer(prev => prev ? { ...prev, account_status: newStatus } : null);
-      }
     },
-    onError: () => toast.error("Failed to update customer status"),
+    onError: (err, variables, context) => {
+      // Rollback on error
+      if (context?.previousCustomers) {
+        queryClient.setQueryData(["admin-customers"], context.previousCustomers);
+      }
+      // Rollback selected customer
+      if (selectedCustomer?.id === variables.id) {
+        setSelectedCustomer(prev => prev ? { ...prev, account_status: variables.currentStatus } : null);
+      }
+      toast.error("Failed to update customer status");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-customers"] });
+    },
   });
 
   const filteredCustomers = customers?.filter((customer) => {

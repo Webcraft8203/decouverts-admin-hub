@@ -194,11 +194,15 @@ export default function DesignRequestDetail() {
   // Accept quotation mutation
   const acceptQuotationMutation = useMutation({
     mutationFn: async () => {
+      if (!request?.quoted_amount) {
+        throw new Error("No quotation amount available");
+      }
+      
       const { error } = await supabase
         .from("design_requests")
         .update({ 
           status: "payment_pending",
-          final_amount: request?.quoted_amount,
+          final_amount: request.quoted_amount,
           price_locked: true,
         })
         .eq("id", id)
@@ -208,6 +212,7 @@ export default function DesignRequestDetail() {
     onSuccess: () => {
       toast.success("Quotation accepted! Please proceed with payment.");
       queryClient.invalidateQueries({ queryKey: ["design-request", id] });
+      queryClient.invalidateQueries({ queryKey: ["design-negotiations", id] });
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to accept quotation");
