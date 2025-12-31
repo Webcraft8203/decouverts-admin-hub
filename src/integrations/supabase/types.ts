@@ -535,6 +535,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          is_blocked: boolean
           phone_number: string | null
           updated_at: string
         }
@@ -545,6 +546,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          is_blocked?: boolean
           phone_number?: string | null
           updated_at?: string
         }
@@ -555,6 +557,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          is_blocked?: boolean
           phone_number?: string | null
           updated_at?: string
         }
@@ -922,6 +925,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_blocked: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user"
