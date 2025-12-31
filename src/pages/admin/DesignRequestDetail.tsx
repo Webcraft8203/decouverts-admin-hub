@@ -365,10 +365,11 @@ export default function AdminDesignRequestDetail() {
       });
       if (negError) throw negError;
 
-      // Lock the price
+      // Lock the price - ensure quoted_amount is also updated for consistency
       const { error } = await supabase
         .from("design_requests")
         .update({
+          quoted_amount: previousAmount,
           final_amount: previousAmount,
           price_locked: true,
           status: "payment_pending",
