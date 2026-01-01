@@ -9,7 +9,7 @@ export type ActionType =
   | "order_status_change" | "order_update" | "order_delete"
   | "invoice_create"
   | "customer_block" | "customer_unblock"
-  | "quotation_sent" | "revised_quotation" | "price_locked" | "status_change" | "rejected";
+  | "quotation_sent" | "revised_quotation" | "price_locked" | "price_updated" | "status_change" | "rejected";
 
 export type EntityType = "product" | "category" | "raw_material" | "order" | "invoice" | "user" | "system" | "design_request";
 
