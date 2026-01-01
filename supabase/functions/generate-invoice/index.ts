@@ -1,12 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { jsPDF } from "https://esm.sh/jspdf@2.5.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Company details - update these as needed
+// Company details
 const COMPANY = {
   name: "Decouverts Plus",
   tagline: "Premium 3D Printing Solutions",
@@ -18,7 +19,11 @@ const COMPANY = {
   phone: "+91 98765 43210",
   email: "info@decouvertsplus.com",
   website: "www.decouvertsplus.com",
-  gst: "27XXXXX1234X1ZX", // GST Number
+  gst: "27XXXXX1234X1ZX",
+};
+
+const formatCurrency = (amount: number): string => {
+  return `Rs. ${Number(amount).toLocaleString("en-IN")}`;
 };
 
 serve(async (req) => {
@@ -37,7 +42,7 @@ serve(async (req) => {
       throw new Error("Order ID is required");
     }
 
-    console.log("Generating invoice for order:", orderId);
+    console.log("Generating PDF invoice for order:", orderId);
 
     const { data: order, error: orderError } = await supabase
       .from("orders")
@@ -77,6 +82,7 @@ serve(async (req) => {
       .eq("id", order.user_id)
       .single();
 
+    // Create invoice record
     const { data: invoice, error: invoiceError } = await supabase
       .from("invoices")
       .insert({
@@ -99,202 +105,300 @@ serve(async (req) => {
       throw new Error("Failed to create invoice");
     }
 
-    console.log("Invoice created:", invoice.invoice_number);
+    console.log("Invoice record created:", invoice.invoice_number);
 
-    const invoiceHtml = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Invoice ${invoiceNumber}</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; background: #fff; padding: 20px; }
-    .invoice-container { max-width: 800px; margin: 0 auto; border: 1px solid #e0e0e0; padding: 40px; }
-    
-    /* Header */
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid #EAAB1C; }
-    .company-info { max-width: 50%; }
-    .company-name { font-size: 28px; font-weight: bold; color: #EAAB1C; margin-bottom: 5px; }
-    .company-tagline { color: #666; font-size: 12px; margin-bottom: 10px; }
-    .company-details { font-size: 11px; color: #555; line-height: 1.6; }
-    .invoice-meta { text-align: right; }
-    .invoice-title { font-size: 36px; font-weight: bold; color: #333; letter-spacing: 2px; }
-    .invoice-number { font-size: 14px; color: #666; margin-top: 5px; }
-    .invoice-date { font-size: 12px; color: #888; margin-top: 5px; }
-    
-    /* Billing Section */
-    .billing-section { display: flex; justify-content: space-between; margin: 30px 0; }
-    .bill-to, .order-info { width: 48%; }
-    .section-title { font-size: 11px; font-weight: bold; color: #EAAB1C; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-    .customer-name { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 5px; }
-    .customer-details { font-size: 12px; color: #555; line-height: 1.6; }
-    .order-info { text-align: right; }
-    .order-info p { font-size: 12px; color: #555; margin-bottom: 5px; }
-    .order-info strong { color: #333; }
-    
-    /* Items Table */
-    table { width: 100%; border-collapse: collapse; margin: 30px 0; }
-    th { background: #f8f8f8; padding: 12px 15px; text-align: left; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; color: #555; border-bottom: 2px solid #EAAB1C; }
-    td { padding: 15px; border-bottom: 1px solid #eee; font-size: 13px; }
-    .text-right { text-align: right; }
-    .text-center { text-align: center; }
-    tr:last-child td { border-bottom: none; }
-    
-    /* Summary */
-    .summary-section { display: flex; justify-content: flex-end; margin-top: 20px; }
-    .summary { width: 280px; }
-    .summary-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; }
-    .summary-row span:first-child { color: #666; }
-    .summary-row span:last-child { color: #333; font-weight: 500; }
-    .summary-total { border-top: 2px solid #333; margin-top: 10px; padding-top: 10px; font-size: 16px; font-weight: bold; }
-    .summary-total span:last-child { color: #EAAB1C; }
-    
-    /* Footer */
-    .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; }
-    .footer-text { font-size: 11px; color: #888; margin-bottom: 5px; }
-    .footer-thanks { font-size: 14px; font-weight: 500; color: #333; margin-bottom: 10px; }
-    
-    /* GST Box */
-    .gst-box { background: #f9f9f9; border: 1px solid #eee; padding: 15px; margin-top: 20px; border-radius: 5px; }
-    .gst-title { font-size: 11px; font-weight: bold; color: #555; margin-bottom: 5px; }
-    .gst-number { font-size: 14px; font-weight: bold; color: #333; letter-spacing: 1px; }
-    
-    @media print {
-      body { padding: 0; }
-      .invoice-container { border: none; padding: 20px; }
+    // Generate PDF using jsPDF
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    let y = 20;
+
+    // Colors
+    const primaryColor: [number, number, number] = [234, 171, 28]; // #EAAB1C
+    const textDark: [number, number, number] = [51, 51, 51];
+    const textGray: [number, number, number] = [102, 102, 102];
+    const textLight: [number, number, number] = [136, 136, 136];
+
+    // Header - Company Name
+    doc.setFontSize(24);
+    doc.setTextColor(...primaryColor);
+    doc.setFont("helvetica", "bold");
+    doc.text(COMPANY.name, margin, y);
+
+    // Invoice title on the right
+    doc.setFontSize(28);
+    doc.setTextColor(...textDark);
+    doc.text("INVOICE", pageWidth - margin, y, { align: "right" });
+
+    y += 8;
+
+    // Company tagline
+    doc.setFontSize(10);
+    doc.setTextColor(...textGray);
+    doc.setFont("helvetica", "normal");
+    doc.text(COMPANY.tagline, margin, y);
+
+    // Invoice number & date on right
+    doc.setFontSize(10);
+    doc.text(invoiceNumber, pageWidth - margin, y, { align: "right" });
+    y += 5;
+    doc.setTextColor(...textLight);
+    doc.text(`Date: ${invoiceDate}`, pageWidth - margin, y, { align: "right" });
+
+    y += 3;
+
+    // Company details
+    doc.setFontSize(9);
+    doc.setTextColor(...textGray);
+    const companyLines = [
+      COMPANY.address,
+      `${COMPANY.city}, ${COMPANY.state} - ${COMPANY.pincode}`,
+      COMPANY.country,
+      `Phone: ${COMPANY.phone}`,
+      `Email: ${COMPANY.email}`,
+      `GSTIN: ${COMPANY.gst}`,
+    ];
+    companyLines.forEach((line) => {
+      doc.text(line, margin, y);
+      y += 4;
+    });
+
+    y += 5;
+
+    // Yellow line separator
+    doc.setDrawColor(...primaryColor);
+    doc.setLineWidth(1);
+    doc.line(margin, y, pageWidth - margin, y);
+
+    y += 15;
+
+    // Bill To section
+    doc.setFontSize(9);
+    doc.setTextColor(...primaryColor);
+    doc.setFont("helvetica", "bold");
+    doc.text("BILL TO", margin, y);
+
+    doc.text("ORDER DETAILS", pageWidth / 2 + 10, y);
+
+    y += 6;
+
+    // Customer name
+    doc.setFontSize(12);
+    doc.setTextColor(...textDark);
+    doc.text(shippingAddress?.full_name || "Customer", margin, y);
+
+    // Order info on right
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...textGray);
+    doc.text(`Order No: ${order.order_number}`, pageWidth / 2 + 10, y);
+
+    y += 5;
+
+    // Customer address
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...textGray);
+
+    if (shippingAddress) {
+      const addressLines = [
+        shippingAddress.address_line1 || "",
+        shippingAddress.address_line2 || "",
+        `${shippingAddress.city || ""}, ${shippingAddress.state || ""} - ${shippingAddress.postal_code || ""}`,
+        shippingAddress.country || "India",
+        `Phone: ${shippingAddress.phone || "N/A"}`,
+      ].filter(Boolean);
+
+      addressLines.forEach((line) => {
+        doc.text(line, margin, y);
+        y += 4;
+      });
     }
-  </style>
-</head>
-<body>
-  <div class="invoice-container">
-    <div class="header">
-      <div class="company-info">
-        <div class="company-name">${COMPANY.name}</div>
-        <div class="company-tagline">${COMPANY.tagline}</div>
-        <div class="company-details">
-          ${COMPANY.address}<br>
-          ${COMPANY.city}, ${COMPANY.state} - ${COMPANY.pincode}<br>
-          ${COMPANY.country}<br>
-          Phone: ${COMPANY.phone}<br>
-          Email: ${COMPANY.email}<br>
-          <strong>GSTIN: ${COMPANY.gst}</strong>
-        </div>
-      </div>
-      <div class="invoice-meta">
-        <div class="invoice-title">INVOICE</div>
-        <div class="invoice-number">${invoiceNumber}</div>
-        <div class="invoice-date">Date: ${invoiceDate}</div>
-      </div>
-    </div>
 
-    <div class="billing-section">
-      <div class="bill-to">
-        <div class="section-title">Bill To</div>
-        <div class="customer-name">${shippingAddress?.full_name || "Customer"}</div>
-        <div class="customer-details">
-          ${shippingAddress?.address_line1 || ""}<br>
-          ${shippingAddress?.address_line2 ? shippingAddress.address_line2 + "<br>" : ""}
-          ${shippingAddress?.city || ""}, ${shippingAddress?.state || ""} - ${shippingAddress?.postal_code || ""}<br>
-          ${shippingAddress?.country || "India"}<br>
-          Phone: ${shippingAddress?.phone || "N/A"}<br>
-          Email: ${profile?.email || "N/A"}
-        </div>
-      </div>
-      <div class="order-info">
-        <div class="section-title">Order Details</div>
-        <p><strong>Order No:</strong> ${order.order_number}</p>
-        <p><strong>Order Date:</strong> ${invoiceDate}</p>
-        <p><strong>Payment Status:</strong> ${order.payment_status === "paid" ? "✓ Paid" : "Pending"}</p>
-        ${order.payment_id ? `<p><strong>Payment ID:</strong> ${order.payment_id}</p>` : ""}
-      </div>
-    </div>
+    // Order date and payment status on right
+    const orderY = y - 16;
+    doc.text(`Order Date: ${invoiceDate}`, pageWidth / 2 + 10, orderY);
+    doc.text(`Payment: ${order.payment_status === "paid" ? "Paid" : "Pending"}`, pageWidth / 2 + 10, orderY + 5);
+    if (order.payment_id) {
+      doc.setFontSize(8);
+      doc.text(`Payment ID: ${order.payment_id}`, pageWidth / 2 + 10, orderY + 10);
+    }
 
-    <table>
-      <thead>
-        <tr>
-          <th style="width: 50%">Description</th>
-          <th class="text-center" style="width: 15%">Qty</th>
-          <th class="text-right" style="width: 17%">Unit Price</th>
-          <th class="text-right" style="width: 18%">Amount</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${items
-          .map(
-            (item: any, index: number) => `
-          <tr>
-            <td>${index + 1}. ${item.name}</td>
-            <td class="text-center">${item.quantity}</td>
-            <td class="text-right">₹${Number(item.price).toLocaleString("en-IN")}</td>
-            <td class="text-right">₹${Number(item.total).toLocaleString("en-IN")}</td>
-          </tr>
-        `
-          )
-          .join("")}
-      </tbody>
-    </table>
+    y += 10;
 
-    <div class="summary-section">
-      <div class="summary">
-        <div class="summary-row">
-          <span>Subtotal</span>
-          <span>₹${Number(order.subtotal).toLocaleString("en-IN")}</span>
-        </div>
-        ${Number(order.discount_amount) > 0 ? `
-        <div class="summary-row">
-          <span>Discount</span>
-          <span>-₹${Number(order.discount_amount).toLocaleString("en-IN")}</span>
-        </div>
-        ` : ""}
-        <div class="summary-row">
-          <span>Tax (GST)</span>
-          <span>₹${Number(order.tax_amount).toLocaleString("en-IN")}</span>
-        </div>
-        <div class="summary-row">
-          <span>Shipping</span>
-          <span>${Number(order.shipping_amount) === 0 ? "FREE" : `₹${Number(order.shipping_amount).toLocaleString("en-IN")}`}</span>
-        </div>
-        <div class="summary-row summary-total">
-          <span>Total</span>
-          <span>₹${Number(order.total_amount).toLocaleString("en-IN")}</span>
-        </div>
-      </div>
-    </div>
+    // Items table header
+    const tableTop = y;
+    const colWidths = [90, 25, 30, 30];
+    const colX = [margin, margin + 90, margin + 115, margin + 145];
 
-    <div class="gst-box">
-      <div class="gst-title">Tax Invoice</div>
-      <div class="gst-number">GSTIN: ${COMPANY.gst}</div>
-    </div>
+    // Table header background
+    doc.setFillColor(248, 248, 248);
+    doc.rect(margin, tableTop, pageWidth - 2 * margin, 8, "F");
 
-    <div class="footer">
-      <div class="footer-thanks">Thank you for your business!</div>
-      <div class="footer-text">${COMPANY.name} | ${COMPANY.website}</div>
-      <div class="footer-text">This is a computer-generated invoice and does not require a signature.</div>
-    </div>
-  </div>
-</body>
-</html>`;
+    // Header border bottom
+    doc.setDrawColor(...primaryColor);
+    doc.setLineWidth(0.5);
+    doc.line(margin, tableTop + 8, pageWidth - margin, tableTop + 8);
 
-    const fileName = `${invoiceNumber}.html`;
+    // Table headers
+    doc.setFontSize(9);
+    doc.setTextColor(...textGray);
+    doc.setFont("helvetica", "bold");
+    doc.text("DESCRIPTION", colX[0] + 2, tableTop + 5);
+    doc.text("QTY", colX[1] + 2, tableTop + 5);
+    doc.text("UNIT PRICE", colX[2] + 2, tableTop + 5);
+    doc.text("AMOUNT", colX[3] + 2, tableTop + 5);
+
+    y = tableTop + 14;
+
+    // Table rows
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...textDark);
+
+    items.forEach((item: any, index: number) => {
+      doc.setFontSize(10);
+      
+      // Truncate long names
+      let itemName = `${index + 1}. ${item.name}`;
+      if (itemName.length > 45) {
+        itemName = itemName.substring(0, 42) + "...";
+      }
+      
+      doc.text(itemName, colX[0] + 2, y);
+      doc.text(String(item.quantity), colX[1] + 12, y, { align: "center" });
+      doc.text(formatCurrency(item.price), colX[2] + 2, y);
+      doc.text(formatCurrency(item.total), colX[3] + 2, y);
+
+      // Row separator
+      doc.setDrawColor(238, 238, 238);
+      doc.setLineWidth(0.2);
+      doc.line(margin, y + 4, pageWidth - margin, y + 4);
+
+      y += 10;
+    });
+
+    y += 10;
+
+    // Summary section (right aligned)
+    const summaryX = pageWidth - margin - 70;
+    const summaryValueX = pageWidth - margin;
+
+    doc.setFontSize(10);
+    doc.setTextColor(...textGray);
+
+    // Subtotal
+    doc.text("Subtotal", summaryX, y);
+    doc.setTextColor(...textDark);
+    doc.text(formatCurrency(order.subtotal), summaryValueX, y, { align: "right" });
+    y += 6;
+
+    // Discount (if any)
+    if (Number(order.discount_amount) > 0) {
+      doc.setTextColor(...textGray);
+      doc.text("Discount", summaryX, y);
+      doc.setTextColor(...textDark);
+      doc.text(`-${formatCurrency(order.discount_amount)}`, summaryValueX, y, { align: "right" });
+      y += 6;
+    }
+
+    // Tax
+    doc.setTextColor(...textGray);
+    doc.text("Tax (GST)", summaryX, y);
+    doc.setTextColor(...textDark);
+    doc.text(formatCurrency(order.tax_amount), summaryValueX, y, { align: "right" });
+    y += 6;
+
+    // Shipping
+    doc.setTextColor(...textGray);
+    doc.text("Shipping", summaryX, y);
+    doc.setTextColor(...textDark);
+    doc.text(Number(order.shipping_amount) === 0 ? "FREE" : formatCurrency(order.shipping_amount), summaryValueX, y, { align: "right" });
+    y += 8;
+
+    // Total line
+    doc.setDrawColor(...textDark);
+    doc.setLineWidth(0.5);
+    doc.line(summaryX, y, pageWidth - margin, y);
+    y += 6;
+
+    // Total
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...textDark);
+    doc.text("Total", summaryX, y);
+    doc.setTextColor(...primaryColor);
+    doc.text(formatCurrency(order.total_amount), summaryValueX, y, { align: "right" });
+
+    y += 20;
+
+    // GST Box
+    doc.setFillColor(249, 249, 249);
+    doc.setDrawColor(238, 238, 238);
+    doc.roundedRect(margin, y, pageWidth - 2 * margin, 15, 2, 2, "FD");
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...textGray);
+    doc.text("Tax Invoice", margin + 5, y + 6);
+    doc.setFontSize(11);
+    doc.setTextColor(...textDark);
+    doc.text(`GSTIN: ${COMPANY.gst}`, margin + 5, y + 11);
+
+    y += 25;
+
+    // Footer
+    doc.setDrawColor(238, 238, 238);
+    doc.setLineWidth(0.3);
+    doc.line(margin, y, pageWidth - margin, y);
+
+    y += 8;
+
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...textDark);
+    doc.text("Thank you for your business!", pageWidth / 2, y, { align: "center" });
+
+    y += 6;
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...textLight);
+    doc.text(`${COMPANY.name} | ${COMPANY.website}`, pageWidth / 2, y, { align: "center" });
+
+    y += 5;
+    doc.setFontSize(8);
+    doc.text("This is a computer-generated invoice and does not require a signature.", pageWidth / 2, y, { align: "center" });
+
+    // Generate PDF as ArrayBuffer
+    const pdfArrayBuffer = doc.output("arraybuffer");
+    const pdfUint8Array = new Uint8Array(pdfArrayBuffer);
+
+    const fileName = `${invoiceNumber}.pdf`;
     const invoicePath = `${order.user_id}/${fileName}`;
+
+    console.log("Uploading PDF to storage:", invoicePath);
 
     const { error: uploadError } = await supabase.storage
       .from("invoices")
-      .upload(invoicePath, invoiceHtml, {
-        contentType: "text/html",
+      .upload(invoicePath, pdfUint8Array, {
+        contentType: "application/pdf",
         upsert: true,
       });
 
     if (uploadError) {
       console.error("Upload error:", uploadError);
-      throw new Error("Failed to upload invoice");
+      throw new Error("Failed to upload invoice PDF");
     }
 
     await supabase.from("orders").update({ invoice_url: invoicePath }).eq("id", orderId);
     await supabase.from("invoices").update({ pdf_url: invoicePath }).eq("id", invoice.id);
 
-    console.log("Invoice generation complete:", invoicePath);
+    console.log("PDF invoice generation complete:", invoicePath);
 
     return new Response(
       JSON.stringify({
