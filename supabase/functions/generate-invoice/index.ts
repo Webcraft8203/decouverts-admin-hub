@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsPDF } from "https://esm.sh/jspdf@2.5.1";
 
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -20,11 +21,56 @@ const COMPANY = {
   email: "info@decouvertsplus.com",
   website: "www.decouvertsplus.com",
   gst: "27XXXXX1234X1ZX",
+  // Logo URL - update this to your actual logo URL hosted publicly
+  logoUrl: null as string | null, // Set to a public URL if available
 };
 
 const formatCurrency = (amount: number): string => {
   return `Rs. ${Number(amount).toLocaleString("en-IN")}`;
 };
+
+// Helper function to fetch logo and convert to base64
+async function getLogoBase64(): Promise<string | null> {
+  if (!COMPANY.logoUrl) return null;
+  
+  try {
+    const response = await fetch(COMPANY.logoUrl);
+    if (!response.ok) return null;
+    
+    const arrayBuffer = await response.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    let binary = "";
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    const base64 = btoa(binary);
+    
+    const contentType = response.headers.get("content-type") || "image/png";
+    return `data:${contentType};base64,${base64}`;
+  } catch (error) {
+    console.log("Could not fetch logo:", error);
+    return null;
+  }
+}
+
+// Draw a stylized "DP" logo using jsPDF drawing
+function drawTextLogo(doc: jsPDF, x: number, y: number, size: number) {
+  const primaryColor: [number, number, number] = [234, 171, 28];
+  const darkColor: [number, number, number] = [51, 51, 51];
+  
+  // Draw circle background
+  doc.setFillColor(...primaryColor);
+  doc.circle(x + size / 2, y + size / 2, size / 2, "F");
+  
+  // Draw "DP" text in center
+  doc.setFontSize(size * 0.45);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(255, 255, 255);
+  doc.text("DP", x + size / 2, y + size / 2 + size * 0.15, { align: "center" });
+  
+  // Reset text color
+  doc.setTextColor(...darkColor);
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -124,11 +170,31 @@ serve(async (req) => {
     const textGray: [number, number, number] = [102, 102, 102];
     const textLight: [number, number, number] = [136, 136, 136];
 
-    // Header - Company Name
+    // Try to fetch and add logo
+    const logoBase64 = await getLogoBase64();
+    const logoSize = 18;
+    let textStartX = margin;
+    
+    if (logoBase64) {
+      try {
+        doc.addImage(logoBase64, "PNG", margin, y - 5, logoSize, logoSize);
+        textStartX = margin + logoSize + 5;
+      } catch (e) {
+        console.log("Could not add logo image, using text logo instead");
+        drawTextLogo(doc, margin, y - 5, logoSize);
+        textStartX = margin + logoSize + 5;
+      }
+    } else {
+      // Draw stylized "DP" text logo
+      drawTextLogo(doc, margin, y - 5, logoSize);
+      textStartX = margin + logoSize + 5;
+    }
+
+    // Header - Company Name (positioned after logo)
     doc.setFontSize(24);
     doc.setTextColor(...primaryColor);
     doc.setFont("helvetica", "bold");
-    doc.text(COMPANY.name, margin, y);
+    doc.text(COMPANY.name, textStartX, y);
 
     // Invoice title on the right
     doc.setFontSize(28);
@@ -141,7 +207,7 @@ serve(async (req) => {
     doc.setFontSize(10);
     doc.setTextColor(...textGray);
     doc.setFont("helvetica", "normal");
-    doc.text(COMPANY.tagline, margin, y);
+    doc.text(COMPANY.tagline, textStartX, y);
 
     // Invoice number & date on right
     doc.setFontSize(10);
