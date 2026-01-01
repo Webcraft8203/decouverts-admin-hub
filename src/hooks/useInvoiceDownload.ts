@@ -42,16 +42,13 @@ export function useInvoiceDownload() {
       const response = await fetch(signedUrl);
       if (!response.ok) throw new Error("Failed to fetch invoice");
 
-      const contentType = response.headers.get("content-type") || "";
       const blob = await response.blob();
-
-      const isPdf = contentType.includes("application/pdf") || signedUrl.toLowerCase().includes(".pdf");
-      const ext = isPdf ? "pdf" : "html";
-
+      
+      // Create download link - always use PDF extension since we now generate PDFs
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `invoice-${orderId.slice(0, 8)}.${ext}`;
+      link.download = `invoice-${orderId.slice(0, 8)}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
