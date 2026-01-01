@@ -29,6 +29,7 @@ import {
   ThumbsUp,
   RotateCcw,
   MessageCircle,
+  Pencil,
 } from "lucide-react";
 import {
   Select,
@@ -99,6 +100,8 @@ export default function AdminDesignRequestDetail() {
   const [showAcceptUserPriceDialog, setShowAcceptUserPriceDialog] = useState(false);
   const [showStickToPreviousDialog, setShowStickToPreviousDialog] = useState(false);
   const [showRejectNegotiationDialog, setShowRejectNegotiationDialog] = useState(false);
+  const [showEditPriceDialog, setShowEditPriceDialog] = useState(false);
+  const [editPriceAmount, setEditPriceAmount] = useState("");
 
   // Fetch request details
   const { data: request, isLoading } = useQuery({
@@ -421,6 +424,43 @@ export default function AdminDesignRequestDetail() {
     },
   });
 
+  // Edit price mutation - allows admin to change price anytime before lock
+  const editPriceMutation = useMutation({
+    mutationFn: async (newAmount: number) => {
+      const { error: negError } = await supabase.from("quotation_negotiations").insert({
+        design_request_id: id,
+        sender_role: "admin",
+        sender_id: user!.id,
+        proposed_amount: newAmount,
+        message: "Updated quotation",
+      });
+      if (negError) throw negError;
+
+      const { error } = await supabase
+        .from("design_requests")
+        .update({ quoted_amount: newAmount })
+        .eq("id", id);
+      if (error) throw error;
+
+      await logActivity({
+        actionType: "price_updated",
+        entityType: "design_request",
+        entityId: id!,
+        description: `Updated quotation to: ₹${newAmount.toLocaleString()}`
+      });
+    },
+    onSuccess: () => {
+      toast.success("Price updated successfully");
+      setShowEditPriceDialog(false);
+      setEditPriceAmount("");
+      queryClient.invalidateQueries({ queryKey: ["admin-design-request", id] });
+      queryClient.invalidateQueries({ queryKey: ["admin-design-negotiations", id] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to update price");
+    },
+  });
+
   // Update status mutation
   const updateStatusMutation = useMutation({
     mutationFn: async (newStatus: string) => {
@@ -535,6 +575,8 @@ export default function AdminDesignRequestDetail() {
   const canLockPrice = request.quoted_amount && !request.price_locked && ["quotation_sent", "revised_quotation_sent"].includes(request.status);
   const isPaid = request.status === "paid" || payments?.some((p) => p.payment_status === "success");
   const canUpdateProgress = isPaid && ["paid", "in_progress"].includes(request.status);
+  // Admin can edit price anytime before it's locked
+  const canEditPrice = request.quoted_amount && !request.price_locked && !isNegotiationRequested;
   
   // Get the latest user negotiation (counter-offer)
   const latestUserNegotiation = negotiations?.filter(n => n.sender_role === "user").pop();
@@ -647,9 +689,24 @@ export default function AdminDesignRequestDetail() {
                 {request.quoted_amount && (
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Your Quote</span>
-                    <span className="text-lg font-bold">
-                      ₹{Number(request.quoted_amount).toLocaleString()}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-bold">
+                        ₹{Number(request.quoted_amount).toLocaleString()}
+                      </span>
+                      {canEditPrice && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => {
+                            setEditPriceAmount(String(request.quoted_amount));
+                            setShowEditPriceDialog(true);
+                          }}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 )}
                 
@@ -1098,6 +1155,51 @@ export default function AdminDesignRequestDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Price Dialog */}
+      <Dialog open={showEditPriceDialog} onOpenChange={setShowEditPriceDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Quotation</DialogTitle>
+            <DialogDescription>
+              Update the quotation amount. The customer will see the new price.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>New Amount (₹)</Label>
+              <Input
+                type="number"
+                placeholder="Enter new amount"
+                value={editPriceAmount}
+                onChange={(e) => setEditPriceAmount(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditPriceDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (!editPriceAmount || parseFloat(editPriceAmount) <= 0) {
+                  toast.error("Please enter a valid amount");
+                  return;
+                }
+                editPriceMutation.mutate(parseFloat(editPriceAmount));
+              }}
+              disabled={editPriceMutation.isPending}
+            >
+              {editPriceMutation.isPending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Pencil className="w-4 h-4 mr-2" />
+              )}
+              Update Price
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }
