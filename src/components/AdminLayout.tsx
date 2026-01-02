@@ -18,6 +18,7 @@ import {
   Users,
   Activity,
   Palette,
+  Home,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -35,6 +36,7 @@ const navItems = [
   { to: "/admin/invoices", icon: FileText, label: "Invoices" },
   { to: "/admin/customers", icon: Users, label: "Customers" },
   { to: "/admin/activity-logs", icon: Activity, label: "Activity Logs" },
+  { to: "/admin/homepage-settings", icon: Home, label: "Homepage Settings" },
 ];
 
 interface AdminLayoutProps {

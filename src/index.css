@@ -210,3 +210,32 @@
     transform: scale(1);
   }
 }
+
+/* Marquee Animation */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.333%);
+  }
+}
+
+.marquee-container {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.marquee-content {
+  display: inline-block;
+  animation: marquee 20s linear infinite;
+}
+
+.marquee-content:hover,
+.pause-animation:hover {
+  animation-play-state: paused;
+}
+
+.animate-marquee {
+  animation: marquee 20s linear infinite;
+}
