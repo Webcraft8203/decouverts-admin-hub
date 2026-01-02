@@ -73,7 +73,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 h-full w-64 bg-sidebar border-r border-sidebar-border transition-transform duration-300 z-40",
+          "fixed top-0 left-0 h-full w-64 bg-sidebar border-r border-sidebar-border transition-transform duration-300 z-40 flex flex-col",
           "lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
@@ -88,7 +88,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 space-y-1">
+        <nav className="p-4 space-y-1 overflow-y-auto flex-1 pb-24 scrollbar-thin">
           {navItems.map((item) => {
             const isActive = item.exact 
               ? location.pathname === item.to 
