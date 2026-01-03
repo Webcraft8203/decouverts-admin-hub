@@ -23,6 +23,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
+import { MessageSquare, ImageIcon } from "lucide-react";
+
 const navItems = [
   { to: "/admin", icon: LayoutDashboard, label: "Dashboard", exact: true },
   { to: "/admin/orders", icon: ShoppingBag, label: "Orders" },
@@ -37,6 +39,8 @@ const navItems = [
   { to: "/admin/customers", icon: Users, label: "Customers" },
   { to: "/admin/activity-logs", icon: Activity, label: "Activity Logs" },
   { to: "/admin/homepage-settings", icon: Home, label: "Homepage Settings" },
+  { to: "/admin/homepage-images", icon: ImageIcon, label: "Homepage Images" },
+  { to: "/admin/contact-requests", icon: MessageSquare, label: "Contact Requests" },
 ];
 
 interface AdminLayoutProps {

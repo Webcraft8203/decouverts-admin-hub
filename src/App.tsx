@@ -40,6 +40,8 @@ import ActivityLogs from "./pages/admin/ActivityLogs";
 import AdminDesignRequests from "./pages/admin/DesignRequests";
 import AdminDesignRequestDetail from "./pages/admin/DesignRequestDetail";
 import HomepageSettings from "./pages/admin/HomepageSettings";
+import HomepageImages from "./pages/admin/HomepageImages";
+import ContactRequests from "./pages/admin/ContactRequests";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -86,6 +88,8 @@ const App = () => (
               <Route path="/admin/design-requests" element={<ProtectedRoute requireAdmin><AdminLayout><AdminDesignRequests /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/design-requests/:id" element={<ProtectedRoute requireAdmin><AdminLayout><AdminDesignRequestDetail /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/homepage-settings" element={<ProtectedRoute requireAdmin><HomepageSettings /></ProtectedRoute>} />
+              <Route path="/admin/homepage-images" element={<ProtectedRoute requireAdmin><HomepageImages /></ProtectedRoute>} />
+              <Route path="/admin/contact-requests" element={<ProtectedRoute requireAdmin><ContactRequests /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
