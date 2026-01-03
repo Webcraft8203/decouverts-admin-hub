@@ -44,7 +44,7 @@ const Home = () => {
       <PublicNavbar />
       <NotificationMarquee />
 
-      <main className="flex-1 pt-16">
+      <main className="flex-1 pt-24 md:pt-28">
         {isLoading ? (
           <section className="py-20 px-4">
             <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
