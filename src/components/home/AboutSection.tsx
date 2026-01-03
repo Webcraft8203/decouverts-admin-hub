@@ -26,9 +26,9 @@ const values = [
 
 export const AboutSection = () => {
   return (
-    <section id="about" className="py-24 px-4 bg-card relative overflow-hidden">
-      {/* Subtle Background Pattern */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(var(--primary)/0.05)_0%,transparent_50%)]" />
+    <section id="about" className="py-24 px-4 bg-white relative overflow-hidden">
+      {/* Subtle Background Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-secondary/30 via-transparent to-primary/5" />
       
       <div className="max-w-7xl mx-auto relative z-10">
         <motion.div
@@ -38,7 +38,7 @@ export const AboutSection = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <span className="inline-block px-4 py-2 mb-4 text-sm font-medium rounded-full bg-primary/10 text-primary">
+          <span className="inline-block px-4 py-2 mb-4 text-sm font-semibold rounded-full bg-primary/10 text-primary">
             About Us
           </span>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6">
@@ -57,15 +57,15 @@ export const AboutSection = () => {
           {values.map((value, index) => (
             <motion.div
               key={value.title}
-              className="group p-6 rounded-2xl bg-secondary/50 border border-border hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5"
+              className="group p-6 rounded-2xl bg-white border border-border shadow-sm hover:shadow-xl hover:border-primary/20 transition-all duration-300"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               whileHover={{ y: -5 }}
             >
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                <value.icon className="w-7 h-7 text-primary" />
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-primary/20">
+                <value.icon className="w-7 h-7 text-primary-foreground" />
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-2">{value.title}</h3>
               <p className="text-muted-foreground text-sm leading-relaxed">{value.description}</p>

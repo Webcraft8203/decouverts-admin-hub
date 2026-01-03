@@ -15,9 +15,9 @@ export const FeaturedProduct = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="py-24 px-4 bg-gradient-to-br from-card via-background to-card relative overflow-hidden">
-      {/* Background Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
+    <section className="py-24 px-4 bg-white relative overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-secondary/20 via-transparent to-primary/5" />
       
       <div className="max-w-7xl mx-auto relative z-10">
         <motion.div
@@ -26,7 +26,7 @@ export const FeaturedProduct = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <Badge className="mb-4 bg-primary/10 text-primary hover:bg-primary/20 border-primary/20">
+          <Badge className="mb-4 bg-primary/10 text-primary hover:bg-primary/20 border-primary/20 font-semibold">
             Featured Product
           </Badge>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground">
@@ -44,23 +44,20 @@ export const FeaturedProduct = () => {
             transition={{ duration: 0.6 }}
           >
             <div className="relative group">
-              {/* Glow Effect */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-3xl blur-2xl group-hover:blur-3xl transition-all duration-500" />
-              
               {/* Product Card */}
-              <div className="relative bg-gradient-to-br from-secondary to-card rounded-3xl p-8 border border-border overflow-hidden">
+              <div className="relative bg-gradient-to-br from-secondary/50 to-white rounded-3xl p-8 border border-border overflow-hidden shadow-xl">
                 <div className="absolute top-4 right-4">
-                  <Badge variant="secondary" className="bg-primary text-primary-foreground">
+                  <Badge className="bg-primary text-primary-foreground font-semibold">
                     Coming Soon
                   </Badge>
                 </div>
                 
-                {/* Placeholder 3D Visual */}
+                {/* Product Visual */}
                 <div className="aspect-square relative flex items-center justify-center">
                   <motion.div
-                    className="w-48 h-48 md:w-64 md:h-64 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center"
+                    className="w-48 h-48 md:w-64 md:h-64 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center border border-primary/20"
                     animate={{
-                      rotateY: [0, 10, 0, -10, 0],
+                      rotateY: [0, 5, 0, -5, 0],
                     }}
                     transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
                   >
@@ -69,18 +66,18 @@ export const FeaturedProduct = () => {
                   
                   {/* Floating Elements */}
                   <motion.div
-                    className="absolute top-8 right-8 w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center"
+                    className="absolute top-8 right-8 w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center border border-blue-200"
                     animate={{ y: [-5, 5, -5] }}
                     transition={{ duration: 3, repeat: Infinity }}
                   >
-                    <Layers className="w-6 h-6 text-primary" />
+                    <Layers className="w-6 h-6 text-blue-600" />
                   </motion.div>
                   <motion.div
-                    className="absolute bottom-8 left-8 w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center"
+                    className="absolute bottom-8 left-8 w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center border border-amber-200"
                     animate={{ y: [5, -5, 5] }}
                     transition={{ duration: 3.5, repeat: Infinity }}
                   >
-                    <Gauge className="w-5 h-5 text-accent" />
+                    <Gauge className="w-5 h-5 text-amber-600" />
                   </motion.div>
                 </div>
               </div>
@@ -126,7 +123,7 @@ export const FeaturedProduct = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+                className="bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 shadow-lg shadow-primary/20"
                 onClick={() => navigate("/shop")}
               >
                 Pre-Order Now
@@ -135,7 +132,7 @@ export const FeaturedProduct = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-primary/30 hover:bg-primary/10"
+                className="border-foreground/20 hover:border-primary hover:bg-primary/5"
                 onClick={() => navigate("/engineering")}
               >
                 View Specifications

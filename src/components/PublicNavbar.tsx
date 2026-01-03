@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ShoppingBag, ShoppingCart, User } from "lucide-react";
+import { Menu, X, ShoppingCart, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,12 +22,10 @@ export const PublicNavbar = () => {
       setLogoClickCount(0);
       navigate("/auth");
     } else {
-      // Reset count after 2 seconds of no clicks
       setTimeout(() => setLogoClickCount(0), 2000);
     }
   };
 
-  // Fetch cart items count
   const { data: cartCount = 0 } = useQuery({
     queryKey: ["cart-count", user?.id],
     queryFn: async () => {
@@ -43,7 +41,7 @@ export const PublicNavbar = () => {
   });
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-border shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
@@ -65,13 +63,13 @@ export const PublicNavbar = () => {
           <div className="hidden md:flex items-center gap-6">
             <Link 
               to="/" 
-              className="text-foreground/80 hover:text-foreground transition-colors font-medium"
+              className="text-foreground/70 hover:text-primary transition-colors font-medium"
             >
               Home
             </Link>
             <Link 
               to="/shop" 
-              className="text-foreground/80 hover:text-foreground transition-colors font-medium"
+              className="text-foreground/70 hover:text-primary transition-colors font-medium"
             >
               Shop
             </Link>
@@ -81,7 +79,7 @@ export const PublicNavbar = () => {
                   variant="ghost" 
                   size="icon"
                   onClick={() => navigate("/dashboard/cart")}
-                  className="relative text-foreground/80 hover:text-foreground"
+                  className="relative text-foreground/70 hover:text-primary"
                 >
                   <ShoppingCart className="w-5 h-5" />
                   {cartCount > 0 && (
@@ -91,9 +89,8 @@ export const PublicNavbar = () => {
                   )}
                 </Button>
                 <Button 
-                  variant="outline" 
                   onClick={() => navigate("/dashboard")}
-                  className="border-accent text-accent hover:bg-accent hover:text-accent-foreground"
+                  className="bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90"
                 >
                   <User className="w-4 h-4 mr-2" />
                   My Account
@@ -103,7 +100,7 @@ export const PublicNavbar = () => {
               <Button 
                 variant="ghost" 
                 onClick={() => navigate("/login")}
-                className="text-foreground/80 hover:text-foreground"
+                className="text-foreground/70 hover:text-primary"
               >
                 <User className="w-4 h-4 mr-2" />
                 Login
@@ -118,7 +115,7 @@ export const PublicNavbar = () => {
                 variant="ghost" 
                 size="icon"
                 onClick={() => navigate("/dashboard/cart")}
-                className="relative text-foreground/80 hover:text-foreground"
+                className="relative text-foreground/70 hover:text-primary"
               >
                 <ShoppingCart className="w-5 h-5" />
                 {cartCount > 0 && (
@@ -140,30 +137,29 @@ export const PublicNavbar = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border animate-fade-in">
+          <div className="md:hidden py-4 border-t border-border animate-fade-in bg-white">
             <div className="flex flex-col gap-4">
               <Link 
                 to="/" 
-                className="text-foreground/80 hover:text-foreground transition-colors font-medium py-2"
+                className="text-foreground/70 hover:text-primary transition-colors font-medium py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Home
               </Link>
               <Link 
                 to="/shop" 
-                className="text-foreground/80 hover:text-foreground transition-colors font-medium py-2"
+                className="text-foreground/70 hover:text-primary transition-colors font-medium py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Shop
               </Link>
               {user ? (
                 <Button 
-                  variant="outline" 
                   onClick={() => {
                     navigate("/dashboard");
                     setIsMenuOpen(false);
                   }}
-                  className="w-full"
+                  className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground"
                 >
                   <User className="w-4 h-4 mr-2" />
                   My Account

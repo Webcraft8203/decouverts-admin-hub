@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
-import { Mail, Phone, MapPin, ArrowRight, Linkedin, Twitter, Instagram } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Mail, MapPin, ArrowRight, Linkedin, Twitter, Instagram } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 const footerLinks = {
@@ -23,9 +22,9 @@ const footerLinks = {
 
 export const PublicFooter = () => {
   return (
-    <footer className="bg-card border-t border-border relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,hsl(var(--primary)/0.05)_0%,transparent_60%)]" />
+    <footer className="bg-white border-t border-border relative overflow-hidden">
+      {/* Subtle Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-secondary/30 via-transparent to-primary/5" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
@@ -62,9 +61,9 @@ export const PublicFooter = () => {
                 <a
                   key={i}
                   href="#"
-                  className="w-10 h-10 rounded-xl bg-secondary hover:bg-primary/10 border border-border hover:border-primary/30 flex items-center justify-center transition-all duration-300"
+                  className="w-10 h-10 rounded-xl bg-secondary hover:bg-primary/10 border border-border hover:border-primary/30 flex items-center justify-center transition-all duration-300 group"
                 >
-                  <Icon className="w-4 h-4 text-muted-foreground hover:text-primary" />
+                  <Icon className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
                 </a>
               ))}
             </div>
