@@ -24,11 +24,11 @@ export const NotificationMarquee = () => {
   if (!notification || isDismissed) return null;
 
   return (
-    <div className="fixed top-16 md:top-20 left-0 right-0 z-40 bg-gradient-to-r from-primary via-accent to-primary text-primary-foreground py-2.5 overflow-hidden shadow-lg">
+    <div className="fixed top-16 md:top-20 left-0 right-0 z-40 bg-gradient-to-r from-primary via-accent to-primary py-2.5 overflow-hidden shadow-md">
       <div className="marquee-container">
         <div className="marquee-content animate-marquee hover:pause-animation">
           {[1, 2, 3].map((i) => (
-            <span key={i} className="inline-flex items-center mx-8 text-sm font-medium">
+            <span key={i} className="inline-flex items-center mx-8 text-sm font-medium text-primary-foreground">
               <Rocket className="w-4 h-4 mr-2" />
               {notification.message}
             </span>
@@ -39,7 +39,7 @@ export const NotificationMarquee = () => {
       {/* Close Button */}
       <button
         onClick={() => setIsDismissed(true)}
-        className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-black/20 transition-colors"
+        className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-white/20 transition-colors text-primary-foreground"
         aria-label="Dismiss notification"
       >
         <X className="w-4 h-4" />

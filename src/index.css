@@ -2,135 +2,129 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Decouverts Plus Design System - Premium Engineering Theme */
+/* Decouverts Plus Design System - Light Premium Engineering Theme */
 
 @layer base {
   :root {
-    /* Dark navy base */
-    --background: 220 30% 8%;
-    --foreground: 0 0% 98%;
+    /* Light backgrounds */
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
 
-    --card: 220 25% 12%;
-    --card-foreground: 0 0% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
 
-    --popover: 220 25% 10%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
 
     /* Primary: Vibrant Orange */
-    --primary: 28 100% 55%;
+    --primary: 24 95% 53%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Deep Navy */
-    --secondary: 220 30% 15%;
-    --secondary-foreground: 0 0% 90%;
+    /* Secondary: Soft Gray */
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 220 20% 18%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    /* Accent: Gold */
-    --accent: 45 100% 55%;
-    --accent-foreground: 0 0% 8%;
+    /* Accent: Warm Amber */
+    --accent: 38 92% 50%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 70% 50%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     /* Success state */
-    --success: 145 60% 45%;
+    --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
 
     /* Warning state */
-    --warning: 45 100% 55%;
-    --warning-foreground: 0 0% 8%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
 
-    --border: 220 20% 20%;
-    --input: 220 20% 18%;
-    --ring: 28 100% 55%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 24 95% 53%;
 
     --radius: 0.75rem;
 
-    /* Sidebar - Sleek dark look */
-    --sidebar-background: 220 30% 6%;
-    --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 28 100% 55%;
+    /* Sidebar - Light elegant */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 24 95% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 25% 15%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 220 20% 18%;
-    --sidebar-ring: 28 100% 55%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 24 95% 53%;
 
-    /* Chart colors - Orange/Gold gradient */
-    --chart-1: 28 100% 55%;
-    --chart-2: 35 95% 50%;
-    --chart-3: 42 90% 48%;
-    --chart-4: 20 85% 45%;
-    --chart-5: 15 80% 40%;
+    /* Chart colors - Orange/Amber gradient */
+    --chart-1: 24 95% 53%;
+    --chart-2: 32 95% 50%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 45 93% 47%;
+    --chart-5: 16 90% 50%;
 
     /* Brand specific */
-    --brand-orange: 28 100% 55%;
-    --brand-gold: 45 100% 55%;
-    --brand-navy: 220 30% 8%;
-    --brand-navy-light: 220 25% 15%;
-    --hero-gradient-start: 220 40% 6%;
-    --hero-gradient-end: 220 30% 12%;
+    --brand-orange: 24 95% 53%;
+    --brand-amber: 38 92% 50%;
+    --brand-navy: 222 47% 11%;
   }
 
   .dark {
-    /* Same as root - already dark theme */
-    --background: 220 30% 8%;
-    --foreground: 0 0% 98%;
+    /* Dark mode - keep for admin if needed */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
 
-    --card: 220 25% 12%;
-    --card-foreground: 0 0% 98%;
+    --card: 222 47% 15%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 220 25% 10%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 222 47% 13%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 28 100% 55%;
+    --primary: 24 95% 53%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 30% 15%;
-    --secondary-foreground: 0 0% 90%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 220 20% 18%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 45 100% 55%;
-    --accent-foreground: 0 0% 8%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 65% 45%;
+    --destructive: 0 63% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 145 55% 45%;
+    --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 45 90% 55%;
-    --warning-foreground: 0 0% 8%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
 
-    --border: 220 20% 20%;
-    --input: 220 20% 18%;
-    --ring: 28 100% 55%;
+    --border: 217 33% 20%;
+    --input: 217 33% 17%;
+    --ring: 24 95% 53%;
 
-    --sidebar-background: 220 30% 6%;
-    --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 28 100% 55%;
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 24 95% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 25% 15%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 220 20% 18%;
-    --sidebar-ring: 28 100% 55%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 20%;
+    --sidebar-ring: 24 95% 53%;
 
-    --chart-1: 28 100% 58%;
-    --chart-2: 35 95% 52%;
-    --chart-3: 42 92% 48%;
-    --chart-4: 20 88% 45%;
-    --chart-5: 15 84% 40%;
+    --chart-1: 24 95% 53%;
+    --chart-2: 32 95% 50%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 45 93% 47%;
+    --chart-5: 16 90% 50%;
 
-    --brand-orange: 28 100% 55%;
-    --brand-gold: 45 100% 55%;
-    --brand-navy: 220 30% 8%;
-    --brand-navy-light: 220 25% 15%;
-    --hero-gradient-start: 220 40% 6%;
-    --hero-gradient-end: 220 30% 12%;
+    --brand-orange: 24 95% 53%;
+    --brand-amber: 38 92% 50%;
+    --brand-navy: 222 47% 11%;
   }
 }
 

@@ -8,37 +8,37 @@ const drives = [
     icon: Zap,
     title: "Speed & Efficiency",
     description: "Rapid prototyping and quick turnaround times without compromising quality.",
-    gradient: "from-yellow-500/20 to-orange-500/20"
+    color: "from-amber-500 to-orange-500"
   },
   {
     icon: Rocket,
     title: "Innovation",
     description: "Constantly pushing the boundaries of what's possible in engineering and manufacturing.",
-    gradient: "from-orange-500/20 to-red-500/20"
+    color: "from-orange-500 to-red-500"
   },
   {
     icon: Shield,
     title: "Quality Assurance",
     description: "Rigorous testing and quality control at every stage of production.",
-    gradient: "from-blue-500/20 to-cyan-500/20"
+    color: "from-blue-500 to-cyan-500"
   },
   {
     icon: Award,
     title: "Excellence",
     description: "Committed to delivering world-class products and services that exceed expectations.",
-    gradient: "from-purple-500/20 to-pink-500/20"
+    color: "from-purple-500 to-pink-500"
   },
   {
     icon: Leaf,
     title: "Sustainability",
     description: "Eco-friendly practices and sustainable manufacturing solutions for a better tomorrow.",
-    gradient: "from-green-500/20 to-emerald-500/20"
+    color: "from-green-500 to-emerald-500"
   },
   {
     icon: Heart,
     title: "Passion",
     description: "Driven by a deep love for engineering and creating solutions that make a difference.",
-    gradient: "from-red-500/20 to-rose-500/20"
+    color: "from-rose-500 to-pink-500"
   }
 ];
 
@@ -65,10 +65,7 @@ export const WhatDrivesUs = () => {
   };
 
   return (
-    <section className="py-24 px-4 bg-background relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,hsl(var(--primary)/0.08)_0%,transparent_60%)]" />
-      
+    <section className="py-24 px-4 bg-gradient-to-b from-white to-secondary/30 relative overflow-hidden">
       <div className="max-w-7xl mx-auto relative z-10">
         <motion.div
           className="text-center mb-16"
@@ -76,7 +73,7 @@ export const WhatDrivesUs = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <span className="inline-block px-4 py-2 mb-4 text-sm font-medium rounded-full bg-primary/10 text-primary">
+          <span className="inline-block px-4 py-2 mb-4 text-sm font-semibold rounded-full bg-primary/10 text-primary">
             Our Core Values
           </span>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground">
@@ -90,7 +87,7 @@ export const WhatDrivesUs = () => {
             <Button
               variant="outline"
               size="icon"
-              className="hidden md:flex rounded-full border-primary/30 hover:bg-primary/10"
+              className="hidden md:flex rounded-full border-border hover:border-primary hover:bg-primary/5 shadow-sm"
               onClick={prev}
             >
               <ChevronLeft className="w-5 h-5" />
@@ -104,13 +101,13 @@ export const WhatDrivesUs = () => {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -100 }}
                   transition={{ duration: 0.5 }}
-                  className={`p-8 md:p-12 rounded-3xl bg-gradient-to-br ${drives[currentIndex].gradient} border border-border backdrop-blur-sm`}
+                  className="p-8 md:p-12 rounded-3xl bg-white border border-border shadow-xl"
                 >
                   <div className="flex flex-col md:flex-row items-center gap-8">
-                    <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center shrink-0">
+                    <div className={`w-24 h-24 rounded-2xl bg-gradient-to-br ${drives[currentIndex].color} flex items-center justify-center shrink-0 shadow-lg`}>
                       {(() => {
                         const Icon = drives[currentIndex].icon;
-                        return <Icon className="w-12 h-12 text-primary" />;
+                        return <Icon className="w-12 h-12 text-white" />;
                       })()}
                     </div>
                     <div className="text-center md:text-left">
@@ -129,7 +126,7 @@ export const WhatDrivesUs = () => {
             <Button
               variant="outline"
               size="icon"
-              className="hidden md:flex rounded-full border-primary/30 hover:bg-primary/10"
+              className="hidden md:flex rounded-full border-border hover:border-primary hover:bg-primary/5 shadow-sm"
               onClick={next}
             >
               <ChevronRight className="w-5 h-5" />
@@ -141,10 +138,10 @@ export const WhatDrivesUs = () => {
             {drives.map((_, index) => (
               <button
                 key={index}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                className={`h-2.5 rounded-full transition-all duration-300 ${
                   index === currentIndex
                     ? "bg-primary w-8"
-                    : "bg-primary/30 hover:bg-primary/50"
+                    : "bg-foreground/20 w-2.5 hover:bg-foreground/40"
                 }`}
                 onClick={() => {
                   setIsAutoPlaying(false);
@@ -159,7 +156,7 @@ export const WhatDrivesUs = () => {
             <Button
               variant="outline"
               size="icon"
-              className="rounded-full border-primary/30 hover:bg-primary/10"
+              className="rounded-full border-border hover:border-primary"
               onClick={prev}
             >
               <ChevronLeft className="w-5 h-5" />
@@ -167,7 +164,7 @@ export const WhatDrivesUs = () => {
             <Button
               variant="outline"
               size="icon"
-              className="rounded-full border-primary/30 hover:bg-primary/10"
+              className="rounded-full border-border hover:border-primary"
               onClick={next}
             >
               <ChevronRight className="w-5 h-5" />

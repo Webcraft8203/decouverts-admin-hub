@@ -14,7 +14,7 @@ const sectionConfig = {
     route: "/shop",
     cta: "Shop Now",
     gradient: "from-orange-500 to-amber-500",
-    bgGradient: "from-orange-500/10 via-transparent to-amber-500/5"
+    bgColor: "bg-orange-50"
   },
   engineering: {
     title: "Engineering Services",
@@ -24,7 +24,7 @@ const sectionConfig = {
     route: "/engineering",
     cta: "Learn More",
     gradient: "from-blue-500 to-cyan-500",
-    bgGradient: "from-blue-500/10 via-transparent to-cyan-500/5"
+    bgColor: "bg-blue-50"
   },
   manufacturing: {
     title: "Manufacturing",
@@ -34,7 +34,7 @@ const sectionConfig = {
     route: "/manufacturing",
     cta: "Explore",
     gradient: "from-purple-500 to-pink-500",
-    bgGradient: "from-purple-500/10 via-transparent to-pink-500/5",
+    bgColor: "bg-purple-50",
     subCards: [
       { title: "Custom Industrial Printers", icon: Printer },
       { title: "Industrial Custom Drones", icon: Plane }
@@ -77,10 +77,7 @@ export const BusinessSections = () => {
   };
 
   return (
-    <section className="py-24 px-4 bg-background relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.05)_0%,transparent_70%)]" />
-      
+    <section className="py-24 px-4 bg-gradient-to-b from-white to-secondary/20 relative overflow-hidden">
       <div className="max-w-7xl mx-auto relative z-10">
         <motion.div
           className="text-center mb-16"
@@ -88,7 +85,7 @@ export const BusinessSections = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <span className="inline-block px-4 py-2 mb-4 text-sm font-medium rounded-full bg-primary/10 text-primary">
+          <span className="inline-block px-4 py-2 mb-4 text-sm font-semibold rounded-full bg-primary/10 text-primary">
             Our Business
           </span>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground">
@@ -104,18 +101,13 @@ export const BusinessSections = () => {
             return (
               <motion.div
                 key={section.id}
-                className={`group relative rounded-3xl overflow-hidden border border-border bg-gradient-to-br ${config.bgGradient} hover:border-primary/30 transition-all duration-500`}
+                className={`group relative rounded-3xl overflow-hidden border border-border ${config.bgColor} hover:shadow-2xl transition-all duration-500`}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 whileHover={{ y: -8 }}
               >
-                {/* Hover Glow */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${config.bgGradient} blur-xl`} />
-                </div>
-
                 <div className="relative z-10 p-8">
                   {/* Icon */}
                   <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${config.gradient} flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
@@ -133,7 +125,7 @@ export const BusinessSections = () => {
                       {config.subCards.map((subCard) => (
                         <div
                           key={subCard.title}
-                          className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 border border-border"
+                          className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border shadow-sm"
                         >
                           <subCard.icon className="w-5 h-5 text-primary" />
                           <span className="text-sm font-medium text-foreground">{subCard.title}</span>
@@ -144,7 +136,7 @@ export const BusinessSections = () => {
 
                   {/* CTA */}
                   <Button
-                    className={`w-full bg-gradient-to-r ${config.gradient} hover:opacity-90 transition-opacity group/btn`}
+                    className={`w-full bg-gradient-to-r ${config.gradient} text-white hover:opacity-90 transition-opacity group/btn shadow-lg`}
                     onClick={() => navigate(config.route)}
                   >
                     {config.cta}
