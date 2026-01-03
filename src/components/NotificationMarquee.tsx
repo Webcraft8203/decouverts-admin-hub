@@ -20,7 +20,7 @@ export const NotificationMarquee = () => {
   if (!notification) return null;
 
   return (
-    <div className="bg-primary text-primary-foreground py-2 overflow-hidden">
+    <div className="fixed top-16 md:top-20 left-0 right-0 z-40 bg-primary text-primary-foreground py-2 overflow-hidden">
       <div className="marquee-container">
         <div className="marquee-content animate-marquee hover:pause-animation">
           <span className="mx-8">{notification.message}</span>
