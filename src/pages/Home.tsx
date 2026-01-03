@@ -5,6 +5,8 @@ import { PublicFooter } from "@/components/PublicFooter";
 import { NotificationMarquee } from "@/components/NotificationMarquee";
 import { HomepageSection } from "@/components/home/HomepageSection";
 import { HeroSection } from "@/components/home/HeroSection";
+import { HomepageGallery } from "@/components/home/HomepageGallery";
+import { ContactSection } from "@/components/home/ContactSection";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Home = () => {
@@ -77,6 +79,9 @@ const Home = () => {
           </section>
         )}
 
+        {/* Homepage Gallery Section */}
+        <HomepageGallery />
+
         {/* Features Section - Only show if sections are visible */}
         {visibleCount > 0 && (
           <section className="py-20 bg-muted/50">
@@ -124,6 +129,9 @@ const Home = () => {
             </div>
           </section>
         )}
+
+        {/* Contact Section */}
+        <ContactSection />
       </main>
 
       <PublicFooter />
