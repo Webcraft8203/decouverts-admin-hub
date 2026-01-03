@@ -6,6 +6,158 @@ import { ArrowRight, ShoppingBag, Package, Printer, Cog, Box, ChevronDown } from
 import { useRef, useEffect, useState } from "react";
 import logo from "@/assets/logo.png";
 
+// Intro Animation Overlay
+const IntroAnimation = ({ onComplete }: { onComplete: () => void }) => {
+  const [phase, setPhase] = useState<"logo" | "expand" | "done">("logo");
+
+  useEffect(() => {
+    // Logo reveal phase
+    const expandTimer = setTimeout(() => setPhase("expand"), 1500);
+    // Complete and hide overlay
+    const doneTimer = setTimeout(() => {
+      setPhase("done");
+      onComplete();
+    }, 2200);
+
+    return () => {
+      clearTimeout(expandTimer);
+      clearTimeout(doneTimer);
+    };
+  }, [onComplete]);
+
+  if (phase === "done") return null;
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-background"
+      initial={{ opacity: 1 }}
+      animate={{ opacity: phase === "expand" ? 0 : 1 }}
+      transition={{ duration: 0.6, ease: "easeInOut" }}
+    >
+      {/* Background glow */}
+      <motion.div
+        className="absolute w-96 h-96 bg-gradient-radial from-primary/20 via-accent/10 to-transparent rounded-full blur-3xl"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ 
+          scale: phase === "expand" ? 3 : 1.5, 
+          opacity: phase === "expand" ? 0 : 0.6 
+        }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      />
+
+      {/* Logo container */}
+      <motion.div
+        className="relative z-10 flex flex-col items-center"
+        initial={{ scale: 0.5, opacity: 0 }}
+        animate={{ 
+          scale: phase === "expand" ? 1.5 : 1, 
+          opacity: phase === "expand" ? 0 : 1,
+          y: phase === "expand" ? -50 : 0
+        }}
+        transition={{ 
+          duration: phase === "expand" ? 0.5 : 0.8, 
+          ease: "easeOut",
+          delay: phase === "logo" ? 0.2 : 0
+        }}
+      >
+        {/* Rotating ring */}
+        <motion.div
+          className="absolute w-40 h-40 md:w-52 md:h-52 rounded-full border-2 border-primary/30"
+          initial={{ scale: 0, rotate: 0 }}
+          animate={{ 
+            scale: phase === "expand" ? 2 : 1, 
+            rotate: 360,
+            opacity: phase === "expand" ? 0 : 1
+          }}
+          transition={{ 
+            scale: { duration: 0.6, ease: "easeOut" },
+            rotate: { duration: 3, repeat: Infinity, ease: "linear" },
+            opacity: { duration: 0.3 }
+          }}
+        />
+        
+        {/* Second ring */}
+        <motion.div
+          className="absolute w-32 h-32 md:w-44 md:h-44 rounded-full border border-accent/20"
+          initial={{ scale: 0, rotate: 0 }}
+          animate={{ 
+            scale: phase === "expand" ? 2.5 : 1, 
+            rotate: -360,
+            opacity: phase === "expand" ? 0 : 1
+          }}
+          transition={{ 
+            scale: { duration: 0.5, ease: "easeOut", delay: 0.1 },
+            rotate: { duration: 4, repeat: Infinity, ease: "linear" },
+            opacity: { duration: 0.3 }
+          }}
+        />
+
+        {/* Logo */}
+        <motion.img
+          src={logo}
+          alt="Decouverts"
+          className="w-24 h-24 md:w-32 md:h-32 object-contain relative z-10"
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ 
+            scale: 1, 
+            rotate: 0,
+          }}
+          transition={{ 
+            duration: 0.8, 
+            ease: [0.34, 1.56, 0.64, 1], // Spring-like bounce
+            delay: 0.3
+          }}
+        />
+
+        {/* Brand name */}
+        <motion.h2
+          className="mt-6 text-2xl md:text-3xl font-bold text-foreground tracking-wider"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ 
+            opacity: phase === "expand" ? 0 : 1, 
+            y: 0 
+          }}
+          transition={{ duration: 0.5, delay: 0.8 }}
+        >
+          DECOUVERTS
+        </motion.h2>
+
+        {/* Tagline */}
+        <motion.p
+          className="mt-2 text-sm md:text-base text-muted-foreground"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: phase === "expand" ? 0 : 1 }}
+          transition={{ duration: 0.5, delay: 1 }}
+        >
+          Engineering Excellence
+        </motion.p>
+      </motion.div>
+
+      {/* Particles burst on expand */}
+      <AnimatePresence>
+        {phase === "expand" && (
+          <>
+            {[...Array(12)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-2 h-2 rounded-full bg-primary/50"
+                initial={{ x: 0, y: 0, opacity: 1 }}
+                animate={{
+                  x: Math.cos((i * Math.PI * 2) / 12) * 200,
+                  y: Math.sin((i * Math.PI * 2) / 12) * 200,
+                  opacity: 0,
+                  scale: 0,
+                }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+              />
+            ))}
+          </>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+};
+
 // Interactive 3D Icon Component
 const Interactive3DIcon = ({ 
   icon: Icon, 
@@ -64,7 +216,7 @@ const Interactive3DIcon = ({
   );
 };
 
-// Brand Logo with effects
+// Brand Logo with effects (background version)
 const BrandLogo = ({ mouseX, mouseY }: { mouseX: any; mouseY: any }) => {
   const translateX = useTransform(mouseX, [0, 1], [-10, 10]);
   const translateY = useTransform(mouseY, [0, 1], [-10, 10]);
@@ -334,6 +486,15 @@ export const HeroSection = () => {
   const mouseY = useMotionValue(0.5);
   const [hoveredSection, setHoveredSection] = useState<string | null>(null);
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
+  const [showIntro, setShowIntro] = useState(true);
+  const [contentReady, setContentReady] = useState(false);
+
+  // Handle intro animation completion
+  const handleIntroComplete = () => {
+    setShowIntro(false);
+    // Small delay before showing content for smooth transition
+    setTimeout(() => setContentReady(true), 100);
+  };
 
   // Track mouse position for parallax
   useEffect(() => {
@@ -396,57 +557,64 @@ export const HeroSection = () => {
   const visibleCount = [ecommerceVisible, engineeringVisible, manufacturingVisible].filter(Boolean).length;
 
   return (
-    <section
-      ref={containerRef}
-      className="relative min-h-[90vh] bg-background overflow-hidden"
-      onClick={handleRipple}
-    >
-      {/* Blueprint Grid Pattern - Enhanced */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--primary)/0.05)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.05)_1px,transparent_1px)] bg-[size:50px_50px]" />
-      </div>
+    <>
+      {/* Intro Animation */}
+      <AnimatePresence>
+        {showIntro && <IntroAnimation onComplete={handleIntroComplete} />}
+      </AnimatePresence>
 
-      {/* Engineering Lines */}
-      <EngineeringLines />
+      <section
+        ref={containerRef}
+        className="relative min-h-[90vh] bg-background overflow-hidden"
+        onClick={handleRipple}
+      >
+        {/* Blueprint Grid Pattern - Enhanced */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--primary)/0.05)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.05)_1px,transparent_1px)] bg-[size:50px_50px]" />
+        </div>
 
-      {/* Radial Light Behind Center */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <motion.div 
-          className="w-[700px] h-[700px] bg-gradient-radial from-primary/8 via-accent/3 to-transparent rounded-full blur-3xl"
-          animate={{ scale: [1, 1.05, 1], opacity: [0.6, 0.8, 0.6] }}
-          transition={{ duration: 6, repeat: Infinity }}
-        />
-      </div>
+        {/* Engineering Lines */}
+        <EngineeringLines />
 
-      {/* Background Particles */}
-      <BackgroundParticles />
+        {/* Radial Light Behind Center */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <motion.div 
+            className="w-[700px] h-[700px] bg-gradient-radial from-primary/8 via-accent/3 to-transparent rounded-full blur-3xl"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={contentReady ? { scale: [1, 1.05, 1], opacity: [0.6, 0.8, 0.6] } : {}}
+            transition={{ duration: 6, repeat: Infinity }}
+          />
+        </div>
 
-      {/* Brand Logo */}
-      <BrandLogo mouseX={mouseX} mouseY={mouseY} />
+        {/* Background Particles */}
+        {contentReady && <BackgroundParticles />}
 
-      {/* 3D Engineering Core */}
-      <EngineeringCore mouseX={mouseX} mouseY={mouseY} />
+        {/* Brand Logo */}
+        {contentReady && <BrandLogo mouseX={mouseX} mouseY={mouseY} />}
 
-      {/* Ripple Effects */}
-      {ripples.map(ripple => (
-        <RippleEffect
-          key={ripple.id}
-          x={ripple.x}
-          y={ripple.y}
-          onComplete={() => removeRipple(ripple.id)}
-        />
-      ))}
+        {/* 3D Engineering Core */}
+        {contentReady && <EngineeringCore mouseX={mouseX} mouseY={mouseY} />}
 
-      {/* Main Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-        {/* Hero Headline */}
-        <motion.div
-          className="text-center mb-12 lg:mb-20"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-        >
-          <motion.h1 
+        {/* Ripple Effects */}
+        {ripples.map(ripple => (
+          <RippleEffect
+            key={ripple.id}
+            x={ripple.x}
+            y={ripple.y}
+            onComplete={() => removeRipple(ripple.id)}
+          />
+        ))}
+
+        {/* Main Content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+          {/* Hero Headline */}
+          <motion.div
+            className="text-center mb-12 lg:mb-20"
+            initial={{ opacity: 0, y: 30 }}
+            animate={contentReady ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          >
+            <motion.h1 
             className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight mb-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -703,6 +871,7 @@ export const HeroSection = () => {
           <ChevronDown className="w-5 h-5 text-muted-foreground" />
         </motion.div>
       </motion.div>
-    </section>
+      </section>
+    </>
   );
 };
