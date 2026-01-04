@@ -216,54 +216,29 @@ const Interactive3DIcon = ({
   );
 };
 
-// Brand Logo with effects - Right Side (Desktop/Tablet only)
-const HeroLogo = ({ mouseX, mouseY }: { mouseX: any; mouseY: any }) => {
-  const translateX = useTransform(mouseX, [0, 1], [-15, 15]);
-  const translateY = useTransform(mouseY, [0, 1], [-15, 15]);
-  const springX = useSpring(translateX, { stiffness: 50, damping: 30 });
-  const springY = useSpring(translateY, { stiffness: 50, damping: 30 });
-
+// Brand Logo - Right Side (Desktop/Tablet only)
+const HeroLogo = () => {
   return (
     <motion.div
-      className="hidden md:flex absolute right-8 lg:right-16 xl:right-24 top-1/2 -translate-y-1/2 pointer-events-none z-0"
-      style={{ x: springX, y: springY }}
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.8, delay: 0.3 }}
+      className="hidden md:flex absolute right-12 lg:right-20 xl:right-28 top-1/2 -translate-y-1/2 pointer-events-none z-0 items-center justify-center"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
     >
-      <motion.div
-        className="relative"
-        animate={{ 
-          scale: [0.98, 1.02, 0.98],
-        }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-      >
-        {/* Glow effect behind logo */}
-        <motion.div
-          className="absolute inset-0 blur-3xl -z-10"
-          animate={{
-            opacity: [0.2, 0.35, 0.2],
-          }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <div className="w-64 h-64 lg:w-80 lg:h-80 xl:w-96 xl:h-96 bg-gradient-radial from-primary/25 via-accent/15 to-transparent rounded-full" />
-        </motion.div>
+      <div className="relative">
+        {/* Soft glow behind logo - static, subtle */}
+        <div className="absolute inset-0 -z-10 flex items-center justify-center">
+          <div className="w-48 h-48 lg:w-64 lg:h-64 xl:w-72 xl:h-72 bg-gradient-radial from-primary/10 via-primary/5 to-transparent rounded-full blur-2xl" />
+        </div>
         
-        {/* Outer ring */}
-        <motion.div
-          className="absolute inset-0 rounded-full border border-primary/10"
-          style={{ margin: "-20px" }}
-          animate={{ rotate: 360 }}
-          transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-        />
-        
-        {/* Logo */}
+        {/* Logo - Full opacity, no rotation, no distortion */}
         <img 
           src={logo} 
           alt="Decouverts" 
-          className="w-56 h-56 lg:w-72 lg:h-72 xl:w-80 xl:h-80 object-contain opacity-40"
+          className="w-48 h-48 lg:w-64 lg:h-64 xl:w-72 xl:h-72 object-contain drop-shadow-lg"
+          style={{ filter: "drop-shadow(0 4px 20px rgba(0,0,0,0.08))" }}
         />
-      </motion.div>
+      </div>
     </motion.div>
   );
 };
@@ -659,7 +634,7 @@ export const HeroSection = () => {
         {contentReady && <BackgroundParticles />}
 
         {/* Hero Logo - Right Side (Desktop/Tablet only) */}
-        {contentReady && <HeroLogo mouseX={mouseX} mouseY={mouseY} />}
+        {contentReady && <HeroLogo />}
 
         {/* 3D Engineering Core - subtle background element */}
         {contentReady && <EngineeringCore mouseX={mouseX} mouseY={mouseY} />}
