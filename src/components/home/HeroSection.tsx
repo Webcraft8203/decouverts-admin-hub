@@ -216,27 +216,36 @@ const Interactive3DIcon = ({
   );
 };
 
-// Brand Logo - Right Side (Desktop/Tablet only)
+// Brand Logo - Right Side (Desktop/Tablet only) - Primary visual focus
 const HeroLogo = () => {
   return (
     <motion.div
-      className="hidden md:flex absolute right-12 lg:right-20 xl:right-28 top-1/2 -translate-y-1/2 pointer-events-none z-0 items-center justify-center"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
+      className="hidden md:flex absolute right-8 lg:right-16 xl:right-24 top-1/2 -translate-y-1/2 pointer-events-none z-10 items-center justify-center"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
     >
       <div className="relative">
-        {/* Soft glow behind logo - static, subtle */}
+        {/* Hexagonal backdrop spotlight - branded, premium */}
         <div className="absolute inset-0 -z-10 flex items-center justify-center">
-          <div className="w-48 h-48 lg:w-64 lg:h-64 xl:w-72 xl:h-72 bg-gradient-radial from-primary/10 via-primary/5 to-transparent rounded-full blur-2xl" />
+          {/* Outer soft radial glow */}
+          <div className="absolute w-72 h-72 lg:w-96 lg:h-96 xl:w-[420px] xl:h-[420px] bg-gradient-radial from-primary/8 via-accent/4 to-transparent rounded-full" />
+          
+          {/* Inner accent ring */}
+          <div className="absolute w-64 h-64 lg:w-80 lg:h-80 xl:w-96 xl:h-96 rounded-full border border-primary/10" />
+          
+          {/* Soft circular backdrop */}
+          <div className="absolute w-56 h-56 lg:w-72 lg:h-72 xl:w-80 xl:h-80 bg-gradient-radial from-white/60 via-white/30 to-transparent rounded-full backdrop-blur-sm" />
         </div>
         
-        {/* Logo - Full opacity, no rotation, no distortion */}
+        {/* Logo - Full opacity, larger size, premium presence */}
         <img 
           src={logo} 
           alt="Decouverts" 
-          className="w-48 h-48 lg:w-64 lg:h-64 xl:w-72 xl:h-72 object-contain drop-shadow-lg"
-          style={{ filter: "drop-shadow(0 4px 20px rgba(0,0,0,0.08))" }}
+          className="w-56 h-56 lg:w-72 lg:h-72 xl:w-80 xl:h-80 object-contain"
+          style={{ 
+            filter: "drop-shadow(0 8px 32px rgba(0,0,0,0.12)) drop-shadow(0 2px 8px rgba(0,0,0,0.08))"
+          }}
         />
       </div>
     </motion.div>
