@@ -216,17 +216,20 @@ const Interactive3DIcon = ({
   );
 };
 
-// Brand Logo with effects (background version)
-const BrandLogo = ({ mouseX, mouseY }: { mouseX: any; mouseY: any }) => {
-  const translateX = useTransform(mouseX, [0, 1], [-10, 10]);
-  const translateY = useTransform(mouseY, [0, 1], [-10, 10]);
+// Brand Logo with effects - Right Side (Desktop/Tablet only)
+const HeroLogo = ({ mouseX, mouseY }: { mouseX: any; mouseY: any }) => {
+  const translateX = useTransform(mouseX, [0, 1], [-15, 15]);
+  const translateY = useTransform(mouseY, [0, 1], [-15, 15]);
   const springX = useSpring(translateX, { stiffness: 50, damping: 30 });
   const springY = useSpring(translateY, { stiffness: 50, damping: 30 });
 
   return (
     <motion.div
-      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0"
+      className="hidden md:flex absolute right-8 lg:right-16 xl:right-24 top-1/2 -translate-y-1/2 pointer-events-none z-0"
       style={{ x: springX, y: springY }}
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.8, delay: 0.3 }}
     >
       <motion.div
         className="relative"
@@ -237,25 +240,91 @@ const BrandLogo = ({ mouseX, mouseY }: { mouseX: any; mouseY: any }) => {
       >
         {/* Glow effect behind logo */}
         <motion.div
-          className="absolute inset-0 blur-3xl"
+          className="absolute inset-0 blur-3xl -z-10"
           animate={{
-            opacity: [0.15, 0.25, 0.15],
+            opacity: [0.2, 0.35, 0.2],
           }}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
         >
-          <div className="w-48 h-48 md:w-64 md:h-64 bg-gradient-radial from-primary/30 via-accent/20 to-transparent rounded-full" />
+          <div className="w-64 h-64 lg:w-80 lg:h-80 xl:w-96 xl:h-96 bg-gradient-radial from-primary/25 via-accent/15 to-transparent rounded-full" />
         </motion.div>
+        
+        {/* Outer ring */}
+        <motion.div
+          className="absolute inset-0 rounded-full border border-primary/10"
+          style={{ margin: "-20px" }}
+          animate={{ rotate: 360 }}
+          transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+        />
         
         {/* Logo */}
         <img 
           src={logo} 
           alt="Decouverts" 
-          className="w-48 h-48 md:w-64 md:h-64 object-contain opacity-[0.08]"
+          className="w-56 h-56 lg:w-72 lg:h-72 xl:w-80 xl:h-80 object-contain opacity-40"
         />
       </motion.div>
     </motion.div>
   );
 };
+
+// Domain Item Component
+const DomainItem = ({ 
+  icon: Icon, 
+  title, 
+  subtitle,
+  onClick,
+  isHovered,
+  onHover,
+  delay = 0 
+}: { 
+  icon: React.ElementType;
+  title: string;
+  subtitle?: string;
+  onClick: () => void;
+  isHovered: boolean;
+  onHover: (hovered: boolean) => void;
+  delay?: number;
+}) => (
+  <motion.div
+    className="group flex items-center gap-3 cursor-pointer px-4 py-3 rounded-xl transition-all duration-300 hover:bg-muted/40"
+    onClick={(e) => {
+      e.stopPropagation();
+      onClick();
+    }}
+    onMouseEnter={() => onHover(true)}
+    onMouseLeave={() => onHover(false)}
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5, delay }}
+    whileHover={{ scale: 1.02 }}
+    whileTap={{ scale: 0.98 }}
+  >
+    <motion.div 
+      className={`p-3 rounded-xl bg-white/80 backdrop-blur-sm shadow-md border border-border/30 transition-all duration-300 ${isHovered ? 'shadow-lg shadow-primary/20 border-primary/30' : ''}`}
+      animate={isHovered ? { rotate: [0, -5, 5, 0] } : {}}
+      transition={{ duration: 0.4 }}
+    >
+      <Icon className={`w-5 h-5 transition-colors duration-300 ${isHovered ? 'text-primary' : 'text-foreground/60'}`} />
+    </motion.div>
+    <div className="flex flex-col">
+      <span className={`font-semibold transition-colors duration-300 ${isHovered ? 'text-primary' : 'text-foreground'}`}>
+        {title}
+      </span>
+      {subtitle && (
+        <span className="text-xs text-muted-foreground">{subtitle}</span>
+      )}
+    </div>
+    <motion.div
+      className="ml-auto"
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: isHovered ? 1 : 0, x: isHovered ? 0 : -10 }}
+      transition={{ duration: 0.2 }}
+    >
+      <ArrowRight className="w-4 h-4 text-primary" />
+    </motion.div>
+  </motion.div>
+);
 
 // 3D Engineering Core Element
 const EngineeringCore = ({ mouseX, mouseY }: { mouseX: any; mouseY: any }) => {
@@ -589,10 +658,10 @@ export const HeroSection = () => {
         {/* Background Particles */}
         {contentReady && <BackgroundParticles />}
 
-        {/* Brand Logo */}
-        {contentReady && <BrandLogo mouseX={mouseX} mouseY={mouseY} />}
+        {/* Hero Logo - Right Side (Desktop/Tablet only) */}
+        {contentReady && <HeroLogo mouseX={mouseX} mouseY={mouseY} />}
 
-        {/* 3D Engineering Core */}
+        {/* 3D Engineering Core - subtle background element */}
         {contentReady && <EngineeringCore mouseX={mouseX} mouseY={mouseY} />}
 
         {/* Ripple Effects */}
@@ -605,238 +674,192 @@ export const HeroSection = () => {
           />
         ))}
 
-        {/* Main Content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-          {/* Hero Headline */}
+        {/* Main Content - Left Aligned on Desktop */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 min-h-[70vh] flex flex-col justify-center">
           <motion.div
-            className="text-center mb-12 lg:mb-20"
+            className="text-center md:text-left max-w-2xl"
             initial={{ opacity: 0, y: 30 }}
             animate={contentReady ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
+            {/* Brand Name & Tagline */}
+            <motion.div
+              className="mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              <motion.h2 
+                className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground tracking-widest mb-1"
+                initial={{ opacity: 0, letterSpacing: "0.1em" }}
+                animate={{ opacity: 1, letterSpacing: "0.2em" }}
+                transition={{ duration: 0.6, delay: 0.15 }}
+              >
+                DECOUVERTS
+              </motion.h2>
+              <motion.p
+                className="text-sm md:text-base text-accent font-medium italic"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.25 }}
+              >
+                The Art of India
+              </motion.p>
+            </motion.div>
+
+            {/* Main Heading */}
             <motion.h1 
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight mb-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
-            <motion.span 
-              className="text-foreground inline-block"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
             >
-              Engineering the Future
-            </motion.span>
-            <br />
-            <motion.span
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
-              <span className="text-foreground">Through </span>
-              <span className="text-primary relative inline-block cursor-default">
-                Innovation
-                <motion.span 
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
-                  animate={{ x: ["-100%", "100%"] }}
-                  transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 3 }}
-                />
-              </span>
-            </motion.span>
-            <br />
-            <motion.span
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-            >
-              <span className="text-foreground">& </span>
-              <span className="text-primary relative inline-block cursor-default">
-                Manufacturing
-                <motion.span 
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
-                  animate={{ x: ["-100%", "100%"] }}
-                  transition={{ duration: 2.5, delay: 1.5, repeat: Infinity, repeatDelay: 3 }}
-                />
-              </span>
-            </motion.span>
-          </motion.h1>
-          
-          <motion.p 
-            className="text-lg md:text-xl lg:text-2xl text-muted-foreground mt-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-          >
-            Design • Build • Manufacture • Deliver
-          </motion.p>
-
-          {/* Micro CTA */}
-          <motion.p
-            className="text-sm text-primary/70 mt-8 font-medium hidden md:block"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-          >
-            Explore Our Capabilities ↓
-          </motion.p>
-
-          {/* Mobile Tap Hint */}
-          <MobileTapHint />
-        </motion.div>
-
-        {/* Three Areas Layout */}
-        {visibleCount > 0 && (
-          <motion.div
-            className={`relative grid gap-6 lg:gap-0 ${
-              visibleCount === 3
-                ? "lg:grid-cols-3"
-                : visibleCount === 2
-                ? "lg:grid-cols-2"
-                : "lg:grid-cols-1 max-w-xl mx-auto"
-            }`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-          >
-            {/* E-Commerce Section */}
-            {ecommerceVisible && (
-              <motion.div
-                className="group relative cursor-pointer lg:px-8 py-8 lg:py-16 text-center lg:text-left lg:border-r lg:border-border/20 last:border-r-0 rounded-2xl transition-all duration-300 hover:bg-gradient-to-br hover:from-muted/30 hover:to-transparent"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate("/shop");
-                }}
-                onMouseEnter={() => setHoveredSection("ecommerce")}
-                onMouseLeave={() => setHoveredSection(null)}
-                initial={{ opacity: 0, y: 30 }}
+              <motion.span 
+                className="text-foreground inline-block"
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.7 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
               >
-                <HoverLabel text="Shop Premium Products" isVisible={hoveredSection === "ecommerce"} />
-                
-                {/* 3D Icons */}
-                <Interactive3DIcon icon={ShoppingBag} className="top-0 right-4 lg:right-8 hidden lg:block" delay={0} rotateOnHover />
-                <Interactive3DIcon icon={Package} className="bottom-2 left-2 lg:left-4 hidden lg:block" delay={0.3} />
-                <Interactive3DIcon icon={Box} className="top-1/2 right-2 hidden lg:block" delay={0.6} />
-                
-                <motion.h2 
-                  className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors duration-300"
-                >
-                  E-Commerce
-                </motion.h2>
-                <p className="text-lg text-muted-foreground mb-4">
-                  Section
-                </p>
-                <motion.div 
-                  className="flex items-center justify-center lg:justify-start gap-2 text-primary"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: hoveredSection === "ecommerce" ? 1 : 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <span className="text-sm font-medium">Shop Now</span>
-                  <ArrowRight className="w-4 h-4" />
-                </motion.div>
-              </motion.div>
-            )}
-
-            {/* Engineering Services Section */}
-            {engineeringVisible && (
-              <motion.div
-                className="group relative cursor-pointer lg:px-8 py-8 lg:py-16 text-center lg:border-r lg:border-border/20 last:border-r-0 rounded-2xl transition-all duration-300 hover:bg-gradient-to-br hover:from-muted/30 hover:to-transparent"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate("/engineering");
-                }}
-                onMouseEnter={() => setHoveredSection("engineering")}
-                onMouseLeave={() => setHoveredSection(null)}
-                initial={{ opacity: 0, y: 30 }}
+                Engineering the Future
+              </motion.span>
+              <br />
+              <motion.span
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.8 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
               >
-                <HoverLabel text="Custom Engineering Solutions" isVisible={hoveredSection === "engineering"} />
-                
-                <motion.h2 
-                  className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors duration-300"
-                >
-                  Engineering Services
-                </motion.h2>
-                <p className="text-lg text-muted-foreground mb-1">
-                  Mechanical Engineering NPD
-                </p>
-                <motion.div 
-                  className="flex items-center justify-center gap-2 text-primary mt-4"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: hoveredSection === "engineering" ? 1 : 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <span className="text-sm font-medium">Learn More</span>
-                  <ArrowRight className="w-4 h-4" />
-                </motion.div>
-              </motion.div>
-            )}
-
-            {/* Manufacturing Section */}
-            {manufacturingVisible && (
-              <motion.div
-                className="group relative cursor-pointer lg:px-8 py-8 lg:py-16 text-center lg:text-right rounded-2xl transition-all duration-300 hover:bg-gradient-to-br hover:from-muted/30 hover:to-transparent"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate("/manufacturing");
-                }}
-                onMouseEnter={() => setHoveredSection("manufacturing")}
-                onMouseLeave={() => setHoveredSection(null)}
-                initial={{ opacity: 0, y: 30 }}
+                <span className="text-foreground">Through </span>
+                <span className="text-primary relative inline-block cursor-default">
+                  Innovation
+                  <motion.span 
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                    animate={{ x: ["-100%", "100%"] }}
+                    transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 3 }}
+                  />
+                </span>
+              </motion.span>
+              <br />
+              <motion.span
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.9 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
               >
-                <HoverLabel text="Advanced Manufacturing" isVisible={hoveredSection === "manufacturing"} />
-                
-                {/* 3D Icons */}
-                <Interactive3DIcon icon={Printer} className="top-0 left-4 lg:left-8 hidden lg:block" delay={0.2} />
-                <motion.div
-                  className="absolute bottom-2 right-2 lg:right-4 pointer-events-none hidden lg:block"
-                  animate={{ x: [0, 5, 0] }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                >
-                  <div className="p-4 rounded-2xl bg-white/80 backdrop-blur-md shadow-lg border border-border/40">
-                    <svg className="w-6 h-6 text-primary/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                    </svg>
-                  </div>
-                </motion.div>
-                
-                <motion.h2 
-                  className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors duration-300"
-                >
+                <span className="text-foreground">& </span>
+                <span className="text-primary relative inline-block cursor-default">
                   Manufacturing
-                </motion.h2>
-                <p className="text-lg text-muted-foreground mb-1">
-                  Custom Industrial Printers
-                </p>
-                <p className="text-lg text-muted-foreground mb-4">
-                  Industrial Custom Drones
-                </p>
-                <motion.div 
-                  className="flex items-center justify-center lg:justify-end gap-2 text-primary"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: hoveredSection === "manufacturing" ? 1 : 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <span className="text-sm font-medium">Explore</span>
-                  <ArrowRight className="w-4 h-4" />
-                </motion.div>
-              </motion.div>
-            )}
+                  <motion.span 
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                    animate={{ x: ["-100%", "100%"] }}
+                    transition={{ duration: 2.5, delay: 1.5, repeat: Infinity, repeatDelay: 3 }}
+                  />
+                </span>
+              </motion.span>
+            </motion.h1>
+            
+            {/* Subline */}
+            <motion.p 
+              className="text-base md:text-lg lg:text-xl text-muted-foreground"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+            >
+              Design • Build • Manufacture • Deliver
+            </motion.p>
+
+            {/* Mobile Tap Hint */}
+            <MobileTapHint />
           </motion.div>
-        )}
-      </div>
+
+          {/* Three Domains - Below Hero Text */}
+          {visibleCount > 0 && (
+            <motion.div
+              className="mt-10 md:mt-14"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.7 }}
+            >
+              {/* Desktop: Inline horizontal layout */}
+              <div className="hidden md:flex flex-wrap items-center gap-2 lg:gap-4">
+                {ecommerceVisible && (
+                  <DomainItem
+                    icon={ShoppingBag}
+                    title="E-Commerce"
+                    subtitle="Premium Products"
+                    onClick={() => navigate("/shop")}
+                    isHovered={hoveredSection === "ecommerce"}
+                    onHover={(h) => setHoveredSection(h ? "ecommerce" : null)}
+                    delay={0.8}
+                  />
+                )}
+                {ecommerceVisible && engineeringVisible && (
+                  <span className="text-border/60 text-2xl font-light">|</span>
+                )}
+                {engineeringVisible && (
+                  <DomainItem
+                    icon={Cog}
+                    title="Engineering Services"
+                    subtitle="Mechanical NPD"
+                    onClick={() => navigate("/engineering")}
+                    isHovered={hoveredSection === "engineering"}
+                    onHover={(h) => setHoveredSection(h ? "engineering" : null)}
+                    delay={0.9}
+                  />
+                )}
+                {engineeringVisible && manufacturingVisible && (
+                  <span className="text-border/60 text-2xl font-light">|</span>
+                )}
+                {manufacturingVisible && (
+                  <DomainItem
+                    icon={Printer}
+                    title="Manufacturing"
+                    subtitle="Industrial Solutions"
+                    onClick={() => navigate("/manufacturing")}
+                    isHovered={hoveredSection === "manufacturing"}
+                    onHover={(h) => setHoveredSection(h ? "manufacturing" : null)}
+                    delay={1.0}
+                  />
+                )}
+              </div>
+
+              {/* Mobile: Stacked layout */}
+              <div className="md:hidden flex flex-col gap-2">
+                {ecommerceVisible && (
+                  <DomainItem
+                    icon={ShoppingBag}
+                    title="E-Commerce"
+                    subtitle="Premium Products"
+                    onClick={() => navigate("/shop")}
+                    isHovered={hoveredSection === "ecommerce"}
+                    onHover={(h) => setHoveredSection(h ? "ecommerce" : null)}
+                    delay={0.8}
+                  />
+                )}
+                {engineeringVisible && (
+                  <DomainItem
+                    icon={Cog}
+                    title="Engineering Services"
+                    subtitle="Mechanical NPD"
+                    onClick={() => navigate("/engineering")}
+                    isHovered={hoveredSection === "engineering"}
+                    onHover={(h) => setHoveredSection(h ? "engineering" : null)}
+                    delay={0.9}
+                  />
+                )}
+                {manufacturingVisible && (
+                  <DomainItem
+                    icon={Printer}
+                    title="Manufacturing"
+                    subtitle="Industrial Solutions"
+                    onClick={() => navigate("/manufacturing")}
+                    isHovered={hoveredSection === "manufacturing"}
+                    onHover={(h) => setHoveredSection(h ? "manufacturing" : null)}
+                    delay={1.0}
+                  />
+                )}
+              </div>
+            </motion.div>
+          )}
+        </div>
 
       {/* Scroll Indicator - Enhanced */}
       <motion.div
