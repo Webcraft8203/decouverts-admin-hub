@@ -42,6 +42,8 @@ import AdminDesignRequestDetail from "./pages/admin/DesignRequestDetail";
 import HomepageSettings from "./pages/admin/HomepageSettings";
 import HomepageImages from "./pages/admin/HomepageImages";
 import ContactRequests from "./pages/admin/ContactRequests";
+import PrinterConfiguration from "./pages/PrinterConfiguration";
+import PrinterConfigurations from "./pages/admin/PrinterConfigurations";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,6 +60,7 @@ const App = () => (
               <Route path="/" element={<Home />} />
               <Route path="/engineering" element={<Engineering />} />
               <Route path="/manufacturing" element={<Manufacturing />} />
+              <Route path="/printer-configuration" element={<PrinterConfiguration />} />
               <Route path="/shop" element={<Shop />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/checkout/:productId" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
@@ -90,6 +93,7 @@ const App = () => (
               <Route path="/admin/homepage-settings" element={<ProtectedRoute requireAdmin><HomepageSettings /></ProtectedRoute>} />
               <Route path="/admin/homepage-images" element={<ProtectedRoute requireAdmin><HomepageImages /></ProtectedRoute>} />
               <Route path="/admin/contact-requests" element={<ProtectedRoute requireAdmin><ContactRequests /></ProtectedRoute>} />
+              <Route path="/admin/printer-configurations" element={<ProtectedRoute requireAdmin><PrinterConfigurations /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
