@@ -1,20 +1,25 @@
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { PublicFooter } from "@/components/PublicFooter";
 import { Factory, Printer, Plane, ArrowLeft } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 
 const manufacturingItems = [
   {
-    title: "Custom Industrial Printers",
-    description: "High-precision industrial printing solutions tailored to your manufacturing needs",
+    title: "Decouverts DFT Series",
+    description: "Configure your custom industrial 3D printer with our comprehensive configurator",
     icon: Printer,
+    link: "/printer-configuration",
+    available: true,
   },
   {
     title: "Industrial Custom Drones",
     description: "Advanced drone technology for industrial applications and inspections",
     icon: Plane,
+    link: null,
+    available: false,
   },
 ];
 
@@ -50,17 +55,39 @@ const Manufacturing = () => {
             {manufacturingItems.map((item) => {
               const Icon = item.icon;
               return (
-                <Card key={item.title} className="border-border hover:border-primary/30 transition-colors">
+                <Card 
+                  key={item.title} 
+                  className={cn(
+                    "border-border transition-all",
+                    item.available 
+                      ? "hover:border-primary/50 hover:shadow-lg cursor-pointer" 
+                      : "opacity-70"
+                  )}
+                  onClick={() => item.link && navigate(item.link)}
+                >
                   <CardContent className="p-8 text-center">
-                    <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                      <Icon className="w-8 h-8 text-primary" />
+                    <div className={cn(
+                      "w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4",
+                      item.available ? "bg-primary/10" : "bg-muted"
+                    )}>
+                      <Icon className={cn("w-8 h-8", item.available ? "text-primary" : "text-muted-foreground")} />
                     </div>
                     <h3 className="text-xl font-semibold text-foreground mb-2">
                       {item.title}
                     </h3>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-muted-foreground text-sm mb-4">
                       {item.description}
                     </p>
+                    {item.available ? (
+                      <Button onClick={() => item.link && navigate(item.link)} className="gap-2">
+                        Configure Now
+                        <ArrowLeft className="w-4 h-4 rotate-180" />
+                      </Button>
+                    ) : (
+                      <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                        🚧 Coming Soon
+                      </span>
+                    )}
                   </CardContent>
                 </Card>
               );

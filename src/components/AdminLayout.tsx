@@ -19,6 +19,7 @@ import {
   Activity,
   Palette,
   Home,
+  Printer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -41,6 +42,7 @@ const navItems = [
   { to: "/admin/homepage-settings", icon: Home, label: "Homepage Settings" },
   { to: "/admin/homepage-images", icon: ImageIcon, label: "Homepage Images" },
   { to: "/admin/contact-requests", icon: MessageSquare, label: "Contact Requests" },
+  { to: "/admin/printer-configurations", icon: Printer, label: "Printer Configs" },
 ];
 
 interface AdminLayoutProps {

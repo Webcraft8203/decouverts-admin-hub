@@ -553,6 +553,162 @@ export type Database = {
           },
         ]
       }
+      printer_configurations: {
+        Row: {
+          accuracy_tier: string
+          active_chamber_heating: boolean | null
+          admin_notes: string | null
+          advanced_material_training: boolean | null
+          amc_plan: string | null
+          ams_4_color: boolean | null
+          ams_8_color: boolean | null
+          ams_filament_dryer: boolean | null
+          ams_type: string
+          base_model: string
+          bed_heating: string
+          bed_surface: string
+          belongs_to_organization: boolean
+          cad_slicer_training: boolean | null
+          calibration_kit: boolean | null
+          cf_gf_filled: boolean | null
+          created_at: string
+          designation: string | null
+          electronics_tier: string
+          email: string
+          emergency_stop: boolean | null
+          engineering_polymers: boolean | null
+          extruder_count: string
+          filament_dryer: boolean | null
+          full_name: string
+          hardened_nozzle: boolean | null
+          hepa_carbon_filter: boolean | null
+          high_flow_setup: boolean | null
+          id: string
+          large_bed_reinforcement: boolean | null
+          max_nozzle_temp: string
+          motion_tier: string
+          multi_chamber_dryer: boolean | null
+          multi_material: boolean | null
+          noise_reduction_panels: boolean | null
+          nylon_pa: boolean | null
+          organization_name: string | null
+          organization_type: string | null
+          panel_material: string
+          pellet_extruder: boolean | null
+          phone_number: string
+          printer_stand: boolean | null
+          spare_nozzle_kit: boolean | null
+          spool_capacity: string | null
+          status: string
+          supported_colors: string
+          tool_storage: boolean | null
+          tpu_flexible: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          accuracy_tier: string
+          active_chamber_heating?: boolean | null
+          admin_notes?: string | null
+          advanced_material_training?: boolean | null
+          amc_plan?: string | null
+          ams_4_color?: boolean | null
+          ams_8_color?: boolean | null
+          ams_filament_dryer?: boolean | null
+          ams_type: string
+          base_model: string
+          bed_heating: string
+          bed_surface: string
+          belongs_to_organization?: boolean
+          cad_slicer_training?: boolean | null
+          calibration_kit?: boolean | null
+          cf_gf_filled?: boolean | null
+          created_at?: string
+          designation?: string | null
+          electronics_tier: string
+          email: string
+          emergency_stop?: boolean | null
+          engineering_polymers?: boolean | null
+          extruder_count: string
+          filament_dryer?: boolean | null
+          full_name: string
+          hardened_nozzle?: boolean | null
+          hepa_carbon_filter?: boolean | null
+          high_flow_setup?: boolean | null
+          id?: string
+          large_bed_reinforcement?: boolean | null
+          max_nozzle_temp: string
+          motion_tier: string
+          multi_chamber_dryer?: boolean | null
+          multi_material?: boolean | null
+          noise_reduction_panels?: boolean | null
+          nylon_pa?: boolean | null
+          organization_name?: string | null
+          organization_type?: string | null
+          panel_material: string
+          pellet_extruder?: boolean | null
+          phone_number: string
+          printer_stand?: boolean | null
+          spare_nozzle_kit?: boolean | null
+          spool_capacity?: string | null
+          status?: string
+          supported_colors: string
+          tool_storage?: boolean | null
+          tpu_flexible?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          accuracy_tier?: string
+          active_chamber_heating?: boolean | null
+          admin_notes?: string | null
+          advanced_material_training?: boolean | null
+          amc_plan?: string | null
+          ams_4_color?: boolean | null
+          ams_8_color?: boolean | null
+          ams_filament_dryer?: boolean | null
+          ams_type?: string
+          base_model?: string
+          bed_heating?: string
+          bed_surface?: string
+          belongs_to_organization?: boolean
+          cad_slicer_training?: boolean | null
+          calibration_kit?: boolean | null
+          cf_gf_filled?: boolean | null
+          created_at?: string
+          designation?: string | null
+          electronics_tier?: string
+          email?: string
+          emergency_stop?: boolean | null
+          engineering_polymers?: boolean | null
+          extruder_count?: string
+          filament_dryer?: boolean | null
+          full_name?: string
+          hardened_nozzle?: boolean | null
+          hepa_carbon_filter?: boolean | null
+          high_flow_setup?: boolean | null
+          id?: string
+          large_bed_reinforcement?: boolean | null
+          max_nozzle_temp?: string
+          motion_tier?: string
+          multi_chamber_dryer?: boolean | null
+          multi_material?: boolean | null
+          noise_reduction_panels?: boolean | null
+          nylon_pa?: boolean | null
+          organization_name?: string | null
+          organization_type?: string | null
+          panel_material?: string
+          pellet_extruder?: boolean | null
+          phone_number?: string
+          printer_stand?: boolean | null
+          spare_nozzle_kit?: boolean | null
+          spool_capacity?: string | null
+          status?: string
+          supported_colors?: string
+          tool_storage?: boolean | null
+          tpu_flexible?: boolean | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       product_reviews: {
         Row: {
           created_at: string
