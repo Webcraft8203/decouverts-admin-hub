@@ -44,6 +44,8 @@ import HomepageImages from "./pages/admin/HomepageImages";
 import ContactRequests from "./pages/admin/ContactRequests";
 import PrinterConfiguration from "./pages/PrinterConfiguration";
 import PrinterConfigurations from "./pages/admin/PrinterConfigurations";
+import DroneConfiguration from "./pages/DroneConfiguration";
+import DroneConfigurations from "./pages/admin/DroneConfigurations";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -61,6 +63,7 @@ const App = () => (
               <Route path="/engineering" element={<Engineering />} />
               <Route path="/manufacturing" element={<Manufacturing />} />
               <Route path="/printer-configuration" element={<PrinterConfiguration />} />
+              <Route path="/drone-configuration" element={<DroneConfiguration />} />
               <Route path="/shop" element={<Shop />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/checkout/:productId" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
@@ -93,7 +96,8 @@ const App = () => (
               <Route path="/admin/homepage-settings" element={<ProtectedRoute requireAdmin><HomepageSettings /></ProtectedRoute>} />
               <Route path="/admin/homepage-images" element={<ProtectedRoute requireAdmin><HomepageImages /></ProtectedRoute>} />
               <Route path="/admin/contact-requests" element={<ProtectedRoute requireAdmin><ContactRequests /></ProtectedRoute>} />
-              <Route path="/admin/printer-configurations" element={<ProtectedRoute requireAdmin><PrinterConfigurations /></ProtectedRoute>} />
+              <Route path="/admin/printer-configurations" element={<ProtectedRoute requireAdmin><AdminLayout><PrinterConfigurations /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/drone-configurations" element={<ProtectedRoute requireAdmin><AdminLayout><DroneConfigurations /></AdminLayout></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

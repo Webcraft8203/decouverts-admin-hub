@@ -264,6 +264,108 @@ export type Database = {
         }
         Relationships: []
       }
+      drone_configurations: {
+        Row: {
+          admin_notes: string | null
+          belongs_to_organization: boolean
+          created_at: string
+          custom_autonomy_level: boolean | null
+          custom_camera_type: boolean | null
+          custom_communication_range: boolean | null
+          custom_control: string | null
+          custom_encryption: boolean | null
+          custom_encryption_level: boolean | null
+          custom_endurance_payload: boolean | null
+          custom_environmental_resistance: boolean | null
+          custom_flight_time: string | null
+          custom_frame: string | null
+          custom_frame_size_type: boolean | null
+          custom_payload_camera: boolean | null
+          custom_payload_communication: boolean | null
+          custom_payload_sensor: boolean | null
+          custom_range: string | null
+          designation: string | null
+          drone_category: string
+          email: string
+          fpv_model: string | null
+          full_name: string
+          id: string
+          ind_model: string | null
+          organization_name: string | null
+          organization_type: string | null
+          phone_number: string
+          status: string
+          surv_model: string | null
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          belongs_to_organization?: boolean
+          created_at?: string
+          custom_autonomy_level?: boolean | null
+          custom_camera_type?: boolean | null
+          custom_communication_range?: boolean | null
+          custom_control?: string | null
+          custom_encryption?: boolean | null
+          custom_encryption_level?: boolean | null
+          custom_endurance_payload?: boolean | null
+          custom_environmental_resistance?: boolean | null
+          custom_flight_time?: string | null
+          custom_frame?: string | null
+          custom_frame_size_type?: boolean | null
+          custom_payload_camera?: boolean | null
+          custom_payload_communication?: boolean | null
+          custom_payload_sensor?: boolean | null
+          custom_range?: string | null
+          designation?: string | null
+          drone_category: string
+          email: string
+          fpv_model?: string | null
+          full_name: string
+          id?: string
+          ind_model?: string | null
+          organization_name?: string | null
+          organization_type?: string | null
+          phone_number: string
+          status?: string
+          surv_model?: string | null
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          belongs_to_organization?: boolean
+          created_at?: string
+          custom_autonomy_level?: boolean | null
+          custom_camera_type?: boolean | null
+          custom_communication_range?: boolean | null
+          custom_control?: string | null
+          custom_encryption?: boolean | null
+          custom_encryption_level?: boolean | null
+          custom_endurance_payload?: boolean | null
+          custom_environmental_resistance?: boolean | null
+          custom_flight_time?: string | null
+          custom_frame?: string | null
+          custom_frame_size_type?: boolean | null
+          custom_payload_camera?: boolean | null
+          custom_payload_communication?: boolean | null
+          custom_payload_sensor?: boolean | null
+          custom_range?: string | null
+          designation?: string | null
+          drone_category?: string
+          email?: string
+          fpv_model?: string | null
+          full_name?: string
+          id?: string
+          ind_model?: string | null
+          organization_name?: string | null
+          organization_type?: string | null
+          phone_number?: string
+          status?: string
+          surv_model?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       homepage_images: {
         Row: {
           alt_text: string | null

@@ -15,11 +15,11 @@ const manufacturingItems = [
     available: true,
   },
   {
-    title: "Industrial Custom Drones",
-    description: "Advanced drone technology for industrial applications and inspections",
+    title: "Decouvertes Drone Systems",
+    description: "Configure custom drone platforms for tactical, surveillance, industrial, and defense applications",
     icon: Plane,
-    link: null,
-    available: false,
+    link: "/drone-configuration",
+    available: true,
   },
 ];
 
