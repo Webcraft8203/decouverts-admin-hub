@@ -7,7 +7,6 @@ import { HeroSection } from "@/components/home/HeroSection";
 import { WhatDrivesUs } from "@/components/home/WhatDrivesUs";
 import { ServicesSection } from "@/components/home/ServicesSection";
 import { IndustrySolutions } from "@/components/home/IndustrySolutions";
-import { FeaturedProduct } from "@/components/home/FeaturedProduct";
 import { HomepageGallery } from "@/components/home/HomepageGallery";
 import { ContactSection } from "@/components/home/ContactSection";
 
@@ -43,9 +42,6 @@ const Home = () => {
         
         {/* 6. Industry Solutions */}
         <IndustrySolutions />
-        
-        {/* 7. Featured Product */}
-        <FeaturedProduct />
         
         {/* 8. Homepage Gallery (Admin-managed) */}
         <HomepageGallery />
