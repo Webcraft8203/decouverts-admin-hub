@@ -8,7 +8,8 @@ const solutions = [
     icon: FlaskConical,
     title: "New Product Development (R&D)",
     description: "From ideation to market-ready products, our R&D team brings your vision to life with cutting-edge research and development.",
-    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&q=80",
+    // image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&q=80",
+    image: "https://framerusercontent.com/images/mjTBBl4MXIhWJFtJ2TNcrninwY.jpg?width=1024&height=676",
     features: ["Concept Development", "Technical Feasibility", "Market Analysis"],
     color: "from-blue-500 to-cyan-500"
   },
@@ -16,7 +17,7 @@ const solutions = [
     icon: Boxes,
     title: "Rapid Prototyping",
     description: "Transform concepts into physical prototypes quickly and efficiently with our advanced prototyping capabilities.",
-    image: "https://images.unsplash.com/photo-1565934177182-48e4d06d5a37?w=600&q=80",
+    image: "https://images.squarespace-cdn.com/content/v1/5d36bce499578e0001357c6c/1629732095111-GBRC1M34WQSN8AAG6TSR/rapid+prototyping+and+3d+printing",
     features: ["3D Printed Models", "Functional Prototypes", "Iterative Design"],
     color: "from-purple-500 to-pink-500"
   },
@@ -24,7 +25,7 @@ const solutions = [
     icon: Factory,
     title: "Manufacturing Support",
     description: "End-to-end manufacturing support from design optimization to production scaling and quality assurance.",
-    image: "https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=600&q=80",
+    image: "https://kdmfab.com/wp-content/uploads/2024/12/What-Materials-are-Used-in-Drone-Manufacturing.jpg",
     features: ["DFM Optimization", "Production Planning", "Quality Control"],
     color: "from-orange-500 to-amber-500"
   }

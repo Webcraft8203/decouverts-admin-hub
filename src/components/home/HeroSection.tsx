@@ -2,7 +2,7 @@ import { motion, useMotionValue, useTransform, useSpring, AnimatePresence } from
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowRight, ShoppingBag, Package, Printer, Cog, Box, ChevronDown } from "lucide-react";
+import { ArrowRight, Truck, Printer, Cog, Box, ChevronDown, Layers } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 import logo from "@/assets/logo.png";
 
@@ -158,140 +158,193 @@ const IntroAnimation = ({ onComplete }: { onComplete: () => void }) => {
   );
 };
 
-// Interactive 3D Icon Component
-const Interactive3DIcon = ({ 
-  icon: Icon, 
-  className, 
-  delay = 0,
-  rotateOnHover = false,
-  glowColor = "primary"
-}: { 
-  icon: React.ElementType; 
-  className: string; 
-  delay?: number;
-  rotateOnHover?: boolean;
-  glowColor?: string;
-}) => {
-  const [isHovered, setIsHovered] = useState(false);
-  
-  return (
-    <motion.div
-      className={`absolute ${className} pointer-events-auto cursor-pointer z-20`}
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ 
-        opacity: 1,
-        scale: 1,
-        y: [0, -6, 0],
-        rotateY: rotateOnHover && isHovered ? 180 : 0,
-      }}
-      transition={{
-        opacity: { duration: 0.5, delay },
-        scale: { duration: 0.5, delay },
-        y: { duration: 3, delay: delay * 0.5, repeat: Infinity, ease: "easeInOut" },
-        rotateY: { duration: 0.6 }
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      style={{ transformStyle: "preserve-3d" }}
-    >
-      <motion.div 
-        className={`p-4 rounded-2xl bg-white/80 backdrop-blur-md shadow-lg border border-border/40 transition-all duration-300 ${isHovered ? 'shadow-xl shadow-primary/20' : ''}`}
-        whileHover={{ scale: 1.1 }}
-      >
-        <Icon className={`w-6 h-6 text-${glowColor}/70 transition-colors duration-300 ${isHovered ? `text-${glowColor}` : ''}`} />
-      </motion.div>
-      
-      {/* Glow effect on hover */}
-      <AnimatePresence>
-        {isHovered && (
-          <motion.div
-            className="absolute inset-0 rounded-2xl bg-primary/20 blur-xl -z-10"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1.2 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-          />
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-};
+// --- Card Illustrations ---
 
-// Brand Logo - Right Side (Desktop/Tablet only) - Primary visual focus
-const HeroLogo = () => {
-  return (
-    <div className="hidden lg:flex w-full h-full items-center justify-center relative z-10">
-      <div className="relative flex items-center justify-center">
-        {/* Subtle glow behind logo */}
-        <div className="absolute w-[400px] h-[400px] bg-primary/5 rounded-full blur-3xl -z-10" />
-        
-        {/* Logo - Static and sharp */}
-        <img 
-          src={logo} 
-          alt="Decouverts" 
-          className="w-full max-w-[350px] xl:max-w-[450px] h-auto object-contain drop-shadow-xl"
-        />
-      </div>
+// 1. E-Commerce Illustration
+const EcommerceIllustration = ({ isHovered }: { isHovered: boolean }) => (
+  <div className="absolute inset-0 flex items-center justify-center">
+    {/* Background Elements */}
+    <div className="absolute inset-0 opacity-20">
+       {[...Array(6)].map((_, i) => (
+         <motion.div
+           key={i}
+           className="absolute h-0.5 bg-orange-400 rounded-full"
+           style={{ 
+             top: `${20 + i * 15}%`, 
+             left: `${Math.random() * 20}%`,
+             width: `${10 + Math.random() * 20}%`
+           }}
+           animate={{ x: [0, 100, 0], opacity: [0.3, 0.8, 0.3] }}
+           transition={{ duration: 3 + i, repeat: Infinity }}
+         />
+       ))}
     </div>
-  );
-};
 
-// Domain Item Component
-const DomainItem = ({ 
-  icon: Icon, 
+    {/* Moving Truck */}
+    <motion.div
+      className="absolute"
+      initial={{ x: -200 }}
+      animate={{ x: 400 }}
+      transition={{ 
+        duration: isHovered ? 5 : 8, 
+        repeat: Infinity, 
+        ease: "linear" 
+      }}
+    >
+      <Truck className="w-48 h-48 text-orange-500/40 stroke-[1.5]" />
+      {/* Cargo */}
+      <motion.div 
+        className="absolute top-8 right-8"
+        animate={{ y: [0, -2, 0] }}
+        transition={{ duration: 0.5, repeat: Infinity }}
+      >
+         <Box className="w-12 h-12 text-orange-600/40 fill-orange-100/20" />
+      </motion.div>
+    </motion.div>
+  </div>
+);
+
+// 2. Engineering Illustration
+const EngineeringIllustration = ({ isHovered }: { isHovered: boolean }) => (
+  <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
+    {/* Blueprint Grid */}
+    <div className="absolute inset-0 bg-[linear-gradient(to_right,#3b82f620_1px,transparent_1px),linear-gradient(to_bottom,#3b82f620_1px,transparent_1px)] bg-[size:24px_24px] opacity-30" />
+
+    {/* Large Gear */}
+    <motion.div
+      className="absolute"
+      animate={{ rotate: 360 }}
+      transition={{ duration: isHovered ? 10 : 20, repeat: Infinity, ease: "linear" }}
+    >
+      <Cog className="w-56 h-56 text-blue-500/30 stroke-[1]" />
+    </motion.div>
+
+    {/* Secondary Gear */}
+    <motion.div
+      className="absolute -right-12 -bottom-12"
+      animate={{ rotate: -360 }}
+      transition={{ duration: isHovered ? 8 : 15, repeat: Infinity, ease: "linear" }}
+    >
+      <Cog className="w-40 h-40 text-blue-400/30 stroke-[1]" />
+    </motion.div>
+    
+    {/* Floating Blueprint Lines */}
+    <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-40">
+      <motion.path
+        d="M 20 100 L 100 20 L 200 100"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        className="text-blue-500"
+        strokeDasharray="10 10"
+        animate={{ strokeDashoffset: [0, 20] }}
+        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+      />
+    </svg>
+  </div>
+);
+
+// 3. Manufacturing Illustration
+const ManufacturingIllustration = ({ isHovered }: { isHovered: boolean }) => (
+  <div className="absolute inset-0 flex flex-col items-center justify-center">
+    {/* Printer Head / Nozzle */}
+    <motion.div
+      className="relative z-10 mb-[-10px]"
+      animate={{ 
+        x: [-30, 30, -30],
+      }}
+      transition={{ 
+        duration: isHovered ? 2 : 4, 
+        repeat: Infinity, 
+        ease: "easeInOut" 
+      }}
+    >
+       <div className="flex flex-col items-center">
+         <div className="w-2 h-12 bg-purple-400/30" />
+         <Printer className="w-32 h-32 text-purple-500/30 stroke-[1]" />
+       </div>
+    </motion.div>
+
+    {/* Printed Layers */}
+    <div className="flex flex-col-reverse gap-1 items-center">
+       {[...Array(5)].map((_, i) => (
+         <motion.div
+           key={i}
+           className="h-2 bg-purple-500/20 rounded-full"
+           style={{ width: 100 + i * 20 }}
+           initial={{ opacity: 0.5 }}
+           animate={{ 
+             opacity: [0.3, 0.8, 0.3],
+             scaleX: [0.95, 1.05, 0.95]
+           }}
+           transition={{ 
+             duration: 2, 
+             delay: i * 0.2, 
+             repeat: Infinity,
+           }}
+         />
+       ))}
+    </div>
+  </div>
+);
+
+// Hero Card Component - Replaces DomainItem
+const HeroCard = ({ 
+  illustration: Illustration, 
   title, 
   subtitle,
   onClick,
-  isHovered,
-  onHover,
-  delay = 0 
+  delay = 0,
 }: { 
-  icon: React.ElementType;
+  illustration: (props: { isHovered: boolean }) => JSX.Element;
   title: string;
-  subtitle?: string;
+  subtitle: string;
   onClick: () => void;
-  isHovered: boolean;
-  onHover: (hovered: boolean) => void;
   delay?: number;
-}) => (
-  <motion.div
-    className="group flex items-center gap-3 cursor-pointer px-4 py-3 rounded-xl transition-all duration-300 hover:bg-muted/40"
-    onClick={(e) => {
-      e.stopPropagation();
-      onClick();
-    }}
-    onMouseEnter={() => onHover(true)}
-    onMouseLeave={() => onHover(false)}
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5, delay }}
-    whileHover={{ scale: 1.02 }}
-    whileTap={{ scale: 0.98 }}
-  >
-    <motion.div 
-      className={`p-3 rounded-xl bg-white/80 backdrop-blur-sm shadow-md border border-border/30 transition-all duration-300 ${isHovered ? 'shadow-lg shadow-primary/20 border-primary/30' : ''}`}
-      animate={isHovered ? { rotate: [0, -5, 5, 0] } : {}}
-      transition={{ duration: 0.4 }}
-    >
-      <Icon className={`w-5 h-5 transition-colors duration-300 ${isHovered ? 'text-primary' : 'text-foreground/60'}`} />
-    </motion.div>
-    <div className="flex flex-col">
-      <span className={`font-semibold transition-colors duration-300 ${isHovered ? 'text-primary' : 'text-foreground'}`}>
-        {title}
-      </span>
-      {subtitle && (
-        <span className="text-xs text-muted-foreground">{subtitle}</span>
-      )}
-    </div>
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
     <motion.div
-      className="ml-auto"
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: isHovered ? 1 : 0, x: isHovered ? 0 : -10 }}
-      transition={{ duration: 0.2 }}
+      className="relative h-full min-h-[240px]"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay, ease: "easeOut" }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
     >
-      <ArrowRight className="w-4 h-4 text-primary" />
+      <motion.div
+        className="group relative h-full flex flex-col bg-white rounded-3xl shadow-sm border border-border/50 overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:border-primary/30 hover:-translate-y-2"
+        whileTap={{ scale: 0.98 }}
+      >
+        {/* 1. Background Animation Layer - Z-10 */}
+        <div className="absolute inset-0 z-10 opacity-40 group-hover:opacity-60 transition-opacity duration-500 pointer-events-none overflow-hidden">
+          <Illustration isHovered={isHovered} />
+        </div>
+
+        {/* 2. Soft Gradient Overlay - Z-20 */}
+        <div className="absolute inset-0 z-20 bg-gradient-to-t from-white/95 via-white/50 to-white/10 pointer-events-none" />
+
+        {/* 3. Content Layer - Z-30 */}
+        <div className="relative z-30 p-8 flex flex-col h-full justify-end">
+          <div className="mt-auto">
+            <h3 className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors duration-300 mb-2">
+              {title}
+            </h3>
+            <p className="text-base text-muted-foreground mb-6 font-medium leading-relaxed">
+              {subtitle}
+            </p>
+            
+            <div className="flex items-center text-sm font-bold text-primary/80 group-hover:text-primary transition-colors">
+              Explore <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+        </div>
+      </motion.div>
     </motion.div>
-  </motion.div>
-);
+  );
+};
 
 // 3D Engineering Core Element
 const EngineeringCore = ({ mouseX, mouseY }: { mouseX: any; mouseY: any }) => {
@@ -520,7 +573,6 @@ export const HeroSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(0.5);
   const mouseY = useMotionValue(0.5);
-  const [hoveredSection, setHoveredSection] = useState<string | null>(null);
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
   const [showIntro, setShowIntro] = useState(true);
   const [contentReady, setContentReady] = useState(false);
@@ -601,7 +653,7 @@ export const HeroSection = () => {
 
       <section
         ref={containerRef}
-        className="relative min-h-screen bg-background overflow-hidden flex flex-col pt-3 md:pt-5 pb-20"
+        className="relative min-h-[70vh] bg-background overflow-hidden flex flex-col pt-14 pb-20"
         onClick={handleRipple}
       >
         {/* Blueprint Grid Pattern - Enhanced */}
@@ -639,19 +691,17 @@ export const HeroSection = () => {
         ))}
 
         {/* Main Content */}
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex-grow flex flex-col justify-center">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left Column: Text & Domains */}
-            <div className="flex flex-col items-center lg:items-start w-full">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex-grow flex flex-col items-center">
+          <div className="flex flex-col items-center w-full max-w-5xl mx-auto">
               <motion.div
-                className="text-center lg:text-left max-w-2xl mx-auto lg:mx-0"
+                className="text-center w-full"
                 initial={{ opacity: 0, y: 30 }}
                 animate={contentReady ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.8, ease: "easeOut" }}
               >
             {/* Main Heading */}
             <motion.h1 
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
@@ -700,7 +750,7 @@ export const HeroSection = () => {
             
             {/* Subline */}
             <motion.p 
-              className="text-base md:text-lg lg:text-xl text-muted-foreground"
+              className="text-lg md:text-xl lg:text-2xl text-muted-foreground mb-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.6 }}
@@ -715,96 +765,42 @@ export const HeroSection = () => {
           {/* Three Domains - Below Hero Text */}
           {visibleCount > 0 && (
             <motion.div
-              className="mt-10 md:mt-14"
+              className="mt-12 w-full max-w-5xl px-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.7 }}
             >
-              {/* Desktop: Inline horizontal layout */}
-              <div className="hidden md:flex flex-wrap items-center gap-2 lg:gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                 {ecommerceVisible && (
-                  <DomainItem
-                    icon={ShoppingBag}
+                  <HeroCard
+                    illustration={EcommerceIllustration}
                     title="E-Commerce"
                     subtitle="Premium Products"
                     onClick={() => navigate("/shop")}
-                    isHovered={hoveredSection === "ecommerce"}
-                    onHover={(h) => setHoveredSection(h ? "ecommerce" : null)}
-                    delay={0.8}
-                  />
-                )}
-                {ecommerceVisible && engineeringVisible && (
-                  <span className="text-border/60 text-2xl font-light">|</span>
-                )}
-                {engineeringVisible && (
-                  <DomainItem
-                    icon={Cog}
-                    title="Engineering Services"
-                    subtitle="Mechanical NPD"
-                    onClick={() => navigate("/engineering")}
-                    isHovered={hoveredSection === "engineering"}
-                    onHover={(h) => setHoveredSection(h ? "engineering" : null)}
-                    delay={0.9}
-                  />
-                )}
-                {engineeringVisible && manufacturingVisible && (
-                  <span className="text-border/60 text-2xl font-light">|</span>
-                )}
-                {manufacturingVisible && (
-                  <DomainItem
-                    icon={Printer}
-                    title="Manufacturing"
-                    subtitle="Industrial Solutions"
-                    onClick={() => navigate("/manufacturing")}
-                    isHovered={hoveredSection === "manufacturing"}
-                    onHover={(h) => setHoveredSection(h ? "manufacturing" : null)}
-                    delay={1.0}
-                  />
-                )}
-              </div>
-
-              {/* Mobile: Stacked layout */}
-              <div className="md:hidden flex flex-col gap-2">
-                {ecommerceVisible && (
-                  <DomainItem
-                    icon={ShoppingBag}
-                    title="E-Commerce"
-                    subtitle="Premium Products"
-                    onClick={() => navigate("/shop")}
-                    isHovered={hoveredSection === "ecommerce"}
-                    onHover={(h) => setHoveredSection(h ? "ecommerce" : null)}
                     delay={0.8}
                   />
                 )}
                 {engineeringVisible && (
-                  <DomainItem
-                    icon={Cog}
+                  <HeroCard
+                    illustration={EngineeringIllustration}
                     title="Engineering Services"
                     subtitle="Mechanical NPD"
                     onClick={() => navigate("/engineering")}
-                    isHovered={hoveredSection === "engineering"}
-                    onHover={(h) => setHoveredSection(h ? "engineering" : null)}
                     delay={0.9}
                   />
                 )}
                 {manufacturingVisible && (
-                  <DomainItem
-                    icon={Printer}
+                  <HeroCard
+                    illustration={ManufacturingIllustration}
                     title="Manufacturing"
                     subtitle="Industrial Solutions"
                     onClick={() => navigate("/manufacturing")}
-                    isHovered={hoveredSection === "manufacturing"}
-                    onHover={(h) => setHoveredSection(h ? "manufacturing" : null)}
                     delay={1.0}
                   />
                 )}
               </div>
             </motion.div>
           )}
-            </div>
-
-            {/* Right Column: Logo */}
-            {contentReady && <HeroLogo />}
           </div>
         </div>
 

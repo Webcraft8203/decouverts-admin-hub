@@ -52,13 +52,13 @@ export const PublicNavbar = () => {
             <img 
               src={logo} 
               alt="Decouverts Plus" 
-              className="h-12 md:h-14 lg:h-16 w-auto"
+              className="h-12 md:h-14 lg:h-14 w-auto"
             />
-            <div className="flex flex-col items-start">
-              <span className="text-lg md:text-xl lg:text-4xl font-extrabold tracking-widest lg:tracking-[0.2em] uppercase text-foreground leading-none">
+            <div className="flex flex-col items-center">
+              <span className="text-xl md:text-lg lg:text-2xl font-extrabold tracking-widest lg:tracking-[0.2em] uppercase text-foreground leading-none">
                 DECOUVERTS
               </span>
-              <span className="text-[10px] lg:text-sm font-medium tracking-wider text-blue-600 mt-0.5 lg:mt-1">
+              <span className="text-[8px] lg:text-xs font-medium tracking-wider text-blue-600 mt-0.5">
                 Discovering Future Technologies
               </span>
             </div>
