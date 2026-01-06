@@ -16,7 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Mail, Phone, User, MessageSquare, Send, CheckCircle, MapPin } from "lucide-react";
+import { Mail, Phone, User, MessageSquare, Send, CheckCircle, MapPin, Building2 } from "lucide-react";
 
 const contactSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name too long"),
@@ -31,20 +31,23 @@ const contactInfo = [
   {
     icon: Mail,
     label: "Email Us",
-    value: "contact@decouverts.com",
-    gradient: "from-blue-500 to-cyan-500"
+    value: "hello@decouverts.com",
+    color: "text-blue-600",
+    bg: "bg-blue-50"
   },
   {
     icon: Phone,
     label: "Call Us",
-    value: "+91 XXX XXX XXXX",
-    gradient: "from-green-500 to-emerald-500"
+    value: "+91 9561103435",
+    color: "text-emerald-600",
+    bg: "bg-emerald-50"
   },
   {
     icon: MapPin,
     label: "Visit Us",
-    value: "Pune, Maharashtra, India",
-    gradient: "from-purple-500 to-pink-500"
+    value: "Phase 3, Hinjawadi Rajiv Gandhi Infotech Park, Hinjawadi, Pimpri-Chinchwad, Maharashtra 411057",
+    color: "text-purple-600",
+    bg: "bg-purple-50"
   }
 ];
 
@@ -87,10 +90,14 @@ export function ContactSection() {
 
   if (isSubmitted) {
     return (
-      <section className="py-24 px-4 bg-white relative overflow-hidden" id="contact">
+      <section className="py-24 px-4 bg-slate-50 relative overflow-hidden" id="contact">
+        {/* Technical Grid Background */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_50%_200px,rgba(255,255,255,0.8),transparent)]" />
+
         <div className="max-w-2xl mx-auto text-center relative z-10">
           <motion.div
-            className="bg-secondary/30 rounded-3xl p-12 border border-border"
+            className="bg-white/80 backdrop-blur-sm rounded-3xl p-12 border border-slate-200 shadow-xl"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
@@ -100,12 +107,12 @@ export function ContactSection() {
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring" }}
             >
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <CheckCircle className="h-10 w-10 text-white" />
+              <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="h-10 w-10 text-emerald-600" />
               </div>
             </motion.div>
-            <h2 className="text-3xl font-bold text-foreground mb-4">Thank You!</h2>
-            <p className="text-muted-foreground text-lg mb-8">
+            <h2 className="text-3xl font-bold text-slate-900 mb-4">Message Sent</h2>
+            <p className="text-slate-600 text-lg mb-8">
               We have received your message and will contact you shortly.
             </p>
             <Button 
@@ -122,26 +129,30 @@ export function ContactSection() {
   }
 
   return (
-    <section className="py-24 px-4 bg-gradient-to-b from-white to-secondary/30 relative overflow-hidden" id="contact">
+    <section className="py-24 px-4 bg-slate-50 relative overflow-hidden" id="contact">
+      {/* Technical Grid Background */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_100%_0px,rgba(255,255,255,0.8),transparent)]" />
+
       <div className="max-w-7xl mx-auto relative z-10">
         <motion.div
-          className="text-center mb-16"
+          className="text-center mb-20"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <span className="inline-block px-4 py-2 mb-4 text-sm font-semibold rounded-full bg-primary/10 text-primary">
+          <span className="inline-block px-3 py-1 mb-6 text-xs font-bold tracking-[0.2em] uppercase text-primary/80 border border-primary/20 rounded-full bg-primary/5">
             Get In Touch
           </span>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight mb-6">
             Contact <span className="text-primary">Us</span>
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Have a question or want to work with us? We'd love to hear from you.
+          <p className="text-slate-600 text-lg max-w-2xl mx-auto leading-relaxed">
+            Reach out for business inquiries, engineering projects, or strategic partnerships.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-start">
           {/* Contact Info */}
           <motion.div
             className="space-y-6"
@@ -149,44 +160,51 @@ export function ContactSection() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
           >
-            <h3 className="text-2xl font-bold text-foreground mb-8">Let's Build Something Amazing Together</h3>
+            <div className="mb-8">
+              <h3 className="text-2xl font-bold text-slate-900 mb-4">Let's Build Something Amazing</h3>
+              <p className="text-slate-600 leading-relaxed">
+                Whether you're looking for custom 3D printing solutions, engineering consultation, 
+                or manufacturing support, our team is here to help bring your ideas to life.
+              </p>
+            </div>
             
             <div className="space-y-4">
               {contactInfo.map((info, index) => (
                 <motion.div
                   key={info.label}
-                  className="flex items-center gap-4 p-4 rounded-xl bg-white border border-border shadow-sm hover:shadow-md transition-shadow"
+                  className="flex items-center gap-5 p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300"
                   initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${info.gradient} flex items-center justify-center shrink-0 shadow-md`}>
-                    <info.icon className="w-6 h-6 text-white" />
+                  <div className={`w-12 h-12 rounded-xl ${info.bg} flex items-center justify-center shrink-0`}>
+                    <info.icon className={`w-6 h-6 ${info.color}`} />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">{info.label}</p>
-                    <p className="font-semibold text-foreground">{info.value}</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{info.label}</p>
+                    <p className="font-semibold text-slate-900 text-lg">{info.value}</p>
                   </div>
                 </motion.div>
               ))}
             </div>
 
-            <div className="pt-8">
-              <p className="text-muted-foreground leading-relaxed">
-                Whether you're looking for custom 3D printing solutions, engineering consultation, 
-                or manufacturing support, our team is here to help bring your ideas to life.
+            <div className="pt-8 flex items-center gap-3 text-slate-500 text-sm font-medium">
+              <Building2 className="w-5 h-5 text-primary/60" />
+              <p>
+                Serving industrial & engineering clients across India.
               </p>
             </div>
           </motion.div>
 
           {/* Contact Form */}
           <motion.div
-            className="bg-white rounded-3xl p-8 border border-border shadow-xl"
+            className="bg-white rounded-3xl p-8 lg:p-10 border border-slate-200 shadow-xl relative overflow-hidden"
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
           >
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-accent" />
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -195,14 +213,11 @@ export function ContactSection() {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-2 text-foreground font-medium">
-                          <User className="h-4 w-4 text-primary" />
-                          Name
-                        </FormLabel>
+                        <FormLabel className="text-slate-700 font-semibold">Name</FormLabel>
                         <FormControl>
                           <Input 
                             placeholder="Your full name" 
-                            className="bg-secondary/30 border-border focus:border-primary"
+                            className="bg-slate-50 border-slate-200 focus:border-primary focus:ring-primary/20 h-12 rounded-xl"
                             {...field} 
                           />
                         </FormControl>
@@ -216,14 +231,11 @@ export function ContactSection() {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-2 text-foreground font-medium">
-                          <Phone className="h-4 w-4 text-primary" />
-                          Phone Number
-                        </FormLabel>
+                        <FormLabel className="text-slate-700 font-semibold">Phone Number</FormLabel>
                         <FormControl>
                           <Input 
                             placeholder="Your phone number" 
-                            className="bg-secondary/30 border-border focus:border-primary"
+                            className="bg-slate-50 border-slate-200 focus:border-primary focus:ring-primary/20 h-12 rounded-xl"
                             {...field} 
                           />
                         </FormControl>
@@ -238,15 +250,12 @@ export function ContactSection() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-2 text-foreground font-medium">
-                        <Mail className="h-4 w-4 text-primary" />
-                        Email Address
-                      </FormLabel>
+                      <FormLabel className="text-slate-700 font-semibold">Email Address</FormLabel>
                       <FormControl>
                         <Input 
                           type="email" 
                           placeholder="your@email.com" 
-                          className="bg-secondary/30 border-border focus:border-primary"
+                          className="bg-slate-50 border-slate-200 focus:border-primary focus:ring-primary/20 h-12 rounded-xl"
                           {...field} 
                         />
                       </FormControl>
@@ -260,14 +269,11 @@ export function ContactSection() {
                   name="message"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-2 text-foreground font-medium">
-                        <MessageSquare className="h-4 w-4 text-primary" />
-                        Message
-                      </FormLabel>
+                      <FormLabel className="text-slate-700 font-semibold">Message</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Tell us about your project..."
-                          className="min-h-[120px] resize-none bg-secondary/30 border-border focus:border-primary"
+                          className="min-h-[150px] resize-none bg-slate-50 border-slate-200 focus:border-primary focus:ring-primary/20 rounded-xl p-4"
                           {...field}
                         />
                       </FormControl>
@@ -279,7 +285,7 @@ export function ContactSection() {
                 <Button
                   type="submit"
                   size="lg"
-                  className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 shadow-lg shadow-primary/20"
+                  className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 rounded-xl text-base font-semibold transition-all duration-300 hover:scale-[1.02]"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
