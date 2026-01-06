@@ -219,36 +219,19 @@ const Interactive3DIcon = ({
 // Brand Logo - Right Side (Desktop/Tablet only) - Primary visual focus
 const HeroLogo = () => {
   return (
-    <motion.div
-      className="hidden md:flex absolute right-8 lg:right-16 xl:right-24 top-1/2 -translate-y-1/2 pointer-events-none z-10 items-center justify-center"
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
-    >
-      <div className="relative">
-        {/* Hexagonal backdrop spotlight - branded, premium */}
-        <div className="absolute inset-0 -z-10 flex items-center justify-center">
-          {/* Outer soft radial glow */}
-          <div className="absolute w-72 h-72 lg:w-96 lg:h-96 xl:w-[420px] xl:h-[420px] bg-gradient-radial from-primary/8 via-accent/4 to-transparent rounded-full" />
-          
-          {/* Inner accent ring */}
-          <div className="absolute w-64 h-64 lg:w-80 lg:h-80 xl:w-96 xl:h-96 rounded-full border border-primary/10" />
-          
-          {/* Soft circular backdrop */}
-          <div className="absolute w-56 h-56 lg:w-72 lg:h-72 xl:w-80 xl:h-80 bg-gradient-radial from-white/60 via-white/30 to-transparent rounded-full backdrop-blur-sm" />
-        </div>
+    <div className="hidden lg:flex w-full h-full items-center justify-center relative z-10">
+      <div className="relative flex items-center justify-center">
+        {/* Subtle glow behind logo */}
+        <div className="absolute w-[400px] h-[400px] bg-primary/5 rounded-full blur-3xl -z-10" />
         
-        {/* Logo - Full opacity, larger size, premium presence */}
+        {/* Logo - Static and sharp */}
         <img 
           src={logo} 
           alt="Decouverts" 
-          className="w-56 h-56 lg:w-72 lg:h-72 xl:w-80 xl:h-80 object-contain"
-          style={{ 
-            filter: "drop-shadow(0 8px 32px rgba(0,0,0,0.12)) drop-shadow(0 2px 8px rgba(0,0,0,0.08))"
-          }}
+          className="w-full max-w-[350px] xl:max-w-[450px] h-auto object-contain drop-shadow-xl"
         />
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -618,7 +601,7 @@ export const HeroSection = () => {
 
       <section
         ref={containerRef}
-        className="relative min-h-[90vh] bg-background overflow-hidden"
+        className="relative min-h-screen bg-background overflow-hidden flex flex-col pt-3 md:pt-5 pb-20"
         onClick={handleRipple}
       >
         {/* Blueprint Grid Pattern - Enhanced */}
@@ -642,9 +625,6 @@ export const HeroSection = () => {
         {/* Background Particles */}
         {contentReady && <BackgroundParticles />}
 
-        {/* Hero Logo - Right Side (Desktop/Tablet only) */}
-        {contentReady && <HeroLogo />}
-
         {/* 3D Engineering Core - subtle background element */}
         {contentReady && <EngineeringCore mouseX={mouseX} mouseY={mouseY} />}
 
@@ -658,39 +638,17 @@ export const HeroSection = () => {
           />
         ))}
 
-        {/* Main Content - Left Aligned on Desktop */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 min-h-[70vh] flex flex-col justify-center">
-          <motion.div
-            className="text-center md:text-left max-w-2xl"
-            initial={{ opacity: 0, y: 30 }}
-            animate={contentReady ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-          >
-            {/* Brand Name & Tagline */}
-            <motion.div
-              className="mb-6"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              <motion.h2 
-                className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground tracking-widest mb-1"
-                initial={{ opacity: 0, letterSpacing: "0.1em" }}
-                animate={{ opacity: 1, letterSpacing: "0.2em" }}
-                transition={{ duration: 0.6, delay: 0.15 }}
+        {/* Main Content */}
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex-grow flex flex-col justify-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left Column: Text & Domains */}
+            <div className="flex flex-col items-center lg:items-start w-full">
+              <motion.div
+                className="text-center lg:text-left max-w-2xl mx-auto lg:mx-0"
+                initial={{ opacity: 0, y: 30 }}
+                animate={contentReady ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.8, ease: "easeOut" }}
               >
-                DECOUVERTS
-              </motion.h2>
-              <motion.p
-                className="text-sm md:text-base text-accent font-medium italic"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.25 }}
-              >
-                The Art of India
-              </motion.p>
-            </motion.div>
-
             {/* Main Heading */}
             <motion.h1 
               className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6"
@@ -843,6 +801,11 @@ export const HeroSection = () => {
               </div>
             </motion.div>
           )}
+            </div>
+
+            {/* Right Column: Logo */}
+            {contentReady && <HeroLogo />}
+          </div>
         </div>
 
       {/* Scroll Indicator - Enhanced */}
