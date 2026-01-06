@@ -2,7 +2,7 @@ import { motion, useMotionValue, useTransform, useSpring, AnimatePresence } from
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowRight, Truck, Printer, Cog, Box, ChevronDown, Layers } from "lucide-react";
+import { ArrowRight, Cog, ChevronDown, Layers } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 import logo from "@/assets/logo.png";
 
@@ -162,125 +162,80 @@ const IntroAnimation = ({ onComplete }: { onComplete: () => void }) => {
 
 // 1. E-Commerce Illustration
 const EcommerceIllustration = ({ isHovered }: { isHovered: boolean }) => (
-  <div className="absolute inset-0 flex items-center justify-center">
-    {/* Background Elements */}
-    <div className="absolute inset-0 opacity-20">
-       {[...Array(6)].map((_, i) => (
-         <motion.div
-           key={i}
-           className="absolute h-0.5 bg-orange-400 rounded-full"
-           style={{ 
-             top: `${20 + i * 15}%`, 
-             left: `${Math.random() * 20}%`,
-             width: `${10 + Math.random() * 20}%`
-           }}
-           animate={{ x: [0, 100, 0], opacity: [0.3, 0.8, 0.3] }}
-           transition={{ duration: 3 + i, repeat: Infinity }}
-         />
-       ))}
-    </div>
-
-    {/* Moving Truck */}
-    <motion.div
-      className="absolute"
-      initial={{ x: -200 }}
-      animate={{ x: 400 }}
-      transition={{ 
-        duration: isHovered ? 5 : 8, 
-        repeat: Infinity, 
-        ease: "linear" 
-      }}
-    >
-      <Truck className="w-48 h-48 text-orange-500/40 stroke-[1.5]" />
-      {/* Cargo */}
-      <motion.div 
-        className="absolute top-8 right-8"
-        animate={{ y: [0, -2, 0] }}
-        transition={{ duration: 0.5, repeat: Infinity }}
-      >
-         <Box className="w-12 h-12 text-orange-600/40 fill-orange-100/20" />
-      </motion.div>
-    </motion.div>
-  </div>
-);
-
-// 2. Engineering Illustration
-const EngineeringIllustration = ({ isHovered }: { isHovered: boolean }) => (
-  <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
-    {/* Blueprint Grid */}
-    <div className="absolute inset-0 bg-[linear-gradient(to_right,#3b82f620_1px,transparent_1px),linear-gradient(to_bottom,#3b82f620_1px,transparent_1px)] bg-[size:24px_24px] opacity-30" />
-
-    {/* Large Gear */}
-    <motion.div
-      className="absolute"
-      animate={{ rotate: 360 }}
-      transition={{ duration: isHovered ? 10 : 20, repeat: Infinity, ease: "linear" }}
-    >
-      <Cog className="w-56 h-56 text-blue-500/30 stroke-[1]" />
-    </motion.div>
-
-    {/* Secondary Gear */}
-    <motion.div
-      className="absolute -right-12 -bottom-12"
-      animate={{ rotate: -360 }}
-      transition={{ duration: isHovered ? 8 : 15, repeat: Infinity, ease: "linear" }}
-    >
-      <Cog className="w-40 h-40 text-blue-400/30 stroke-[1]" />
-    </motion.div>
+  <div className="absolute inset-0 flex items-center justify-center overflow-hidden opacity-10">
+    {/* Abstract Logistics Grid */}
+    <div className="absolute inset-0 bg-[linear-gradient(to_right,#f9731610_1px,transparent_1px),linear-gradient(to_bottom,#f9731610_1px,transparent_1px)] bg-[size:24px_24px]" />
     
-    {/* Floating Blueprint Lines */}
-    <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-40">
+    {/* Flow Lines */}
+    <svg className="absolute inset-0 w-full h-full pointer-events-none">
       <motion.path
-        d="M 20 100 L 100 20 L 200 100"
+        d="M -50 100 Q 150 50 350 100 T 750 100"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2"
-        className="text-blue-500"
-        strokeDasharray="10 10"
-        animate={{ strokeDashoffset: [0, 20] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+        strokeWidth="1.5"
+        className="text-orange-500/40"
+        strokeDasharray="6 6"
+        animate={{ strokeDashoffset: [0, -24] }}
+        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+      />
+      <motion.path
+        d="M -50 150 Q 150 200 350 150 T 750 150"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        className="text-orange-500/20"
+        strokeDasharray="6 6"
+        animate={{ strokeDashoffset: [0, 24] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
       />
     </svg>
   </div>
 );
 
+// 2. Engineering Illustration
+const EngineeringIllustration = ({ isHovered }: { isHovered: boolean }) => (
+  <div className="absolute inset-0 flex items-center justify-center overflow-hidden opacity-10">
+    {/* Technical Schematic Background */}
+    <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000008_1px,transparent_1px),linear-gradient(to_bottom,#00000008_1px,transparent_1px)] bg-[size:20px_20px]" />
+
+    {/* Rotating Schematic Elements */}
+    <motion.div
+      className="absolute"
+      animate={{ rotate: 360 }}
+      transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+    >
+      <div className="w-48 h-48 rounded-full border border-dashed border-foreground/30" />
+    </motion.div>
+    <motion.div
+      className="absolute"
+      animate={{ rotate: -360 }}
+      transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+    >
+      <Cog className="w-32 h-32 text-foreground/10 stroke-[0.5]" />
+    </motion.div>
+  </div>
+);
+
 // 3. Manufacturing Illustration
 const ManufacturingIllustration = ({ isHovered }: { isHovered: boolean }) => (
-  <div className="absolute inset-0 flex flex-col items-center justify-center">
-    {/* Printer Head / Nozzle */}
-    <motion.div
-      className="relative z-10 mb-[-10px]"
-      animate={{ 
-        x: [-30, 30, -30],
-      }}
-      transition={{ 
-        duration: isHovered ? 2 : 4, 
-        repeat: Infinity, 
-        ease: "easeInOut" 
-      }}
-    >
-       <div className="flex flex-col items-center">
-         <div className="w-2 h-12 bg-purple-400/30" />
-         <Printer className="w-32 h-32 text-purple-500/30 stroke-[1]" />
-       </div>
-    </motion.div>
-
-    {/* Printed Layers */}
-    <div className="flex flex-col-reverse gap-1 items-center">
-       {[...Array(5)].map((_, i) => (
+  <div className="absolute inset-0 flex flex-col items-center justify-center opacity-10">
+    {/* Layered Construction Animation */}
+    <div className="flex flex-col-reverse gap-2 items-center">
+       {[...Array(4)].map((_, i) => (
          <motion.div
            key={i}
-           className="h-2 bg-purple-500/20 rounded-full"
-           style={{ width: 100 + i * 20 }}
-           initial={{ opacity: 0.5 }}
+           className="h-1 bg-foreground/20 rounded-sm"
+           style={{ width: 80 + i * 20 }}
+           initial={{ opacity: 0.2 }}
            animate={{ 
-             opacity: [0.3, 0.8, 0.3],
-             scaleX: [0.95, 1.05, 0.95]
+             opacity: [0.2, 0.6, 0.2],
+             scaleX: [0.98, 1.02, 0.98]
            }}
            transition={{ 
-             duration: 2, 
-             delay: i * 0.2, 
+             duration: 3, 
+             delay: i * 0.4, 
              repeat: Infinity,
+             ease: "easeInOut"
            }}
          />
        ))}
@@ -293,12 +248,16 @@ const HeroCard = ({
   illustration: Illustration, 
   title, 
   subtitle,
+  features,
+  badge,
   onClick,
   delay = 0,
 }: { 
   illustration: (props: { isHovered: boolean }) => JSX.Element;
   title: string;
   subtitle: string;
+  features: string[];
+  badge: string;
   onClick: () => void;
   delay?: number;
 }) => {
@@ -306,7 +265,7 @@ const HeroCard = ({
 
   return (
     <motion.div
-      className="relative h-full min-h-[240px]"
+      className="relative h-full"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay, ease: "easeOut" }}
@@ -315,29 +274,49 @@ const HeroCard = ({
       onClick={onClick}
     >
       <motion.div
-        className="group relative h-full flex flex-col bg-white rounded-3xl shadow-sm border border-border/50 overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:border-primary/30 hover:-translate-y-2"
-        whileTap={{ scale: 0.98 }}
+        className="group relative h-full min-h-[280px] flex flex-col bg-white rounded-xl shadow-md border border-border overflow-hidden cursor-pointer transition-all duration-500 hover:shadow-xl hover:border-orange-500/40 hover:-translate-y-1"
+        whileTap={{ scale: 0.99 }}
       >
-        {/* 1. Background Animation Layer - Z-10 */}
+        {/* 1. Background Grid */}
+        <div className="absolute inset-0 z-0 opacity-10 pointer-events-none">
+             <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000010_1px,transparent_1px),linear-gradient(to_bottom,#00000010_1px,transparent_1px)] bg-[size:16px_16px]" />
+        </div>
+
+        {/* 2. Animation Layer */}
         <div className="absolute inset-0 z-10 opacity-40 group-hover:opacity-60 transition-opacity duration-500 pointer-events-none overflow-hidden">
           <Illustration isHovered={isHovered} />
         </div>
 
-        {/* 2. Soft Gradient Overlay - Z-20 */}
-        <div className="absolute inset-0 z-20 bg-gradient-to-t from-white/95 via-white/50 to-white/10 pointer-events-none" />
+        {/* Badge */}
+        <div className="absolute top-4 right-4 z-20">
+          <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-secondary/50 border border-border/50 rounded backdrop-blur-sm">
+            {badge}
+          </span>
+        </div>
 
-        {/* 3. Content Layer - Z-30 */}
-        <div className="relative z-30 p-8 flex flex-col h-full justify-end">
-          <div className="mt-auto">
-            <h3 className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors duration-300 mb-2">
+        {/* 3. Content Layer */}
+        <div className="relative z-30 p-6 flex flex-col h-full">
+          <div className="mt-auto flex flex-col gap-2">
+            <h3 className="text-xl font-bold text-foreground tracking-tight group-hover:text-orange-600 transition-colors duration-300">
               {title}
             </h3>
-            <p className="text-base text-muted-foreground mb-6 font-medium leading-relaxed">
+            <p className="text-sm text-muted-foreground/80 font-medium leading-relaxed">
               {subtitle}
             </p>
             
-            <div className="flex items-center text-sm font-bold text-primary/80 group-hover:text-primary transition-colors">
-              Explore <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            <div className="h-px w-12 bg-orange-500/20 my-2" />
+
+            <ul className="space-y-1.5 mb-4">
+              {features.map((feature, i) => (
+                <li key={i} className="flex items-center text-xs text-muted-foreground font-medium">
+                  <div className="w-1 h-1 bg-orange-500/60 rounded-full mr-2" />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+            
+            <div className="flex items-center text-xs font-bold uppercase tracking-wider text-foreground/60 group-hover:text-orange-600 transition-colors">
+              Explore <ArrowRight className="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform" />
             </div>
           </div>
         </div>
@@ -653,7 +632,7 @@ export const HeroSection = () => {
 
       <section
         ref={containerRef}
-        className="relative min-h-[70vh] bg-background overflow-hidden flex flex-col pt-14 pb-20"
+        className="relative min-h-[60vh] bg-background overflow-hidden flex flex-col pt-8 pb-16 justify-center"
         onClick={handleRipple}
       >
         {/* Blueprint Grid Pattern - Enhanced */}
@@ -691,7 +670,7 @@ export const HeroSection = () => {
         ))}
 
         {/* Main Content */}
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex-grow flex flex-col items-center">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col items-center">
           <div className="flex flex-col items-center w-full max-w-5xl mx-auto">
               <motion.div
                 className="text-center w-full"
@@ -701,7 +680,7 @@ export const HeroSection = () => {
               >
             {/* Main Heading */}
             <motion.h1 
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight mb-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
@@ -750,7 +729,7 @@ export const HeroSection = () => {
             
             {/* Subline */}
             <motion.p 
-              className="text-lg md:text-xl lg:text-2xl text-muted-foreground mb-8"
+              className="text-base md:text-lg lg:text-xl text-muted-foreground mb-6 max-w-2xl mx-auto"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.6 }}
@@ -765,7 +744,7 @@ export const HeroSection = () => {
           {/* Three Domains - Below Hero Text */}
           {visibleCount > 0 && (
             <motion.div
-              className="mt-12 w-full max-w-5xl px-4"
+              className="mt-8 w-full max-w-5xl px-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.7 }}
@@ -775,7 +754,9 @@ export const HeroSection = () => {
                   <HeroCard
                     illustration={EcommerceIllustration}
                     title="E-Commerce"
-                    subtitle="Premium Products"
+                    subtitle="Industrial Component Sourcing"
+                    features={["Global Logistics", "Bulk Procurement", "Verified Suppliers"]}
+                    badge="Global Supply"
                     onClick={() => navigate("/shop")}
                     delay={0.8}
                   />
@@ -784,7 +765,9 @@ export const HeroSection = () => {
                   <HeroCard
                     illustration={EngineeringIllustration}
                     title="Engineering Services"
-                    subtitle="Mechanical NPD"
+                    subtitle="End-to-End Product Development"
+                    features={["CAD/CAM Design", "FEA Simulation", "Rapid Prototyping"]}
+                    badge="R&D Driven"
                     onClick={() => navigate("/engineering")}
                     delay={0.9}
                   />
@@ -793,7 +776,9 @@ export const HeroSection = () => {
                   <HeroCard
                     illustration={ManufacturingIllustration}
                     title="Manufacturing"
-                    subtitle="Industrial Solutions"
+                    subtitle="Precision Production at Scale"
+                    features={["Decoverts DFT Series 3D printers", "Drone Systems", "Quality Assurance"]}
+                    badge="Industrial Grade"
                     onClick={() => navigate("/manufacturing")}
                     delay={1.0}
                   />
