@@ -4,7 +4,6 @@ import { PublicNavbar } from "@/components/PublicNavbar";
 import { PublicFooter } from "@/components/PublicFooter";
 import { NotificationMarquee } from "@/components/NotificationMarquee";
 import { HeroSection } from "@/components/home/HeroSection";
-import { AboutSection } from "@/components/home/AboutSection";
 import { WhatDrivesUs } from "@/components/home/WhatDrivesUs";
 import { ServicesSection } from "@/components/home/ServicesSection";
 import { IndustrySolutions } from "@/components/home/IndustrySolutions";
@@ -35,9 +34,6 @@ const Home = () => {
       <main className={`flex-1 ${hasNotification ? 'pt-24 md:pt-28' : 'pt-16 md:pt-20'}`}>
         {/* 1. Hero Section with integrated interactive hotspots */}
         <HeroSection />
-        
-        {/* 2. About Us */}
-        <AboutSection />
         
         {/* 4. What Drives Us Slider */}
         <WhatDrivesUs />

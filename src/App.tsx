@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AdminLayout } from "@/components/AdminLayout";
 import Home from "./pages/Home";
+import About from "./pages/About";
 import Engineering from "./pages/Engineering";
 import Manufacturing from "./pages/Manufacturing";
 import Shop from "./pages/Shop";
@@ -60,6 +61,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
               <Route path="/engineering" element={<Engineering />} />
               <Route path="/manufacturing" element={<Manufacturing />} />
               <Route path="/printer-configuration" element={<PrinterConfiguration />} />

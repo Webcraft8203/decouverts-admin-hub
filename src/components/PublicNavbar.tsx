@@ -52,11 +52,16 @@ export const PublicNavbar = () => {
             <img 
               src={logo} 
               alt="Decouverts Plus" 
-              className="h-10 md:h-12 w-auto"
+              className="h-12 md:h-14 lg:h-16 w-auto"
             />
-            <span className="text-lg md:text-xl font-bold text-foreground hidden sm:block">
-              Decouverts Plus
-            </span>
+            <div className="flex flex-col items-start">
+              <span className="text-lg md:text-xl lg:text-4xl font-extrabold tracking-widest lg:tracking-[0.2em] uppercase text-foreground leading-none">
+                DECOUVERTS
+              </span>
+              <span className="text-[10px] lg:text-sm font-medium tracking-wider text-blue-600 mt-0.5 lg:mt-1">
+                Discovering Future Technologies
+              </span>
+            </div>
           </div>
 
           {/* Desktop Navigation */}
@@ -66,6 +71,12 @@ export const PublicNavbar = () => {
               className="text-foreground/70 hover:text-primary transition-colors font-medium"
             >
               Home
+            </Link>
+            <Link 
+              to="/about" 
+              className="text-foreground/70 hover:text-primary transition-colors font-medium"
+            >
+              About Us
             </Link>
             <Link 
               to="/shop" 
@@ -145,6 +156,13 @@ export const PublicNavbar = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Home
+              </Link>
+              <Link 
+                to="/about" 
+                className="text-foreground/70 hover:text-primary transition-colors font-medium py-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                About Us
               </Link>
               <Link 
                 to="/shop" 
