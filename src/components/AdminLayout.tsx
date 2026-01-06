@@ -20,6 +20,7 @@ import {
   Palette,
   Home,
   Printer,
+  Plane,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -43,6 +44,7 @@ const navItems = [
   { to: "/admin/homepage-images", icon: ImageIcon, label: "Homepage Images" },
   { to: "/admin/contact-requests", icon: MessageSquare, label: "Contact Requests" },
   { to: "/admin/printer-configurations", icon: Printer, label: "Printer Configs" },
+  { to: "/admin/drone-configurations", icon: Plane, label: "Drone Configs" },
 ];
 
 interface AdminLayoutProps {
