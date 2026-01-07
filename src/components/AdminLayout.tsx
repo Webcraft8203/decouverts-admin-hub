@@ -21,6 +21,8 @@ import {
   Home,
   Printer,
   Plane,
+  MessageCircle,
+  Handshake,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -45,6 +47,8 @@ const navItems = [
   { to: "/admin/contact-requests", icon: MessageSquare, label: "Contact Requests" },
   { to: "/admin/printer-configurations", icon: Printer, label: "Printer Configs" },
   { to: "/admin/drone-configurations", icon: Plane, label: "Drone Configs" },
+  { to: "/admin/customer-reviews", icon: MessageCircle, label: "Customer Reviews" },
+  { to: "/admin/partners", icon: Handshake, label: "Partners" },
 ];
 
 interface AdminLayoutProps {
