@@ -169,6 +169,54 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_reviews: {
+        Row: {
+          company_name: string
+          created_at: string
+          customer_name: string
+          designation: string | null
+          display_order: number
+          id: string
+          image_description: string
+          image_title: string
+          photo_url: string | null
+          rating: number | null
+          review_text: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          company_name: string
+          created_at?: string
+          customer_name: string
+          designation?: string | null
+          display_order?: number
+          id?: string
+          image_description: string
+          image_title: string
+          photo_url?: string | null
+          rating?: number | null
+          review_text: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          customer_name?: string
+          designation?: string | null
+          display_order?: number
+          id?: string
+          image_description?: string
+          image_title?: string
+          photo_url?: string | null
+          rating?: number | null
+          review_text?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       design_payments: {
         Row: {
           amount: number
@@ -654,6 +702,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      partners: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          image_description: string
+          image_title: string
+          logo_url: string
+          partner_name: string
+          status: string
+          updated_at: string
+          website_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_description: string
+          image_title: string
+          logo_url: string
+          partner_name: string
+          status?: string
+          updated_at?: string
+          website_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_description?: string
+          image_title?: string
+          logo_url?: string
+          partner_name?: string
+          status?: string
+          updated_at?: string
+          website_url?: string | null
+        }
+        Relationships: []
       }
       printer_configurations: {
         Row: {

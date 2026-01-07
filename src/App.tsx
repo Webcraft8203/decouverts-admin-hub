@@ -47,6 +47,8 @@ import PrinterConfiguration from "./pages/PrinterConfiguration";
 import PrinterConfigurations from "./pages/admin/PrinterConfigurations";
 import DroneConfiguration from "./pages/DroneConfiguration";
 import DroneConfigurations from "./pages/admin/DroneConfigurations";
+import CustomerReviews from "./pages/admin/CustomerReviews";
+import Partners from "./pages/admin/Partners";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -100,6 +102,8 @@ const App = () => (
               <Route path="/admin/contact-requests" element={<ProtectedRoute requireAdmin><ContactRequests /></ProtectedRoute>} />
               <Route path="/admin/printer-configurations" element={<ProtectedRoute requireAdmin><AdminLayout><PrinterConfigurations /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/drone-configurations" element={<ProtectedRoute requireAdmin><AdminLayout><DroneConfigurations /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/customer-reviews" element={<ProtectedRoute requireAdmin><AdminLayout><CustomerReviews /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/partners" element={<ProtectedRoute requireAdmin><AdminLayout><Partners /></AdminLayout></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

@@ -9,6 +9,8 @@ import { ServicesSection } from "@/components/home/ServicesSection";
 import { IndustrySolutions } from "@/components/home/IndustrySolutions";
 import { HomepageGallery } from "@/components/home/HomepageGallery";
 import { ContactSection } from "@/components/home/ContactSection";
+import { OurCustomers } from "@/components/home/OurCustomers";
+import { OurPartners } from "@/components/home/OurPartners";
 
 const Home = () => {
   // Check if there's an active notification to adjust spacing
@@ -43,10 +45,16 @@ const Home = () => {
         {/* 6. Industry Solutions */}
         <IndustrySolutions />
         
-        {/* 8. Homepage Gallery (Admin-managed) */}
+        {/* 7. Our Customers (Testimonials) */}
+        <OurCustomers />
+        
+        {/* 8. Our Partners */}
+        <OurPartners />
+        
+        {/* 9. Homepage Gallery (Admin-managed) */}
         <HomepageGallery />
         
-        {/* 9. Contact Us Section */}
+        {/* 10. Contact Us Section */}
         <ContactSection />
       </main>
 
