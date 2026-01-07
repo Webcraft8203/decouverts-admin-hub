@@ -1,4 +1,4 @@
-import { motion, useMotionValue, useTransform, useSpring, AnimatePresence } from "framer-motion";
+import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -369,175 +369,51 @@ const HeroCard = ({
   );
 };
 
-// 3D Engineering Core Element
-const EngineeringCore = ({ mouseX, mouseY }: { mouseX: any; mouseY: any }) => {
-  const rotateX = useTransform(mouseY, [0, 1], [12, -12]);
-  const rotateY = useTransform(mouseX, [0, 1], [-12, 12]);
-  const springRotateX = useSpring(rotateX, { stiffness: 40, damping: 20 });
-  const springRotateY = useSpring(rotateY, { stiffness: 40, damping: 20 });
+// Abstract Engineering Shapes Background
+const AbstractShapes = ({ mouseX, mouseY }: { mouseX: any; mouseY: any }) => {
+  // Parallax effect
+  const moveX = useTransform(mouseX, [0, 1], [-15, 15]);
+  const moveY = useTransform(mouseY, [0, 1], [-15, 15]);
+  const rotate = useTransform(mouseX, [0, 1], [-5, 5]);
 
   return (
     <motion.div
-      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 md:w-96 md:h-96 pointer-events-none hidden md:block"
-      style={{
-        rotateX: springRotateX,
-        rotateY: springRotateY,
-        transformStyle: "preserve-3d",
-        perspective: 1200,
-      }}
+      className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0"
+      style={{ x: moveX, y: moveY }}
     >
-      {/* Outer ring */}
-      <motion.div
-        className="absolute inset-0 rounded-full border-2 border-primary/15"
+      {/* Large Outline Circle - Top Right */}
+      <motion.div 
+        className="absolute -top-[10%] -right-[5%] w-[600px] h-[600px] md:w-[800px] md:h-[800px] rounded-full border border-slate-200/60"
         animate={{ rotate: 360 }}
-        transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
       />
       
-      {/* Middle ring with dashes */}
-      <motion.div
-        className="absolute inset-10 rounded-full border-2 border-dashed border-accent/20"
+      {/* Dashed Arc - Bottom Left */}
+      <motion.div 
+        className="absolute top-[60%] -left-[10%] w-[500px] h-[500px] md:w-[700px] md:h-[700px] rounded-full border border-dashed border-slate-300/40"
+        style={{ borderRightColor: 'transparent', borderBottomColor: 'transparent' }}
         animate={{ rotate: -360 }}
-        transition={{ duration: 35, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: 150, repeat: Infinity, ease: "linear" }}
       />
       
-      {/* Inner ring */}
+      {/* Dotted Ring - Center/Background */}
       <motion.div
-        className="absolute inset-20 rounded-full border border-primary/10"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-      />
-      
-      {/* Pulse ring effect */}
-      <motion.div
-        className="absolute inset-16 rounded-full border-2 border-primary/30"
-        animate={{ 
-          scale: [1, 1.2, 1],
-          opacity: [0.3, 0, 0.3]
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] md:w-[1200px] md:h-[1200px] rounded-full border border-dotted border-slate-300/30"
+        animate={{ scale: [1, 1.02, 1], opacity: [0.2, 0.4, 0.2], rotate: rotate }}
+        transition={{ 
+          scale: { duration: 8, repeat: Infinity, ease: "easeInOut" },
+          opacity: { duration: 5, repeat: Infinity, ease: "easeInOut" }
         }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeOut" }}
       />
-      
-      {/* Center mechanical core */}
-      <motion.div
-        className="absolute inset-0 flex items-center justify-center"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
-      >
-        <motion.div
-          className="relative w-20 h-20 md:w-28 md:h-28"
-          animate={{ scale: [1, 1.05, 1] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <div 
-            className="absolute inset-0 bg-gradient-to-br from-primary/25 via-accent/20 to-primary/15 rounded-3xl shadow-2xl shadow-primary/10"
-            style={{ transform: "rotate(45deg)" }}
-          />
-          <motion.div
-            className="absolute inset-2 bg-gradient-to-br from-white/90 to-white/70 rounded-2xl"
-            style={{ transform: "rotate(45deg)" }}
-          />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Cog className="w-8 h-8 md:w-10 md:h-10 text-primary/40" />
-          </div>
-        </motion.div>
-      </motion.div>
 
-      {/* Orbiting elements */}
-      {[0, 1, 2, 3].map((i) => (
-        <motion.div
-          key={i}
-          className="absolute w-3 h-3 rounded-full bg-gradient-to-br from-primary/50 to-accent/40 shadow-lg shadow-primary/20"
-          style={{
-            top: "50%",
-            left: "50%",
-            marginTop: "-6px",
-            marginLeft: "-6px",
-          }}
-          animate={{
-            rotate: 360,
-          }}
-          transition={{
-            duration: 12 + i * 2,
-            delay: i * 0.5,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-        >
-          <motion.div
-            style={{
-              position: "absolute",
-              left: `${80 + i * 25}px`,
-            }}
-            className="w-2 h-2 rounded-full bg-primary/40"
-          />
-        </motion.div>
-      ))}
+      {/* Orange Accent Wash */}
+      <div className="absolute top-[20%] left-[15%] w-[400px] h-[400px] bg-orange-500/5 blur-[100px] rounded-full mix-blend-multiply" />
+      
+      {/* Blue Accent Wash */}
+      <div className="absolute bottom-[10%] right-[10%] w-[500px] h-[500px] bg-blue-500/5 blur-[100px] rounded-full mix-blend-multiply" />
     </motion.div>
   );
 };
-
-// Animated engineering lines
-const EngineeringLines = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none">
-    {/* Horizontal lines */}
-    {[...Array(5)].map((_, i) => (
-      <motion.div
-        key={`h-${i}`}
-        className="absolute h-px bg-gradient-to-r from-transparent via-primary/10 to-transparent"
-        style={{
-          top: `${20 + i * 15}%`,
-          left: 0,
-          right: 0,
-        }}
-        animate={{ opacity: [0.3, 0.6, 0.3] }}
-        transition={{ duration: 4, delay: i * 0.5, repeat: Infinity }}
-      />
-    ))}
-    {/* Vertical lines */}
-    {[...Array(5)].map((_, i) => (
-      <motion.div
-        key={`v-${i}`}
-        className="absolute w-px bg-gradient-to-b from-transparent via-primary/8 to-transparent"
-        style={{
-          left: `${20 + i * 15}%`,
-          top: 0,
-          bottom: 0,
-        }}
-        animate={{ opacity: [0.2, 0.5, 0.2] }}
-        transition={{ duration: 5, delay: i * 0.3, repeat: Infinity }}
-      />
-    ))}
-  </div>
-);
-
-// Background particles with varied sizes
-const BackgroundParticles = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none">
-    {[...Array(30)].map((_, i) => (
-      <motion.div
-        key={i}
-        className="absolute rounded-full bg-primary/25"
-        style={{
-          width: `${2 + Math.random() * 4}px`,
-          height: `${2 + Math.random() * 4}px`,
-          left: `${Math.random() * 100}%`,
-          top: `${Math.random() * 100}%`,
-        }}
-        animate={{
-          y: [0, -40 - Math.random() * 20, 0],
-          x: [0, (Math.random() - 0.5) * 20, 0],
-          opacity: [0.1, 0.4, 0.1],
-        }}
-        transition={{
-          duration: 5 + Math.random() * 5,
-          delay: Math.random() * 4,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
-    ))}
-  </div>
-);
 
 // Hover Label Component
 const HoverLabel = ({ text, isVisible }: { text: string; isVisible: boolean }) => (
@@ -676,32 +552,16 @@ export const HeroSection = () => {
 
       <section
         ref={containerRef}
-        className="relative min-h-[60vh] bg-background overflow-hidden flex flex-col pt-8 pb-16 justify-center"
+        className="relative min-h-[60vh] bg-gradient-to-br from-[#F9FBFF] to-[#EEF2F7] overflow-hidden flex flex-col pt-8 pb-16 justify-center"
         onClick={handleRipple}
       >
         {/* Blueprint Grid Pattern - Enhanced */}
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--primary)/0.05)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.05)_1px,transparent_1px)] bg-[size:50px_50px]" />
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#94a3b80a_1px,transparent_1px),linear-gradient(to_bottom,#94a3b80a_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black_60%,transparent_100%)]" />
         </div>
 
-        {/* Engineering Lines */}
-        <EngineeringLines />
-
-        {/* Radial Light Behind Center */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <motion.div 
-            className="w-[700px] h-[700px] bg-gradient-radial from-primary/8 via-accent/3 to-transparent rounded-full blur-3xl"
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={contentReady ? { scale: [1, 1.05, 1], opacity: [0.6, 0.8, 0.6] } : {}}
-            transition={{ duration: 6, repeat: Infinity }}
-          />
-        </div>
-
-        {/* Background Particles */}
-        {contentReady && <BackgroundParticles />}
-
-        {/* 3D Engineering Core - subtle background element */}
-        {contentReady && <EngineeringCore mouseX={mouseX} mouseY={mouseY} />}
+        {/* Abstract Shapes */}
+        {contentReady && <AbstractShapes mouseX={mouseX} mouseY={mouseY} />}
 
         {/* Ripple Effects */}
         {ripples.map(ripple => (
@@ -788,11 +648,14 @@ export const HeroSection = () => {
           {/* Three Domains - Below Hero Text */}
           {visibleCount > 0 && (
             <motion.div
-              className="mt-8 w-full max-w-5xl px-4"
+              className="mt-8 w-full max-w-5xl px-4 relative"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.7 }}
             >
+              {/* Card Glow/Shadow Backdrop */}
+              <div className="absolute inset-0 -z-10 bg-gradient-to-b from-white/40 to-white/0 blur-3xl transform scale-110 opacity-60" />
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                 {ecommerceVisible && (
                   <HeroCard
