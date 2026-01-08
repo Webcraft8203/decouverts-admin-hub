@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { PublicFooter } from "@/components/PublicFooter";
@@ -13,6 +15,21 @@ import { OurCustomers } from "@/components/home/OurCustomers";
 import { OurPartners } from "@/components/home/OurPartners";
 
 const Home = () => {
+  const location = useLocation();
+
+  // Handle scroll navigation from other pages
+  useEffect(() => {
+    if (location.state?.scrollTo) {
+      const sectionId = location.state.scrollTo;
+      // Small delay to ensure the page is rendered
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        element?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+      // Clear the state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
   // Check if there's an active notification to adjust spacing
   const { data: hasNotification } = useQuery({
     queryKey: ["has-active-notification"],
