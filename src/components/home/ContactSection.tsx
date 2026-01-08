@@ -90,7 +90,7 @@ export function ContactSection() {
 
   if (isSubmitted) {
     return (
-      <section className="py-24 px-4 bg-slate-50 relative overflow-hidden" id="contact">
+      <section className="py-24 px-4 bg-slate-50 relative overflow-hidden" id="contact-section">
         {/* Technical Grid Background */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_50%_200px,rgba(255,255,255,0.8),transparent)]" />
@@ -129,7 +129,7 @@ export function ContactSection() {
   }
 
   return (
-    <section className="py-24 px-4 bg-slate-50 relative overflow-hidden" id="contact">
+    <section className="py-24 px-4 bg-slate-50 relative overflow-hidden" id="contact-section">
       {/* Technical Grid Background */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_100%_0px,rgba(255,255,255,0.8),transparent)]" />
