@@ -33,18 +33,25 @@ type PlaceOrderBody =
     };
 
 serve(async (req) => {
+  console.log("place-order function invoked, method:", req.method);
+  
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error("Missing Supabase environment variables");
+      throw new Error("Server configuration error");
+    }
 
     const authHeader = req.headers.get("authorization") || "";
     const token = authHeader.replace("Bearer ", "");
     
-    console.log("Auth header present:", !!authHeader);
+    console.log("Auth header present:", !!authHeader, "Token length:", token.length);
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -61,7 +68,15 @@ serve(async (req) => {
     }
 
     const user = userData.user;
-    const body = (await req.json()) as PlaceOrderBody;
+    
+    let body: PlaceOrderBody;
+    try {
+      body = (await req.json()) as PlaceOrderBody;
+      console.log("Request body received:", JSON.stringify(body));
+    } catch (parseError) {
+      console.error("Failed to parse request body:", parseError);
+      throw new Error("Invalid request body");
+    }
 
     if (!body?.addressId) throw new Error("Address ID is required");
 
