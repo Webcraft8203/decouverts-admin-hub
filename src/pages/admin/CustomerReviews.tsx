@@ -265,12 +265,12 @@ const CustomerReviews = () => {
                 </div>
                 <div>
                   <Label>Rating (1-5)</Label>
-                  <Select value={formData.rating} onValueChange={(v) => setFormData({ ...formData, rating: v })}>
+                  <Select value={formData.rating || "none"} onValueChange={(v) => setFormData({ ...formData, rating: v === "none" ? "" : v })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select rating" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No rating</SelectItem>
+                      <SelectItem value="none">No rating</SelectItem>
                       {[1, 2, 3, 4, 5].map((r) => (
                         <SelectItem key={r} value={r.toString()}>{r} Star{r > 1 && "s"}</SelectItem>
                       ))}

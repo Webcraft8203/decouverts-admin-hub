@@ -399,7 +399,8 @@ const AbstractShapes = ({ mouseX, mouseY }: { mouseX: any; mouseY: any }) => {
       {/* Dotted Ring - Center/Background */}
       <motion.div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] md:w-[1200px] md:h-[1200px] rounded-full border border-dotted border-slate-300/30"
-        animate={{ scale: [1, 1.02, 1], opacity: [0.2, 0.4, 0.2], rotate: rotate }}
+        style={{ rotate }}
+        animate={{ scale: [1, 1.02, 1], opacity: [0.2, 0.4, 0.2] }}
         transition={{ 
           scale: { duration: 8, repeat: Infinity, ease: "easeInOut" },
           opacity: { duration: 5, repeat: Infinity, ease: "easeInOut" }
