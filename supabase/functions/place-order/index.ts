@@ -126,7 +126,7 @@ serve(async (req) => {
     for (const item of items) {
       const p = productsById.get(item.product_id);
       if (!p) throw new Error("Product not found");
-      if (p.availability_status !== "in_stock") throw new Error(`${p.name} is out of stock`);
+      if (p.availability_status === "out_of_stock") throw new Error(`${p.name} is out of stock`);
       if (p.stock_quantity < item.quantity) throw new Error(`Only ${p.stock_quantity} of ${p.name} available`);
       subtotal += Number(p.price) * item.quantity;
     }
