@@ -111,62 +111,68 @@ export const PublicNavbar = () => {
             >
               Home
             </Link>
-            <Link 
-              to="/about" 
-              className="text-foreground/70 hover:text-primary transition-colors font-medium text-sm lg:text-base"
-            >
-              About
-            </Link>
-            
-            {/* Services Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-1 text-foreground/70 hover:text-primary transition-colors font-medium text-sm lg:text-base outline-none">
-                Services <ChevronDown className="w-4 h-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="bg-white">
-                <DropdownMenuItem onClick={() => navigate("/manufacturing")}>
-                  Manufacturing
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/engineering")}>
-                  Engineering
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => scrollToSection("services-section")}>
-                  All Services
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
 
-            {/* Solutions Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-1 text-foreground/70 hover:text-primary transition-colors font-medium text-sm lg:text-base outline-none">
-                Solutions <ChevronDown className="w-4 h-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="bg-white">
-                <DropdownMenuItem onClick={() => scrollToSection("industry-solutions")}>
-                  Industry Solutions
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/printer-configuration")}>
-                  3D Printer Configuration
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/drone-configuration")}>
-                  Drone Configuration
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* Show full navigation only when NOT on shop pages */}
+            {!isShopPage && (
+              <>
+                <Link 
+                  to="/about" 
+                  className="text-foreground/70 hover:text-primary transition-colors font-medium text-sm lg:text-base"
+                >
+                  About
+                </Link>
+                
+                {/* Services Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="flex items-center gap-1 text-foreground/70 hover:text-primary transition-colors font-medium text-sm lg:text-base outline-none">
+                    Services <ChevronDown className="w-4 h-4" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="bg-white">
+                    <DropdownMenuItem onClick={() => navigate("/manufacturing")}>
+                      Manufacturing
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/engineering")}>
+                      Engineering
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => scrollToSection("services-section")}>
+                      All Services
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
-            <button 
-              onClick={() => scrollToSection("gallery-section")}
-              className="text-foreground/70 hover:text-primary transition-colors font-medium text-sm lg:text-base"
-            >
-              Gallery
-            </button>
+                {/* Solutions Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="flex items-center gap-1 text-foreground/70 hover:text-primary transition-colors font-medium text-sm lg:text-base outline-none">
+                    Solutions <ChevronDown className="w-4 h-4" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="bg-white">
+                    <DropdownMenuItem onClick={() => scrollToSection("industry-solutions")}>
+                      Industry Solutions
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/printer-configuration")}>
+                      3D Printer Configuration
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/drone-configuration")}>
+                      Drone Configuration
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
-            <button 
-              onClick={() => scrollToSection("contact-section")}
-              className="text-foreground/70 hover:text-primary transition-colors font-medium text-sm lg:text-base"
-            >
-              Contact
-            </button>
+                <button 
+                  onClick={() => scrollToSection("gallery-section")}
+                  className="text-foreground/70 hover:text-primary transition-colors font-medium text-sm lg:text-base"
+                >
+                  Gallery
+                </button>
+
+                <button 
+                  onClick={() => scrollToSection("contact-section")}
+                  className="text-foreground/70 hover:text-primary transition-colors font-medium text-sm lg:text-base"
+                >
+                  Contact
+                </button>
+              </>
+            )}
 
             {/* Shop - only show if e-commerce is enabled */}
             {isEcommerceEnabled && (
@@ -256,81 +262,87 @@ export const PublicNavbar = () => {
               >
                 Home
               </Link>
-              <Link 
-                to="/about" 
-                className="text-foreground/70 hover:text-primary transition-colors font-medium py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                About Us
-              </Link>
-              
-              {/* Services */}
-              <div className="py-2">
-                <p className="text-foreground font-semibold mb-2">Services</p>
-                <div className="pl-4 flex flex-col gap-2">
+
+              {/* Show full navigation only when NOT on shop pages */}
+              {!isShopPage && (
+                <>
                   <Link 
-                    to="/manufacturing" 
-                    className="text-foreground/70 hover:text-primary transition-colors text-sm"
+                    to="/about" 
+                    className="text-foreground/70 hover:text-primary transition-colors font-medium py-2"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Manufacturing
+                    About Us
                   </Link>
-                  <Link 
-                    to="/engineering" 
-                    className="text-foreground/70 hover:text-primary transition-colors text-sm"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Engineering
-                  </Link>
+                  
+                  {/* Services */}
+                  <div className="py-2">
+                    <p className="text-foreground font-semibold mb-2">Services</p>
+                    <div className="pl-4 flex flex-col gap-2">
+                      <Link 
+                        to="/manufacturing" 
+                        className="text-foreground/70 hover:text-primary transition-colors text-sm"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Manufacturing
+                      </Link>
+                      <Link 
+                        to="/engineering" 
+                        className="text-foreground/70 hover:text-primary transition-colors text-sm"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Engineering
+                      </Link>
+                      <button 
+                        onClick={() => scrollToSection("services-section")}
+                        className="text-foreground/70 hover:text-primary transition-colors text-sm text-left"
+                      >
+                        All Services
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Solutions */}
+                  <div className="py-2">
+                    <p className="text-foreground font-semibold mb-2">Solutions</p>
+                    <div className="pl-4 flex flex-col gap-2">
+                      <button 
+                        onClick={() => scrollToSection("industry-solutions")}
+                        className="text-foreground/70 hover:text-primary transition-colors text-sm text-left"
+                      >
+                        Industry Solutions
+                      </button>
+                      <Link 
+                        to="/printer-configuration" 
+                        className="text-foreground/70 hover:text-primary transition-colors text-sm"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        3D Printer Configuration
+                      </Link>
+                      <Link 
+                        to="/drone-configuration" 
+                        className="text-foreground/70 hover:text-primary transition-colors text-sm"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Drone Configuration
+                      </Link>
+                    </div>
+                  </div>
+
                   <button 
-                    onClick={() => scrollToSection("services-section")}
-                    className="text-foreground/70 hover:text-primary transition-colors text-sm text-left"
+                    onClick={() => scrollToSection("gallery-section")}
+                    className="text-foreground/70 hover:text-primary transition-colors font-medium py-2 text-left"
                   >
-                    All Services
+                    Gallery
                   </button>
-                </div>
-              </div>
 
-              {/* Solutions */}
-              <div className="py-2">
-                <p className="text-foreground font-semibold mb-2">Solutions</p>
-                <div className="pl-4 flex flex-col gap-2">
                   <button 
-                    onClick={() => scrollToSection("industry-solutions")}
-                    className="text-foreground/70 hover:text-primary transition-colors text-sm text-left"
+                    onClick={() => scrollToSection("contact-section")}
+                    className="text-foreground/70 hover:text-primary transition-colors font-medium py-2 text-left"
                   >
-                    Industry Solutions
+                    Contact Us
                   </button>
-                  <Link 
-                    to="/printer-configuration" 
-                    className="text-foreground/70 hover:text-primary transition-colors text-sm"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    3D Printer Configuration
-                  </Link>
-                  <Link 
-                    to="/drone-configuration" 
-                    className="text-foreground/70 hover:text-primary transition-colors text-sm"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Drone Configuration
-                  </Link>
-                </div>
-              </div>
-
-              <button 
-                onClick={() => scrollToSection("gallery-section")}
-                className="text-foreground/70 hover:text-primary transition-colors font-medium py-2 text-left"
-              >
-                Gallery
-              </button>
-
-              <button 
-                onClick={() => scrollToSection("contact-section")}
-                className="text-foreground/70 hover:text-primary transition-colors font-medium py-2 text-left"
-              >
-                Contact Us
-              </button>
+                </>
+              )}
 
               {/* Shop - only show if e-commerce is enabled */}
               {isEcommerceEnabled && (
