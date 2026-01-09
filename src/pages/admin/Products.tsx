@@ -10,9 +10,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Upload, X, Image, Loader2, Star, MessageSquare } from "lucide-react";
+import { Plus, Pencil, Trash2, Upload, X, Image, Loader2, Star, MessageSquare, Video, Play, ExternalLink } from "lucide-react";
 import { AdminNotes } from "@/components/admin/AdminNotes";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+
+// Validate YouTube URL
+const isValidYouTubeUrl = (url: string): boolean => {
+  if (!url) return true; // Empty is valid (optional field)
+  const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/)[\w-]{11}.*$/;
+  return youtubeRegex.test(url);
+};
+
+// Extract video ID for thumbnail preview
+const getYouTubeVideoId = (url: string): string | null => {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return match && match[2].length === 11 ? match[2] : null;
+};
 
 interface Product {
   id: string;
@@ -23,6 +37,7 @@ interface Product {
   stock_quantity: number;
   availability_status: string;
   images: string[] | null;
+  video_url: string | null;
   is_highlighted: boolean;
 }
 
@@ -37,9 +52,10 @@ export default function Products() {
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [formData, setFormData] = useState({ name: "", description: "", price: "", category_id: "", stock_quantity: "", availability_status: "in_stock", is_highlighted: false });
+  const [formData, setFormData] = useState({ name: "", description: "", price: "", category_id: "", stock_quantity: "", availability_status: "in_stock", is_highlighted: false, video_url: "" });
   const [productImages, setProductImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [videoUrlError, setVideoUrlError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -94,6 +110,13 @@ export default function Products() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate video URL
+    if (formData.video_url && !isValidYouTubeUrl(formData.video_url)) {
+      setVideoUrlError("Please enter a valid YouTube URL");
+      return;
+    }
+    
     const data = { 
       name: formData.name, 
       description: formData.description || null, 
@@ -102,6 +125,7 @@ export default function Products() {
       stock_quantity: parseInt(formData.stock_quantity) || 0, 
       availability_status: formData.availability_status,
       images: productImages.length > 0 ? productImages : null,
+      video_url: formData.video_url?.trim() || null,
       is_highlighted: formData.is_highlighted
     };
     
@@ -138,9 +162,10 @@ export default function Products() {
   };
 
   const resetForm = () => { 
-    setFormData({ name: "", description: "", price: "", category_id: "", stock_quantity: "", availability_status: "in_stock", is_highlighted: false }); 
+    setFormData({ name: "", description: "", price: "", category_id: "", stock_quantity: "", availability_status: "in_stock", is_highlighted: false, video_url: "" }); 
     setEditingProduct(null);
     setProductImages([]);
+    setVideoUrlError("");
   };
 
   const openEdit = (product: Product) => {
@@ -152,9 +177,11 @@ export default function Products() {
       category_id: product.category_id || "", 
       stock_quantity: String(product.stock_quantity), 
       availability_status: product.availability_status,
-      is_highlighted: product.is_highlighted
+      is_highlighted: product.is_highlighted,
+      video_url: product.video_url || ""
     });
     setProductImages(product.images || []);
+    setVideoUrlError("");
     setDialogOpen(true);
   };
 
@@ -241,6 +268,59 @@ export default function Products() {
                     ))}
                   </div>
                 )}
+              </div>
+
+              {/* Video URL Section */}
+              <div className="space-y-3">
+                <Label className="flex items-center gap-2">
+                  <Video className="h-4 w-4" />
+                  Product Video (Optional)
+                </Label>
+                <div className="space-y-2">
+                  <Input
+                    type="url"
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    value={formData.video_url}
+                    onChange={(e) => {
+                      setFormData({ ...formData, video_url: e.target.value });
+                      if (videoUrlError && isValidYouTubeUrl(e.target.value)) {
+                        setVideoUrlError("");
+                      }
+                    }}
+                    className={videoUrlError ? "border-destructive" : ""}
+                  />
+                  {videoUrlError && (
+                    <p className="text-sm text-destructive">{videoUrlError}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Paste a YouTube video URL (youtube.com or youtu.be). The video will be embedded on the product page.
+                  </p>
+                  
+                  {/* Video Preview */}
+                  {formData.video_url && isValidYouTubeUrl(formData.video_url) && getYouTubeVideoId(formData.video_url) && (
+                    <div className="relative mt-3">
+                      <div className="aspect-video rounded-lg overflow-hidden border border-border bg-muted">
+                        <img
+                          src={`https://img.youtube.com/vi/${getYouTubeVideoId(formData.video_url)}/mqdefault.jpg`}
+                          alt="Video thumbnail"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                          <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center">
+                            <Play className="w-6 h-6 text-primary ml-0.5" fill="currentColor" />
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, video_url: "" })}
+                        className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90 transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
               
               <Button type="submit" className="w-full">{editingProduct ? "Update" : "Create"} Product</Button>

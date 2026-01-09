@@ -952,6 +952,7 @@ export type Database = {
           price: number
           stock_quantity: number
           updated_at: string
+          video_url: string | null
         }
         Insert: {
           availability_status?: string
@@ -965,6 +966,7 @@ export type Database = {
           price?: number
           stock_quantity?: number
           updated_at?: string
+          video_url?: string | null
         }
         Update: {
           availability_status?: string
@@ -978,6 +980,7 @@ export type Database = {
           price?: number
           stock_quantity?: number
           updated_at?: string
+          video_url?: string | null
         }
         Relationships: [
           {
