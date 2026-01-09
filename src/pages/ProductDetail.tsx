@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { PublicFooter } from "@/components/PublicFooter";
+import { ProductMediaGallery } from "@/components/ProductMediaGallery";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,8 +18,6 @@ import {
   Plus,
   Minus,
   Star,
-  ChevronLeft,
-  ChevronRight,
   ArrowLeft,
   Check,
   Clock,
@@ -36,13 +35,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -260,54 +252,12 @@ const ProductDetail = () => {
 
           {/* Product Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
-            {/* Image Gallery */}
-            <div className="space-y-4">
-              {product.images && product.images.length > 0 ? (
-                <Carousel className="w-full">
-                  <CarouselContent>
-                    {product.images.map((image: string, index: number) => (
-                      <CarouselItem key={index}>
-                        <div className="aspect-square rounded-3xl overflow-hidden bg-muted">
-                          <img
-                            src={image}
-                            alt={`${product.name} - Image ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                  {product.images.length > 1 && (
-                    <>
-                      <CarouselPrevious className="-left-4 lg:-left-6" />
-                      <CarouselNext className="-right-4 lg:-right-6" />
-                    </>
-                  )}
-                </Carousel>
-              ) : (
-                <div className="aspect-square rounded-3xl bg-muted flex items-center justify-center">
-                  <Package className="w-32 h-32 text-muted-foreground/30" />
-                </div>
-              )}
-
-              {/* Thumbnail Strip */}
-              {product.images && product.images.length > 1 && (
-                <div className="flex gap-3 overflow-x-auto pb-2">
-                  {product.images.map((image: string, index: number) => (
-                    <div
-                      key={index}
-                      className="w-20 h-20 rounded-xl overflow-hidden border-2 border-border hover:border-primary transition-colors cursor-pointer flex-shrink-0"
-                    >
-                      <img
-                        src={image}
-                        alt={`Thumbnail ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Media Gallery (Images + Video) */}
+            <ProductMediaGallery 
+              images={product.images}
+              videoUrl={product.video_url}
+              productName={product.name}
+            />
 
             {/* Product Info */}
             <div className="space-y-6">
