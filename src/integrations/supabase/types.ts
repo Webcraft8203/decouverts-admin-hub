@@ -417,30 +417,48 @@ export type Database = {
       homepage_images: {
         Row: {
           alt_text: string | null
+          category: string | null
           created_at: string
+          description: string | null
           display_order: number
           id: string
           image_url: string
           is_active: boolean
+          is_featured: boolean
+          project_id: string | null
+          title: string
           updated_at: string
+          video_url: string | null
         }
         Insert: {
           alt_text?: string | null
+          category?: string | null
           created_at?: string
+          description?: string | null
           display_order?: number
           id?: string
           image_url: string
           is_active?: boolean
+          is_featured?: boolean
+          project_id?: string | null
+          title?: string
           updated_at?: string
+          video_url?: string | null
         }
         Update: {
           alt_text?: string | null
+          category?: string | null
           created_at?: string
+          description?: string | null
           display_order?: number
           id?: string
           image_url?: string
           is_active?: boolean
+          is_featured?: boolean
+          project_id?: string | null
+          title?: string
           updated_at?: string
+          video_url?: string | null
         }
         Relationships: []
       }
