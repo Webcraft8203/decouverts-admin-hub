@@ -424,11 +424,19 @@ export const HeroSection = () => {
   const mouseX = useMotionValue(0.5);
   const mouseY = useMotionValue(0.5);
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
-  const [showIntro, setShowIntro] = useState(true);
-  const [contentReady, setContentReady] = useState(false);
+  
+  // Session-based initialization
+  const [showIntro, setShowIntro] = useState(() => {
+    return !sessionStorage.getItem("decouverts_intro_shown");
+  });
+  
+  const [contentReady, setContentReady] = useState(() => {
+    return !!sessionStorage.getItem("decouverts_intro_shown");
+  });
 
   // Handle intro animation completion
   const handleIntroComplete = () => {
+    sessionStorage.setItem("decouverts_intro_shown", "true");
     setShowIntro(false);
     // Small delay before showing content for smooth transition
     setTimeout(() => setContentReady(true), 100);
