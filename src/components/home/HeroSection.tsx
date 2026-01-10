@@ -8,153 +8,103 @@ import logo from "@/assets/logo.png";
 
 // Intro Animation Overlay
 const IntroAnimation = ({ onComplete }: { onComplete: () => void }) => {
-  const [phase, setPhase] = useState<"logo" | "expand" | "done">("logo");
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    // Logo reveal phase
-    const expandTimer = setTimeout(() => setPhase("expand"), 1500);
-    // Complete and hide overlay
-    const doneTimer = setTimeout(() => {
-      setPhase("done");
-      onComplete();
-    }, 2200);
+    // Sequence timing: 1.7s visible + 0.5s exit = ~2.2s total
+    const totalDuration = 2200; 
+    
+    const timer = setTimeout(() => {
+      setIsVisible(false);
+      // Wait for exit animation to finish before unmounting/showing content
+      setTimeout(onComplete, 500); // Wait for exit animation
+    }, 1700);
 
-    return () => {
-      clearTimeout(expandTimer);
-      clearTimeout(doneTimer);
-    };
+    return () => clearTimeout(timer);
   }, [onComplete]);
 
-  if (phase === "done") return null;
-
   return (
-    <motion.div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-background"
-      initial={{ opacity: 1 }}
-      animate={{ opacity: phase === "expand" ? 0 : 1 }}
-      transition={{ duration: 0.6, ease: "easeInOut" }}
-    >
-      {/* Background glow */}
-      <motion.div
-        className="absolute w-96 h-96 bg-gradient-radial from-primary/20 via-accent/10 to-transparent rounded-full blur-3xl"
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ 
-          scale: phase === "expand" ? 3 : 1.5, 
-          opacity: phase === "expand" ? 0 : 0.6 
-        }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-      />
-
-      {/* Logo container */}
-      <motion.div
-        className="relative z-10 flex flex-col items-center"
-        initial={{ scale: 0.5, opacity: 0 }}
-        animate={{ 
-          scale: phase === "expand" ? 1.5 : 1, 
-          opacity: phase === "expand" ? 0 : 1,
-          y: phase === "expand" ? -50 : 0
-        }}
-        transition={{ 
-          duration: phase === "expand" ? 0.5 : 0.8, 
-          ease: "easeOut",
-          delay: phase === "logo" ? 0.2 : 0
-        }}
-      >
-        {/* Rotating ring */}
+    <AnimatePresence>
+      {isVisible && (
         <motion.div
-          className="absolute w-40 h-40 md:w-52 md:h-52 rounded-full border-2 border-primary/30"
-          initial={{ scale: 0, rotate: 0 }}
-          animate={{ 
-            scale: phase === "expand" ? 2 : 1, 
-            rotate: 360,
-            opacity: phase === "expand" ? 0 : 1
-          }}
-          transition={{ 
-            scale: { duration: 0.6, ease: "easeOut" },
-            rotate: { duration: 3, repeat: Infinity, ease: "linear" },
-            opacity: { duration: 0.3 }
-          }}
-        />
-        
-        {/* Second ring */}
-        <motion.div
-          className="absolute w-32 h-32 md:w-44 md:h-44 rounded-full border border-accent/20"
-          initial={{ scale: 0, rotate: 0 }}
-          animate={{ 
-            scale: phase === "expand" ? 2.5 : 1, 
-            rotate: -360,
-            opacity: phase === "expand" ? 0 : 1
-          }}
-          transition={{ 
-            scale: { duration: 0.5, ease: "easeOut", delay: 0.1 },
-            rotate: { duration: 4, repeat: Infinity, ease: "linear" },
-            opacity: { duration: 0.3 }
-          }}
-        />
-
-        {/* Logo */}
-        <motion.img
-          src={logo}
-          alt="Decouverts"
-          className="w-24 h-24 md:w-32 md:h-32 object-contain relative z-10"
-          initial={{ scale: 0, rotate: -180 }}
-          animate={{ 
-            scale: 1, 
-            rotate: 0,
-          }}
-          transition={{ 
-            duration: 0.8, 
-            ease: [0.34, 1.56, 0.64, 1], // Spring-like bounce
-            delay: 0.3
-          }}
-        />
-
-        {/* Brand name */}
-        <motion.h2
-          className="mt-6 text-2xl md:text-3xl font-bold text-foreground tracking-wider"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ 
-            opacity: phase === "expand" ? 0 : 1, 
-            y: 0 
-          }}
-          transition={{ duration: 0.5, delay: 0.8 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-white"
+          initial={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
         >
-          DECOUVERTS
-        </motion.h2>
+          {/* Background Design */}
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-[#f8f9fa] to-slate-100" />
+          
+          {/* Subtle Accents */}
+          <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,0.03),transparent_70%)]" />
+          <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-[radial-gradient(circle_at_bottom_left,rgba(71,85,105,0.03),transparent_70%)]" />
 
-        {/* Tagline */}
-        <motion.p
-          className="mt-2 text-sm md:text-base text-muted-foreground"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: phase === "expand" ? 0 : 1 }}
-          transition={{ duration: 0.5, delay: 1 }}
-        >
-          Engineering Excellence
-        </motion.p>
-      </motion.div>
+          {/* Technical Grid & Arcs */}
+          <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#000_1px,transparent_1px),linear-gradient(to_bottom,#000_1px,transparent_1px)] bg-[size:60px_60px]" />
+            <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+              <path d="M0 100 Q 30 70 100 0" stroke="currentColor" strokeWidth="0.5" fill="none" />
+            </svg>
+          </div>
 
-      {/* Particles burst on expand */}
-      <AnimatePresence>
-        {phase === "expand" && (
-          <>
-            {[...Array(12)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-2 h-2 rounded-full bg-primary/50"
-                initial={{ x: 0, y: 0, opacity: 1 }}
-                animate={{
-                  x: Math.cos((i * Math.PI * 2) / 12) * 200,
-                  y: Math.sin((i * Math.PI * 2) / 12) * 200,
-                  opacity: 0,
-                  scale: 0,
-                }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
-              />
-            ))}
-          </>
-        )}
-      </AnimatePresence>
-    </motion.div>
+          <div className="relative flex flex-col items-center z-10">
+            {/* Logo Container - Mathematically Centered */}
+            <div className="relative flex items-center justify-center w-32 h-32 md:w-40 md:h-40">
+               {/* Precision Ring Animation */}
+               <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
+                  <motion.circle
+                    cx="50"
+                    cy="50"
+                    r="46"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="0.8"
+                    className="text-orange-500"
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 0.3 }}
+                    transition={{ 
+                      duration: 0.6, 
+                      ease: "easeOut",
+                      delay: 0.2 
+                    }}
+                  />
+               </svg>
+
+               {/* Logo */}
+               <motion.img
+                 src={logo}
+                 alt="Decouverts"
+                 className="w-20 h-20 md:w-24 md:h-24 object-contain relative z-10"
+                 initial={{ opacity: 0, scale: 0.96 }}
+                 animate={{ opacity: 1, scale: 1 }}
+                 transition={{ duration: 0.4, ease: "easeOut" }}
+               />
+            </div>
+
+            {/* Text Container - Absolute to prevent layout shift */}
+            <div className="absolute top-full mt-4 flex flex-col items-center whitespace-nowrap">
+              <motion.h1
+                className="text-2xl md:text-3xl font-bold text-slate-900 tracking-[0.2em]"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: "easeOut", delay: 0.5 }}
+              >
+                DECOUVERTS
+              </motion.h1>
+              
+              <motion.p
+                className="text-xs md:text-sm text-slate-500 font-light tracking-widest uppercase mt-2"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, ease: "easeOut", delay: 0.7 }}
+              >
+                Engineering Excellence
+              </motion.p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
