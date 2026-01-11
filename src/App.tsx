@@ -36,6 +36,7 @@ import AdminOrders from "./pages/admin/Orders";
 import AdminReviews from "./pages/admin/Reviews";
 import AdminPromoCodes from "./pages/admin/PromoCodes";
 import Invoices from "./pages/admin/Invoices";
+import InvoiceSettings from "./pages/admin/InvoiceSettings";
 import Customers from "./pages/admin/Customers";
 import ActivityLogs from "./pages/admin/ActivityLogs";
 import AdminDesignRequests from "./pages/admin/DesignRequests";
@@ -93,6 +94,7 @@ const App = () => (
               <Route path="/admin/reviews" element={<ProtectedRoute requireAdmin><AdminLayout><AdminReviews /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/promo-codes" element={<ProtectedRoute requireAdmin><AdminLayout><AdminPromoCodes /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/invoices" element={<ProtectedRoute requireAdmin><AdminLayout><Invoices /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/invoice-settings" element={<ProtectedRoute requireAdmin><AdminLayout><InvoiceSettings /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/customers" element={<ProtectedRoute requireAdmin><AdminLayout><Customers /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/activity-logs" element={<ProtectedRoute requireAdmin><AdminLayout><ActivityLogs /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/design-requests" element={<ProtectedRoute requireAdmin><AdminLayout><AdminDesignRequests /></AdminLayout></ProtectedRoute>} />
