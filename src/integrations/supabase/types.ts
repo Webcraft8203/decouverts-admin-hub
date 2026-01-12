@@ -516,50 +516,143 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_settings: {
+        Row: {
+          business_address: string
+          business_city: string
+          business_country: string
+          business_email: string
+          business_gstin: string
+          business_logo_url: string | null
+          business_name: string
+          business_phone: string
+          business_pincode: string
+          business_state: string
+          created_at: string
+          default_gst_rate: number
+          id: string
+          invoice_prefix: string
+          platform_fee_percentage: number
+          platform_fee_taxable: boolean
+          terms_and_conditions: string
+          updated_at: string
+        }
+        Insert: {
+          business_address?: string
+          business_city?: string
+          business_country?: string
+          business_email?: string
+          business_gstin?: string
+          business_logo_url?: string | null
+          business_name?: string
+          business_phone?: string
+          business_pincode?: string
+          business_state?: string
+          created_at?: string
+          default_gst_rate?: number
+          id?: string
+          invoice_prefix?: string
+          platform_fee_percentage?: number
+          platform_fee_taxable?: boolean
+          terms_and_conditions?: string
+          updated_at?: string
+        }
+        Update: {
+          business_address?: string
+          business_city?: string
+          business_country?: string
+          business_email?: string
+          business_gstin?: string
+          business_logo_url?: string | null
+          business_name?: string
+          business_phone?: string
+          business_pincode?: string
+          business_state?: string
+          created_at?: string
+          default_gst_rate?: number
+          id?: string
+          invoice_prefix?: string
+          platform_fee_percentage?: number
+          platform_fee_taxable?: boolean
+          terms_and_conditions?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
+          buyer_gstin: string | null
+          buyer_state: string | null
+          cgst_amount: number | null
           client_address: string | null
           client_email: string | null
           client_name: string
           created_at: string
           created_by: string | null
+          gst_breakdown: Json | null
           id: string
+          igst_amount: number | null
           invoice_number: string
+          is_igst: boolean | null
           items: Json
           notes: string | null
           pdf_url: string | null
+          platform_fee: number | null
+          platform_fee_tax: number | null
+          seller_state: string | null
+          sgst_amount: number | null
           subtotal: number
           tax_amount: number
           total_amount: number
           updated_at: string
         }
         Insert: {
+          buyer_gstin?: string | null
+          buyer_state?: string | null
+          cgst_amount?: number | null
           client_address?: string | null
           client_email?: string | null
           client_name: string
           created_at?: string
           created_by?: string | null
+          gst_breakdown?: Json | null
           id?: string
+          igst_amount?: number | null
           invoice_number: string
+          is_igst?: boolean | null
           items?: Json
           notes?: string | null
           pdf_url?: string | null
+          platform_fee?: number | null
+          platform_fee_tax?: number | null
+          seller_state?: string | null
+          sgst_amount?: number | null
           subtotal?: number
           tax_amount?: number
           total_amount?: number
           updated_at?: string
         }
         Update: {
+          buyer_gstin?: string | null
+          buyer_state?: string | null
+          cgst_amount?: number | null
           client_address?: string | null
           client_email?: string | null
           client_name?: string
           created_at?: string
           created_by?: string | null
+          gst_breakdown?: Json | null
           id?: string
+          igst_amount?: number | null
           invoice_number?: string
+          is_igst?: boolean | null
           items?: Json
           notes?: string | null
           pdf_url?: string | null
+          platform_fee?: number | null
+          platform_fee_tax?: number | null
+          seller_state?: string | null
+          sgst_amount?: number | null
           subtotal?: number
           tax_amount?: number
           total_amount?: number
