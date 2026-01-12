@@ -711,11 +711,13 @@ export type Database = {
       orders: {
         Row: {
           address_id: string | null
+          buyer_gstin: string | null
           courier_name: string | null
           created_at: string
           design_request_id: string | null
           discount_amount: number | null
           expected_delivery_date: string | null
+          gst_breakdown: Json | null
           id: string
           invoice_url: string | null
           notes: string | null
@@ -738,11 +740,13 @@ export type Database = {
         }
         Insert: {
           address_id?: string | null
+          buyer_gstin?: string | null
           courier_name?: string | null
           created_at?: string
           design_request_id?: string | null
           discount_amount?: number | null
           expected_delivery_date?: string | null
+          gst_breakdown?: Json | null
           id?: string
           invoice_url?: string | null
           notes?: string | null
@@ -765,11 +769,13 @@ export type Database = {
         }
         Update: {
           address_id?: string | null
+          buyer_gstin?: string | null
           courier_name?: string | null
           created_at?: string
           design_request_id?: string | null
           discount_amount?: number | null
           expected_delivery_date?: string | null
+          gst_breakdown?: Json | null
           id?: string
           invoice_url?: string | null
           notes?: string | null
@@ -1056,6 +1062,7 @@ export type Database = {
           category_id: string | null
           created_at: string
           description: string | null
+          gst_percentage: number
           id: string
           images: string[] | null
           is_highlighted: boolean
@@ -1070,6 +1077,7 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           description?: string | null
+          gst_percentage?: number
           id?: string
           images?: string[] | null
           is_highlighted?: boolean
@@ -1084,6 +1092,7 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           description?: string | null
+          gst_percentage?: number
           id?: string
           images?: string[] | null
           is_highlighted?: boolean
