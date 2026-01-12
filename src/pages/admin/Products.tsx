@@ -39,6 +39,7 @@ interface Product {
   images: string[] | null;
   video_url: string | null;
   is_highlighted: boolean;
+  gst_percentage: number;
 }
 
 interface Category {
@@ -52,7 +53,7 @@ export default function Products() {
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [formData, setFormData] = useState({ name: "", description: "", price: "", category_id: "", stock_quantity: "", availability_status: "in_stock", is_highlighted: false, video_url: "" });
+  const [formData, setFormData] = useState({ name: "", description: "", price: "", category_id: "", stock_quantity: "", availability_status: "in_stock", is_highlighted: false, video_url: "", gst_percentage: "18" });
   const [productImages, setProductImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [videoUrlError, setVideoUrlError] = useState("");
@@ -126,7 +127,8 @@ export default function Products() {
       availability_status: formData.availability_status,
       images: productImages.length > 0 ? productImages : null,
       video_url: formData.video_url?.trim() || null,
-      is_highlighted: formData.is_highlighted
+      is_highlighted: formData.is_highlighted,
+      gst_percentage: parseFloat(formData.gst_percentage) || 18
     };
     
     if (editingProduct) {
@@ -162,7 +164,7 @@ export default function Products() {
   };
 
   const resetForm = () => { 
-    setFormData({ name: "", description: "", price: "", category_id: "", stock_quantity: "", availability_status: "in_stock", is_highlighted: false, video_url: "" }); 
+    setFormData({ name: "", description: "", price: "", category_id: "", stock_quantity: "", availability_status: "in_stock", is_highlighted: false, video_url: "", gst_percentage: "18" }); 
     setEditingProduct(null);
     setProductImages([]);
     setVideoUrlError("");
@@ -178,7 +180,8 @@ export default function Products() {
       stock_quantity: String(product.stock_quantity), 
       availability_status: product.availability_status,
       is_highlighted: product.is_highlighted,
-      video_url: product.video_url || ""
+      video_url: product.video_url || "",
+      gst_percentage: String(product.gst_percentage ?? 18)
     });
     setProductImages(product.images || []);
     setVideoUrlError("");
@@ -197,10 +200,34 @@ export default function Products() {
               <div><Label>Name</Label><Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required /></div>
               <div><Label>Description</Label><Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div><Label>Price (₹)</Label><Input type="number" step="0.01" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} required /></div>
+                <div><Label>Price (₹) - Base Price</Label><Input type="number" step="0.01" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} required /></div>
                 <div><Label>Stock Quantity</Label><Input type="number" value={formData.stock_quantity} onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })} required /></div>
               </div>
-              <div><Label>Category</Label><Select value={formData.category_id} onValueChange={(v) => setFormData({ ...formData, category_id: v })}><SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger><SelectContent>{categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select></div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>GST Percentage (%)</Label>
+                  <Select value={formData.gst_percentage} onValueChange={(v) => setFormData({ ...formData, gst_percentage: v })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select GST %" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">0% - Exempt</SelectItem>
+                      <SelectItem value="5">5% GST</SelectItem>
+                      <SelectItem value="12">12% GST</SelectItem>
+                      <SelectItem value="18">18% GST</SelectItem>
+                      <SelectItem value="28">28% GST</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">Tax rate applicable to this product</p>
+                </div>
+                <div>
+                  <Label>Category</Label>
+                  <Select value={formData.category_id} onValueChange={(v) => setFormData({ ...formData, category_id: v })}>
+                    <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+                    <SelectContent>{categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+              </div>
               <div><Label>Availability Status</Label><Select value={formData.availability_status} onValueChange={(v) => setFormData({ ...formData, availability_status: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="in_stock">In Stock</SelectItem><SelectItem value="low_stock">Low Stock</SelectItem><SelectItem value="out_of_stock">Out of Stock</SelectItem></SelectContent></Select></div>
               
               {/* Highlight Toggle */}
@@ -335,6 +362,7 @@ export default function Products() {
               <TableHead className="w-16">Image</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Price</TableHead>
+              <TableHead>GST %</TableHead>
               <TableHead>Stock</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-center">Featured</TableHead>
@@ -343,9 +371,9 @@ export default function Products() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-8">Loading...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center py-8">Loading...</TableCell></TableRow>
             ) : products.length === 0 ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No products yet</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No products yet</TableCell></TableRow>
             ) : products.map((p) => (
               <TableRow key={p.id}>
                 <TableCell>
@@ -358,7 +386,12 @@ export default function Products() {
                   )}
                 </TableCell>
                 <TableCell className="font-medium">{p.name}</TableCell>
-                <TableCell>₹{p.price}</TableCell>
+                <TableCell>₹{p.price.toLocaleString()}</TableCell>
+                <TableCell>
+                  <span className="px-2 py-1 rounded-full text-xs bg-muted text-muted-foreground">
+                    {p.gst_percentage ?? 18}%
+                  </span>
+                </TableCell>
                 <TableCell>{p.stock_quantity}</TableCell>
                 <TableCell>
                   <span className={`px-2 py-1 rounded-full text-xs ${

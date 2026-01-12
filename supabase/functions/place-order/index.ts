@@ -12,6 +12,7 @@ type PlaceOrderBody =
       addressId: string;
       promoCodeId?: string | null;
       discountAmount?: number;
+      buyerGstin?: string | null;
       payment: {
         method: "razorpay" | "cod";
         status: "paid" | "pending";
@@ -25,6 +26,7 @@ type PlaceOrderBody =
       quantity: number;
       promoCodeId?: string | null;
       discountAmount?: number;
+      buyerGstin?: string | null;
       payment: {
         method: "razorpay" | "cod";
         status: "paid" | "pending";
@@ -115,7 +117,7 @@ serve(async (req) => {
 
     const { data: products, error: productsError } = await supabase
       .from("products")
-      .select("id, name, price, stock_quantity, availability_status")
+      .select("id, name, price, stock_quantity, availability_status, gst_percentage")
       .in("id", productIds);
 
     if (productsError) throw productsError;
@@ -191,7 +193,36 @@ serve(async (req) => {
       }
     }
 
-    const totalAmount = subtotal - discountAmount;
+    // Calculate GST breakdown per item
+    const sellerState = "Maharashtra"; // Decouverts is based in Maharashtra
+    const buyerState = address.state || "";
+    const isIgst = buyerState.toLowerCase() !== sellerState.toLowerCase();
+    
+    let totalTaxAmount = 0;
+    const gstBreakdown = items.map((item) => {
+      const p = productsById.get(item.product_id)!;
+      const taxableValue = Number(p.price) * item.quantity;
+      const gstRate = Number(p.gst_percentage || 18);
+      const gstAmount = (taxableValue * gstRate) / 100;
+      
+      totalTaxAmount += gstAmount;
+      
+      return {
+        product_id: p.id,
+        product_name: p.name,
+        taxable_value: taxableValue,
+        gst_rate: gstRate,
+        cgst_rate: isIgst ? 0 : gstRate / 2,
+        sgst_rate: isIgst ? 0 : gstRate / 2,
+        igst_rate: isIgst ? gstRate : 0,
+        cgst_amount: isIgst ? 0 : gstAmount / 2,
+        sgst_amount: isIgst ? 0 : gstAmount / 2,
+        igst_amount: isIgst ? gstAmount : 0,
+        total_gst: gstAmount,
+      };
+    });
+
+    const totalAmount = subtotal - discountAmount + totalTaxAmount;
 
     // Create order
     const { data: orderNumberRow, error: orderNumberError } = await supabase.rpc("generate_order_number");
@@ -216,7 +247,7 @@ serve(async (req) => {
           country: address.country,
         },
         subtotal,
-        tax_amount: 0,
+        tax_amount: totalTaxAmount,
         shipping_amount: 0,
         discount_amount: discountAmount,
         promo_code_id: promoCodeId,
@@ -224,6 +255,8 @@ serve(async (req) => {
         status: "pending",
         payment_status: body.payment?.status ?? "pending",
         payment_id: body.payment?.paymentId ?? null,
+        buyer_gstin: body.buyerGstin || null,
+        gst_breakdown: gstBreakdown,
       })
       .select("id, order_number")
       .single();

@@ -77,6 +77,7 @@ interface CartItemWithProduct {
     stock_quantity: number;
     availability_status: string;
     description: string | null;
+    gst_percentage: number;
   };
 }
 
@@ -93,6 +94,11 @@ const Checkout = () => {
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [step, setStep] = useState<"address" | "review" | "payment">("address");
   const [paymentMethod, setPaymentMethod] = useState<"razorpay" | "cod">("razorpay");
+  
+  // GSTIN state
+  const [hasGstin, setHasGstin] = useState(false);
+  const [buyerGstin, setBuyerGstin] = useState("");
+  const [gstinError, setGstinError] = useState("");
   
   // Promo code state
   const [promoCode, setPromoCode] = useState("");
@@ -151,7 +157,7 @@ const Checkout = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("*, categories(name)")
+        .select("*, categories(name), gst_percentage")
         .eq("id", productId)
         .single();
 
@@ -251,6 +257,13 @@ const Checkout = () => {
   const discountAmount = calculateDiscount();
   const totalAmount = subtotalAmount - discountAmount;
 
+  // Validate GSTIN format (15 digits alphanumeric)
+  const validateGstin = (gstin: string): boolean => {
+    if (!gstin) return true;
+    const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+    return gstinRegex.test(gstin.toUpperCase());
+  };
+
   // Get items for display and order creation
   const checkoutItems = isCartCheckout
     ? cartItems?.map(item => ({
@@ -263,6 +276,7 @@ const Checkout = () => {
         stock_quantity: item.products.stock_quantity,
         availability_status: item.products.availability_status,
         description: item.products.description,
+        gst_percentage: item.products.gst_percentage ?? 18,
       })) || []
     : product ? [{
         product_id: product.id,
@@ -274,6 +288,7 @@ const Checkout = () => {
         stock_quantity: product.stock_quantity,
         availability_status: product.availability_status,
         description: product.description,
+        gst_percentage: product.gst_percentage ?? 18,
       }] : [];
 
   const isLoading = isCartCheckout ? cartLoading : productLoading;
@@ -286,6 +301,10 @@ const Checkout = () => {
     }
     if (!selectedAddress.phone || !/^[6-9]\d{9}$/.test(selectedAddress.phone)) {
       return { valid: false, message: "Selected address has an invalid phone number" };
+    }
+    // Validate GSTIN if checkbox is checked
+    if (hasGstin && buyerGstin && !validateGstin(buyerGstin)) {
+      return { valid: false, message: "Please enter a valid 15-digit GSTIN" };
     }
     return { valid: true };
   };
@@ -401,6 +420,7 @@ const Checkout = () => {
       payment: paymentPayload,
       promoCodeId: appliedPromo?.id || null,
       discountAmount: discountAmount,
+      buyerGstin: hasGstin && buyerGstin ? buyerGstin.toUpperCase() : null,
     };
 
     const body = isCartCheckout
@@ -512,6 +532,7 @@ const Checkout = () => {
                 productId: isCartCheckout ? undefined : checkoutItems[0]?.product_id,
                 quantity: isCartCheckout ? undefined : checkoutItems[0]?.quantity,
                 promoCodeId: appliedPromo?.id || null,
+                buyerGstin: hasGstin && buyerGstin ? buyerGstin.toUpperCase() : null,
               },
             });
 
@@ -883,7 +904,60 @@ const Checkout = () => {
                       </DialogContent>
                     </Dialog>
 
-                    <Button onClick={handleProceedToReview} className="w-full" disabled={!selectedAddressId}>
+                    {/* GSTIN Section */}
+                    <div className="border-t pt-4 mt-4">
+                      <div className="flex items-start gap-3 p-4 border rounded-lg bg-muted/30">
+                        <input
+                          type="checkbox"
+                          id="has-gstin"
+                          checked={hasGstin}
+                          onChange={(e) => {
+                            setHasGstin(e.target.checked);
+                            if (!e.target.checked) {
+                              setBuyerGstin("");
+                              setGstinError("");
+                            }
+                          }}
+                          className="mt-1"
+                        />
+                        <label htmlFor="has-gstin" className="flex-1 cursor-pointer">
+                          <p className="font-medium text-sm">I have a GST number (for business purchase)</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Enter your GSTIN to get a GST-compliant invoice for tax credit
+                          </p>
+                        </label>
+                      </div>
+                      
+                      {hasGstin && (
+                        <div className="mt-3 space-y-2">
+                          <Label htmlFor="gstin">GSTIN (15-digit)</Label>
+                          <Input
+                            id="gstin"
+                            placeholder="e.g., 27AABCU9603R1ZM"
+                            value={buyerGstin}
+                            onChange={(e) => {
+                              const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 15);
+                              setBuyerGstin(value);
+                              if (value && !validateGstin(value)) {
+                                setGstinError("Invalid GSTIN format");
+                              } else {
+                                setGstinError("");
+                              }
+                            }}
+                            className={gstinError ? "border-destructive" : ""}
+                            maxLength={15}
+                          />
+                          {gstinError && (
+                            <p className="text-xs text-destructive">{gstinError}</p>
+                          )}
+                          <p className="text-xs text-muted-foreground">
+                            Format: 2 digits (state) + 10 char PAN + 1 entity + 1 digit + Z + 1 check digit
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    <Button onClick={handleProceedToReview} className="w-full" disabled={!selectedAddressId || (hasGstin && gstinError !== "")}>
                       Continue to Review
                     </Button>
                   </CardContent>
