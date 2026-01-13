@@ -129,6 +129,21 @@ serve(async (req) => {
       });
     }
 
+    // Fetch invoice settings for platform fee and seller state
+    const { data: invoiceSettings, error: settingsError } = await supabase
+      .from("invoice_settings")
+      .select("platform_fee_percentage, platform_fee_taxable, business_state")
+      .limit(1)
+      .single();
+
+    if (settingsError) {
+      console.error("Error fetching invoice settings:", settingsError);
+    }
+
+    const platformFeePercentage = invoiceSettings?.platform_fee_percentage ?? 2;
+    const platformFeeTaxable = invoiceSettings?.platform_fee_taxable ?? false;
+    const sellerState = invoiceSettings?.business_state || "Maharashtra";
+
     // Load address (must belong to the user)
     const { data: address, error: addressError } = await supabase
       .from("user_addresses")
@@ -139,6 +154,9 @@ serve(async (req) => {
 
     if (addressError) throw addressError;
     if (!address) throw new Error("Address not found");
+
+    const buyerState = address.state || "";
+    const isIgst = buyerState.toLowerCase() !== sellerState.toLowerCase();
 
     // Load items
     let items: Array<{ product_id: string; quantity: number }> = [];
@@ -172,12 +190,47 @@ serve(async (req) => {
     const productsById = new Map((products || []).map((p) => [p.id, p]));
 
     let subtotal = 0;
+    let totalGstAmount = 0;
+    const gstBreakdown: Array<{
+      product_id: string;
+      product_name: string;
+      taxable_value: number;
+      gst_rate: number;
+      cgst_rate: number;
+      sgst_rate: number;
+      igst_rate: number;
+      cgst_amount: number;
+      sgst_amount: number;
+      igst_amount: number;
+      total_gst: number;
+    }> = [];
+
     for (const item of items) {
       const p = productsById.get(item.product_id);
       if (!p) throw new Error("Product not found");
       if (p.availability_status === "out_of_stock") throw new Error(`${p.name} is out of stock`);
       if (p.stock_quantity < item.quantity) throw new Error(`Only ${p.stock_quantity} of ${p.name} available`);
-      subtotal += Number(p.price) * item.quantity;
+      
+      const taxableValue = Number(p.price) * item.quantity;
+      const gstRate = Number(p.gst_percentage) || 18;
+      const gstAmount = (taxableValue * gstRate) / 100;
+      
+      subtotal += taxableValue;
+      totalGstAmount += gstAmount;
+
+      gstBreakdown.push({
+        product_id: p.id,
+        product_name: p.name,
+        taxable_value: taxableValue,
+        gst_rate: gstRate,
+        cgst_rate: isIgst ? 0 : gstRate / 2,
+        sgst_rate: isIgst ? 0 : gstRate / 2,
+        igst_rate: isIgst ? gstRate : 0,
+        cgst_amount: isIgst ? 0 : gstAmount / 2,
+        sgst_amount: isIgst ? 0 : gstAmount / 2,
+        igst_amount: isIgst ? gstAmount : 0,
+        total_gst: gstAmount,
+      });
     }
 
     // Handle promo code discount (if provided)
@@ -222,36 +275,33 @@ serve(async (req) => {
       }
     }
 
-    // Calculate GST breakdown per item
-    const sellerState = "Maharashtra"; // Decouverts is based in Maharashtra
-    const buyerState = address.state || "";
-    const isIgst = buyerState.toLowerCase() !== sellerState.toLowerCase();
+    // Calculate platform fee (2% of subtotal after discount)
+    const subtotalAfterDiscount = subtotal - discountAmount;
+    const platformFee = Math.round((subtotalAfterDiscount * platformFeePercentage) / 100 * 100) / 100;
     
-    let totalTaxAmount = 0;
-    const gstBreakdown = items.map((item) => {
-      const p = productsById.get(item.product_id)!;
-      const taxableValue = Number(p.price) * item.quantity;
-      const gstRate = Number(p.gst_percentage || 18);
-      const gstAmount = (taxableValue * gstRate) / 100;
-      
-      totalTaxAmount += gstAmount;
-      
-      return {
-        product_id: p.id,
-        product_name: p.name,
-        taxable_value: taxableValue,
-        gst_rate: gstRate,
-        cgst_rate: isIgst ? 0 : gstRate / 2,
-        sgst_rate: isIgst ? 0 : gstRate / 2,
-        igst_rate: isIgst ? gstRate : 0,
-        cgst_amount: isIgst ? 0 : gstAmount / 2,
-        sgst_amount: isIgst ? 0 : gstAmount / 2,
-        igst_amount: isIgst ? gstAmount : 0,
-        total_gst: gstAmount,
-      };
-    });
+    // Platform fee tax (if taxable)
+    const platformFeeTax = platformFeeTaxable ? Math.round(platformFee * 0.18 * 100) / 100 : 0;
 
-    const totalAmount = subtotal - discountAmount + totalTaxAmount;
+    // Calculate totals
+    const totalCgst = gstBreakdown.reduce((sum, item) => sum + item.cgst_amount, 0);
+    const totalSgst = gstBreakdown.reduce((sum, item) => sum + item.sgst_amount, 0);
+    const totalIgst = gstBreakdown.reduce((sum, item) => sum + item.igst_amount, 0);
+
+    // Grand Total = Subtotal - Discount + GST + Platform Fee + Platform Fee Tax
+    const grandTotal = subtotalAfterDiscount + totalGstAmount + platformFee + platformFeeTax;
+
+    console.log("Order calculation:", {
+      subtotal,
+      discountAmount,
+      subtotalAfterDiscount,
+      totalGstAmount,
+      totalCgst,
+      totalSgst,
+      totalIgst,
+      platformFee,
+      platformFeeTax,
+      grandTotal,
+    });
 
     // Create order
     const { data: orderNumberRow, error: orderNumberError } = await supabase.rpc("generate_order_number");
@@ -275,17 +325,28 @@ serve(async (req) => {
           postal_code: address.postal_code,
           country: address.country,
         },
-        subtotal,
-        tax_amount: totalTaxAmount,
+        subtotal: subtotal,
+        tax_amount: totalGstAmount,
         shipping_amount: 0,
         discount_amount: discountAmount,
         promo_code_id: promoCodeId,
-        total_amount: totalAmount,
+        total_amount: grandTotal,
         status: "pending",
         payment_status: "paid",
         payment_id: body.razorpay_payment_id,
         buyer_gstin: body.buyerGstin || null,
-        gst_breakdown: gstBreakdown,
+        gst_breakdown: {
+          items: gstBreakdown,
+          totals: {
+            cgst: totalCgst,
+            sgst: totalSgst,
+            igst: totalIgst,
+            total_gst: totalGstAmount,
+            platform_fee: platformFee,
+            platform_fee_tax: platformFeeTax,
+            is_igst: isIgst,
+          }
+        },
       })
       .select("id, order_number")
       .single();
@@ -328,7 +389,7 @@ serve(async (req) => {
       if (clearError) throw clearError;
     }
 
-    console.log("Order created successfully:", newOrder.order_number);
+    console.log("Order created successfully:", newOrder.order_number, "Total:", grandTotal);
 
     return new Response(JSON.stringify({ orderId: newOrder.id, orderNumber: newOrder.order_number }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

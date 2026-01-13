@@ -111,6 +111,20 @@ const Checkout = () => {
   } | null>(null);
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoError, setPromoError] = useState("");
+  
+  // GST and pricing state (calculated from server)
+  const [calculatedPricing, setCalculatedPricing] = useState<{
+    subtotal: number;
+    discount: number;
+    cgst: number;
+    sgst: number;
+    igst: number;
+    totalTax: number;
+    platformFee: number;
+    platformFeeTax: number;
+    grandTotal: number;
+    isIgst: boolean;
+  } | null>(null);
 
   const isCartCheckout = productId === "cart";
 
@@ -255,7 +269,33 @@ const Checkout = () => {
   };
 
   const discountAmount = calculateDiscount();
-  const totalAmount = subtotalAmount - discountAmount;
+  
+  // Calculate GST amounts for frontend display (approximate - server is authoritative)
+  const calculateGstAmounts = () => {
+    const sellerState = "Maharashtra"; // Decouverts is based in Maharashtra
+    const buyerState = selectedAddress?.state || "";
+    const isIgst = buyerState && buyerState.toLowerCase() !== sellerState.toLowerCase();
+    
+    let totalGst = 0;
+    checkoutItems.forEach(item => {
+      const gstRate = item.gst_percentage ?? 18;
+      const gstAmount = (item.total_price * gstRate) / 100;
+      totalGst += gstAmount;
+    });
+    
+    const cgst = isIgst ? 0 : totalGst / 2;
+    const sgst = isIgst ? 0 : totalGst / 2;
+    const igst = isIgst ? totalGst : 0;
+    
+    // Platform fee: 2% of subtotal after discount
+    const subtotalAfterDiscount = subtotalAmount - discountAmount;
+    const platformFee = Math.round((subtotalAfterDiscount * 2) / 100 * 100) / 100;
+    
+    return { totalGst, cgst, sgst, igst, isIgst, platformFee };
+  };
+  
+  const gstAmounts = calculateGstAmounts();
+  const totalAmount = subtotalAmount - discountAmount + gstAmounts.totalGst + gstAmounts.platformFee;
 
   // Validate GSTIN format (15 digits alphanumeric)
   const validateGstin = (gstin: string): boolean => {
@@ -497,7 +537,7 @@ const Checkout = () => {
         }
       }
 
-      // Create Razorpay order - amount calculated server-side for security
+      // Create Razorpay order - amount calculated server-side for security (includes GST + platform fee)
       const { data: orderData, error: orderError } = await supabase.functions.invoke(
         "create-razorpay-order",
         {
@@ -506,11 +546,28 @@ const Checkout = () => {
             productId: isCartCheckout ? undefined : checkoutItems[0]?.product_id,
             quantity: isCartCheckout ? undefined : checkoutItems[0]?.quantity,
             promoCodeId: appliedPromo?.id || null,
+            addressId: selectedAddress.id, // Required for GST calculation (buyer state)
           },
         }
       );
 
       if (orderError) throw orderError;
+      
+      // Update calculated pricing from server response
+      if (orderData.calculatedTotal) {
+        setCalculatedPricing({
+          subtotal: orderData.calculatedSubtotal,
+          discount: orderData.calculatedDiscount,
+          cgst: orderData.calculatedCgst,
+          sgst: orderData.calculatedSgst,
+          igst: orderData.calculatedIgst,
+          totalTax: orderData.calculatedTax,
+          platformFee: orderData.calculatedPlatformFee,
+          platformFeeTax: orderData.calculatedPlatformFeeTax,
+          grandTotal: orderData.calculatedTotal,
+          isIgst: orderData.isIgst,
+        });
+      }
 
       const options = {
         key: orderData.keyId,
@@ -1274,14 +1331,43 @@ const Checkout = () => {
                             <span className="text-green-600">-₹{discountAmount.toLocaleString()}</span>
                           </div>
                         )}
+                        
+                        {/* GST Breakdown */}
+                        {gstAmounts.isIgst ? (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">IGST</span>
+                            <span>₹{gstAmounts.igst.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-muted-foreground">CGST</span>
+                              <span>₹{gstAmounts.cgst.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-muted-foreground">SGST</span>
+                              <span>₹{gstAmounts.sgst.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            </div>
+                          </>
+                        )}
+                        
+                        {/* Platform Fee */}
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Platform Fee (2%)</span>
+                          <span>₹{gstAmounts.platformFee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                        
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">Shipping</span>
                           <span className="text-green-600">Free</span>
                         </div>
                         <div className="flex justify-between font-bold text-lg pt-2 border-t">
-                          <span>Total</span>
-                          <span className="text-primary">₹{totalAmount.toLocaleString()}</span>
+                          <span>Grand Total</span>
+                          <span className="text-primary">₹{totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>
+                        <p className="text-xs text-muted-foreground">
+                          (Includes GST of ₹{gstAmounts.totalGst.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
+                        </p>
                       </div>
                     </>
                   ) : (

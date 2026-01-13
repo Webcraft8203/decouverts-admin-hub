@@ -11,6 +11,7 @@ interface CreateOrderBody {
   productId?: string;
   quantity?: number;
   promoCodeId?: string | null;
+  addressId?: string; // Required for GST calculation
 }
 
 serve(async (req) => {
@@ -50,6 +51,21 @@ serve(async (req) => {
 
     console.log("Creating Razorpay order for user:", user.id, "mode:", body.checkoutMode);
 
+    // Fetch invoice settings for platform fee and seller state
+    const { data: invoiceSettings, error: settingsError } = await supabase
+      .from("invoice_settings")
+      .select("platform_fee_percentage, platform_fee_taxable, business_state")
+      .limit(1)
+      .single();
+
+    if (settingsError) {
+      console.error("Error fetching invoice settings:", settingsError);
+    }
+
+    const platformFeePercentage = invoiceSettings?.platform_fee_percentage ?? 2;
+    const platformFeeTaxable = invoiceSettings?.platform_fee_taxable ?? false;
+    const sellerState = invoiceSettings?.business_state || "Maharashtra";
+
     // SECURITY: Calculate amount server-side from database prices
     let items: Array<{ product_id: string; quantity: number }> = [];
     
@@ -71,12 +87,12 @@ serve(async (req) => {
       items = [{ product_id: body.productId, quantity }];
     }
 
-    // Fetch products from database to get ACTUAL prices
+    // Fetch products from database to get ACTUAL prices and GST percentages
     const productIds = [...new Set(items.map((i) => i.product_id))];
     
     const { data: products, error: productsError } = await supabase
       .from("products")
-      .select("id, name, price, stock_quantity, availability_status")
+      .select("id, name, price, stock_quantity, availability_status, gst_percentage")
       .in("id", productIds);
 
     if (productsError) throw productsError;
@@ -86,9 +102,40 @@ serve(async (req) => {
 
     const productsById = new Map(products.map((p) => [p.id, p]));
 
-    // Validate stock and calculate subtotal from DATABASE prices
+    // Get buyer state from address (if provided)
+    let buyerState = "";
+    if (body.addressId) {
+      const { data: address, error: addressError } = await supabase
+        .from("user_addresses")
+        .select("state")
+        .eq("id", body.addressId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!addressError && address) {
+        buyerState = address.state || "";
+      }
+    }
+
+    const isIgst = buyerState && buyerState.toLowerCase() !== sellerState.toLowerCase();
+
+    // Validate stock and calculate subtotal + GST from DATABASE prices
     let subtotal = 0;
-    const orderItems: Array<{ name: string; qty: number; price: number }> = [];
+    let totalGstAmount = 0;
+    const orderItems: Array<{ name: string; qty: number; price: number; gst: number }> = [];
+    const gstBreakdown: Array<{
+      product_id: string;
+      product_name: string;
+      taxable_value: number;
+      gst_rate: number;
+      cgst_rate: number;
+      sgst_rate: number;
+      igst_rate: number;
+      cgst_amount: number;
+      sgst_amount: number;
+      igst_amount: number;
+      total_gst: number;
+    }> = [];
     
     for (const item of items) {
       const p = productsById.get(item.product_id);
@@ -100,9 +147,33 @@ serve(async (req) => {
         throw new Error(`Only ${p.stock_quantity} of ${p.name} available`);
       }
       
-      const itemTotal = Number(p.price) * item.quantity;
-      subtotal += itemTotal;
-      orderItems.push({ name: p.name, qty: item.quantity, price: Number(p.price) });
+      const taxableValue = Number(p.price) * item.quantity;
+      const gstRate = Number(p.gst_percentage) || 18;
+      const gstAmount = (taxableValue * gstRate) / 100;
+      
+      subtotal += taxableValue;
+      totalGstAmount += gstAmount;
+      
+      orderItems.push({ 
+        name: p.name, 
+        qty: item.quantity, 
+        price: Number(p.price),
+        gst: gstAmount
+      });
+
+      gstBreakdown.push({
+        product_id: p.id,
+        product_name: p.name,
+        taxable_value: taxableValue,
+        gst_rate: gstRate,
+        cgst_rate: isIgst ? 0 : gstRate / 2,
+        sgst_rate: isIgst ? 0 : gstRate / 2,
+        igst_rate: isIgst ? gstRate : 0,
+        cgst_amount: isIgst ? 0 : gstAmount / 2,
+        sgst_amount: isIgst ? 0 : gstAmount / 2,
+        igst_amount: isIgst ? gstAmount : 0,
+        total_gst: gstAmount,
+      });
     }
 
     // Handle promo code discount (if provided)
@@ -135,16 +206,41 @@ serve(async (req) => {
       }
     }
 
-    const totalAmount = subtotal - discountAmount;
+    // Calculate platform fee (2% of subtotal after discount)
+    const subtotalAfterDiscount = subtotal - discountAmount;
+    const platformFee = Math.round((subtotalAfterDiscount * platformFeePercentage) / 100 * 100) / 100;
+    
+    // Platform fee tax (if taxable)
+    const platformFeeTax = platformFeeTaxable ? Math.round(platformFee * 0.18 * 100) / 100 : 0;
+
+    // Calculate totals
+    const totalCgst = gstBreakdown.reduce((sum, item) => sum + item.cgst_amount, 0);
+    const totalSgst = gstBreakdown.reduce((sum, item) => sum + item.sgst_amount, 0);
+    const totalIgst = gstBreakdown.reduce((sum, item) => sum + item.igst_amount, 0);
+
+    // Grand Total = Subtotal - Discount + GST + Platform Fee + Platform Fee Tax
+    const grandTotal = subtotalAfterDiscount + totalGstAmount + platformFee + platformFeeTax;
     
     // Amount in paise (multiply by 100)
-    const amountInPaise = Math.round(totalAmount * 100);
+    const amountInPaise = Math.round(grandTotal * 100);
 
     if (amountInPaise < 100) {
       throw new Error("Order amount must be at least ₹1");
     }
 
-    console.log("Calculated amount:", subtotal, "Discount:", discountAmount, "Total:", totalAmount, "Paise:", amountInPaise);
+    console.log("Calculation breakdown:", {
+      subtotal,
+      discountAmount,
+      subtotalAfterDiscount,
+      totalGstAmount,
+      totalCgst,
+      totalSgst,
+      totalIgst,
+      platformFee,
+      platformFeeTax,
+      grandTotal,
+      amountInPaise
+    });
 
     // Create order with Razorpay using SERVER-CALCULATED amount
     const auth = btoa(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`);
@@ -163,6 +259,16 @@ serve(async (req) => {
           userId: user.id,
           checkoutMode: body.checkoutMode,
           itemCount: items.length,
+          subtotal: subtotal.toFixed(2),
+          discount: discountAmount.toFixed(2),
+          gst: totalGstAmount.toFixed(2),
+          cgst: totalCgst.toFixed(2),
+          sgst: totalSgst.toFixed(2),
+          igst: totalIgst.toFixed(2),
+          platformFee: platformFee.toFixed(2),
+          platformFeeTax: platformFeeTax.toFixed(2),
+          grandTotal: grandTotal.toFixed(2),
+          isIgst: isIgst ? "true" : "false",
         },
       }),
     });
@@ -175,7 +281,7 @@ serve(async (req) => {
 
     const order = await orderResponse.json();
 
-    console.log("Razorpay order created:", order.id);
+    console.log("Razorpay order created:", order.id, "Amount:", amountInPaise);
 
     return new Response(
       JSON.stringify({
@@ -186,7 +292,15 @@ serve(async (req) => {
         // Return calculated values for frontend display
         calculatedSubtotal: subtotal,
         calculatedDiscount: discountAmount,
-        calculatedTotal: totalAmount,
+        calculatedTax: totalGstAmount,
+        calculatedCgst: totalCgst,
+        calculatedSgst: totalSgst,
+        calculatedIgst: totalIgst,
+        calculatedPlatformFee: platformFee,
+        calculatedPlatformFeeTax: platformFeeTax,
+        calculatedTotal: grandTotal,
+        isIgst: isIgst,
+        gstBreakdown: gstBreakdown,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
