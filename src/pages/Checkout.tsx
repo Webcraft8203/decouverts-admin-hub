@@ -269,33 +269,6 @@ const Checkout = () => {
   };
 
   const discountAmount = calculateDiscount();
-  
-  // Calculate GST amounts for frontend display (approximate - server is authoritative)
-  const calculateGstAmounts = () => {
-    const sellerState = "Maharashtra"; // Decouverts is based in Maharashtra
-    const buyerState = selectedAddress?.state || "";
-    const isIgst = buyerState && buyerState.toLowerCase() !== sellerState.toLowerCase();
-    
-    let totalGst = 0;
-    checkoutItems.forEach(item => {
-      const gstRate = item.gst_percentage ?? 18;
-      const gstAmount = (item.total_price * gstRate) / 100;
-      totalGst += gstAmount;
-    });
-    
-    const cgst = isIgst ? 0 : totalGst / 2;
-    const sgst = isIgst ? 0 : totalGst / 2;
-    const igst = isIgst ? totalGst : 0;
-    
-    // Platform fee: 2% of subtotal after discount
-    const subtotalAfterDiscount = subtotalAmount - discountAmount;
-    const platformFee = Math.round((subtotalAfterDiscount * 2) / 100 * 100) / 100;
-    
-    return { totalGst, cgst, sgst, igst, isIgst, platformFee };
-  };
-  
-  const gstAmounts = calculateGstAmounts();
-  const totalAmount = subtotalAmount - discountAmount + gstAmounts.totalGst + gstAmounts.platformFee;
 
   // Validate GSTIN format (15 digits alphanumeric)
   const validateGstin = (gstin: string): boolean => {
@@ -333,6 +306,33 @@ const Checkout = () => {
 
   const isLoading = isCartCheckout ? cartLoading : productLoading;
   const hasItems = checkoutItems.length > 0;
+  
+  // Calculate GST amounts for frontend display (approximate - server is authoritative)
+  const calculateGstAmounts = () => {
+    const sellerState = "Maharashtra"; // Decouverts is based in Maharashtra
+    const buyerState = selectedAddress?.state || "";
+    const isIgst = buyerState && buyerState.toLowerCase() !== sellerState.toLowerCase();
+    
+    let totalGst = 0;
+    checkoutItems.forEach(item => {
+      const gstRate = item.gst_percentage ?? 18;
+      const gstAmount = (item.total_price * gstRate) / 100;
+      totalGst += gstAmount;
+    });
+    
+    const cgst = isIgst ? 0 : totalGst / 2;
+    const sgst = isIgst ? 0 : totalGst / 2;
+    const igst = isIgst ? totalGst : 0;
+    
+    // Platform fee: 2% of subtotal after discount
+    const subtotalAfterDiscount = subtotalAmount - discountAmount;
+    const platformFee = Math.round((subtotalAfterDiscount * 2) / 100 * 100) / 100;
+    
+    return { totalGst, cgst, sgst, igst, isIgst, platformFee };
+  };
+  
+  const gstAmounts = calculateGstAmounts();
+  const totalAmount = subtotalAmount - discountAmount + gstAmounts.totalGst + gstAmounts.platformFee;
 
   // Validation checks
   const canProceedToReview = (): { valid: boolean; message?: string } => {
