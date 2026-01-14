@@ -49,7 +49,13 @@ const statusLabels: Record<string, string> = {
 const OrderDetails = () => {
   const { orderId } = useParams();
   const { user, isLoading: authLoading } = useAuth();
-  const { downloadInvoice, isDownloading, generateInvoice, isGenerating } = useInvoiceDownload();
+  const { 
+    downloadProformaInvoice, 
+    downloadFinalInvoice, 
+    isDownloading, 
+    generateProformaInvoice, 
+    isGenerating 
+  } = useInvoiceDownload();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -67,6 +73,13 @@ const OrderDetails = () => {
         .eq("id", orderId)
         .eq("user_id", user!.id)
         .maybeSingle();
+
+      if (error) throw error;
+      return data as typeof data & {
+        proforma_invoice_url?: string;
+        final_invoice_url?: string;
+        delivered_at?: string;
+      };
 
       if (error) throw error;
       return data;
@@ -352,30 +365,77 @@ const OrderDetails = () => {
                       </span>
                     )}
                   </div>
-                  {order.invoice_url ? (
-                    <Button
-                      variant="outline"
-                      className="w-full mt-4"
-                      onClick={() => downloadInvoice(order.id)}
-                      disabled={isDownloading}
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      {isDownloading ? "Downloading..." : "Download Invoice"}
-                    </Button>
-                  ) : order.payment_status === "paid" ? (
-                    <Button
-                      variant="outline"
-                      className="w-full mt-4"
-                      onClick={async () => {
-                        const success = await generateInvoice(order.id);
-                        if (success) await downloadInvoice(order.id);
-                      }}
-                      disabled={isGenerating}
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      {isGenerating ? "Generating..." : "Generate & Download"}
-                    </Button>
-                  ) : null}
+                  
+                  {/* Invoice Downloads Section */}
+                  <div className="pt-4 space-y-3">
+                    <h4 className="text-sm font-medium text-muted-foreground">Invoices</h4>
+                    
+                    {/* Proforma Invoice */}
+                    {order.proforma_invoice_url || order.invoice_url ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                        onClick={() => downloadProformaInvoice(order.id)}
+                        disabled={isDownloading}
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        <div className="flex-1 text-left">
+                          <span className="block text-xs text-muted-foreground">Temporary</span>
+                          <span>{isDownloading ? "Downloading..." : "Proforma Invoice"}</span>
+                        </div>
+                        <Badge variant="outline" className="bg-warning/10 text-warning text-xs">
+                          Proforma
+                        </Badge>
+                      </Button>
+                    ) : order.payment_status === "paid" ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                        onClick={async () => {
+                          const success = await generateProformaInvoice(order.id);
+                          if (success) await downloadProformaInvoice(order.id);
+                        }}
+                        disabled={isGenerating}
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        <span>{isGenerating ? "Generating..." : "Generate Proforma"}</span>
+                      </Button>
+                    ) : null}
+
+                    {/* Final Tax Invoice */}
+                    {order.status === "delivered" && order.final_invoice_url ? (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="w-full justify-start"
+                        onClick={() => downloadFinalInvoice(order.id)}
+                        disabled={isDownloading}
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        <div className="flex-1 text-left">
+                          <span className="block text-xs opacity-80">Final</span>
+                          <span>{isDownloading ? "Downloading..." : "Tax Invoice"}</span>
+                        </div>
+                        <Badge className="bg-success/20 text-success text-xs">
+                          Final
+                        </Badge>
+                      </Button>
+                    ) : order.status === "delivered" && !order.final_invoice_url ? (
+                      <div className="p-3 bg-muted rounded-lg text-center">
+                        <p className="text-xs text-muted-foreground">
+                          Final Tax Invoice being generated...
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="p-3 bg-muted rounded-lg text-center">
+                        <p className="text-xs text-muted-foreground">
+                          Final Tax Invoice will be available after delivery
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
 

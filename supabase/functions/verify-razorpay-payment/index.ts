@@ -391,6 +391,31 @@ serve(async (req) => {
 
     console.log("Order created successfully:", newOrder.order_number, "Total:", grandTotal);
 
+    // Generate proforma invoice in the background
+    console.log("Triggering proforma invoice generation for order:", newOrder.id);
+    try {
+      const invoiceResponse = await fetch(`${supabaseUrl}/functions/v1/generate-invoice`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${supabaseServiceKey}`,
+        },
+        body: JSON.stringify({ 
+          orderId: newOrder.id, 
+          invoiceType: "proforma" 
+        }),
+      });
+      
+      if (invoiceResponse.ok) {
+        console.log("Proforma invoice generated successfully");
+      } else {
+        console.error("Failed to generate proforma invoice:", await invoiceResponse.text());
+      }
+    } catch (invoiceError) {
+      console.error("Error generating proforma invoice:", invoiceError);
+      // Don't throw - order was successful, invoice can be regenerated
+    }
+
     return new Response(JSON.stringify({ orderId: newOrder.id, orderNumber: newOrder.order_number }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

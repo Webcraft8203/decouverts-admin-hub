@@ -19,6 +19,11 @@ const formatDate = (dateStr: string): string => {
   });
 };
 
+interface InvoiceRequest {
+  orderId: string;
+  invoiceType?: "proforma" | "final"; // Default is proforma
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -29,13 +34,14 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { orderId } = await req.json();
+    const { orderId, invoiceType = "proforma" }: InvoiceRequest = await req.json();
 
     if (!orderId) {
       throw new Error("Order ID is required");
     }
 
-    console.log("Generating GST-compliant PDF invoice for order:", orderId);
+    const isFinalInvoice = invoiceType === "final";
+    console.log(`Generating ${isFinalInvoice ? "FINAL TAX" : "PROFORMA"} invoice for order:`, orderId);
 
     // Fetch order with items
     const { data: order, error: orderError } = await supabase
@@ -47,6 +53,28 @@ serve(async (req) => {
     if (orderError || !order) {
       console.error("Order fetch error:", orderError);
       throw new Error("Order not found");
+    }
+
+    // For final invoice, order must be delivered
+    if (isFinalInvoice && order.status !== "delivered") {
+      throw new Error("Final invoice can only be generated for delivered orders");
+    }
+
+    // Check if final invoice already exists
+    if (isFinalInvoice && order.final_invoice_url) {
+      console.log("Final invoice already exists:", order.final_invoice_url);
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "Final invoice already exists",
+          invoicePath: order.final_invoice_url,
+          invoiceType: "final",
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
     }
 
     // Fetch invoice settings
@@ -74,8 +102,16 @@ serve(async (req) => {
 
     console.log("Order found:", order.order_number);
 
-    const invoiceNumber = `${companySettings.invoice_prefix}-${order.order_number.replace("DP-", "")}`;
-    const invoiceDate = formatDate(order.created_at);
+    // Generate invoice number based on type
+    const datePrefix = order.created_at.split("T")[0].replace(/-/g, "");
+    const orderSuffix = order.order_number.replace("DP-", "").replace(/-/g, "");
+    const invoiceNumber = isFinalInvoice 
+      ? `${companySettings.invoice_prefix}-${orderSuffix}`
+      : `PRO-${orderSuffix}`;
+    
+    const invoiceDate = isFinalInvoice 
+      ? formatDate(order.delivered_at || new Date().toISOString())
+      : formatDate(order.created_at);
 
     const shippingAddress = order.shipping_address as any;
     const buyerState = shippingAddress?.state || "";
@@ -90,17 +126,17 @@ serve(async (req) => {
       .single();
 
     // Calculate GST breakdown from order items
-    const gstBreakdown = order.gst_breakdown as any[] || [];
+    const gstBreakdown = order.gst_breakdown as any;
+    const gstItems = gstBreakdown?.items || [];
     
-    // If no GST breakdown stored, calculate it
     let items: any[] = [];
     let totalCgst = 0;
     let totalSgst = 0;
     let totalIgst = 0;
 
-    if (gstBreakdown.length > 0) {
+    if (gstItems.length > 0) {
       items = order.order_items.map((item: any, index: number) => {
-        const gst = gstBreakdown.find((g: any) => g.product_id === item.product_id) || gstBreakdown[index] || {};
+        const gst = gstItems.find((g: any) => g.product_id === item.product_id) || gstItems[index] || {};
         totalCgst += Number(gst.cgst_amount || 0);
         totalSgst += Number(gst.sgst_amount || 0);
         totalIgst += Number(gst.igst_amount || 0);
@@ -152,10 +188,10 @@ serve(async (req) => {
       });
     }
 
-    // Platform fee calculation
-    const platformFeePercent = companySettings.platform_fee_percentage || 2;
-    const platformFee = (Number(order.subtotal) * platformFeePercent) / 100;
-    const platformFeeTax = companySettings.platform_fee_taxable ? (platformFee * 18) / 100 : 0;
+    // Get totals from GST breakdown if available
+    const gstTotals = gstBreakdown?.totals || {};
+    const platformFee = gstTotals.platform_fee || (Number(order.subtotal) * (companySettings.platform_fee_percentage || 2)) / 100;
+    const platformFeeTax = gstTotals.platform_fee_tax || (companySettings.platform_fee_taxable ? (platformFee * 18) / 100 : 0);
 
     const clientAddress = shippingAddress
       ? `${shippingAddress.address_line1}${shippingAddress.address_line2 ? ", " + shippingAddress.address_line2 : ""}, ${shippingAddress.city}, ${shippingAddress.state} - ${shippingAddress.postal_code}`
@@ -166,6 +202,10 @@ serve(async (req) => {
       .from("invoices")
       .insert({
         invoice_number: invoiceNumber,
+        invoice_type: invoiceType,
+        is_final: isFinalInvoice,
+        order_id: orderId,
+        delivery_date: isFinalInvoice ? order.delivered_at : null,
         client_name: shippingAddress?.full_name || profile?.full_name || "Customer",
         client_email: profile?.email || null,
         client_address: clientAddress,
@@ -184,7 +224,7 @@ serve(async (req) => {
         seller_state: sellerState,
         gst_breakdown: items,
         created_by: order.user_id,
-        notes: `Order: ${order.order_number}\nPayment ID: ${order.payment_id || "N/A"}`,
+        notes: `Order: ${order.order_number}\nPayment ID: ${order.payment_id || "N/A"}\nInvoice Type: ${isFinalInvoice ? "Final Tax Invoice" : "Proforma Invoice"}`,
       })
       .select()
       .single();
@@ -214,6 +254,8 @@ serve(async (req) => {
     const textGray: [number, number, number] = [102, 102, 102];
     const textLight: [number, number, number] = [128, 128, 128];
     const borderColor: [number, number, number] = [220, 220, 220];
+    const warningColor: [number, number, number] = [255, 152, 0]; // Orange for proforma
+    const successColor: [number, number, number] = [76, 175, 80]; // Green for final
 
     // ==================== HEADER ====================
     // Company Name
@@ -222,10 +264,15 @@ serve(async (req) => {
     doc.setFont("helvetica", "bold");
     doc.text(companySettings.business_name, margin, y);
 
-    // TAX INVOICE title on the right
-    doc.setFontSize(20);
-    doc.setTextColor(...textDark);
-    doc.text("TAX INVOICE", pageWidth - margin, y, { align: "right" });
+    // Invoice type title on the right
+    doc.setFontSize(18);
+    if (isFinalInvoice) {
+      doc.setTextColor(...successColor);
+      doc.text("TAX INVOICE", pageWidth - margin, y, { align: "right" });
+    } else {
+      doc.setTextColor(...warningColor);
+      doc.text("PROFORMA INVOICE", pageWidth - margin, y, { align: "right" });
+    }
 
     y += 7;
 
@@ -234,6 +281,13 @@ serve(async (req) => {
     doc.setTextColor(...textGray);
     doc.setFont("helvetica", "normal");
     doc.text("Discovering Future Technologies", margin, y);
+
+    // Invoice type badge on right
+    if (!isFinalInvoice) {
+      doc.setFontSize(7);
+      doc.setTextColor(...warningColor);
+      doc.text("(Temporary - Not a Tax Document)", pageWidth - margin, y, { align: "right" });
+    }
 
     y += 6;
 
@@ -256,12 +310,12 @@ serve(async (req) => {
     doc.setFontSize(9);
     doc.setTextColor(...textDark);
     doc.setFont("helvetica", "bold");
-    doc.text("Invoice No:", pageWidth - margin - 50, invoiceDetailsY);
+    doc.text(isFinalInvoice ? "Invoice No:" : "Proforma No:", pageWidth - margin - 50, invoiceDetailsY);
     doc.setFont("helvetica", "normal");
     doc.text(invoiceNumber, pageWidth - margin, invoiceDetailsY, { align: "right" });
 
     doc.setFont("helvetica", "bold");
-    doc.text("Date:", pageWidth - margin - 50, invoiceDetailsY + 5);
+    doc.text(isFinalInvoice ? "Invoice Date:" : "Date:", pageWidth - margin - 50, invoiceDetailsY + 5);
     doc.setFont("helvetica", "normal");
     doc.text(invoiceDate, pageWidth - margin, invoiceDetailsY + 5, { align: "right" });
 
@@ -272,15 +326,18 @@ serve(async (req) => {
 
     y += 5;
 
-    // Yellow separator line
-    doc.setDrawColor(...primaryColor);
+    // Separator line - different color based on type
+    if (isFinalInvoice) {
+      doc.setDrawColor(successColor[0], successColor[1], successColor[2]);
+    } else {
+      doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    }
     doc.setLineWidth(0.8);
     doc.line(margin, y, pageWidth - margin, y);
 
     y += 10;
 
     // ==================== BUYER DETAILS ====================
-    // Two column layout for Bill To and Ship To
     const colWidth = (pageWidth - 2 * margin - 10) / 2;
 
     // Bill To
@@ -472,7 +529,7 @@ serve(async (req) => {
     // Platform fee
     if (platformFee > 0) {
       doc.setTextColor(...textGray);
-      doc.text(`Platform Fee (${platformFeePercent}%)`, summaryX, y);
+      doc.text(`Platform Fee (${companySettings.platform_fee_percentage || 2}%)`, summaryX, y);
       doc.setTextColor(...textDark);
       doc.text(formatCurrency(platformFee), summaryValueX, y, { align: "right" });
       y += 5;
@@ -497,7 +554,7 @@ serve(async (req) => {
     doc.setTextColor(...textDark);
     doc.text("Grand Total", summaryX, y);
     doc.setTextColor(...primaryColor);
-    doc.text(formatCurrency(order.total_amount + platformFee), summaryValueX, y, { align: "right" });
+    doc.text(formatCurrency(order.total_amount), summaryValueX, y, { align: "right" });
 
     y += 15;
 
@@ -532,6 +589,24 @@ serve(async (req) => {
 
     y += 25;
 
+    // ==================== PROFORMA NOTICE (only for temporary invoices) ====================
+    if (!isFinalInvoice) {
+      doc.setFillColor(255, 248, 225); // Light yellow background
+      doc.setDrawColor(...warningColor);
+      doc.roundedRect(margin, y, pageWidth - 2 * margin, 12, 2, 2, "FD");
+      
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...warningColor);
+      doc.text("⚠️ IMPORTANT NOTICE", margin + 5, y + 5);
+      
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7);
+      doc.text("This is a Proforma/Temporary Invoice. Final GST Tax Invoice will be issued after successful delivery of goods.", margin + 5, y + 9);
+      
+      y += 18;
+    }
+
     // ==================== TERMS & CONDITIONS ====================
     doc.setFontSize(8);
     doc.setFont("helvetica", "bold");
@@ -545,7 +620,7 @@ serve(async (req) => {
 
     const terms = companySettings.terms_and_conditions.split("\n");
     terms.forEach((term: string) => {
-      if (y < pageHeight - 20) {
+      if (y < pageHeight - 25) {
         doc.text(term, margin, y);
         y += 3.5;
       }
@@ -568,7 +643,12 @@ serve(async (req) => {
     doc.setFontSize(7);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(...textLight);
-    doc.text("This is a computer-generated invoice and does not require a signature.", pageWidth / 2, y, { align: "center" });
+    
+    if (isFinalInvoice) {
+      doc.text("This is a computer-generated Tax Invoice and does not require a signature.", pageWidth / 2, y, { align: "center" });
+    } else {
+      doc.text("This is a computer-generated Proforma Invoice. Not valid for tax purposes.", pageWidth / 2, y, { align: "center" });
+    }
 
     // Generate PDF as ArrayBuffer
     const pdfArrayBuffer = doc.output("arraybuffer");
@@ -591,10 +671,23 @@ serve(async (req) => {
       throw new Error("Failed to upload invoice PDF");
     }
 
-    await supabase.from("orders").update({ invoice_url: invoicePath }).eq("id", orderId);
+    // Update order with invoice URL based on type
+    const orderUpdateData: any = {};
+    if (isFinalInvoice) {
+      orderUpdateData.final_invoice_url = invoicePath;
+      orderUpdateData.invoice_url = invoicePath; // Also update main invoice_url for compatibility
+    } else {
+      orderUpdateData.proforma_invoice_url = invoicePath;
+      // Only set invoice_url if there's no final invoice yet
+      if (!order.final_invoice_url) {
+        orderUpdateData.invoice_url = invoicePath;
+      }
+    }
+
+    await supabase.from("orders").update(orderUpdateData).eq("id", orderId);
     await supabase.from("invoices").update({ pdf_url: invoicePath }).eq("id", invoice.id);
 
-    console.log("GST-compliant PDF invoice generation complete:", invoicePath);
+    console.log(`${isFinalInvoice ? "Final Tax" : "Proforma"} invoice generation complete:`, invoicePath);
 
     return new Response(
       JSON.stringify({
@@ -602,6 +695,7 @@ serve(async (req) => {
         invoiceId: invoice.id,
         invoiceNumber: invoice.invoice_number,
         invoicePath,
+        invoiceType: invoiceType,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

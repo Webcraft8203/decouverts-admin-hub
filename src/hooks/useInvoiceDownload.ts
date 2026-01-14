@@ -2,21 +2,23 @@ import { useCallback, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+type InvoiceType = "proforma" | "final";
+
 export function useInvoiceDownload() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const generateInvoice = useCallback(async (orderId: string) => {
+  const generateInvoice = useCallback(async (orderId: string, invoiceType: InvoiceType = "proforma") => {
     setIsGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-invoice", {
-        body: { orderId },
+        body: { orderId, invoiceType },
       });
 
       if (error) throw error;
       if (!data?.success) throw new Error("Failed to generate invoice");
 
-      toast.success("Invoice generated successfully!");
+      toast.success(`${invoiceType === "final" ? "Final Tax" : "Proforma"} Invoice generated successfully!`);
       return true;
     } catch (e: any) {
       console.error("Generate invoice error:", e);
@@ -27,11 +29,11 @@ export function useInvoiceDownload() {
     }
   }, []);
 
-  const downloadInvoice = useCallback(async (orderId: string) => {
+  const downloadInvoice = useCallback(async (orderId: string, invoiceType?: InvoiceType) => {
     setIsDownloading(true);
     try {
       const { data, error } = await supabase.functions.invoke("get-invoice-url", {
-        body: { orderId },
+        body: { orderId, invoiceType },
       });
 
       if (error) throw error;
@@ -44,11 +46,12 @@ export function useInvoiceDownload() {
 
       const blob = await response.blob();
       
-      // Create download link - always use PDF extension since we now generate PDFs
+      // Create download link
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `invoice-${orderId.slice(0, 8)}.pdf`;
+      const prefix = invoiceType === "final" ? "tax-invoice" : "proforma-invoice";
+      link.download = `${prefix}-${orderId.slice(0, 8)}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -63,5 +66,20 @@ export function useInvoiceDownload() {
     }
   }, []);
 
-  return { downloadInvoice, isDownloading, generateInvoice, isGenerating };
+  const generateProformaInvoice = useCallback((orderId: string) => generateInvoice(orderId, "proforma"), [generateInvoice]);
+  const generateFinalInvoice = useCallback((orderId: string) => generateInvoice(orderId, "final"), [generateInvoice]);
+  
+  const downloadProformaInvoice = useCallback((orderId: string) => downloadInvoice(orderId, "proforma"), [downloadInvoice]);
+  const downloadFinalInvoice = useCallback((orderId: string) => downloadInvoice(orderId, "final"), [downloadInvoice]);
+
+  return { 
+    downloadInvoice, 
+    isDownloading, 
+    generateInvoice, 
+    isGenerating,
+    generateProformaInvoice,
+    generateFinalInvoice,
+    downloadProformaInvoice,
+    downloadFinalInvoice,
+  };
 }
