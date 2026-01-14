@@ -589,13 +589,17 @@ export type Database = {
           client_name: string
           created_at: string
           created_by: string | null
+          delivery_date: string | null
           gst_breakdown: Json | null
           id: string
           igst_amount: number | null
           invoice_number: string
+          invoice_type: string | null
+          is_final: boolean | null
           is_igst: boolean | null
           items: Json
           notes: string | null
+          order_id: string | null
           pdf_url: string | null
           platform_fee: number | null
           platform_fee_tax: number | null
@@ -615,13 +619,17 @@ export type Database = {
           client_name: string
           created_at?: string
           created_by?: string | null
+          delivery_date?: string | null
           gst_breakdown?: Json | null
           id?: string
           igst_amount?: number | null
           invoice_number: string
+          invoice_type?: string | null
+          is_final?: boolean | null
           is_igst?: boolean | null
           items?: Json
           notes?: string | null
+          order_id?: string | null
           pdf_url?: string | null
           platform_fee?: number | null
           platform_fee_tax?: number | null
@@ -641,13 +649,17 @@ export type Database = {
           client_name?: string
           created_at?: string
           created_by?: string | null
+          delivery_date?: string | null
           gst_breakdown?: Json | null
           id?: string
           igst_amount?: number | null
           invoice_number?: string
+          invoice_type?: string | null
+          is_final?: boolean | null
           is_igst?: boolean | null
           items?: Json
           notes?: string | null
+          order_id?: string | null
           pdf_url?: string | null
           platform_fee?: number | null
           platform_fee_tax?: number | null
@@ -658,7 +670,15 @@ export type Database = {
           total_amount?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "invoices_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       order_items: {
         Row: {
@@ -714,9 +734,11 @@ export type Database = {
           buyer_gstin: string | null
           courier_name: string | null
           created_at: string
+          delivered_at: string | null
           design_request_id: string | null
           discount_amount: number | null
           expected_delivery_date: string | null
+          final_invoice_url: string | null
           gst_breakdown: Json | null
           id: string
           invoice_url: string | null
@@ -725,6 +747,7 @@ export type Database = {
           order_type: string
           payment_id: string | null
           payment_status: string | null
+          proforma_invoice_url: string | null
           promo_code_id: string | null
           shipped_at: string | null
           shipping_address: Json | null
@@ -743,9 +766,11 @@ export type Database = {
           buyer_gstin?: string | null
           courier_name?: string | null
           created_at?: string
+          delivered_at?: string | null
           design_request_id?: string | null
           discount_amount?: number | null
           expected_delivery_date?: string | null
+          final_invoice_url?: string | null
           gst_breakdown?: Json | null
           id?: string
           invoice_url?: string | null
@@ -754,6 +779,7 @@ export type Database = {
           order_type?: string
           payment_id?: string | null
           payment_status?: string | null
+          proforma_invoice_url?: string | null
           promo_code_id?: string | null
           shipped_at?: string | null
           shipping_address?: Json | null
@@ -772,9 +798,11 @@ export type Database = {
           buyer_gstin?: string | null
           courier_name?: string | null
           created_at?: string
+          delivered_at?: string | null
           design_request_id?: string | null
           discount_amount?: number | null
           expected_delivery_date?: string | null
+          final_invoice_url?: string | null
           gst_breakdown?: Json | null
           id?: string
           invoice_url?: string | null
@@ -783,6 +811,7 @@ export type Database = {
           order_type?: string
           payment_id?: string | null
           payment_status?: string | null
+          proforma_invoice_url?: string | null
           promo_code_id?: string | null
           shipped_at?: string | null
           shipping_address?: Json | null

@@ -8,11 +8,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileText, Download, ShoppingBag } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { FileText, Download } from "lucide-react";
 
 const UserInvoices = () => {
   const { user, isLoading: authLoading } = useAuth();
-  const { downloadInvoice, isDownloading, generateInvoice, isGenerating } = useInvoiceDownload();
+  const { downloadProformaInvoice, downloadFinalInvoice, isDownloading, generateProformaInvoice, isGenerating } = useInvoiceDownload();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,7 +27,7 @@ const UserInvoices = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("orders")
-        .select("id, order_number, total_amount, created_at, invoice_url, status, payment_status")
+        .select("id, order_number, total_amount, created_at, invoice_url, proforma_invoice_url, final_invoice_url, status, payment_status, delivered_at")
         .eq("user_id", user!.id)
         .eq("payment_status", "paid")
         .order("created_at", { ascending: false });
@@ -59,42 +60,54 @@ const UserInvoices = () => {
           <div className="space-y-3">
             {orders.map((order) => (
               <Card key={order.id}>
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                      <FileText className="w-6 h-6 text-primary" />
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <FileText className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-foreground">{order.order_number}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(order.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold text-foreground">{order.order_number}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(order.created_at).toLocaleDateString()}
-                      </p>
+                    <div className="text-right">
+                      <p className="font-bold text-primary">₹{order.total_amount.toLocaleString()}</p>
+                      <Badge variant={order.status === "delivered" ? "default" : "secondary"} className="text-xs">
+                        {order.status === "delivered" ? "Delivered" : "In Progress"}
+                      </Badge>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <p className="font-bold text-primary">₹{order.total_amount.toLocaleString()}</p>
-                    {order.invoice_url ? (
+                  <div className="flex gap-2 flex-wrap">
+                    {/* Proforma Invoice */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => order.proforma_invoice_url || order.invoice_url 
+                        ? downloadProformaInvoice(order.id) 
+                        : generateProformaInvoice(order.id).then(() => downloadProformaInvoice(order.id))
+                      }
+                      disabled={isDownloading || isGenerating}
+                    >
+                      <Download className="w-4 h-4 mr-1" />
+                      Proforma
+                    </Button>
+                    
+                    {/* Final Tax Invoice */}
+                    {order.status === "delivered" && order.final_invoice_url ? (
                       <Button
-                        variant="outline"
                         size="sm"
-                        onClick={() => downloadInvoice(order.id)}
+                        onClick={() => downloadFinalInvoice(order.id)}
                         disabled={isDownloading}
                       >
                         <Download className="w-4 h-4 mr-1" />
-                        {isDownloading ? "Downloading..." : "Download Invoice"}
+                        Tax Invoice
                       </Button>
                     ) : (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={async () => {
-                          const success = await generateInvoice(order.id);
-                          if (success) await downloadInvoice(order.id);
-                        }}
-                        disabled={isGenerating}
-                      >
-                        <Download className="w-4 h-4 mr-1" />
-                        {isGenerating ? "Generating..." : "Generate & Download"}
+                      <Button size="sm" variant="ghost" disabled className="text-xs">
+                        Tax Invoice after delivery
                       </Button>
                     )}
                   </div>

@@ -114,8 +114,32 @@ const AdminOrders = () => {
         updateData.shipped_at = new Date().toISOString();
       }
       
+      // If marking as delivered, set delivered_at timestamp
+      if (status === "delivered") {
+        updateData.delivered_at = new Date().toISOString();
+      }
+      
       const { error } = await supabase.from("orders").update(updateData).eq("id", id);
       if (error) throw error;
+      
+      // If marking as delivered, generate final tax invoice
+      if (status === "delivered") {
+        try {
+          const { data, error: invoiceError } = await supabase.functions.invoke("generate-invoice", {
+            body: { orderId: id, invoiceType: "final" },
+          });
+          
+          if (invoiceError) {
+            console.error("Failed to generate final invoice:", invoiceError);
+            toast.error("Order delivered but failed to generate final invoice");
+          } else {
+            toast.success("Final Tax Invoice generated automatically");
+          }
+        } catch (e) {
+          console.error("Error generating final invoice:", e);
+        }
+      }
+      
       return { id, status, orderNumber, shippingDetails };
     },
     onSuccess: async ({ id, status, orderNumber, shippingDetails }) => {
