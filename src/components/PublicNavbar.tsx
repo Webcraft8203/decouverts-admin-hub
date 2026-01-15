@@ -86,18 +86,18 @@ export const PublicNavbar = () => {
           {/* Logo */}
           <div 
             onClick={handleLogoClick}
-            className="flex items-center gap-3 cursor-pointer"
+            className="flex items-center gap-1 cursor-pointer select-none group"
           >
             <img 
               src={logo} 
               alt="Decouverts Plus" 
-              className="h-12 md:h-14 lg:h-14 w-auto"
+              className="h-10 md:h-12 lg:h-14 w-auto object-contain"
             />
-            <div className="flex flex-col items-center">
-              <span className="text-xl md:text-lg lg:text-2xl font-extrabold tracking-widest lg:tracking-[0.2em] uppercase text-foreground leading-none">
+            <div className="flex flex-col justify-center items-center">
+              <span className="text-lg md:text-xl lg:text-2xl font-extrabold tracking-widest uppercase text-foreground leading-none">
                 DECOUVERTS
               </span>
-              <span className="text-[8px] lg:text-xs font-medium tracking-wider text-blue-600 mt-0.5">
+              <span className="text-[8px] md:text-[10px] lg:text-xs font-medium tracking-wider text-blue-600 leading-none -mt-1">
                 Discovering Future Technologies
               </span>
             </div>
