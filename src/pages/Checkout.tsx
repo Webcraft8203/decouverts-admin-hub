@@ -45,6 +45,15 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { INDIAN_STATES, validateGstinWithState } from "@/constants/indianStates";
+import { Lock } from "lucide-react";
 
 declare global {
   interface Window {
@@ -58,7 +67,7 @@ const addressSchema = z.object({
   address_line1: z.string().min(5, "Address must be at least 5 characters").max(200),
   address_line2: z.string().max(200).optional(),
   city: z.string().min(2, "City is required").max(100),
-  state: z.string().min(2, "State is required").max(100),
+  state: z.string().min(1, "Please select a state"),
   postal_code: z.string().regex(/^\d{6}$/, "Enter a valid 6-digit PIN code"),
   label: z.string().default("Home"),
 });
@@ -270,12 +279,7 @@ const Checkout = () => {
 
   const discountAmount = calculateDiscount();
 
-  // Validate GSTIN format (15 digits alphanumeric)
-  const validateGstin = (gstin: string): boolean => {
-    if (!gstin) return true;
-    const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-    return gstinRegex.test(gstin.toUpperCase());
-  };
+  // Validate GSTIN format and state code matching
 
   // Get items for display and order creation
   const checkoutItems = isCartCheckout
@@ -342,9 +346,12 @@ const Checkout = () => {
     if (!selectedAddress.phone || !/^[6-9]\d{9}$/.test(selectedAddress.phone)) {
       return { valid: false, message: "Selected address has an invalid phone number" };
     }
-    // Validate GSTIN if checkbox is checked
-    if (hasGstin && buyerGstin && !validateGstin(buyerGstin)) {
-      return { valid: false, message: "Please enter a valid 15-digit GSTIN" };
+    // Validate GSTIN if checkbox is checked (with state code matching)
+    if (hasGstin && buyerGstin) {
+      const gstinValidation = validateGstinWithState(buyerGstin, selectedAddress.state);
+      if (!gstinValidation.valid) {
+        return { valid: false, message: gstinValidation.message };
+      }
     }
     return { valid: true };
   };
@@ -862,9 +869,17 @@ const Checkout = () => {
                               name="phone"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Phone Number</FormLabel>
+                                  <FormLabel>Phone Number *</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="9876543210" {...field} />
+                                    <Input 
+                                      placeholder="9876543210" 
+                                      value={field.value}
+                                      onChange={(e) => {
+                                        const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                        field.onChange(value);
+                                      }}
+                                      maxLength={10}
+                                    />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -875,9 +890,9 @@ const Checkout = () => {
                               name="address_line1"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Address Line 1</FormLabel>
+                                  <FormLabel>Address Line 1 *</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="House/Flat No, Street" {...field} />
+                                    <Input placeholder="House/Flat No, Building, Street" {...field} maxLength={200} />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -890,7 +905,7 @@ const Checkout = () => {
                                 <FormItem>
                                   <FormLabel>Address Line 2 (Optional)</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="Landmark, Area" {...field} />
+                                    <Input placeholder="Landmark, Area, Locality" {...field} maxLength={200} />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -902,9 +917,9 @@ const Checkout = () => {
                                 name="city"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>City</FormLabel>
+                                    <FormLabel>City *</FormLabel>
                                     <FormControl>
-                                      <Input placeholder="Mumbai" {...field} />
+                                      <Input placeholder="Mumbai" {...field} maxLength={100} />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
@@ -915,28 +930,61 @@ const Checkout = () => {
                                 name="state"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>State</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder="Maharashtra" {...field} />
-                                    </FormControl>
+                                    <FormLabel>State *</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger className="bg-background">
+                                          <SelectValue placeholder="Select State" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent className="bg-background border max-h-[300px]">
+                                        {INDIAN_STATES.map((state) => (
+                                          <SelectItem key={state} value={state}>
+                                            {state}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
                                     <FormMessage />
                                   </FormItem>
                                 )}
                               />
                             </div>
-                            <FormField
-                              control={form.control}
-                              name="postal_code"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>PIN Code</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="400001" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
+                            <div className="grid grid-cols-2 gap-4">
+                              <FormField
+                                control={form.control}
+                                name="postal_code"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>PIN Code *</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        placeholder="400001" 
+                                        value={field.value}
+                                        onChange={(e) => {
+                                          const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                                          field.onChange(value);
+                                        }}
+                                        maxLength={6}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <div className="space-y-2">
+                                <FormLabel>Country</FormLabel>
+                                <div className="relative">
+                                  <Input
+                                    value="India"
+                                    readOnly
+                                    className="bg-muted cursor-not-allowed pr-8"
+                                  />
+                                  <Lock className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                </div>
+                                <p className="text-xs text-muted-foreground">Shipping only within India</p>
+                              </div>
+                            </div>
                             <FormField
                               control={form.control}
                               name="label"
@@ -995,8 +1043,21 @@ const Checkout = () => {
                             onChange={(e) => {
                               const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 15);
                               setBuyerGstin(value);
-                              if (value && !validateGstin(value)) {
-                                setGstinError("Invalid GSTIN format");
+                              if (value && selectedAddress) {
+                                const validation = validateGstinWithState(value, selectedAddress.state);
+                                if (!validation.valid) {
+                                  setGstinError(validation.message || "Invalid GSTIN format");
+                                } else {
+                                  setGstinError("");
+                                }
+                              } else if (value) {
+                                // Basic format check when no address is selected
+                                const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+                                if (!gstinRegex.test(value)) {
+                                  setGstinError("Invalid GSTIN format");
+                                } else {
+                                  setGstinError("");
+                                }
                               } else {
                                 setGstinError("");
                               }
@@ -1008,7 +1069,7 @@ const Checkout = () => {
                             <p className="text-xs text-destructive">{gstinError}</p>
                           )}
                           <p className="text-xs text-muted-foreground">
-                            Format: 2 digits (state) + 10 char PAN + 1 entity + 1 digit + Z + 1 check digit
+                            Format: 2 digits (state code) + 10 char PAN + 1 entity + 1 digit + Z + 1 check digit
                           </p>
                         </div>
                       )}

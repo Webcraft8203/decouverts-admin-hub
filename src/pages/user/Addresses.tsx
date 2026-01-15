@@ -17,20 +17,28 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { MapPin, Plus, Trash2, Edit, Star, Check } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { MapPin, Plus, Trash2, Edit, Star, Check, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { INDIAN_STATES } from "@/constants/indianStates";
 
 const addressSchema = z.object({
   label: z.string().min(1, "Label is required"),
   full_name: z.string().min(2, "Full name is required"),
-  phone: z.string().min(10, "Valid phone number required"),
-  address_line1: z.string().min(5, "Address is required"),
+  phone: z.string().regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit Indian phone number"),
+  address_line1: z.string().min(5, "Address is required").max(200),
   address_line2: z.string().optional(),
-  city: z.string().min(2, "City is required"),
-  state: z.string().min(2, "State is required"),
-  postal_code: z.string().min(5, "Postal code is required"),
-  country: z.string().default("India"),
+  city: z.string().min(2, "City is required").max(100),
+  state: z.string().min(1, "Please select a state"),
+  postal_code: z.string().regex(/^\d{6}$/, "Enter a valid 6-digit PIN code"),
+  country: z.literal("India").default("India"),
 });
 
 type AddressFormData = z.infer<typeof addressSchema>;
@@ -259,23 +267,29 @@ const UserAddresses = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
+                  <Label htmlFor="phone">Phone Number *</Label>
                   <Input
                     id="phone"
-                    placeholder="+91 98765 43210"
+                    placeholder="9876543210"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) => {
+                      // Only allow numeric input
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setFormData({ ...formData, phone: value });
+                    }}
+                    maxLength={10}
                   />
                   {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="address_line1">Address Line 1</Label>
+                  <Label htmlFor="address_line1">Address Line 1 *</Label>
                   <Input
                     id="address_line1"
-                    placeholder="Street address"
+                    placeholder="House/Flat No., Building, Street"
                     value={formData.address_line1}
                     onChange={(e) => setFormData({ ...formData, address_line1: e.target.value })}
+                    maxLength={200}
                   />
                   {errors.address_line1 && <p className="text-sm text-destructive">{errors.address_line1}</p>}
                 </div>
@@ -284,54 +298,74 @@ const UserAddresses = () => {
                   <Label htmlFor="address_line2">Address Line 2 (Optional)</Label>
                   <Input
                     id="address_line2"
-                    placeholder="Apartment, suite, etc."
+                    placeholder="Landmark, Area, Locality"
                     value={formData.address_line2}
                     onChange={(e) => setFormData({ ...formData, address_line2: e.target.value })}
+                    maxLength={200}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="city">City</Label>
+                    <Label htmlFor="city">City *</Label>
                     <Input
                       id="city"
                       placeholder="Mumbai"
                       value={formData.city}
                       onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      maxLength={100}
                     />
                     {errors.city && <p className="text-sm text-destructive">{errors.city}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="state">State</Label>
-                    <Input
-                      id="state"
-                      placeholder="Maharashtra"
-                      value={formData.state}
-                      onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                    />
+                    <Label htmlFor="state">State *</Label>
+                    <Select 
+                      value={formData.state} 
+                      onValueChange={(value) => setFormData({ ...formData, state: value })}
+                    >
+                      <SelectTrigger id="state" className="bg-background">
+                        <SelectValue placeholder="Select State" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background border max-h-[300px]">
+                        {INDIAN_STATES.map((state) => (
+                          <SelectItem key={state} value={state}>
+                            {state}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     {errors.state && <p className="text-sm text-destructive">{errors.state}</p>}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="postal_code">Postal Code</Label>
+                    <Label htmlFor="postal_code">PIN Code *</Label>
                     <Input
                       id="postal_code"
                       placeholder="400001"
                       value={formData.postal_code}
-                      onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })}
+                      onChange={(e) => {
+                        // Only allow numeric input
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                        setFormData({ ...formData, postal_code: value });
+                      }}
+                      maxLength={6}
                     />
                     {errors.postal_code && <p className="text-sm text-destructive">{errors.postal_code}</p>}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="country">Country</Label>
-                    <Input
-                      id="country"
-                      placeholder="India"
-                      value={formData.country}
-                      onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                    />
+                    <div className="relative">
+                      <Input
+                        id="country"
+                        value="India"
+                        readOnly
+                        className="bg-muted cursor-not-allowed pr-8"
+                      />
+                      <Lock className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <p className="text-xs text-muted-foreground">Currently shipping only within India</p>
                   </div>
                 </div>
 
