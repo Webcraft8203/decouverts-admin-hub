@@ -19,6 +19,31 @@ const formatDate = (dateStr: string): string => {
   });
 };
 
+// Function to fetch and convert image to base64
+const fetchImageAsBase64 = async (url: string): Promise<string | null> => {
+  try {
+    console.log("Fetching logo from:", url);
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.error("Failed to fetch logo:", response.status);
+      return null;
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    let binary = '';
+    for (let i = 0; i < uint8Array.byteLength; i++) {
+      binary += String.fromCharCode(uint8Array[i]);
+    }
+    const base64 = btoa(binary);
+    const contentType = response.headers.get('content-type') || 'image/png';
+    console.log("Logo fetched successfully, content type:", contentType);
+    return `data:${contentType};base64,${base64}`;
+  } catch (error) {
+    console.error("Error fetching logo:", error);
+    return null;
+  }
+};
+
 interface InvoiceRequest {
   orderId: string;
   invoiceType?: "proforma" | "final"; // Default is proforma
@@ -257,30 +282,49 @@ serve(async (req) => {
     const warningColor: [number, number, number] = [255, 152, 0]; // Orange for proforma
     const successColor: [number, number, number] = [76, 175, 80]; // Green for final
 
-    // ==================== HEADER ====================
-    // Company Name
+    // ==================== HEADER WITH LOGO ====================
+    // Fetch logo if available
+    let logoBase64: string | null = null;
+    if (companySettings.business_logo_url) {
+      logoBase64 = await fetchImageAsBase64(companySettings.business_logo_url);
+    }
+
+    // Add logo if available
+    const logoWidth = 30;
+    const logoHeight = 15;
+    if (logoBase64) {
+      try {
+        doc.addImage(logoBase64, 'PNG', margin, y, logoWidth, logoHeight);
+        console.log("Logo added to invoice");
+      } catch (logoError) {
+        console.error("Failed to add logo to PDF:", logoError);
+      }
+    }
+
+    // Company Name (positioned after logo or at start if no logo)
+    const textStartX = logoBase64 ? margin + logoWidth + 5 : margin;
     doc.setFontSize(22);
     doc.setTextColor(...primaryColor);
     doc.setFont("helvetica", "bold");
-    doc.text(companySettings.business_name, margin, y);
+    doc.text(companySettings.business_name, textStartX, y + 8);
 
     // Invoice type title on the right
     doc.setFontSize(18);
     if (isFinalInvoice) {
       doc.setTextColor(...successColor);
-      doc.text("TAX INVOICE", pageWidth - margin, y, { align: "right" });
+      doc.text("TAX INVOICE", pageWidth - margin, y + 5, { align: "right" });
     } else {
       doc.setTextColor(...warningColor);
-      doc.text("PROFORMA INVOICE", pageWidth - margin, y, { align: "right" });
+      doc.text("PROFORMA INVOICE", pageWidth - margin, y + 5, { align: "right" });
     }
 
-    y += 7;
+    y += logoBase64 ? Math.max(logoHeight + 2, 10) : 7;
 
     // Company tagline
     doc.setFontSize(9);
     doc.setTextColor(...textGray);
     doc.setFont("helvetica", "normal");
-    doc.text("Discovering Future Technologies", margin, y);
+    doc.text("Discovering Future Technologies", textStartX, y);
 
     // Invoice type badge on right
     if (!isFinalInvoice) {
