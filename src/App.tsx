@@ -49,6 +49,7 @@ import DroneConfiguration from "./pages/DroneConfiguration";
 import DroneConfigurations from "./pages/admin/DroneConfigurations";
 import CustomerReviews from "./pages/admin/CustomerReviews";
 import Partners from "./pages/admin/Partners";
+import ShopSlides from "./pages/admin/ShopSlides";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -104,6 +105,7 @@ const App = () => (
               <Route path="/admin/drone-configurations" element={<ProtectedRoute requireAdmin><AdminLayout><DroneConfigurations /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/customer-reviews" element={<ProtectedRoute requireAdmin><AdminLayout><CustomerReviews /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/partners" element={<ProtectedRoute requireAdmin><AdminLayout><Partners /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/shop-slides" element={<ProtectedRoute requireAdmin><AdminLayout><ShopSlides /></AdminLayout></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

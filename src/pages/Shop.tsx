@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WishlistButton } from "@/components/WishlistButton";
+import { ShopHeroSlider } from "@/components/shop/ShopHeroSlider";
 import { 
   ShoppingCart, 
   Package, 
@@ -25,14 +26,6 @@ import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import Autoplay from "embla-carousel-autoplay";
 
 interface Product {
   id: string;
@@ -373,84 +366,8 @@ const Shop = () => {
           </div>
         </section>
 
-        {/* Hero Banner Carousel */}
-        {highlightedProducts.length > 0 && !searchQuery && !selectedCategory && (
-          <section className="bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10">
-            <div className="max-w-[1400px] mx-auto">
-              <Carousel
-                opts={{ align: "start", loop: true }}
-                plugins={[
-                  Autoplay({
-                    delay: 4000,
-                    stopOnInteraction: true,
-                    stopOnMouseEnter: true,
-                  }),
-                ]}
-                className="w-full"
-              >
-                <CarouselContent>
-                  {highlightedProducts.slice(0, 5).map((product) => (
-                    <CarouselItem key={product.id}>
-                      <div 
-                        onClick={() => navigate(`/product/${product.id}`)}
-                        className="cursor-pointer relative h-[200px] sm:h-[280px] md:h-[350px] flex items-center px-6 sm:px-12"
-                      >
-                        <div className="flex items-center justify-between w-full max-w-6xl mx-auto">
-                          <div className="flex-1 pr-6 sm:pr-12">
-                            <Badge className="mb-3 bg-primary text-primary-foreground">
-                              <Star className="w-3 h-3 mr-1 fill-current" /> Featured
-                            </Badge>
-                            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2 line-clamp-2">
-                              {product.name}
-                            </h2>
-                            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-2">
-                              From ₹{product.price.toLocaleString()}
-                            </p>
-                            <p className="text-muted-foreground text-sm sm:text-base line-clamp-2 mb-4 hidden sm:block">
-                              {product.description || "Discover premium quality"}
-                            </p>
-                            <Button 
-                              className="bg-primary text-primary-foreground hover:bg-primary/90"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/product/${product.id}`);
-                              }}
-                            >
-                              Shop Now <ChevronRight className="w-4 h-4 ml-1" />
-                            </Button>
-                          </div>
-                          <div className="w-[120px] sm:w-[180px] md:w-[280px] h-[120px] sm:h-[180px] md:h-[280px] flex-shrink-0">
-                            {product.images && product.images.length > 0 ? (
-                              <img
-                                src={product.images[0]}
-                                alt={product.name}
-                                className="w-full h-full object-contain drop-shadow-2xl"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-muted rounded-2xl flex items-center justify-center">
-                                <Package className="w-20 h-20 text-muted-foreground/30" />
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                  {highlightedProducts.slice(0, 5).map((_, index) => (
-                    <div
-                      key={index}
-                      className="w-2 h-2 rounded-full bg-primary/30"
-                    />
-                  ))}
-                </div>
-                <CarouselPrevious className="left-2 sm:left-4 bg-background/80 backdrop-blur-sm border-border/50" />
-                <CarouselNext className="right-2 sm:right-4 bg-background/80 backdrop-blur-sm border-border/50" />
-              </Carousel>
-            </div>
-          </section>
-        )}
+        {/* Hero Banner Slider - Admin Controlled */}
+        {!searchQuery && !selectedCategory && <ShopHeroSlider />}
 
         {/* Loading State */}
         {productsLoading ? (

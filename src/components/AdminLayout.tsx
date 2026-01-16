@@ -23,11 +23,12 @@ import {
   Plane,
   MessageCircle,
   Handshake,
+  Image as ImageIcon,
+  MessageSquare,
+  SlidersHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-
-import { MessageSquare, ImageIcon } from "lucide-react";
 
 const navItems = [
   { to: "/admin", icon: LayoutDashboard, label: "Dashboard", exact: true },
@@ -35,6 +36,7 @@ const navItems = [
   { to: "/admin/design-requests", icon: Palette, label: "Design Requests" },
   { to: "/admin/products", icon: Package, label: "Products" },
   { to: "/admin/categories", icon: Layers, label: "Categories" },
+  { to: "/admin/shop-slides", icon: SlidersHorizontal, label: "Shop Slider" },
   { to: "/admin/promo-codes", icon: Ticket, label: "Promo Codes" },
   { to: "/admin/reviews", icon: Star, label: "Reviews" },
   { to: "/admin/inventory", icon: Warehouse, label: "Inventory" },

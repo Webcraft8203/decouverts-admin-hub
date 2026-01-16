@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { PublicFooter } from "@/components/PublicFooter";
 import { ProductMediaGallery } from "@/components/ProductMediaGallery";
+import { ProductSpecifications } from "@/components/product/ProductSpecifications";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -423,6 +424,9 @@ const ProductDetail = () => {
               </div>
             </div>
           </div>
+
+          {/* Product Specifications */}
+          {id && <ProductSpecifications productId={id} />}
 
           {/* Reviews Section */}
           <section className="mt-20">
