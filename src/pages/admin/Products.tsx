@@ -10,8 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Upload, X, Image, Loader2, Star, MessageSquare, Video, Play, ExternalLink } from "lucide-react";
+import { Plus, Pencil, Trash2, Upload, X, Image, Loader2, Star, MessageSquare, Video, Play, ExternalLink, ClipboardList } from "lucide-react";
 import { AdminNotes } from "@/components/admin/AdminNotes";
+import { ProductParameters } from "@/components/admin/ProductParameters";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 // Validate YouTube URL
@@ -415,6 +416,21 @@ export default function Products() {
                   </Button>
                 </TableCell>
                 <TableCell className="text-right">
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <Button variant="ghost" size="icon" title="Specifications">
+                        <ClipboardList className="h-4 w-4" />
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent className="w-[500px] sm:w-[600px]">
+                      <SheetHeader>
+                        <SheetTitle>Specifications for {p.name}</SheetTitle>
+                      </SheetHeader>
+                      <div className="mt-4">
+                        <ProductParameters productId={p.id} />
+                      </div>
+                    </SheetContent>
+                  </Sheet>
                   <Sheet>
                     <SheetTrigger asChild>
                       <Button variant="ghost" size="icon" title="Internal Notes">
