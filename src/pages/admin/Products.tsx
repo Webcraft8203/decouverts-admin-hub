@@ -34,6 +34,7 @@ interface Product {
   name: string;
   description: string | null;
   price: number;
+  cost_price: number;
   category_id: string | null;
   stock_quantity: number;
   availability_status: string;
@@ -54,7 +55,7 @@ export default function Products() {
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [formData, setFormData] = useState({ name: "", description: "", price: "", category_id: "", stock_quantity: "", availability_status: "in_stock", is_highlighted: false, video_url: "", gst_percentage: "18" });
+  const [formData, setFormData] = useState({ name: "", description: "", price: "", cost_price: "", category_id: "", stock_quantity: "", availability_status: "in_stock", is_highlighted: false, video_url: "", gst_percentage: "18" });
   const [productImages, setProductImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [videoUrlError, setVideoUrlError] = useState("");
@@ -123,6 +124,7 @@ export default function Products() {
       name: formData.name, 
       description: formData.description || null, 
       price: parseFloat(formData.price) || 0, 
+      cost_price: parseFloat(formData.cost_price) || 0,
       category_id: formData.category_id || null, 
       stock_quantity: parseInt(formData.stock_quantity) || 0, 
       availability_status: formData.availability_status,
@@ -165,7 +167,7 @@ export default function Products() {
   };
 
   const resetForm = () => { 
-    setFormData({ name: "", description: "", price: "", category_id: "", stock_quantity: "", availability_status: "in_stock", is_highlighted: false, video_url: "", gst_percentage: "18" }); 
+    setFormData({ name: "", description: "", price: "", cost_price: "", category_id: "", stock_quantity: "", availability_status: "in_stock", is_highlighted: false, video_url: "", gst_percentage: "18" }); 
     setEditingProduct(null);
     setProductImages([]);
     setVideoUrlError("");
@@ -177,6 +179,7 @@ export default function Products() {
       name: product.name, 
       description: product.description || "", 
       price: String(product.price), 
+      cost_price: String(product.cost_price || 0),
       category_id: product.category_id || "", 
       stock_quantity: String(product.stock_quantity), 
       availability_status: product.availability_status,
@@ -201,7 +204,14 @@ export default function Products() {
               <div><Label>Name</Label><Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required /></div>
               <div><Label>Description</Label><Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div><Label>Price (₹) - Base Price</Label><Input type="number" step="0.01" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} required /></div>
+                <div><Label>Selling Price (₹)</Label><Input type="number" step="0.01" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} required /></div>
+                <div>
+                  <Label>Cost Price (₹) <span className="text-xs text-muted-foreground">(Admin Only)</span></Label>
+                  <Input type="number" step="0.01" value={formData.cost_price} onChange={(e) => setFormData({ ...formData, cost_price: e.target.value })} placeholder="Manufacturing cost" />
+                  <p className="text-xs text-muted-foreground mt-1">Used for profit calculation</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div><Label>Stock Quantity</Label><Input type="number" value={formData.stock_quantity} onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })} required /></div>
               </div>
               <div className="grid grid-cols-2 gap-4">
