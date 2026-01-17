@@ -229,12 +229,12 @@ export default function ShopSlides() {
 
               <div>
                 <Label>Link to Product (Optional)</Label>
-                <Select value={formData.product_id} onValueChange={(v) => setFormData({ ...formData, product_id: v })}>
+                <Select value={formData.product_id || "none"} onValueChange={(v) => setFormData({ ...formData, product_id: v === "none" ? "" : v })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a product to link" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No product link</SelectItem>
+                    <SelectItem value="none">No product link</SelectItem>
                     {products.map((p) => (
                       <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                     ))}
