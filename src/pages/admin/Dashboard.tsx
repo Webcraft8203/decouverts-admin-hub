@@ -7,7 +7,9 @@ import {
   Calendar,
   TrendingUp,
   Users,
-  RefreshCw
+  RefreshCw,
+  Wallet,
+  Receipt
 } from "lucide-react";
 import { format } from "date-fns";
 import { useAnalytics } from "@/hooks/useAnalytics";
@@ -62,7 +64,7 @@ export default function Dashboard() {
         </Button>
       </div>
 
-      {/* Key Metrics */}
+      {/* Key Metrics - Row 1 */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card className="border-border hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -89,6 +91,21 @@ export default function Dashboard() {
             <div className="text-2xl font-bold text-primary">
               {isLoading ? "..." : formatCurrency(dashboardStats.totalRevenue)}
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border hover:shadow-md transition-shadow bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
+              Total Profit
+            </CardTitle>
+            <Wallet className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {isLoading ? "..." : formatCurrency(dashboardStats.totalProfit)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Revenue - Cost</p>
           </CardContent>
         </Card>
 
@@ -120,20 +137,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border-border hover:shadow-md transition-shadow bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">
-              Today's Orders
-            </CardTitle>
-            <Calendar className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {isLoading ? "..." : dashboardStats.todayOrders}
-            </div>
-          </CardContent>
-        </Card>
-
         <Card className="border-border hover:shadow-md transition-shadow bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">
@@ -148,6 +151,68 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground mt-1">
               {format(new Date(), "dd MMM yyyy")}
             </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* GST Collection Stats - Row 2 */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="border-border hover:shadow-md transition-shadow bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
+              Today's Orders
+            </CardTitle>
+            <Calendar className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              {isLoading ? "..." : dashboardStats.todayOrders}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
+              CGST Collected
+            </CardTitle>
+            <Receipt className="h-4 w-4 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-500">
+              {isLoading ? "..." : formatCurrency(dashboardStats.totalCgst)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Central GST</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
+              SGST Collected
+            </CardTitle>
+            <Receipt className="h-4 w-4 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-500">
+              {isLoading ? "..." : formatCurrency(dashboardStats.totalSgst)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">State GST</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
+              IGST Collected
+            </CardTitle>
+            <Receipt className="h-4 w-4 text-teal-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-teal-500">
+              {isLoading ? "..." : formatCurrency(dashboardStats.totalIgst)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Integrated GST</p>
           </CardContent>
         </Card>
       </div>

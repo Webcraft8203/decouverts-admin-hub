@@ -1127,6 +1127,7 @@ export type Database = {
         Row: {
           availability_status: string
           category_id: string | null
+          cost_price: number | null
           created_at: string
           description: string | null
           gst_percentage: number
@@ -1142,6 +1143,7 @@ export type Database = {
         Insert: {
           availability_status?: string
           category_id?: string | null
+          cost_price?: number | null
           created_at?: string
           description?: string | null
           gst_percentage?: number
@@ -1157,6 +1159,7 @@ export type Database = {
         Update: {
           availability_status?: string
           category_id?: string | null
+          cost_price?: number | null
           created_at?: string
           description?: string | null
           gst_percentage?: number

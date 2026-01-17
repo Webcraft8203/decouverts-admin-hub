@@ -51,6 +51,10 @@ interface DashboardStats {
   totalCustomers: number;
   todayOrders: number;
   todayRevenue: number;
+  totalProfit: number;
+  totalCgst: number;
+  totalSgst: number;
+  totalIgst: number;
 }
 
 const statusColors: Record<string, string> = {
@@ -73,6 +77,10 @@ export function useAnalytics() {
     totalCustomers: 0,
     todayOrders: 0,
     todayRevenue: 0,
+    totalProfit: 0,
+    totalCgst: 0,
+    totalSgst: 0,
+    totalIgst: 0,
   });
   const [salesData, setSalesData] = useState<SalesData[]>([]);
   const [orderStatusData, setOrderStatusData] = useState<OrderStatusData[]>([]);
@@ -115,15 +123,17 @@ export function useAnalytics() {
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
     const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
 
-    const [ordersRes, productsRes, profilesRes, todayOrdersRes] = await Promise.all([
+    const [ordersRes, productsRes, profilesRes, todayOrdersRes, orderItemsRes, invoicesRes] = await Promise.all([
       supabase.from("orders").select("id, total_amount, payment_status"),
-      supabase.from("products").select("id"),
+      supabase.from("products").select("id, cost_price"),
       supabase.from("profiles").select("id"),
       supabase
         .from("orders")
         .select("id, total_amount, payment_status")
         .gte("created_at", startOfDay)
         .lt("created_at", endOfDay),
+      supabase.from("order_items").select("product_id, quantity, total_price"),
+      supabase.from("invoices").select("cgst_amount, sgst_amount, igst_amount, is_final").eq("is_final", true),
     ]);
 
     const orders = ordersRes.data || [];
@@ -134,6 +144,30 @@ export function useAnalytics() {
     const todayPaidOrders = todayOrders.filter((o) => o.payment_status === "paid");
     const todayRevenue = todayPaidOrders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
 
+    // Calculate profit based on order items and product cost prices
+    const products = productsRes.data || [];
+    const productCostMap: Record<string, number> = {};
+    products.forEach((p) => {
+      productCostMap[p.id] = Number(p.cost_price || 0);
+    });
+
+    const orderItems = orderItemsRes.data || [];
+    let totalCost = 0;
+    let totalSalesRevenue = 0;
+    orderItems.forEach((item) => {
+      totalSalesRevenue += Number(item.total_price || 0);
+      if (item.product_id && productCostMap[item.product_id]) {
+        totalCost += productCostMap[item.product_id] * item.quantity;
+      }
+    });
+    const totalProfit = totalSalesRevenue - totalCost;
+
+    // Calculate GST collections from final invoices
+    const invoices = invoicesRes.data || [];
+    const totalCgst = invoices.reduce((sum, inv) => sum + Number(inv.cgst_amount || 0), 0);
+    const totalSgst = invoices.reduce((sum, inv) => sum + Number(inv.sgst_amount || 0), 0);
+    const totalIgst = invoices.reduce((sum, inv) => sum + Number(inv.igst_amount || 0), 0);
+
     setDashboardStats({
       totalOrders: orders.length,
       totalRevenue,
@@ -141,6 +175,10 @@ export function useAnalytics() {
       totalCustomers: (profilesRes.data || []).length,
       todayOrders: todayOrders.length,
       todayRevenue,
+      totalProfit,
+      totalCgst,
+      totalSgst,
+      totalIgst,
     });
   };
 
