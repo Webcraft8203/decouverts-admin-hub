@@ -424,11 +424,24 @@ export const HeroSection = () => {
   const mouseX = useMotionValue(0.5);
   const mouseY = useMotionValue(0.5);
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
-  const [showIntro, setShowIntro] = useState(true);
-  const [contentReady, setContentReady] = useState(false);
+  
+  // Initialize state based on session storage to ensure intro only plays once per session
+  const [showIntro, setShowIntro] = useState(() => {
+    try {
+      const hasPlayed = sessionStorage.getItem("introPlayed");
+      return !hasPlayed;
+    } catch {
+      return true;
+    }
+  });
+  
+  const [contentReady, setContentReady] = useState(() => !showIntro);
 
   // Handle intro animation completion
   const handleIntroComplete = () => {
+    try {
+      sessionStorage.setItem("introPlayed", "true");
+    } catch {}
     setShowIntro(false);
     // Small delay before showing content for smooth transition
     setTimeout(() => setContentReady(true), 100);
