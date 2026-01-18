@@ -27,6 +27,9 @@ import {
   Copy,
   Facebook,
   Twitter,
+  MessageSquare,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -36,6 +39,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -46,6 +50,7 @@ const ProductDetail = () => {
   const [rating, setRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
   const [hoveredRating, setHoveredRating] = useState(0);
+  const [isReviewsOpen, setIsReviewsOpen] = useState(true);
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", id],
@@ -198,17 +203,19 @@ const ProductDetail = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-slate-50">
         <PublicNavbar />
         <main className="flex-1 pt-24 pb-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-              <Skeleton className="aspect-square rounded-2xl" />
-              <div className="space-y-6">
-                <Skeleton className="h-12 w-3/4" />
-                <Skeleton className="h-6 w-1/2" />
-                <Skeleton className="h-24 w-full" />
-                <Skeleton className="h-12 w-1/3" />
+            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <Skeleton className="aspect-square rounded-2xl" />
+                <div className="space-y-6">
+                  <Skeleton className="h-12 w-3/4" />
+                  <Skeleton className="h-6 w-1/2" />
+                  <Skeleton className="h-24 w-full" />
+                  <Skeleton className="h-12 w-1/3" />
+                </div>
               </div>
             </div>
           </div>
@@ -220,12 +227,15 @@ const ProductDetail = () => {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-slate-50">
         <PublicNavbar />
         <main className="flex-1 pt-24 pb-16 flex items-center justify-center">
           <div className="text-center">
-            <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h1 className="text-2xl font-bold mb-2">Product Not Found</h1>
+            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Package className="w-10 h-10 text-slate-400" />
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900 mb-2">Product Not Found</h1>
+            <p className="text-slate-500 mb-6">The product you are looking for does not exist or has been removed.</p>
             <Button onClick={() => navigate("/shop")} variant="outline">
               <ArrowLeft className="w-4 h-4 mr-2" /> Back to Shop
             </Button>
@@ -237,324 +247,369 @@ const ProductDetail = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-[#F8F9FA]">
       <PublicNavbar />
 
-      <main className="flex-1 pt-24 pb-16">
+      <motion.main 
+        className="flex-1 pt-24 pb-24 lg:pb-16"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Breadcrumb */}
-          <button
-            onClick={() => navigate("/shop")}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8 group"
-          >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span>Back to Shop</span>
-          </button>
-
-          {/* Product Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
-            {/* Media Gallery (Images + Video) */}
-            <ProductMediaGallery 
-              images={product.images}
-              videoUrl={product.video_url}
-              productName={product.name}
-            />
-
-            {/* Product Info */}
-            <div className="space-y-6">
-              {/* Category & Badges */}
-              <div className="flex flex-wrap items-center gap-3">
-                {(product.categories as any)?.name && (
-                  <Badge variant="secondary" className="text-sm">
-                    {(product.categories as any).name}
-                  </Badge>
-                )}
-                {product.is_highlighted && (
-                  <Badge className="bg-warning text-warning-foreground">
-                    <Star className="w-3 h-3 mr-1 fill-current" /> Featured
-                  </Badge>
-                )}
-                {product.stock_quantity <= 10 && product.stock_quantity > 0 && (
-                  <Badge variant="destructive" className="animate-pulse">
-                    Only {product.stock_quantity} left!
-                  </Badge>
-                )}
-
-                {/* Wishlist & Share Buttons */}
-                <div className="flex items-center gap-2 ml-auto">
-                  <WishlistButton productId={product.id} variant="default" size="sm" />
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="rounded-full">
-                        <Share2 className="w-4 h-4 mr-2" /> Share
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem onClick={handleCopyLink}>
-                        <Copy className="w-4 h-4 mr-2" /> Copy Link
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleNativeShare}>
-                        <Share2 className="w-4 h-4 mr-2" /> Share
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleShareWhatsApp}>
-                        <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                        </svg>
-                        WhatsApp
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleShareFacebook}>
-                        <Facebook className="w-4 h-4 mr-2" /> Facebook
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleShareTwitter}>
-                        <Twitter className="w-4 h-4 mr-2" /> Twitter
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+          {/* Breadcrumb / Back Navigation */}
+          <nav className="flex items-center mb-8">
+             <button
+                onClick={() => navigate("/shop")}
+                className="group flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-orange-600 transition-colors"
+             >
+                <div className="p-1.5 rounded-full bg-white border border-slate-200 group-hover:border-orange-600 transition-colors shadow-sm">
+                    <ArrowLeft className="w-4 h-4" />
                 </div>
+                Back to Catalog
+             </button>
+          </nav>
+
+          {/* Product Hero Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start mb-16">
+              
+              {/* Left Column: Gallery */}
+              <div>
+                <ProductMediaGallery 
+                  images={product.images}
+                  videoUrl={product.video_url}
+                  productName={product.name}
+                />
               </div>
 
-              {/* Title */}
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground leading-tight">
-                {product.name}
-              </h1>
-
-              {/* Rating */}
-              {approvedReviews.length > 0 && (
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`w-5 h-5 ${
-                          star <= Math.round(averageRating)
-                            ? "text-warning fill-warning"
-                            : "text-muted-foreground/30"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-lg font-medium">{averageRating.toFixed(1)}</span>
-                  <span className="text-muted-foreground">
-                    ({approvedReviews.length} review{approvedReviews.length !== 1 ? "s" : ""})
-                  </span>
+              {/* Right Column: Information */}
+              <div className="flex flex-col h-full">
+                
+                {/* Category Badge */}
+                <div className="mb-4">
+                    {(product.categories as any)?.name && (
+                        <Badge variant="secondary" className="bg-slate-100 text-slate-600 hover:bg-slate-200 border-slate-200 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase">
+                            {(product.categories as any).name}
+                        </Badge>
+                    )}
                 </div>
-              )}
 
-              {/* Price */}
-              <div className="flex items-baseline gap-3">
-                <span className="text-4xl sm:text-5xl font-bold text-primary">
-                  ₹{product.price.toLocaleString()}
-                </span>
-              </div>
+                {/* Title */}
+                <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 leading-tight tracking-tight mb-4">
+                    {product.name}
+                </h1>
 
-              {/* Description */}
-              {product.description && (
-                <p className="text-lg text-muted-foreground leading-relaxed">
-                  {product.description}
-                </p>
-              )}
-
-              {/* Stock Status */}
-              <div className="flex items-center gap-2">
-                {product.stock_quantity > 0 ? (
-                  <>
-                    <Check className="w-5 h-5 text-success" />
-                    <span className="text-success font-medium">In Stock</span>
-                    <span className="text-muted-foreground">
-                      ({product.stock_quantity} available)
+                {/* Price & Stock */}
+                <div className="flex items-center gap-4 mb-6">
+                    <span className="text-3xl font-bold text-orange-600">
+                        ₹{product.price.toLocaleString()}
                     </span>
-                  </>
-                ) : (
-                  <>
-                    <Clock className="w-5 h-5 text-destructive" />
-                    <span className="text-destructive font-medium">Out of Stock</span>
-                  </>
-                )}
-              </div>
-
-              {/* Quantity Selector */}
-              {product.stock_quantity > 0 && (
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-medium text-muted-foreground">Quantity:</span>
-                  <div className="flex items-center gap-3 bg-muted rounded-xl p-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      disabled={quantity <= 1}
-                      className="rounded-lg"
-                    >
-                      <Minus className="w-4 h-4" />
-                    </Button>
-                    <span className="w-12 text-center font-semibold text-lg">{quantity}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))}
-                      disabled={quantity >= product.stock_quantity}
-                      className="rounded-lg"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
+                    <div className="h-6 w-px bg-slate-200"></div>
+                    {product.stock_quantity > 0 ? (
+                        <div className="flex items-center gap-1.5 text-emerald-600 font-medium bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                            In Stock
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-1.5 text-rose-600 font-medium bg-rose-50 px-3 py-1 rounded-full border border-rose-100">
+                            <Clock className="w-4 h-4" />
+                            Out of Stock
+                        </div>
+                    )}
                 </div>
-              )}
 
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <Button
-                  onClick={handleAddToCart}
-                  variant="outline"
-                  size="lg"
-                  disabled={product.stock_quantity === 0 || addToCartMutation.isPending}
-                  className="flex-1 h-14 text-lg font-semibold border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground rounded-xl"
-                >
-                  <Plus className="w-5 h-5 mr-2" />
-                  Add to Cart
-                </Button>
-                <Button
-                  onClick={handleBuyNow}
-                  size="lg"
-                  disabled={product.stock_quantity === 0}
-                  className="flex-1 h-14 text-lg font-semibold bg-primary hover:bg-primary/90 rounded-xl"
-                >
-                  <ShoppingCart className="w-5 h-5 mr-2" />
-                  Buy Now
-                </Button>
+                {/* Short Description */}
+                {product.description && (
+                    <p className="text-lg text-slate-600 leading-relaxed mb-8 line-clamp-2">
+                        {product.description}
+                    </p>
+                )}
+
+                {/* Divider */}
+                <div className="h-px w-full bg-slate-100 mb-8"></div>
+
+                {/* Actions Area */}
+                <div className="space-y-6">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        {/* Quantity */}
+                        {product.stock_quantity > 0 && (
+                            <div className="flex items-center border border-slate-200 rounded-xl h-14 w-full sm:w-40 bg-white shadow-sm">
+                                <button 
+                                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                    disabled={quantity <= 1}
+                                    className="w-12 h-full flex items-center justify-center text-slate-400 hover:text-slate-900 disabled:opacity-30 transition-colors"
+                                >
+                                    <Minus className="w-5 h-5" />
+                                </button>
+                                <div className="flex-1 text-center font-bold text-lg text-slate-900">
+                                    {quantity}
+                                </div>
+                                <button 
+                                    onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))}
+                                    disabled={quantity >= product.stock_quantity}
+                                    className="w-12 h-full flex items-center justify-center text-slate-400 hover:text-slate-900 disabled:opacity-30 transition-colors"
+                                >
+                                    <Plus className="w-5 h-5" />
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Buy Now */}
+                        <Button
+                            onClick={handleBuyNow}
+                            size="lg"
+                            disabled={product.stock_quantity === 0}
+                            className="flex-1 h-14 bg-orange-600 hover:bg-orange-700 text-white font-bold text-lg shadow-lg shadow-orange-200 rounded-xl transition-all hover:-translate-y-0.5 active:translate-y-0"
+                        >
+                            Buy Now
+                        </Button>
+                    </div>
+
+                    {/* Add to Cart */}
+                    <Button
+                        onClick={handleAddToCart}
+                        variant="outline"
+                        size="lg"
+                        disabled={product.stock_quantity === 0 || addToCartMutation.isPending}
+                        className="w-full h-14 border-2 border-slate-200 text-slate-700 hover:border-orange-600 hover:text-orange-600 hover:bg-orange-50 font-semibold text-lg rounded-xl transition-all"
+                    >
+                        <ShoppingCart className="w-5 h-5 mr-2" />
+                        Add to Cart
+                    </Button>
+                </div>
+
+                {/* Trust Badges */}
+                <div className="mt-8 pt-8 border-t border-slate-100 grid grid-cols-2 gap-4">
+                    <div className="flex items-center gap-3 text-sm text-slate-500">
+                        <div className="p-2 bg-slate-100 rounded-full"><Check className="w-4 h-4 text-slate-700" /></div>
+                        <span>Official Warranty</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-slate-500">
+                        <div className="p-2 bg-slate-100 rounded-full"><Package className="w-4 h-4 text-slate-700" /></div>
+                        <span>Secure Shipping</span>
+                    </div>
+                </div>
+
               </div>
-            </div>
           </div>
 
           {/* Product Specifications */}
           {id && <ProductSpecifications productId={id} />}
 
           {/* Reviews Section */}
-          <section className="mt-20">
-            <div className="flex items-center gap-3 mb-8">
-              <Star className="w-6 h-6 text-warning fill-warning" />
-              <h2 className="text-2xl sm:text-3xl font-bold">Customer Reviews</h2>
-              {approvedReviews.length > 0 && (
-                <Badge variant="secondary">{approvedReviews.length}</Badge>
-              )}
+          <section id="reviews" className="mt-12 lg:mt-20 border-t border-slate-200 pt-8 lg:pt-12">
+            <div 
+                className="flex items-center justify-between mb-8 cursor-pointer group"
+                onClick={() => setIsReviewsOpen(!isReviewsOpen)}
+            >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-orange-50 rounded-lg group-hover:bg-orange-100 transition-colors">
+                    <Star className="w-6 h-6 text-orange-600 fill-orange-600" />
+                  </div>
+                  <h2 className="text-xl lg:text-2xl font-bold text-slate-900">Customer Reviews</h2>
+                  {approvedReviews.length > 0 && (
+                    <Badge variant="secondary" className="bg-slate-100 text-slate-600">{approvedReviews.length}</Badge>
+                  )}
+                </div>
+                <div className="p-2 rounded-full hover:bg-slate-100 transition-colors">
+                    {isReviewsOpen ? <ChevronUp className="w-5 h-5 text-slate-500" /> : <ChevronDown className="w-5 h-5 text-slate-500" />}
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Write Review */}
-              <Card className="lg:col-span-1 h-fit">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-4">Write a Review</h3>
-                  {user ? (
-                    <div className="space-y-4">
-                      <div>
-                        <label className="text-sm text-muted-foreground mb-2 block">
-                          Your Rating
-                        </label>
-                        <div className="flex gap-1">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <button
-                              key={star}
-                              type="button"
-                              onClick={() => setRating(star)}
-                              onMouseEnter={() => setHoveredRating(star)}
-                              onMouseLeave={() => setHoveredRating(0)}
-                              className="transition-transform hover:scale-110"
-                            >
-                              <Star
-                                className={`w-8 h-8 ${
-                                  star <= (hoveredRating || rating)
-                                    ? "text-warning fill-warning"
-                                    : "text-muted-foreground/30"
-                                }`}
-                              />
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-sm text-muted-foreground mb-2 block">
-                          Your Review (optional)
-                        </label>
-                        <Textarea
-                          placeholder="Share your experience with this product..."
-                          value={reviewText}
-                          onChange={(e) => setReviewText(e.target.value)}
-                          rows={4}
-                        />
-                      </div>
-                      <Button
-                        onClick={() => submitReviewMutation.mutate()}
-                        disabled={submitReviewMutation.isPending}
-                        className="w-full"
-                      >
-                        Submit Review
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="text-center py-4">
-                      <p className="text-muted-foreground mb-4">
-                        Please login to write a review
-                      </p>
-                      <Button onClick={() => navigate("/login")} variant="outline">
-                        Login
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Reviews List */}
-              <div className="lg:col-span-2 space-y-4">
-                {approvedReviews.length > 0 ? (
-                  approvedReviews.map((review) => (
-                    <Card key={review.id}>
-                      <CardContent className="p-6">
-                        <div className="flex items-start gap-4">
-                          <Avatar className="w-10 h-10">
-                            <AvatarFallback className="bg-primary/10 text-primary">
-                              <User className="w-5 h-5" />
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="flex gap-0.5">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                  <Star
-                                    key={star}
-                                    className={`w-4 h-4 ${
-                                      star <= review.rating
-                                        ? "text-warning fill-warning"
-                                        : "text-muted-foreground/30"
-                                    }`}
-                                  />
-                                ))}
-                              </div>
-                              <span className="text-sm text-muted-foreground">
-                                {new Date(review.created_at).toLocaleDateString()}
-                              </span>
-                            </div>
-                            {review.review_text && (
-                              <p className="text-foreground">{review.review_text}</p>
-                            )}
+            <AnimatePresence>
+                {isReviewsOpen && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
+                    >
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pb-4">
+              {/* Write Review Column */}
+              <div className="lg:col-span-4">
+                <Card className="border-slate-200 shadow-sm sticky top-24 overflow-hidden">
+                              <div className="h-1.5 bg-orange-600" />
+                  <CardContent className="p-6 sm:p-8">
+                    <h3 className="font-bold text-xl text-slate-900 mb-2">Write a Review</h3>
+                    <p className="text-sm text-slate-500 mb-8 leading-relaxed">
+                      Share your experience with this product to help other professionals make informed decisions.
+                    </p>
+                    
+                    {user ? (
+                      <div className="space-y-6">
+                        <div>
+                          <label className="text-sm font-semibold text-slate-700 mb-3 block">
+                            Rate this product
+                          </label>
+                          <div className="flex gap-2">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <motion.button
+                                key={star}
+                                type="button"
+                                onClick={() => setRating(star)}
+                                onMouseEnter={() => setHoveredRating(star)}
+                                onMouseLeave={() => setHoveredRating(0)}
+                                whileHover={{ scale: 1.15 }}
+                                whileTap={{ scale: 0.9 }}
+                                className="focus:outline-none transition-colors"
+                              >
+                                <Star
+                                  className={`w-8 h-8 ${
+                                    star <= (hoveredRating || rating)
+                                      ? "text-amber-400 fill-amber-400 drop-shadow-sm"
+                                      : "text-slate-200 fill-slate-50"
+                                  }`}
+                                />
+                              </motion.button>
+                            ))}
+                          </div>
+                          <div className="h-6 mt-1">
+                             <AnimatePresence mode="wait">
+                                {(hoveredRating || rating) > 0 && (
+                                   <motion.span 
+                                     key={hoveredRating || rating}
+                                     initial={{ opacity: 0, y: -5 }}
+                                     animate={{ opacity: 1, y: 0 }}
+                                     exit={{ opacity: 0, y: 5 }}
+                                                 className="text-sm font-medium text-orange-600"
+                                   >
+                                      {["Poor", "Fair", "Good", "Very Good", "Excellent"][(hoveredRating || rating) - 1]}
+                                   </motion.span>
+                                )}
+                             </AnimatePresence>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
+                        
+                        <div>
+                          <label className="text-sm font-semibold text-slate-700 mb-3 block">
+                            Your Review
+                          </label>
+                          <Textarea
+                            placeholder="What did you like or dislike? How was the quality?"
+                            value={reviewText}
+                            onChange={(e) => setReviewText(e.target.value)}
+                            rows={5}
+                                        className="resize-none border-slate-200 focus:border-orange-600 focus:ring-orange-600/20 bg-slate-50/50 text-base"
+                          />
+                        </div>
+                        
+                        <Button
+                          onClick={() => submitReviewMutation.mutate()}
+                          disabled={submitReviewMutation.isPending}
+                          className="w-full bg-slate-900 hover:bg-slate-800 text-white h-12 text-base font-medium shadow-lg shadow-slate-900/10"
+                        >
+                          {submitReviewMutation.isPending ? "Submitting..." : "Submit Review"}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                        <User className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                        <p className="text-slate-600 font-medium mb-4">
+                          Please login to write a review
+                        </p>
+                                    <Button onClick={() => navigate("/login")} variant="outline" className="w-full border-slate-300 hover:border-orange-600 hover:text-orange-600">
+                          Login Now
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Reviews List Column */}
+              <div className="lg:col-span-8 space-y-6">
+                {approvedReviews.length > 0 ? (
+                  approvedReviews.map((review) => (
+                    <motion.div 
+                      key={review.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                    >
+                      <Card className="border-slate-100 shadow-sm hover:shadow-md transition-all duration-300">
+                        <CardContent className="p-6 sm:p-8">
+                          <div className="flex items-start gap-4 sm:gap-6">
+                            <Avatar className="w-12 h-12 border border-slate-100 shadow-sm">
+                              <AvatarFallback className="bg-slate-100 text-slate-600 font-bold text-lg">
+                                <User className="w-6 h-6" />
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
+                                <div className="flex items-center gap-2">
+                                  <div className="flex gap-0.5">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                      <Star
+                                        key={star}
+                                        className={`w-4 h-4 ${
+                                          star <= review.rating
+                                            ? "text-amber-400 fill-amber-400"
+                                            : "text-slate-200"
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                  <span className="text-sm font-semibold text-slate-900 ml-2">
+                                    {["Poor", "Fair", "Good", "Very Good", "Excellent"][review.rating - 1]}
+                                  </span>
+                                </div>
+                                <span className="text-xs text-slate-400 font-medium">
+                                  {new Date(review.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                                </span>
+                              </div>
+                              
+                              {review.review_text ? (
+                                <p className="text-slate-600 leading-relaxed text-base">{review.review_text}</p>
+                              ) : (
+                                <p className="text-slate-400 italic text-sm">No written review</p>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
                   ))
                 ) : (
-                  <Card>
-                    <CardContent className="py-12 text-center">
-                      <Star className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-                      <p className="text-muted-foreground">
-                        No reviews yet. Be the first to review this product!
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <div className="bg-white rounded-3xl border border-slate-200 p-16 text-center shadow-sm">
+                    <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-slate-100">
+                      <MessageSquare className="w-10 h-10 text-slate-300" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900 mb-3">No reviews yet</h3>
+                    <p className="text-slate-500 max-w-md mx-auto leading-relaxed">
+                      Be the first to share your experience with this product. Your feedback is valuable to us and helps other professionals.
+                    </p>
+                  </div>
                 )}
               </div>
-            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
           </section>
         </div>
-      </main>
+      </motion.main>
+
+      {/* Mobile Sticky Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 lg:hidden z-50 shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)] safe-area-bottom">
+        <div className="flex gap-3">
+          <Button 
+            variant="outline" 
+            className="flex-1 h-12 border-slate-300 text-slate-700 font-semibold text-base" 
+            onClick={handleAddToCart}
+            disabled={product.stock_quantity === 0 || addToCartMutation.isPending}
+          >
+            Add to Cart
+          </Button>
+          <Button 
+            className="flex-1 h-12 bg-orange-600 text-white font-bold shadow-md text-base" 
+            onClick={handleBuyNow}
+            disabled={product.stock_quantity === 0}
+          >
+            Buy Now
+          </Button>
+        </div>
+      </div>
 
       <PublicFooter />
     </div>

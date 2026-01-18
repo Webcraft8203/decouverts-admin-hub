@@ -1,7 +1,9 @@
 import { useState, useMemo } from "react";
-import { Package, Play, X } from "lucide-react";
+import { Package, Play, X, ZoomIn } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ProductMediaGalleryProps {
   images: string[] | null;
@@ -81,55 +83,81 @@ export const ProductMediaGallery = ({ images, videoUrl, productName }: ProductMe
   if (mediaItems.length === 0) {
     return (
       <div className="space-y-4">
-        <div className="aspect-square rounded-3xl bg-muted flex items-center justify-center">
-          <Package className="w-32 h-32 text-muted-foreground/30" />
+        <div className="aspect-square rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center">
+          <Package className="w-24 h-24 text-slate-300" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-6 w-full">
       {/* Main Preview */}
       <div 
-        className="aspect-square rounded-3xl overflow-hidden bg-muted relative cursor-pointer group"
+        className="group relative aspect-square overflow-hidden rounded-2xl bg-white border border-slate-100 shadow-lg shadow-slate-200/50 cursor-zoom-in"
         onClick={handleMainClick}
       >
-        {currentItem.type === "image" ? (
-          <img
-            src={currentItem.url}
-            alt={`${productName} - Image ${selectedIndex + 1}`}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          />
-        ) : (
-          <>
-            {/* Video Thumbnail with Play Button */}
-            <img
-              src={currentItem.thumbnailUrl}
-              alt={`${productName} - Video`}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
-              <div className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
-                <Play className="w-10 h-10 text-primary ml-1" fill="currentColor" />
+        <AnimatePresence mode="wait">
+          {currentItem.type === "image" ? (
+            <motion.div
+              key={`image-${selectedIndex}`}
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              className="w-full h-full flex items-center justify-center p-6 bg-white"
+            >
+              <img
+                src={currentItem.url}
+                alt={`${productName} - View ${selectedIndex + 1}`}
+                className="w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-110"
+              />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="video-thumbnail"
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              className="w-full h-full relative"
+            >
+              {/* Video Thumbnail with Play Button */}
+              <img
+                src={currentItem.thumbnailUrl}
+                alt={`${productName} - Video`}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
+                <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <Play className="w-8 h-8 text-primary ml-1" fill="currentColor" />
+                </div>
               </div>
-            </div>
-          </>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        
+        {/* Zoom Hint */}
+        {currentItem.type === "image" && (
+          <div className="absolute bottom-4 right-4 p-2.5 bg-white/80 backdrop-blur-md border border-white/20 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 pointer-events-none z-10">
+            <ZoomIn className="w-5 h-5 text-slate-600" />
+          </div>
         )}
       </div>
 
       {/* Thumbnail Strip */}
       {mediaItems.length > 1 && (
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x px-1">
           {mediaItems.map((item, index) => (
             <button
               key={index}
               onClick={() => handleThumbnailClick(index)}
-              className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-200 flex-shrink-0 ${
+              className={cn(
+                "relative w-20 h-20 rounded-xl overflow-hidden border-2 flex-shrink-0 transition-all duration-300 snap-start",
                 selectedIndex === index 
-                  ? "border-primary ring-2 ring-primary/20" 
-                  : "border-border hover:border-primary/50"
-              }`}
+                  ? "border-orange-600 ring-2 ring-orange-600/20 shadow-md" 
+                  : "border-slate-100 hover:border-orange-600/50 opacity-80 hover:opacity-100"
+              )}
             >
               <img
                 src={item.type === "image" ? item.url : item.thumbnailUrl}
@@ -139,8 +167,8 @@ export const ProductMediaGallery = ({ images, videoUrl, productName }: ProductMe
               />
               {item.type === "video" && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                  <div className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center">
-                    <Play className="w-4 h-4 text-primary ml-0.5" fill="currentColor" />
+                  <div className="w-6 h-6 rounded-full bg-white/90 flex items-center justify-center">
+                    <Play className="w-3 h-3 text-primary ml-0.5" fill="currentColor" />
                   </div>
                 </div>
               )}
