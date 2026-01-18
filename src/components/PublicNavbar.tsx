@@ -94,10 +94,16 @@ export const PublicNavbar = () => {
               className="h-10 md:h-12 lg:h-14 w-auto object-contain"
             />
             <div className="flex flex-col justify-center items-center">
-              <span className="text-lg md:text-xl lg:text-2xl font-extrabold tracking-widest uppercase text-foreground leading-none">
+              <span 
+                className="text-lg md:text-xl lg:text-2xl font-bold tracking-widest uppercase text-foreground leading-none"
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+              >
                 DECOUVERTS
               </span>
-              <span className="text-[8px] md:text-[10px] lg:text-xs font-medium tracking-wider text-blue-600 leading-none -mt-1">
+              <span 
+                className="text-[8px] md:text-[10px] lg:text-xs font-medium tracking-wider text-blue-600 leading-tight md:leading-none mt-0.5 md:-mt-1"
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+              >
                 Discovering Future Technologies
               </span>
             </div>

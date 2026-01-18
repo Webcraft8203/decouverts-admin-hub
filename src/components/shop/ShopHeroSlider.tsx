@@ -1,9 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronRight, Image } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -49,7 +47,7 @@ export function ShopHeroSlider() {
   if (isLoading) {
     return (
       <section className="bg-gradient-to-br from-primary/5 via-accent/5 to-secondary/10">
-        <div className="max-w-[1400px] mx-auto">
+        <div className="w-full">
           <Skeleton className="w-full h-[200px] sm:h-[300px] md:h-[400px]" />
         </div>
       </section>
@@ -62,7 +60,7 @@ export function ShopHeroSlider() {
 
   return (
     <section className="bg-gradient-to-br from-primary/5 via-accent/5 to-secondary/10">
-      <div className="max-w-[1400px] mx-auto">
+      <div className="w-full">
         <Carousel
           opts={{ align: "start", loop: true }}
           plugins={[
@@ -79,7 +77,7 @@ export function ShopHeroSlider() {
               <CarouselItem key={slide.id}>
                 <div
                   onClick={() => handleSlideClick(slide)}
-                  className={`relative h-[200px] sm:h-[300px] md:h-[400px] overflow-hidden ${
+                  className={`relative w-full ${
                     slide.product_id ? 'cursor-pointer' : ''
                   }`}
                 >
@@ -87,42 +85,8 @@ export function ShopHeroSlider() {
                   <img
                     src={slide.image_url}
                     alt={slide.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-auto block"
                   />
-                  
-                  {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/60 to-transparent" />
-                  
-                  {/* Content */}
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="max-w-[1400px] mx-auto px-6 sm:px-12 w-full">
-                      <div className="max-w-xl">
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-3 leading-tight">
-                          {slide.title}
-                        </h2>
-                        
-                        {slide.description && (
-                          <p className="text-muted-foreground text-sm sm:text-base md:text-lg mb-6 line-clamp-2">
-                            {slide.description}
-                          </p>
-                        )}
-                        
-                        {slide.product_id && (
-                          <Button 
-                            className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg"
-                            size="lg"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleSlideClick(slide);
-                            }}
-                          >
-                            Explore Now
-                            <ChevronRight className="w-4 h-4 ml-2" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </CarouselItem>
             ))}
