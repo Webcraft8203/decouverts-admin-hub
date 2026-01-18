@@ -6,6 +6,7 @@ import { PublicNavbar } from "@/components/PublicNavbar";
 import { PublicFooter } from "@/components/PublicFooter";
 import { ProductMediaGallery } from "@/components/ProductMediaGallery";
 import { ProductSpecifications } from "@/components/product/ProductSpecifications";
+import { RelatedProducts } from "@/components/product/RelatedProducts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +40,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 const ProductDetail = () => {
@@ -51,6 +53,7 @@ const ProductDetail = () => {
   const [reviewText, setReviewText] = useState("");
   const [hoveredRating, setHoveredRating] = useState(0);
   const [isReviewsOpen, setIsReviewsOpen] = useState(true);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", id],
@@ -246,6 +249,8 @@ const ProductDetail = () => {
     );
   }
 
+  const isLongDescription = (product.description?.length || 0) > 300;
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F8F9FA]">
       <PublicNavbar />
@@ -320,9 +325,38 @@ const ProductDetail = () => {
 
                 {/* Short Description */}
                 {product.description && (
-                    <p className="text-lg text-slate-600 leading-relaxed mb-8 line-clamp-2">
+                    <div className="mb-8">
+                      <motion.div
+                        initial={false}
+                        animate={{ 
+                          height: isLongDescription && !isDescriptionExpanded ? "7.4rem" : "auto"
+                        }}
+                        transition={{ duration: 0.3 }}
+                        className={cn("text-lg text-slate-600 leading-relaxed overflow-hidden relative")}
+                        style={{
+                           maskImage: isLongDescription && !isDescriptionExpanded 
+                             ? "linear-gradient(to bottom, black 60%, transparent 100%)" 
+                             : "none",
+                           WebkitMaskImage: isLongDescription && !isDescriptionExpanded 
+                             ? "linear-gradient(to bottom, black 60%, transparent 100%)" 
+                             : "none"
+                        }}
+                      >
                         {product.description}
-                    </p>
+                      </motion.div>
+                      {isLongDescription && (
+                        <button
+                          onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                          className="mt-2 text-sm font-semibold text-slate-500 hover:text-orange-600 transition-colors flex items-center gap-1 focus:outline-none group"
+                        >
+                          {isDescriptionExpanded ? (
+                            <>See less <ChevronUp className="w-4 h-4 transition-transform group-hover:-translate-y-0.5" /></>
+                          ) : (
+                            <>See more <ChevronDown className="w-4 h-4 transition-transform group-hover:translate-y-0.5" /></>
+                          )}
+                        </button>
+                      )}
+                    </div>
                 )}
 
                 {/* Divider */}
@@ -587,6 +621,9 @@ const ProductDetail = () => {
                 )}
             </AnimatePresence>
           </section>
+
+          {/* Related Products */}
+          {product && <RelatedProducts categoryId={product.category_id} currentProductId={product.id} />}
         </div>
       </motion.main>
 
