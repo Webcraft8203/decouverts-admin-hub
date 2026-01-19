@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, ShoppingCart, User, ChevronDown } from "lucide-react";
@@ -12,13 +12,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 export const PublicNavbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [logoClickCount, setLogoClickCount] = useState(0);
+  const [isScrolled, setIsScrolled] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Handle scroll for navbar background
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Check if e-commerce is enabled
   const { data: isEcommerceEnabled = true } = useQuery({
@@ -79,29 +90,68 @@ export const PublicNavbar = () => {
     setIsMenuOpen(false);
   };
 
+  const NavItem = ({ children, className, ...props }: React.ComponentProps<typeof Link>) => (
+    <Link 
+      className={cn(
+        "relative text-sm font-medium transition-colors hover:text-primary",
+        "after:absolute after:left-0 after:bottom-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all hover:after:w-full",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </Link>
+  );
+
+  const NavButton = ({ children, onClick, className }: { children: React.ReactNode; onClick: () => void; className?: string }) => (
+    <button 
+      onClick={onClick}
+      className={cn(
+        "relative text-sm font-medium transition-colors hover:text-primary",
+        "after:absolute after:left-0 after:bottom-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all hover:after:w-full",
+        className
+      )}
+    >
+      {children}
+    </button>
+  );
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-border shadow-sm">
+    <nav 
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        isScrolled 
+          ? "bg-white/95 backdrop-blur-xl border-b border-border shadow-soft" 
+          : "bg-transparent"
+      )}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <div 
             onClick={handleLogoClick}
-            className="flex items-center gap-1 cursor-pointer select-none group"
+            className="flex items-center gap-2 cursor-pointer select-none group"
           >
             <img 
               src={logo} 
               alt="Decouverts Plus" 
-              className="h-10 md:h-12 lg:h-14 w-auto object-contain"
+              className="h-9 md:h-11 lg:h-12 w-auto object-contain transition-transform group-hover:scale-105"
             />
-            <div className="flex flex-col justify-center items-center">
+            <div className="flex flex-col justify-center">
               <span 
-                className="text-lg md:text-xl lg:text-2xl font-bold tracking-widest uppercase text-foreground leading-none"
+                className={cn(
+                  "text-base md:text-lg lg:text-xl font-bold tracking-[0.15em] uppercase leading-none transition-colors",
+                  isScrolled ? "text-foreground" : "text-foreground"
+                )}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 DECOUVERTS
               </span>
               <span 
-                className="text-[8px] md:text-[10px] lg:text-xs font-medium tracking-wider text-blue-600 leading-tight md:leading-none mt-0.5 md:-mt-1"
+                className={cn(
+                  "text-[8px] md:text-[9px] lg:text-[10px] font-medium tracking-wider leading-tight mt-0.5 transition-colors",
+                  isScrolled ? "text-primary" : "text-primary"
+                )}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 Discovering Future Technologies
@@ -110,37 +160,40 @@ export const PublicNavbar = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-4 lg:gap-6">
-            <Link 
+          <div className="hidden md:flex items-center gap-6 lg:gap-8">
+            <NavItem 
               to="/" 
-              className="text-foreground/70 hover:text-primary transition-colors font-medium text-sm lg:text-base"
+              className={isScrolled ? "text-foreground/80" : "text-foreground/80"}
             >
               Home
-            </Link>
+            </NavItem>
 
             {/* Show full navigation only when NOT on shop pages */}
             {!isShopPage && (
               <>
-                <Link 
+                <NavItem 
                   to="/about" 
-                  className="text-foreground/70 hover:text-primary transition-colors font-medium text-sm lg:text-base"
+                  className={isScrolled ? "text-foreground/80" : "text-foreground/80"}
                 >
                   About
-                </Link>
+                </NavItem>
                 
                 {/* Services Dropdown */}
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="flex items-center gap-1 text-foreground/70 hover:text-primary transition-colors font-medium text-sm lg:text-base outline-none">
-                    Services <ChevronDown className="w-4 h-4" />
+                  <DropdownMenuTrigger className={cn(
+                    "flex items-center gap-1 text-sm font-medium transition-colors outline-none hover:text-primary",
+                    isScrolled ? "text-foreground/80" : "text-foreground/80"
+                  )}>
+                    Services <ChevronDown className="w-3.5 h-3.5" />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="bg-white">
-                    <DropdownMenuItem onClick={() => navigate("/manufacturing")}>
+                  <DropdownMenuContent align="start" className="bg-white/95 backdrop-blur-xl border-border/50 shadow-lg">
+                    <DropdownMenuItem onClick={() => navigate("/manufacturing")} className="cursor-pointer">
                       Manufacturing
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/engineering")}>
+                    <DropdownMenuItem onClick={() => navigate("/engineering")} className="cursor-pointer">
                       Engineering
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => scrollToSection("services-section")}>
+                    <DropdownMenuItem onClick={() => scrollToSection("services-section")} className="cursor-pointer">
                       All Services
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -148,46 +201,49 @@ export const PublicNavbar = () => {
 
                 {/* Solutions Dropdown */}
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="flex items-center gap-1 text-foreground/70 hover:text-primary transition-colors font-medium text-sm lg:text-base outline-none">
-                    Solutions <ChevronDown className="w-4 h-4" />
+                  <DropdownMenuTrigger className={cn(
+                    "flex items-center gap-1 text-sm font-medium transition-colors outline-none hover:text-primary",
+                    isScrolled ? "text-foreground/80" : "text-foreground/80"
+                  )}>
+                    Solutions <ChevronDown className="w-3.5 h-3.5" />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="bg-white">
-                    <DropdownMenuItem onClick={() => scrollToSection("industry-solutions")}>
+                  <DropdownMenuContent align="start" className="bg-white/95 backdrop-blur-xl border-border/50 shadow-lg">
+                    <DropdownMenuItem onClick={() => scrollToSection("industry-solutions")} className="cursor-pointer">
                       Industry Solutions
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/printer-configuration")}>
+                    <DropdownMenuItem onClick={() => navigate("/printer-configuration")} className="cursor-pointer">
                       3D Printer Configuration
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/drone-configuration")}>
+                    <DropdownMenuItem onClick={() => navigate("/drone-configuration")} className="cursor-pointer">
                       Drone Configuration
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                <button 
+                <NavButton 
                   onClick={() => scrollToSection("gallery-section")}
-                  className="text-foreground/70 hover:text-primary transition-colors font-medium text-sm lg:text-base"
+                  className={isScrolled ? "text-foreground/80" : "text-foreground/80"}
                 >
                   Gallery
-                </button>
+                </NavButton>
 
-                <button 
+                <NavButton 
                   onClick={() => scrollToSection("contact-section")}
-                  className="text-foreground/70 hover:text-primary transition-colors font-medium text-sm lg:text-base"
+                  className={isScrolled ? "text-foreground/80" : "text-foreground/80"}
                 >
                   Contact
-                </button>
+                </NavButton>
               </>
             )}
 
             {/* Shop - only show if e-commerce is enabled */}
             {isEcommerceEnabled && (
-              <Link 
+              <NavItem 
                 to="/shop" 
-                className="text-foreground/70 hover:text-primary transition-colors font-medium text-sm lg:text-base"
+                className={isScrolled ? "text-foreground/80" : "text-foreground/80"}
               >
                 Shop
-              </Link>
+              </NavItem>
             )}
 
             {/* Cart and Account - only show on shop pages when e-commerce is enabled */}
@@ -199,28 +255,27 @@ export const PublicNavbar = () => {
                       variant="ghost" 
                       size="icon"
                       onClick={() => navigate("/dashboard/cart")}
-                      className="relative text-foreground/70 hover:text-primary"
+                      className="relative text-foreground/80 hover:text-primary hover:bg-primary/5"
                     >
                       <ShoppingCart className="w-5 h-5" />
                       {cartCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
+                        <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold shadow-glow">
                           {cartCount > 99 ? "99+" : cartCount}
                         </span>
                       )}
                     </Button>
                     <Button 
                       onClick={() => navigate("/dashboard")}
-                      className="bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90"
+                      className="bg-dark hover:bg-dark-elevated text-white shadow-lg"
                     >
                       <User className="w-4 h-4 mr-2" />
-                      My Account
+                      Account
                     </Button>
                   </>
                 ) : (
                   <Button 
-                    variant="ghost" 
                     onClick={() => navigate("/login")}
-                    className="text-foreground/70 hover:text-primary"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
                   >
                     <User className="w-4 h-4 mr-2" />
                     Login
@@ -237,7 +292,7 @@ export const PublicNavbar = () => {
                 variant="ghost" 
                 size="icon"
                 onClick={() => navigate("/dashboard/cart")}
-                className="relative text-foreground/70 hover:text-primary"
+                className="relative text-foreground/80 hover:text-primary"
               >
                 <ShoppingCart className="w-5 h-5" />
                 {cartCount > 0 && (
@@ -248,7 +303,7 @@ export const PublicNavbar = () => {
               </Button>
             )}
             <button
-              className="p-2 text-foreground"
+              className="p-2 text-foreground rounded-lg hover:bg-secondary transition-colors"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label="Toggle menu"
             >
@@ -259,11 +314,11 @@ export const PublicNavbar = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border animate-fade-in bg-white">
-            <div className="flex flex-col gap-3">
+          <div className="md:hidden py-6 border-t border-border animate-fade-in bg-white/95 backdrop-blur-xl rounded-b-2xl shadow-lg">
+            <div className="flex flex-col gap-1">
               <Link 
                 to="/" 
-                className="text-foreground/70 hover:text-primary transition-colors font-medium py-2"
+                className="text-foreground/80 hover:text-primary hover:bg-primary/5 transition-colors font-medium py-3 px-4 rounded-lg"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Home
@@ -274,33 +329,33 @@ export const PublicNavbar = () => {
                 <>
                   <Link 
                     to="/about" 
-                    className="text-foreground/70 hover:text-primary transition-colors font-medium py-2"
+                    className="text-foreground/80 hover:text-primary hover:bg-primary/5 transition-colors font-medium py-3 px-4 rounded-lg"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     About Us
                   </Link>
                   
                   {/* Services */}
-                  <div className="py-2">
-                    <p className="text-foreground font-semibold mb-2">Services</p>
-                    <div className="pl-4 flex flex-col gap-2">
+                  <div className="py-2 px-4">
+                    <p className="text-foreground font-semibold mb-2 text-sm uppercase tracking-wider">Services</p>
+                    <div className="pl-3 flex flex-col gap-1 border-l-2 border-primary/20">
                       <Link 
                         to="/manufacturing" 
-                        className="text-foreground/70 hover:text-primary transition-colors text-sm"
+                        className="text-foreground/70 hover:text-primary transition-colors text-sm py-2"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         Manufacturing
                       </Link>
                       <Link 
                         to="/engineering" 
-                        className="text-foreground/70 hover:text-primary transition-colors text-sm"
+                        className="text-foreground/70 hover:text-primary transition-colors text-sm py-2"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         Engineering
                       </Link>
                       <button 
                         onClick={() => scrollToSection("services-section")}
-                        className="text-foreground/70 hover:text-primary transition-colors text-sm text-left"
+                        className="text-foreground/70 hover:text-primary transition-colors text-sm text-left py-2"
                       >
                         All Services
                       </button>
@@ -308,25 +363,25 @@ export const PublicNavbar = () => {
                   </div>
 
                   {/* Solutions */}
-                  <div className="py-2">
-                    <p className="text-foreground font-semibold mb-2">Solutions</p>
-                    <div className="pl-4 flex flex-col gap-2">
+                  <div className="py-2 px-4">
+                    <p className="text-foreground font-semibold mb-2 text-sm uppercase tracking-wider">Solutions</p>
+                    <div className="pl-3 flex flex-col gap-1 border-l-2 border-primary/20">
                       <button 
                         onClick={() => scrollToSection("industry-solutions")}
-                        className="text-foreground/70 hover:text-primary transition-colors text-sm text-left"
+                        className="text-foreground/70 hover:text-primary transition-colors text-sm text-left py-2"
                       >
                         Industry Solutions
                       </button>
                       <Link 
                         to="/printer-configuration" 
-                        className="text-foreground/70 hover:text-primary transition-colors text-sm"
+                        className="text-foreground/70 hover:text-primary transition-colors text-sm py-2"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         3D Printer Configuration
                       </Link>
                       <Link 
                         to="/drone-configuration" 
-                        className="text-foreground/70 hover:text-primary transition-colors text-sm"
+                        className="text-foreground/70 hover:text-primary transition-colors text-sm py-2"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         Drone Configuration
@@ -336,14 +391,14 @@ export const PublicNavbar = () => {
 
                   <button 
                     onClick={() => scrollToSection("gallery-section")}
-                    className="text-foreground/70 hover:text-primary transition-colors font-medium py-2 text-left"
+                    className="text-foreground/80 hover:text-primary hover:bg-primary/5 transition-colors font-medium py-3 px-4 rounded-lg text-left"
                   >
                     Gallery
                   </button>
 
                   <button 
                     onClick={() => scrollToSection("contact-section")}
-                    className="text-foreground/70 hover:text-primary transition-colors font-medium py-2 text-left"
+                    className="text-foreground/80 hover:text-primary hover:bg-primary/5 transition-colors font-medium py-3 px-4 rounded-lg text-left"
                   >
                     Contact Us
                   </button>
@@ -354,7 +409,7 @@ export const PublicNavbar = () => {
               {isEcommerceEnabled && (
                 <Link 
                   to="/shop" 
-                  className="text-foreground/70 hover:text-primary transition-colors font-medium py-2"
+                  className="text-foreground/80 hover:text-primary hover:bg-primary/5 transition-colors font-medium py-3 px-4 rounded-lg"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Shop
@@ -363,32 +418,31 @@ export const PublicNavbar = () => {
 
               {/* Account - only show on shop pages when e-commerce is enabled */}
               {showCartAndAccount && (
-                <>
+                <div className="pt-4 px-4">
                   {user ? (
                     <Button 
                       onClick={() => {
                         navigate("/dashboard");
                         setIsMenuOpen(false);
                       }}
-                      className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground"
+                      className="w-full bg-dark hover:bg-dark-elevated text-white"
                     >
                       <User className="w-4 h-4 mr-2" />
                       My Account
                     </Button>
                   ) : (
                     <Button 
-                      variant="ghost" 
                       onClick={() => {
                         navigate("/login");
                         setIsMenuOpen(false);
                       }}
-                      className="w-full"
+                      className="w-full bg-primary hover:bg-primary/90"
                     >
                       <User className="w-4 h-4 mr-2" />
                       Login
                     </Button>
                   )}
-                </>
+                </div>
               )}
             </div>
           </div>
