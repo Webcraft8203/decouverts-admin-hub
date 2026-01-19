@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { Star, ChevronLeft, ChevronRight, Quote } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 interface CustomerReview {
   id: string;
@@ -47,11 +48,11 @@ export const OurCustomers = () => {
 
   if (isLoading) {
     return (
-      <section className="py-16 md:py-24 bg-background relative">
+      <section className="py-20 md:py-28 section-dark relative">
         <div className="container mx-auto px-4">
           <div className="text-center">
-            <div className="animate-pulse h-8 bg-muted rounded w-48 mx-auto mb-4" />
-            <div className="animate-pulse h-4 bg-muted rounded w-72 mx-auto" />
+            <div className="animate-pulse h-8 bg-dark-elevated rounded w-48 mx-auto mb-4" />
+            <div className="animate-pulse h-4 bg-dark-elevated rounded w-72 mx-auto" />
           </div>
         </div>
       </section>
@@ -79,14 +80,14 @@ export const OurCustomers = () => {
   const renderStars = (rating: number | null) => {
     if (!rating) return null;
     return (
-      <div className="flex gap-0.5 mt-3">
+      <div className="flex gap-0.5">
         {[1, 2, 3, 4, 5].map((star) => (
           <Star
             key={star}
             className={`h-4 w-4 ${
               star <= rating
-                ? "text-amber-400 fill-amber-400"
-                : "text-muted-foreground/30"
+                ? "text-primary fill-primary"
+                : "text-dark-muted/30"
             }`}
           />
         ))}
@@ -95,41 +96,60 @@ export const OurCustomers = () => {
   };
 
   return (
-    <section className="py-16 md:py-24 bg-background relative overflow-hidden">
-      {/* Blueprint grid background */}
-      <div 
-        className="absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage: `
-            linear-gradient(hsl(var(--muted-foreground)) 1px, transparent 1px),
-            linear-gradient(90deg, hsl(var(--muted-foreground)) 1px, transparent 1px)
-          `,
-          backgroundSize: '40px 40px'
-        }}
-      />
+    <section className="py-20 md:py-28 section-dark relative overflow-hidden">
+      {/* Background patterns */}
+      <div className="absolute inset-0 bg-grid-dark opacity-30" />
+      <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-primary/5 to-transparent" />
       
       <div className="container mx-auto px-4 relative z-10">
         {/* Header */}
-        <div className="text-center mb-12 md:mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Our Customers
+        <motion.div 
+          className="text-center mb-14 md:mb-20"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          <span className="inline-block px-4 py-2 mb-4 text-xs font-bold tracking-[0.2em] uppercase rounded-full bg-primary/10 text-primary border border-primary/20">
+            Testimonials
+          </span>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
+            What Our <span className="text-primary">Customers</span> Say
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Trusted by engineers, institutions, and industry leaders
+          <p className="text-dark-muted text-lg max-w-2xl mx-auto">
+            Trusted by engineers, institutions, and industry leaders worldwide
           </p>
-        </div>
+        </motion.div>
 
         {/* Cards Grid */}
         <div className="relative">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {visibleReviews.map((review) => (
-              <div
+            {visibleReviews.map((review, index) => (
+              <motion.div
                 key={review.id}
-                className="bg-card rounded-xl p-6 md:p-8 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-border/50 group"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="card-dark rounded-2xl p-6 md:p-8 hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 group"
               >
-                {/* Customer Photo & Info */}
-                <div className="flex items-center gap-4 mb-5">
-                  <Avatar className="h-14 w-14 ring-2 ring-primary/10">
+                {/* Quote Icon */}
+                <div className="mb-6">
+                  <Quote className="w-10 h-10 text-primary/30" />
+                </div>
+
+                {/* Review Text */}
+                <p className="text-dark-muted leading-relaxed mb-6 line-clamp-4">
+                  "{review.review_text}"
+                </p>
+
+                {/* Rating */}
+                <div className="mb-6">
+                  {renderStars(review.rating)}
+                </div>
+
+                {/* Customer Info */}
+                <div className="flex items-center gap-4 pt-6 border-t border-dark-border">
+                  <Avatar className="h-12 w-12 ring-2 ring-primary/20">
                     <AvatarImage
                       src={review.photo_url || undefined}
                       alt={review.image_title}
@@ -145,35 +165,27 @@ export const OurCustomers = () => {
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="font-semibold text-foreground">
+                    <h4 className="font-semibold text-white">
                       {review.customer_name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
+                    </h4>
+                    <p className="text-sm text-dark-muted">
                       {review.designation && `${review.designation}, `}
                       {review.company_name}
                     </p>
                   </div>
                 </div>
-
-                {/* Review Text */}
-                <p className="text-muted-foreground leading-relaxed line-clamp-3">
-                  "{review.review_text}"
-                </p>
-
-                {/* Rating */}
-                {renderStars(review.rating)}
-              </div>
+              </motion.div>
             ))}
           </div>
 
           {/* Navigation */}
           {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-4 mt-8">
+            <div className="flex justify-center items-center gap-4 mt-10">
               <Button
                 variant="outline"
                 size="icon"
                 onClick={handlePrev}
-                className="rounded-full"
+                className="rounded-full border-dark-border bg-dark-elevated hover:bg-dark-accent hover:border-primary/30 text-dark-muted hover:text-primary"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -182,8 +194,8 @@ export const OurCustomers = () => {
                   <button
                     key={idx}
                     onClick={() => setCurrentPage(idx)}
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      idx === currentPage ? "bg-primary" : "bg-muted-foreground/30"
+                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                      idx === currentPage ? "bg-primary w-6" : "bg-dark-border hover:bg-dark-muted"
                     }`}
                   />
                 ))}
@@ -192,7 +204,7 @@ export const OurCustomers = () => {
                 variant="outline"
                 size="icon"
                 onClick={handleNext}
-                className="rounded-full"
+                className="rounded-full border-dark-border bg-dark-elevated hover:bg-dark-accent hover:border-primary/30 text-dark-muted hover:text-primary"
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>

@@ -72,6 +72,14 @@ export default {
           "4": "hsl(var(--chart-4))",
           "5": "hsl(var(--chart-5))",
         },
+        // Dark section colors for enterprise sections
+        dark: {
+          DEFAULT: "hsl(222, 47%, 11%)",
+          elevated: "hsl(222, 40%, 14%)",
+          accent: "hsl(222, 35%, 18%)",
+          muted: "hsl(215, 20%, 65%)",
+          border: "hsl(217, 33%, 22%)",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -95,10 +103,35 @@ export default {
             height: "0",
           },
         },
+        "fade-up": {
+          from: {
+            opacity: "0",
+            transform: "translateY(10px)",
+          },
+          to: {
+            opacity: "1",
+            transform: "translateY(0)",
+          },
+        },
+        "fade-in": {
+          from: {
+            opacity: "0",
+          },
+          to: {
+            opacity: "1",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-up": "fade-up 0.5s ease-out",
+        "fade-in": "fade-in 0.3s ease-out",
+      },
+      boxShadow: {
+        "soft": "0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)",
+        "glow": "0 0 20px rgba(251, 146, 60, 0.3)",
+        "glow-lg": "0 0 40px rgba(251, 146, 60, 0.4)",
       },
     },
   },

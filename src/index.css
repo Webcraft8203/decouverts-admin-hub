@@ -2,12 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Decouverts Plus Design System - Light Premium Engineering Theme */
+/* Decouverts Plus Design System - Enterprise Grade */
 
 @layer base {
   :root {
-    /* Light backgrounds */
-    --background: 210 40% 98%;
+    /* Light backgrounds with more depth */
+    --background: 210 20% 98%;
     --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
@@ -20,11 +20,11 @@
     --primary: 24 95% 53%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Soft Gray */
-    --secondary: 210 40% 96%;
+    /* Secondary: Soft Slate Gray */
+    --secondary: 214 32% 95%;
     --secondary-foreground: 222 47% 11%;
 
-    --muted: 210 40% 96%;
+    --muted: 214 32% 96%;
     --muted-foreground: 215 16% 47%;
 
     /* Accent: Warm Amber */
@@ -69,10 +69,17 @@
     --brand-orange: 24 95% 53%;
     --brand-amber: 38 92% 50%;
     --brand-navy: 222 47% 11%;
+    
+    /* Dark section colors */
+    --dark-surface: 222 47% 11%;
+    --dark-surface-elevated: 222 40% 14%;
+    --dark-surface-accent: 222 35% 18%;
+    --dark-muted: 215 20% 65%;
+    --dark-border: 217 33% 20%;
   }
 
   .dark {
-    /* Dark mode - keep for admin if needed */
+    /* Dark mode - for admin if needed */
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
 
@@ -135,6 +142,32 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Typography hierarchy */
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1];
+  }
+  
+  h2 {
+    @apply text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-tight;
+  }
+  
+  h3 {
+    @apply text-2xl md:text-3xl font-bold tracking-tight;
+  }
+  
+  h4 {
+    @apply text-xl md:text-2xl font-semibold;
+  }
+  
+  h5 {
+    @apply text-lg md:text-xl font-semibold;
+  }
+  
+  h6 {
+    @apply text-base md:text-lg font-semibold;
   }
 }
 
@@ -164,6 +197,38 @@
   }
 }
 
+/* Dark section utility classes */
+@layer utilities {
+  .section-dark {
+    @apply bg-[hsl(222,47%,11%)] text-white;
+  }
+  
+  .section-dark-elevated {
+    @apply bg-[hsl(222,40%,14%)] text-white;
+  }
+  
+  .section-light {
+    @apply bg-background text-foreground;
+  }
+  
+  .section-light-muted {
+    @apply bg-secondary/50 text-foreground;
+  }
+  
+  /* Card variations */
+  .card-glass {
+    @apply bg-white/80 backdrop-blur-xl border border-white/20 shadow-lg;
+  }
+  
+  .card-dark {
+    @apply bg-[hsl(222,40%,14%)] border border-[hsl(217,33%,22%)] text-white;
+  }
+  
+  .card-elevated {
+    @apply bg-card shadow-lg shadow-black/5 border border-border/50;
+  }
+}
+
 /* Animations */
 @layer utilities {
   .animate-fade-in {
@@ -176,6 +241,24 @@
   
   .animate-scale-in {
     animation: scaleIn 0.2s ease-out;
+  }
+  
+  /* GPU-friendly hover effects */
+  .hover-lift {
+    @apply transition-transform duration-300 ease-out;
+    will-change: transform;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-4px);
+  }
+  
+  .hover-glow {
+    @apply transition-shadow duration-300 ease-out;
+  }
+  
+  .hover-glow:hover {
+    @apply shadow-xl shadow-primary/10;
   }
 }
 
@@ -237,4 +320,33 @@
 
 .animate-marquee {
   animation: marquee 20s linear infinite;
+}
+
+/* Technical grid backgrounds */
+@layer utilities {
+  .bg-grid-light {
+    background-image: 
+      linear-gradient(to right, hsl(var(--border) / 0.5) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--border) / 0.5) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  
+  .bg-grid-dark {
+    background-image: 
+      linear-gradient(to right, hsl(217, 33%, 22%) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(217, 33%, 22%) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  
+  .bg-dots {
+    background-image: radial-gradient(circle, hsl(var(--muted-foreground) / 0.15) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+}
+
+/* Focus states for accessibility */
+@layer utilities {
+  .focus-ring {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
+  }
 }
