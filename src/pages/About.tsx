@@ -1,10 +1,13 @@
+import { useEffect, useRef } from "react";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { PublicFooter } from "@/components/PublicFooter";
 import { 
   Check, Target, Cpu, BookOpen, Rocket, Shield, Globe, 
-  Lightbulb, Award, Zap, Users, ArrowRight, CheckCircle2 
+  Lightbulb, Award, Zap, Users, ArrowRight, CheckCircle2,
+  Microscope, Factory, ShieldCheck, BadgeCheck,
+  Printer, Plane, PenTool, Search, Hammer, Package, Layers, Settings
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useInView, animate } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
 const fadeInUp = {
@@ -20,6 +23,28 @@ const staggerContainer = {
       staggerChildren: 0.1
     }
   }
+};
+
+const Counter = ({ from, to, suffix = "" }: { from: number; to: number; suffix?: string }) => {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true });
+
+  useEffect(() => {
+    if (inView && ref.current) {
+      const controls = animate(from, to, {
+        duration: 2.5,
+        ease: "easeOut",
+        onUpdate(value) {
+          if (ref.current) {
+            ref.current.textContent = Math.floor(value).toString() + suffix;
+          }
+        },
+      });
+      return () => controls.stop();
+    }
+  }, [from, to, inView, suffix]);
+
+  return <span ref={ref}>{from}{suffix}</span>;
 };
 
 const About = () => {
@@ -148,6 +173,161 @@ const About = () => {
           </div>
         </section>
 
+        {/* Why Decouverts */}
+        <section className="py-24 px-4 bg-slate-50">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Why Decouverts?</h2>
+              <div className="h-1 w-20 bg-orange-500 mx-auto rounded-full"></div>
+              <p className="mt-4 text-slate-600 max-w-2xl mx-auto">
+                Built on the pillars of innovation, integrity, and indigenous engineering.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[
+                { title: "Indigenous R&D", icon: Microscope, desc: "100% in-house research and development tailored for Indian conditions." },
+                { title: "Engineering-First", icon: Cpu, desc: "Solutions driven by core engineering principles, not just assembly." },
+                { title: "Industrial-Grade", icon: Factory, desc: "Rugged, reliable systems designed for 24/7 industrial operation." },
+                { title: "Long-Term Ownership", icon: ShieldCheck, desc: "Full lifecycle support and ownership of the technology stack." },
+                { title: "Made in India", icon: Globe, desc: "Proudly contributing to the Atmanirbhar Bharat initiative." },
+                { title: "Quality Assurance", icon: BadgeCheck, desc: "Rigorous testing protocols ensuring global quality standards." },
+              ].map((item, i) => (
+                <motion.div
+                  key={i}
+                  whileHover={{ y: -5 }}
+                  className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all group"
+                >
+                  <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-orange-100 transition-colors">
+                    <item.icon className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-3">{item.title}</h3>
+                  <p className="text-slate-600 leading-relaxed">{item.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Numbers That Matter */}
+        <section className="py-20 px-4 bg-slate-900 text-white relative overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.1),transparent_70%)]"></div>
+          <div className="max-w-7xl mx-auto relative z-10">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 text-center">
+              {[
+                { label: "Years of R&D", value: 3, suffix: "+" },
+                { label: "Products Developed", value: 4, suffix: "" },
+                { label: "Prototypes Delivered", value: 10, suffix: "+" },
+                { label: "Institutions Served", value: 5, suffix: "+" },
+              ].map((item, i) => (
+                <div key={i}>
+                  <div className="text-4xl md:text-5xl font-extrabold text-orange-500 mb-2">
+                    <Counter from={0} to={item.value} suffix={item.suffix} />
+                  </div>
+                  <div className="text-slate-400 font-medium">{item.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Certifications & Trust */}
+        <section className="py-12 px-4 bg-white border-b border-slate-100">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-wrap justify-center gap-8 md:gap-16 items-center opacity-70 grayscale hover:grayscale-0 transition-all duration-500">
+               {[
+                 "MSME Registered", "GST Registered", "Make in India", "ISO 9001:2015 Compliant"
+               ].map((cert, i) => (
+                 <div key={i} className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-full border border-slate-200">
+                    <BadgeCheck className="w-5 h-5 text-slate-500" />
+                    <span className="font-semibold text-slate-700">{cert}</span>
+                 </div>
+               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Technology & Capability Stack */}
+        <section className="py-24 px-4 bg-slate-50">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+              <span className="text-orange-600 font-bold tracking-widest uppercase text-sm bg-orange-50 px-3 py-1 rounded-full border border-orange-100">Capabilities</span>
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-4 mb-4">Technology Stack</h2>
+              <p className="text-slate-600 max-w-2xl mx-auto">
+                Leveraging advanced tools and indigenous expertise to deliver end-to-end engineering solutions.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+              {[
+                { title: "CAD/CAM", icon: Settings, desc: "Advanced design & manufacturing modeling." },
+                { title: "FEA & Simulation", icon: Layers, desc: "Structural & thermal analysis." },
+                { title: "Rapid Prototyping", icon: Zap, desc: "Fast-track product development." },
+                { title: "3D Printing", icon: Printer, desc: "Industrial additive manufacturing." },
+                { title: "Drone Systems", icon: Plane, desc: "UAV design & flight control." },
+              ].map((item, i) => (
+                <motion.div
+                  key={i}
+                  whileHover={{ y: -5 }}
+                  className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all text-center group"
+                >
+                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-100 transition-colors">
+                    <item.icon className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <h3 className="font-bold text-slate-900 mb-2">{item.title}</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed">{item.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Our Engineering Approach */}
+        <section className="py-24 px-4 bg-white border-t border-slate-100">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+              <span className="text-blue-600 font-bold tracking-widest uppercase text-sm bg-blue-50 px-3 py-1 rounded-full border border-blue-100">Process</span>
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-4 mb-4">Engineering Approach</h2>
+              <p className="text-slate-600 max-w-2xl mx-auto">
+                A systematic workflow ensuring precision, quality, and innovation at every stage.
+              </p>
+            </div>
+
+            <div className="relative">
+              {/* Connecting Line (Desktop) */}
+              <div className="hidden md:block absolute top-8 left-0 w-full h-0.5 bg-slate-100"></div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-8 relative z-10">
+                {[
+                  { step: "01", title: "Analysis", icon: Search, desc: "Requirement gathering & feasibility study." },
+                  { step: "02", title: "Design", icon: PenTool, desc: "CAD modeling & simulation (FEA/CFD)." },
+                  { step: "03", title: "Prototyping", icon: Hammer, desc: "Rapid iteration & functional testing." },
+                  { step: "04", title: "Validation", icon: CheckCircle2, desc: "Rigorous QA & performance benchmarks." },
+                  { step: "05", title: "Delivery", icon: Package, desc: "Manufacturing & final deployment." },
+                ].map((item, i) => (
+                  <motion.div 
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    className="flex flex-col items-center text-center bg-white md:bg-transparent p-6 md:p-0 rounded-2xl border md:border-0 border-slate-100 shadow-sm md:shadow-none"
+                  >
+                    <div className="w-16 h-16 rounded-full bg-white border-4 border-slate-50 shadow-sm flex items-center justify-center mb-6 relative z-10">
+                      <item.icon className="w-7 h-7 text-slate-700" />
+                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold border-2 border-white">
+                        {item.step}
+                      </div>
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-900 mb-2">{item.title}</h3>
+                    <p className="text-sm text-slate-500 leading-relaxed">{item.desc}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Timeline Section */}
         <section className="py-24 px-4 bg-slate-900 text-white overflow-hidden relative">
            {/* Background effects */}
@@ -263,64 +443,31 @@ const About = () => {
           </div>
         </section>
 
-        {/* Why Decouvertes & Roadmap */}
+        {/* Roadmap */}
         <section className="py-24 px-4 bg-white">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-              {/* Why Decouvertes */}
-              <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-8">Why Choose Decouvertes?</h2>
-                <div className="space-y-6">
-                  {[
-                    { title: "100% Indigenous R&D", desc: "Designed & Developed in India, for the world." },
-                    { title: "Patent & IP Ownership", desc: "Focus on creating intellectual property within the nation." },
-                    { title: "Product-First Engineering", desc: "Solutions built for reliability and industrial scale." },
-                    { title: "Industry & Government Ready", desc: "Compliant with strategic and industrial standards." }
-                  ].map((item, i) => (
-                    <motion.div 
-                      key={i}
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.1 }}
-                      className="flex gap-5"
-                    >
-                      <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center text-orange-600 flex-shrink-0 mt-1">
-                        <CheckCircle2 className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h4 className="text-xl font-bold text-slate-900 mb-2">{item.title}</h4>
-                        <p className="text-slate-600">{item.desc}</p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-slate-50 rounded-3xl p-8 md:p-12 border border-slate-100">
+              <h2 className="text-3xl font-bold text-slate-900 mb-8 flex items-center gap-3 justify-center">
+                <Rocket className="w-8 h-8 text-orange-600" />
+                Future Roadmap
+              </h2>
+              <div className="relative border-l-2 border-slate-200 ml-3 md:ml-10 space-y-10 pl-8 py-2">
+                {[
+                  "Expansion of industrial 3D printer portfolio",
+                  "Development of government-grade drone systems",
+                  "Strengthening IP & patent pipeline",
+                  "Advanced manufacturing technologies integration"
+                ].map((item, i) => (
+                  <div key={i} className="relative">
+                    <span className="absolute -left-[41px] top-1 w-5 h-5 rounded-full border-4 border-white bg-slate-300 shadow-sm"></span>
+                    <p className="text-lg font-medium text-slate-700">{item}</p>
+                  </div>
+                ))}
               </div>
-
-              {/* Roadmap */}
-              <div className="bg-slate-50 rounded-3xl p-8 md:p-12 border border-slate-100">
-                <h2 className="text-3xl font-bold text-slate-900 mb-8 flex items-center gap-3">
-                  <Rocket className="w-8 h-8 text-orange-600" />
-                  Future Roadmap
-                </h2>
-                <div className="relative border-l-2 border-slate-200 ml-3 space-y-10 pl-8 py-2">
-                  {[
-                    "Expansion of industrial 3D printer portfolio",
-                    "Development of government-grade drone systems",
-                    "Strengthening IP & patent pipeline",
-                    "Advanced manufacturing technologies integration"
-                  ].map((item, i) => (
-                    <div key={i} className="relative">
-                      <span className="absolute -left-[41px] top-1 w-5 h-5 rounded-full border-4 border-white bg-slate-300 shadow-sm"></span>
-                      <p className="text-lg font-medium text-slate-700">{item}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-10 pt-8 border-t border-slate-200">
-                  <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white h-12 rounded-xl">
-                    Partner With Us <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </div>
+              <div className="mt-10 pt-8 border-t border-slate-200 text-center">
+                <Button className="bg-slate-900 hover:bg-slate-800 text-white h-12 rounded-xl px-8">
+                  Partner With Us <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
               </div>
             </div>
           </div>
