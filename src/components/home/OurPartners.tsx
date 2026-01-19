@@ -42,28 +42,19 @@ export const OurPartners = () => {
 
   const PartnerCard = ({ partner }: { partner: Partner }) => {
     const content = (
-      <div className="bg-card rounded-xl p-6 md:p-8 shadow-soft hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-border/50 group flex flex-col items-center justify-center min-h-[140px] relative overflow-hidden">
+      <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1 border border-slate-100 hover:border-primary/20 group flex items-center justify-center h-[140px] md:h-[160px] relative overflow-hidden">
         <img
           src={partner.logo_url}
           alt={partner.image_title}
           title={partner.image_title}
-          className="max-h-12 md:max-h-16 w-auto object-contain filter grayscale group-hover:grayscale-0 transition-all duration-500"
+          className="max-h-12 md:max-h-16 w-auto max-w-full object-contain transition-transform duration-500 group-hover:scale-105"
         />
-        
-        <div className="absolute inset-0 bg-dark/95 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-4 text-center">
-          <h3 className="text-white font-semibold text-sm mb-1">
-            {partner.image_title}
-          </h3>
-          <p className="text-dark-muted text-xs line-clamp-2">
-            {partner.image_description}
-          </p>
-        </div>
       </div>
     );
 
     if (partner.website_url) {
       return (
-        <a href={partner.website_url} target="_blank" rel="noopener noreferrer" className="block">
+        <a href={partner.website_url} target="_blank" rel="noopener noreferrer" className="block h-full">
           {content}
         </a>
       );
@@ -72,28 +63,28 @@ export const OurPartners = () => {
   };
 
   return (
-    <section className="py-20 md:py-28 bg-secondary/30 relative overflow-hidden">
-      <div className="absolute inset-0 bg-grid-light opacity-30" />
+    <section className="py-20 md:py-28 bg-gradient-to-b from-slate-50 to-white relative overflow-hidden">
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:24px_24px]" />
       
       <div className="container mx-auto px-4 relative z-10">
         <motion.div 
-          className="text-center mb-14"
+          className="text-center mb-16"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
           <span className="inline-block px-4 py-2 mb-4 text-xs font-bold tracking-[0.2em] uppercase rounded-full bg-primary/10 text-primary border border-primary/20">
-            Partnerships
+            Trusted Network
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
             Our <span className="text-primary">Partners</span>
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Collaborating with leading technology and industrial partners
+          <p className="text-slate-600 text-lg max-w-2xl mx-auto">
+            Collaborating with industry leaders to deliver excellence.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 md:gap-8">
           {partners.map((partner, index) => (
             <motion.div
               key={partner.id}

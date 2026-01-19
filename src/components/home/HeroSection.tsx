@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowRight, Cog, ChevronDown, Layers } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 import logo from "@/assets/logo.png";
+import { FloatingSocials } from "./FloatingSocials";
 
 // Intro Animation Overlay
 const IntroAnimation = ({ onComplete }: { onComplete: () => void }) => {
@@ -98,7 +99,7 @@ const IntroAnimation = ({ onComplete }: { onComplete: () => void }) => {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, ease: "easeOut", delay: 0.7 }}
               >
-                Engineering Excellence
+                Discovering Future Technologies
               </motion.p>
             </div>
           </div>
@@ -509,6 +510,7 @@ export const HeroSection = () => {
 
   return (
     <>
+      <FloatingSocials />
       {/* Intro Animation */}
       <AnimatePresence>
         {showIntro && <IntroAnimation onComplete={handleIntroComplete} />}
