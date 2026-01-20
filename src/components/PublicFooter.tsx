@@ -1,26 +1,30 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Mail, MapPin, ArrowRight, Linkedin, Twitter, Instagram, Phone } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { 
+  Mail, MapPin, Linkedin, Twitter, Instagram, Phone, 
+  ArrowUp, Send, ShieldCheck, Cpu, ChevronRight
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 import logo from "@/assets/logo.png";
 import { LegalModal } from "./LegalModal";
+import { HelpCenterDialog, FAQDialog } from "./SupportDialogs";
+import { cn } from "@/lib/utils";
 
-const footerLinks = {
-  company: [
-    { label: "About Us", href: "/about" },
-    { label: "Our Services", href: "#services-section" },
-    { label: "Contact", href: "#contact-section" },
-  ],
-  services: [
-    { label: "3D Printing", href: "/engineering" },
-    { label: "Product Development", href: "/engineering" },
-    { label: "Drone Technology", href: "/manufacturing" },
-  ],
-  shop: [
-    { label: "All Products", href: "/shop" },
-    { label: "New Arrivals", href: "/shop" },
-    { label: "Best Sellers", href: "/shop" },
-  ],
-};
+const quickLinks = [
+  { label: "Configure 3D Printer", href: "/printer-configuration" },
+  { label: "Request Custom Quote", href: "#contact-section" },
+  { label: "Engineering Services", href: "/engineering" },
+  { label: "Industrial Solutions", href: "/manufacturing" },
+  { label: "Shop Products", href: "/shop" },
+];
+
+const supportLinks = [
+  { label: "Help Center", action: "help", href: "#" },
+  { label: "Order Tracking", href: "/dashboard", action: "link" },
+  { label: "FAQs", action: "faq", href: "#" },
+];
 
 const legalLinks = [
   { label: "Terms & Conditions", key: "terms" },
@@ -33,21 +37,55 @@ const legalLinks = [
 
 export const PublicFooter = () => {
   const [selectedPolicy, setSelectedPolicy] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  const [showHelpCenter, setShowHelpCenter] = useState(false);
+  const [showFAQ, setShowFAQ] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 400);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    toast.success("Successfully subscribed to newsletter!");
+    setEmail("");
+  };
+
+  const handleSupportClick = (e: React.MouseEvent, item: typeof supportLinks[0]) => {
+    if (item.action === "help") {
+      e.preventDefault();
+      setShowHelpCenter(true);
+    } else if (item.action === "faq") {
+      e.preventDefault();
+      setShowFAQ(true);
+    }
+  };
 
   return (
-    <footer className="bg-dark text-white relative overflow-hidden">
+    <footer className="bg-slate-950 text-white relative overflow-hidden border-t border-slate-900">
       {/* Subtle grid pattern */}
-      <div className="absolute inset-0 bg-grid-dark opacity-30" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] opacity-20 pointer-events-none" />
       
       {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60 pointer-events-none" />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-12 lg:gap-8">
-          {/* Brand */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-white rounded-xl backdrop-blur">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8">
+          
+          {/* Brand Column */}
+          <div className="lg:col-span-4 space-y-8">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-white rounded-xl shadow-lg shadow-white/5">
                 <img 
                   src={logo} 
                   alt="Decouverts Plus" 
@@ -55,39 +93,34 @@ export const PublicFooter = () => {
                 />
               </div>
               <div>
-                <span className="text-xl font-bold text-white tracking-wide">Decouverts</span>
-                <p className="text-xs text-primary font-medium">Discovering Future Technologies</p>
+                <span className="text-xl font-bold text-white tracking-wide block">Decouverts</span>
+                <span className="text-[10px] text-primary font-bold tracking-widest uppercase">Future Technologies</span>
               </div>
             </div>
-            <p className="text-dark-muted text-sm leading-relaxed mb-8 max-w-sm">
+            
+            <p className="text-slate-400 text-sm leading-relaxed max-w-sm">
               Engineering the future through innovation. We specialize in advanced 3D printing, 
               drone technology, and new product development for enterprises worldwide.
             </p>
-            
-            {/* Contact Info */}
-            <div className="space-y-4">
-              <a href="mailto:contact@decouverts.com" className="flex items-center gap-3 text-dark-muted hover:text-primary transition-colors text-sm group">
-                <div className="p-2 bg-dark-elevated rounded-lg group-hover:bg-primary/10 transition-colors">
-                  <Mail className="w-4 h-4" />
-                </div>
-                hello@decouverts.com
-              </a>
-              <a href="tel:+919561103435" className="flex items-center gap-3 text-dark-muted hover:text-primary transition-colors text-sm group">
-                <div className="p-2 bg-dark-elevated rounded-lg group-hover:bg-primary/10 transition-colors">
-                  <Phone className="w-4 h-4" />
-                </div>
-                +91 9561103435
-              </a>
-              <div className="flex items-start gap-3 text-dark-muted text-sm">
-                <div className="p-2 bg-dark-elevated rounded-lg shrink-0">
-                  <MapPin className="w-4 h-4" />
-                </div>
-                <span className="leading-relaxed">Megapolis Springs, Phase 3 , Hinjawadi Rajiv Gandhi Infotech Park, Pune, Maharashtra, India</span>
+
+            {/* Trust Badges */}
+            <div className="flex flex-wrap gap-4 pt-2">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors cursor-default">
+                <Cpu className="w-3.5 h-3.5 text-primary" />
+                <span className="text-xs font-medium text-slate-300">Indigenous R&D</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors cursor-default">
+                <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+                <span className="text-xs font-medium text-slate-300">Secure Payments</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors cursor-default">
+                <span className="text-xs">🇮🇳</span>
+                <span className="text-xs font-medium text-slate-300">Make in India</span>
               </div>
             </div>
 
             {/* Social Links */}
-            <div className="flex gap-3 mt-8">
+            <div className="flex gap-3">
               {[
                 { icon: Linkedin, href: "#" },
                 { icon: Twitter, href: "#" },
@@ -96,102 +129,165 @@ export const PublicFooter = () => {
                 <a
                   key={i}
                   href={href}
-                  className="w-10 h-10 rounded-xl bg-dark-elevated hover:bg-primary/20 border border-dark-border hover:border-primary/30 flex items-center justify-center transition-all duration-300 group"
+                  className="w-10 h-10 rounded-xl bg-white/5 hover:bg-primary/20 border border-white/10 hover:border-primary/30 flex items-center justify-center transition-all duration-300 group"
+                  aria-label="Social Link"
                 >
-                  <Icon className="w-4 h-4 text-dark-muted group-hover:text-primary" />
+                  <Icon className="w-4 h-4 text-slate-400 group-hover:text-primary transition-colors" />
                 </a>
               ))}
             </div>
           </div>
 
-          {/* Company Links */}
-          <div>
-            <h3 className="font-semibold text-white mb-6 text-sm uppercase tracking-wider">Company</h3>
+          {/* Quick Actions */}
+          <div className="lg:col-span-3">
+            <h3 className="font-bold text-white mb-6 text-sm uppercase tracking-wider flex items-center gap-2">
+              <ChevronRight className="w-4 h-4 text-primary" /> Quick Actions
+            </h3>
             <ul className="space-y-3">
-              {footerLinks.company.map((link) => (
+              {quickLinks.map((link) => (
                 <li key={link.label}>
                   <Link 
                     to={link.href} 
-                    className="text-dark-muted hover:text-primary transition-colors text-sm flex items-center gap-1 group"
+                    className="text-slate-400 hover:text-primary transition-colors text-sm flex items-center gap-2 group w-fit"
                   >
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-700 group-hover:bg-primary transition-colors" />
                     {link.label}
-                    <ArrowRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
                   </Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Services Links */}
-          <div>
-            <h3 className="font-semibold text-white mb-6 text-sm uppercase tracking-wider">Services</h3>
-            <ul className="space-y-3">
-              {footerLinks.services.map((link) => (
+          {/* Support & Legal */}
+          <div className="lg:col-span-2">
+            <h3 className="font-bold text-white mb-6 text-sm uppercase tracking-wider flex items-center gap-2">
+              <ChevronRight className="w-4 h-4 text-primary" /> Support
+            </h3>
+            <ul className="space-y-3 mb-8">
+              {supportLinks.map((link) => (
                 <li key={link.label}>
-                  <Link 
-                    to={link.href} 
-                    className="text-dark-muted hover:text-primary transition-colors text-sm flex items-center gap-1 group"
-                  >
-                    {link.label}
-                    <ArrowRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-                  </Link>
+                  {link.action === "link" ? (
+                    <Link 
+                      to={link.href} 
+                      className="text-slate-400 hover:text-primary transition-colors text-sm flex items-center gap-2 group w-fit"
+                    >
+                      {link.label}
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={(e) => handleSupportClick(e, link)}
+                      className="text-slate-400 hover:text-primary transition-colors text-sm flex items-center gap-2 group w-fit text-left"
+                    >
+                      {link.label}
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
-          </div>
 
-          {/* Shop Links */}
-          <div>
-            <h3 className="font-semibold text-white mb-6 text-sm uppercase tracking-wider">Shop</h3>
-            <ul className="space-y-3">
-              {footerLinks.shop.map((link) => (
-                <li key={link.label}>
-                  <Link 
-                    to={link.href} 
-                    className="text-dark-muted hover:text-primary transition-colors text-sm flex items-center gap-1 group"
-                  >
-                    {link.label}
-                    <ArrowRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Legal Links */}
-          <div>
-            <h3 className="font-semibold text-white mb-6 text-sm uppercase tracking-wider">Legal</h3>
-            <ul className="space-y-3">
+            <h3 className="font-bold text-white mb-4 text-sm uppercase tracking-wider">Legal</h3>
+            <ul className="space-y-2">
               {legalLinks.map((link) => (
                 <li key={link.key}>
                   <button 
                     onClick={() => setSelectedPolicy(link.key)}
-                    className="text-dark-muted hover:text-primary transition-colors text-sm flex items-center gap-1 group text-left"
+                    className="text-slate-500 hover:text-slate-300 transition-colors text-xs flex items-center gap-1 group text-left"
                   >
                     {link.label}
-                    <ArrowRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
                   </button>
                 </li>
               ))}
             </ul>
           </div>
+
+          {/* Newsletter & Contact */}
+          <div className="lg:col-span-3">
+            <div className="bg-white/5 rounded-2xl p-6 border border-white/10 backdrop-blur-sm">
+              <h3 className="font-bold text-white mb-2">Stay Updated</h3>
+              <p className="text-slate-400 text-xs mb-4 leading-relaxed">
+                Get the latest updates on new products, research, and industrial innovations.
+              </p>
+              
+              <form onSubmit={handleSubscribe} className="space-y-3">
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Input 
+                    type="email" 
+                    placeholder="Enter your email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="bg-black/20 border-white/10 text-white placeholder:text-slate-600 pl-10 h-10 text-sm focus-visible:ring-primary/50"
+                    required
+                  />
+                </div>
+                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-9 text-sm font-medium">
+                  Subscribe <Send className="w-3 h-3 ml-2" />
+                </Button>
+              </form>
+            </div>
+
+            <div className="mt-8 space-y-4">
+              <a href="mailto:contact@decouverts.com" className="flex items-center gap-3 text-slate-400 hover:text-white transition-colors text-sm group">
+                <div className="p-2 bg-white/5 rounded-lg group-hover:bg-primary/20 transition-colors border border-white/5 group-hover:border-primary/20">
+                  <Mail className="w-4 h-4 group-hover:text-primary transition-colors" />
+                </div>
+                hello@decouverts.com
+              </a>
+              <a href="tel:+919561103435" className="flex items-center gap-3 text-slate-400 hover:text-white transition-colors text-sm group">
+                <div className="p-2 bg-white/5 rounded-lg group-hover:bg-primary/20 transition-colors border border-white/5 group-hover:border-primary/20">
+                  <Phone className="w-4 h-4 group-hover:text-primary transition-colors" />
+                </div>
+                +91 9561103435
+              </a>
+              <div className="flex items-start gap-3 text-slate-400 text-sm">
+                <div className="p-2 bg-white/5 rounded-lg shrink-0 border border-white/5">
+                  <MapPin className="w-4 h-4" />
+                </div>
+                <span className="leading-relaxed text-xs">Megapolis Springs, Phase 3, Hinjawadi Rajiv Gandhi Infotech Park, Pune, Maharashtra, India</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-dark-border mt-16 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-dark-muted text-sm">
+        <div className="border-t border-white/10 mt-16 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-slate-500 text-sm">
             © {new Date().getFullYear()} Decouverts. All rights reserved.
           </p>
-          <p className="text-dark-muted text-sm flex items-center gap-2">
-            Proudly Made in <span className="text-primary font-medium">India</span> 🇮🇳
-          </p>
+          <div className="flex items-center gap-6">
+             <p className="text-slate-500 text-sm flex items-center gap-2">
+              Proudly Made in <span className="text-primary font-medium">India</span> 🇮🇳
+            </p>
+          </div>
         </div>
       </div>
+
+      {/* Back to Top Button */}
+      <button
+        onClick={scrollToTop}
+        className={cn(
+          "fixed bottom-8 right-8 p-3 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all duration-300 z-50 group",
+          showBackToTop ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0 pointer-events-none"
+        )}
+        aria-label="Back to top"
+      >
+        <ArrowUp className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform" />
+      </button>
 
       <LegalModal 
         isOpen={!!selectedPolicy} 
         policyKey={selectedPolicy} 
         onClose={() => setSelectedPolicy(null)} 
+      />
+
+      <HelpCenterDialog 
+        isOpen={showHelpCenter} 
+        onClose={() => setShowHelpCenter(false)} 
+      />
+
+      <FAQDialog 
+        isOpen={showFAQ} 
+        onClose={() => setShowFAQ(false)} 
       />
     </footer>
   );
