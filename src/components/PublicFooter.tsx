@@ -105,7 +105,7 @@ export const PublicFooter = () => {
               </div>
               <div>
                 <span className="text-xl font-bold text-white tracking-wide block">Decouverts</span>
-                <span className="text-[10px] text-primary font-bold tracking-widest uppercase">Future Technologies</span>
+                <span className="text-[10px] text-primary font-bold tracking-widest uppercase">Discovering Future Technologies</span>
               </div>
             </div>
             
