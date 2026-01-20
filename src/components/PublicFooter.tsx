@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Mail, MapPin, ArrowRight, Linkedin, Twitter, Instagram, Phone } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { LegalModal } from "./LegalModal";
 
 const footerLinks = {
   company: [
@@ -20,7 +22,18 @@ const footerLinks = {
   ],
 };
 
+const legalLinks = [
+  { label: "Terms & Conditions", key: "terms" },
+  { label: "Privacy Policy", key: "privacy" },
+  { label: "Refund Policy", key: "refund" },
+  { label: "Shipping Policy", key: "shipping" },
+  { label: "Warranty Policy", key: "warranty" },
+  { label: "Disclaimer", key: "disclaimer" },
+];
+
 export const PublicFooter = () => {
+  const [selectedPolicy, setSelectedPolicy] = useState<string | null>(null);
+
   return (
     <footer className="bg-dark text-white relative overflow-hidden">
       {/* Subtle grid pattern */}
@@ -30,11 +43,11 @@ export const PublicFooter = () => {
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-12 lg:gap-8">
           {/* Brand */}
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-white/10 rounded-xl backdrop-blur">
+              <div className="p-2 bg-white rounded-xl backdrop-blur">
                 <img 
                   src={logo} 
                   alt="Decouverts Plus" 
@@ -144,6 +157,24 @@ export const PublicFooter = () => {
               ))}
             </ul>
           </div>
+
+          {/* Legal Links */}
+          <div>
+            <h3 className="font-semibold text-white mb-6 text-sm uppercase tracking-wider">Legal</h3>
+            <ul className="space-y-3">
+              {legalLinks.map((link) => (
+                <li key={link.key}>
+                  <button 
+                    onClick={() => setSelectedPolicy(link.key)}
+                    className="text-dark-muted hover:text-primary transition-colors text-sm flex items-center gap-1 group text-left"
+                  >
+                    {link.label}
+                    <ArrowRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
         {/* Bottom Bar */}
@@ -156,6 +187,12 @@ export const PublicFooter = () => {
           </p>
         </div>
       </div>
+
+      <LegalModal 
+        isOpen={!!selectedPolicy} 
+        policyKey={selectedPolicy} 
+        onClose={() => setSelectedPolicy(null)} 
+      />
     </footer>
   );
 };
