@@ -168,6 +168,13 @@ export const PublicNavbar = () => {
               Home
             </NavItem>
 
+            <NavItem 
+              to="/blogs" 
+              className={isScrolled ? "text-foreground/80" : "text-foreground/80"}
+            >
+              Blogs
+            </NavItem>
+
             {/* Show full navigation only when NOT on shop pages */}
             {!isShopPage && (
               <>
@@ -322,6 +329,13 @@ export const PublicNavbar = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Home
+              </Link>
+              <Link 
+                to="/blogs" 
+                className="text-foreground/80 hover:text-primary hover:bg-primary/5 transition-colors font-medium py-3 px-4 rounded-lg"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Blogs & News
               </Link>
 
               {/* Show full navigation only when NOT on shop pages */}

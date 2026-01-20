@@ -77,6 +77,105 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_posts: {
+        Row: {
+          author_name: string
+          content: string | null
+          content_type: string
+          created_at: string
+          excerpt: string | null
+          feature_image: string | null
+          id: string
+          image_gallery: string[] | null
+          meta_description: string | null
+          meta_title: string | null
+          publish_date: string | null
+          slug: string
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          youtube_url: string | null
+        }
+        Insert: {
+          author_name?: string
+          content?: string | null
+          content_type?: string
+          created_at?: string
+          excerpt?: string | null
+          feature_image?: string | null
+          id?: string
+          image_gallery?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          publish_date?: string | null
+          slug: string
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          youtube_url?: string | null
+        }
+        Update: {
+          author_name?: string
+          content?: string | null
+          content_type?: string
+          created_at?: string
+          excerpt?: string | null
+          feature_image?: string | null
+          id?: string
+          image_gallery?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          publish_date?: string | null
+          slug?: string
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          youtube_url?: string | null
+        }
+        Relationships: []
+      }
+      blog_slides: {
+        Row: {
+          created_at: string
+          cta_link: string | null
+          cta_text: string | null
+          description: string | null
+          display_order: number
+          id: string
+          image_url: string
+          is_visible: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          cta_link?: string | null
+          cta_text?: string | null
+          description?: string | null
+          display_order?: number
+          id?: string
+          image_url: string
+          is_visible?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          cta_link?: string | null
+          cta_text?: string | null
+          description?: string | null
+          display_order?: number
+          id?: string
+          image_url?: string
+          is_visible?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cart_items: {
         Row: {
           created_at: string
