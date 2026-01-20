@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Mail, Phone, MapPin, ChevronDown, 
   CreditCard, FileText, Truck, ShieldCheck, Settings,
-  X, HelpCircle, Wrench, Layers, Plane
+  X, HelpCircle, Wrench, Layers, Plane, AlertTriangle, Copyright, Heart, Briefcase
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
@@ -76,6 +76,207 @@ export const HelpCenterDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose
               </p>
             </div>
           </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// --- Careers Dialog Component ---
+
+export const CareersDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-md w-full sm:rounded-2xl p-0 gap-0 bg-white overflow-hidden border-none shadow-2xl">
+        <VisuallyHidden>
+          <DialogTitle>Careers at Decouverts</DialogTitle>
+        </VisuallyHidden>
+
+        <div className="relative overflow-hidden bg-slate-950 p-8 text-center">
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] opacity-20" />
+            
+            <div className="relative z-10 mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 border border-primary/20">
+                <Briefcase className="w-8 h-8 text-primary" />
+            </div>
+            
+            <h2 className="relative z-10 text-xl font-bold text-white mb-1">Join Our Team</h2>
+            <p className="relative z-10 text-slate-400 text-sm">Build the future of manufacturing with us</p>
+        </div>
+
+        <div className="p-8 space-y-6 text-center">
+            <p className="text-slate-600 leading-relaxed">
+                We are always looking for talented engineers, designers, and innovators. 
+                While we don't have specific openings listed here right now, we'd love to hear from you.
+            </p>
+
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                <p className="text-sm text-slate-500 mb-2">Please send your resume and portfolio to:</p>
+                <a 
+                    href="mailto:careers@decouverts.com" 
+                    className="text-lg font-bold text-primary hover:underline"
+                >
+                    careers@decouverts.com
+                </a>
+            </div>
+
+            <button 
+                onClick={onClose}
+                className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-medium text-sm transition-colors"
+            >
+                Close
+            </button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// --- Made in India Dialog Component ---
+
+export const MadeInIndiaDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-md w-full sm:rounded-2xl p-0 gap-0 bg-white overflow-hidden border-none shadow-2xl">
+        <VisuallyHidden>
+          <DialogTitle>Proudly Made in India</DialogTitle>
+        </VisuallyHidden>
+
+        {/* Header with Tricolor Gradient */}
+        <div className="relative overflow-hidden bg-slate-50 p-8 text-center border-b border-slate-100">
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-orange-500 via-white to-green-500" />
+            
+            <motion.div 
+                initial={{ scale: 0.5, opacity: 0, rotate: -10 }}
+                animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                transition={{ type: "spring", duration: 0.8, bounce: 0.5 }}
+                className="relative z-10 mx-auto w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-lg border border-slate-100"
+            >
+                <span className="text-5xl filter drop-shadow-sm">🇮🇳</span>
+            </motion.div>
+            
+            <motion.h2 
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="relative z-10 text-2xl font-bold text-slate-900 mb-1"
+            >
+                Proudly Indian
+            </motion.h2>
+            <motion.p 
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="relative z-10 text-slate-500 font-medium text-sm"
+            >
+                Innovating for the World
+            </motion.p>
+        </div>
+
+        <div className="p-6 space-y-6">
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="space-y-4 text-center"
+            >
+                <p className="text-sm text-slate-600 leading-relaxed">
+                    Decouverts is built on the foundation of <strong>Atmanirbhar Bharat</strong>. 
+                    We design, engineer, and manufacture advanced industrial technologies right here in Pune, India.
+                </p>
+            </motion.div>
+
+            <div className="grid grid-cols-2 gap-4">
+                <motion.div 
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className="p-4 bg-orange-50/50 rounded-xl border border-orange-100 text-center"
+                >
+                    <div className="text-orange-600 font-bold text-xl mb-1">100%</div>
+                    <div className="text-xs text-slate-600 font-medium uppercase tracking-wide">Indigenous R&D</div>
+                </motion.div>
+                <motion.div 
+                    initial={{ x: 20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 0.6 }}
+                    className="p-4 bg-green-50/50 rounded-xl border border-green-100 text-center"
+                >
+                    <div className="text-green-600 font-bold text-xl mb-1">Global</div>
+                    <div className="text-xs text-slate-600 font-medium uppercase tracking-wide">Standards</div>
+                </motion.div>
+            </div>
+
+            <motion.button 
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.7 }}
+                onClick={onClose}
+                className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-medium text-sm transition-all hover:shadow-lg hover:shadow-slate-900/20 flex items-center justify-center gap-2 group"
+            >
+                <Heart className="w-4 h-4 text-red-500 fill-red-500 group-hover:scale-110 transition-transform" /> 
+                Jai Hind
+            </motion.button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// --- Copyright Dialog Component ---
+
+export const CopyrightDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-md w-full sm:rounded-2xl p-0 gap-0 bg-white overflow-hidden border-none shadow-2xl">
+        <VisuallyHidden>
+          <DialogTitle>Copyright & Intellectual Property</DialogTitle>
+        </VisuallyHidden>
+
+        <div className="relative overflow-hidden bg-slate-950 p-8 text-center">
+            {/* Animated Background */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] opacity-20" />
+            
+            <motion.div 
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", duration: 0.5 }}
+                className="relative z-10 mx-auto w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-4 border border-red-500/20"
+            >
+                <AlertTriangle className="w-8 h-8 text-red-500" />
+            </motion.div>
+            
+            <h2 className="relative z-10 text-xl font-bold text-white mb-1">Copyright Notice</h2>
+            <p className="relative z-10 text-slate-400 text-sm">Intellectual Property Rights</p>
+        </div>
+
+        <div className="p-6 space-y-5">
+            <div className="flex gap-4">
+                <div className="shrink-0 mt-1">
+                    <Copyright className="w-5 h-5 text-slate-400" />
+                </div>
+                <div className="space-y-2">
+                    <p className="text-sm text-slate-700 font-medium">
+                        © {new Date().getFullYear()} Decouverts. All rights reserved.
+                    </p>
+                    <p className="text-sm text-slate-500 leading-relaxed">
+                        The content, design, graphics, and code on this website are the exclusive intellectual property of Decouverts and are protected by international copyright laws.
+                    </p>
+                </div>
+            </div>
+
+            <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex gap-3">
+                <AlertTriangle className="w-5 h-5 text-red-600 shrink-0" />
+                <p className="text-xs text-red-700 leading-relaxed font-medium">
+                    Unauthorized reproduction, redistribution, or use of any material from this site is strictly prohibited. Legal action will be taken against infringements.
+                </p>
+            </div>
+
+            <button 
+                onClick={onClose}
+                className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-medium text-sm transition-colors"
+            >
+                I Understand
+            </button>
         </div>
       </DialogContent>
     </Dialog>

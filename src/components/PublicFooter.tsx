@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
 import { LegalModal } from "./LegalModal";
-import { HelpCenterDialog, FAQDialog } from "./SupportDialogs";
+import { HelpCenterDialog, FAQDialog, CopyrightDialog, MadeInIndiaDialog, CareersDialog } from "./SupportDialogs";
 import { cn } from "@/lib/utils";
 
 const quickLinks = [
@@ -18,6 +18,7 @@ const quickLinks = [
   { label: "Engineering Services", href: "/engineering" },
   { label: "Industrial Solutions", href: "/manufacturing" },
   { label: "Shop Products", href: "/shop" },
+  { label: "Careers", action: "careers", href: "#" },
 ];
 
 const supportLinks = [
@@ -41,6 +42,9 @@ export const PublicFooter = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [showHelpCenter, setShowHelpCenter] = useState(false);
   const [showFAQ, setShowFAQ] = useState(false);
+  const [showCopyright, setShowCopyright] = useState(false);
+  const [showMadeInIndia, setShowMadeInIndia] = useState(false);
+  const [showCareers, setShowCareers] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -68,6 +72,13 @@ export const PublicFooter = () => {
     } else if (item.action === "faq") {
       e.preventDefault();
       setShowFAQ(true);
+    }
+  };
+
+  const handleQuickLinkClick = (e: React.MouseEvent, item: typeof quickLinks[0]) => {
+    if (item.action === "careers") {
+      e.preventDefault();
+      setShowCareers(true);
     }
   };
 
@@ -146,13 +157,23 @@ export const PublicFooter = () => {
             <ul className="space-y-3">
               {quickLinks.map((link) => (
                 <li key={link.label}>
-                  <Link 
-                    to={link.href} 
-                    className="text-slate-400 hover:text-primary transition-colors text-sm flex items-center gap-2 group w-fit"
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-700 group-hover:bg-primary transition-colors" />
-                    {link.label}
-                  </Link>
+                  {link.action ? (
+                    <button
+                      onClick={(e) => handleQuickLinkClick(e, link)}
+                      className="text-slate-400 hover:text-primary transition-colors text-sm flex items-center gap-2 group w-fit text-left"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-700 group-hover:bg-primary transition-colors" />
+                      {link.label}
+                    </button>
+                  ) : (
+                    <Link 
+                      to={link.href} 
+                      className="text-slate-400 hover:text-primary transition-colors text-sm flex items-center gap-2 group w-fit"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-700 group-hover:bg-primary transition-colors" />
+                      {link.label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
@@ -251,13 +272,19 @@ export const PublicFooter = () => {
 
         {/* Bottom Bar */}
         <div className="border-t border-white/10 mt-16 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-slate-500 text-sm">
+          <button 
+            onClick={() => setShowCopyright(true)}
+            className="text-slate-500 text-sm hover:text-slate-300 transition-colors text-left"
+          >
             © {new Date().getFullYear()} Decouverts. All rights reserved.
-          </p>
+          </button>
           <div className="flex items-center gap-6">
-             <p className="text-slate-500 text-sm flex items-center gap-2">
-              Proudly Made in <span className="text-primary font-medium">India</span> 🇮🇳
-            </p>
+             <button 
+               onClick={() => setShowMadeInIndia(true)}
+               className="text-slate-500 text-sm flex items-center gap-2 hover:text-primary transition-colors group"
+             >
+              Proudly Made in <span className="text-primary font-medium group-hover:underline">India</span> 🇮🇳
+            </button>
           </div>
         </div>
       </div>
@@ -288,6 +315,21 @@ export const PublicFooter = () => {
       <FAQDialog 
         isOpen={showFAQ} 
         onClose={() => setShowFAQ(false)} 
+      />
+
+      <CopyrightDialog 
+        isOpen={showCopyright} 
+        onClose={() => setShowCopyright(false)} 
+      />
+
+      <MadeInIndiaDialog 
+        isOpen={showMadeInIndia} 
+        onClose={() => setShowMadeInIndia(false)} 
+      />
+
+      <CareersDialog 
+        isOpen={showCareers} 
+        onClose={() => setShowCareers(false)} 
       />
     </footer>
   );
