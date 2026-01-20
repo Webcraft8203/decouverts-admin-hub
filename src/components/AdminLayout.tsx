@@ -26,6 +26,8 @@ import {
   Image as ImageIcon,
   MessageSquare,
   SlidersHorizontal,
+  FileText as BlogIcon,
+  Newspaper,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -51,6 +53,8 @@ const navItems = [
   { to: "/admin/drone-configurations", icon: Plane, label: "Drone Configs" },
   { to: "/admin/customer-reviews", icon: MessageCircle, label: "Customer Reviews" },
   { to: "/admin/partners", icon: Handshake, label: "Partners" },
+  { to: "/admin/blog-posts", icon: Newspaper, label: "Blog Posts" },
+  { to: "/admin/blog-slides", icon: BlogIcon, label: "Blog Slider" },
 ];
 
 interface AdminLayoutProps {

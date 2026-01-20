@@ -16,6 +16,8 @@ import ProductDetail from "./pages/ProductDetail";
 import Checkout from "./pages/Checkout";
 import CustomerAuth from "./pages/CustomerAuth";
 import Auth from "./pages/Auth";
+import Blogs from "./pages/Blogs";
+import BlogDetail from "./pages/BlogDetail";
 import UserDashboard from "./pages/user/Dashboard";
 import UserCart from "./pages/user/Cart";
 import UserOrders from "./pages/user/Orders";
@@ -50,6 +52,8 @@ import DroneConfigurations from "./pages/admin/DroneConfigurations";
 import CustomerReviews from "./pages/admin/CustomerReviews";
 import Partners from "./pages/admin/Partners";
 import ShopSlides from "./pages/admin/ShopSlides";
+import BlogSlides from "./pages/admin/BlogSlides";
+import BlogPosts from "./pages/admin/BlogPosts";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -65,6 +69,8 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/about" element={<About />} />
+              <Route path="/blogs" element={<Blogs />} />
+              <Route path="/blogs/:slug" element={<BlogDetail />} />
               <Route path="/engineering" element={<Engineering />} />
               <Route path="/manufacturing" element={<Manufacturing />} />
               <Route path="/printer-configuration" element={<PrinterConfiguration />} />
@@ -106,6 +112,8 @@ const App = () => (
               <Route path="/admin/customer-reviews" element={<ProtectedRoute requireAdmin><AdminLayout><CustomerReviews /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/partners" element={<ProtectedRoute requireAdmin><AdminLayout><Partners /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/shop-slides" element={<ProtectedRoute requireAdmin><AdminLayout><ShopSlides /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/blog-slides" element={<ProtectedRoute requireAdmin><AdminLayout><BlogSlides /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/blog-posts" element={<ProtectedRoute requireAdmin><AdminLayout><BlogPosts /></AdminLayout></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
