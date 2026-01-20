@@ -70,7 +70,7 @@ export const PublicFooter = () => {
                 <div className="p-2 bg-dark-elevated rounded-lg group-hover:bg-primary/10 transition-colors">
                   <Mail className="w-4 h-4" />
                 </div>
-                contact@decouverts.com
+                hello@decouverts.com
               </a>
               <a href="tel:+919561103435" className="flex items-center gap-3 text-dark-muted hover:text-primary transition-colors text-sm group">
                 <div className="p-2 bg-dark-elevated rounded-lg group-hover:bg-primary/10 transition-colors">
@@ -82,7 +82,7 @@ export const PublicFooter = () => {
                 <div className="p-2 bg-dark-elevated rounded-lg shrink-0">
                   <MapPin className="w-4 h-4" />
                 </div>
-                <span className="leading-relaxed">Pune, Maharashtra, India</span>
+                <span className="leading-relaxed">Megapolis Springs, Phase 3 , Hinjawadi Rajiv Gandhi Infotech Park, Pune, Maharashtra, India</span>
               </div>
             </div>
 
