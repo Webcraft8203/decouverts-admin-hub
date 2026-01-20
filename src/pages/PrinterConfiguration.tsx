@@ -254,7 +254,7 @@ const PrinterConfiguration = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <PublicNavbar />
-      <main className="flex-1 py-8 md:py-12">
+      <main className="flex-1 pt-24 pb-8 md:pb-12">
         <div className="container mx-auto px-4 max-w-5xl">
           {/* Header */}
           <motion.div
