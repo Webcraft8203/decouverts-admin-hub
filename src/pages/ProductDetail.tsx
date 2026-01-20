@@ -252,7 +252,7 @@ const ProductDetail = () => {
   const isLongDescription = (product.description?.length || 0) > 300;
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8F9FA]">
+    <div className="min-h-screen flex flex-col bg-background">
       <PublicNavbar />
 
       <motion.main 
@@ -276,10 +276,10 @@ const ProductDetail = () => {
           </nav>
 
           {/* Product Hero Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start mb-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-24 items-start mb-12 md:mb-20">
               
               {/* Left Column: Gallery */}
-              <div>
+              <div className="lg:sticky lg:top-24 z-10">
                 <ProductMediaGallery 
                   images={product.images}
                   videoUrl={product.video_url}
@@ -288,28 +288,28 @@ const ProductDetail = () => {
               </div>
 
               {/* Right Column: Information */}
-              <div className="flex flex-col h-full">
+              <div className="flex flex-col h-full pt-2">
                 
                 {/* Category Badge */}
-                <div className="mb-4">
+                <div className="mb-6">
                     {(product.categories as any)?.name && (
-                        <Badge variant="secondary" className="bg-slate-100 text-slate-600 hover:bg-slate-200 border-slate-200 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase">
+                        <Badge variant="secondary" className="bg-secondary/50 text-foreground hover:bg-secondary border-border/50 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase transition-colors">
                             {(product.categories as any).name}
                         </Badge>
                     )}
                 </div>
 
                 {/* Title */}
-                <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 leading-tight tracking-tight mb-4">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground leading-[1.1] tracking-tight mb-6">
                     {product.name}
                 </h1>
 
                 {/* Price & Stock */}
-                <div className="flex items-center gap-4 mb-6">
-                    <span className="text-3xl font-bold text-orange-600">
+                <div className="flex items-center flex-wrap gap-6 mb-8">
+                    <span className="text-4xl font-bold text-foreground">
                         ₹{product.price.toLocaleString()}
                     </span>
-                    <div className="h-6 w-px bg-slate-200"></div>
+                    <div className="h-8 w-px bg-border hidden sm:block"></div>
                     {product.stock_quantity > 0 ? (
                         <div className="flex items-center gap-1.5 text-emerald-600 font-medium bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
                             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
@@ -325,14 +325,14 @@ const ProductDetail = () => {
 
                 {/* Short Description */}
                 {product.description && (
-                    <div className="mb-8">
+                    <div className="mb-10">
                       <motion.div
                         initial={false}
                         animate={{ 
                           height: isLongDescription && !isDescriptionExpanded ? "7.4rem" : "auto"
                         }}
                         transition={{ duration: 0.3 }}
-                        className={cn("text-lg text-slate-600 leading-relaxed overflow-hidden relative")}
+                        className={cn("text-lg text-muted-foreground leading-relaxed overflow-hidden relative")}
                         style={{
                            maskImage: isLongDescription && !isDescriptionExpanded 
                              ? "linear-gradient(to bottom, black 60%, transparent 100%)" 
@@ -347,7 +347,7 @@ const ProductDetail = () => {
                       {isLongDescription && (
                         <button
                           onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                          className="mt-2 text-sm font-semibold text-slate-500 hover:text-orange-600 transition-colors flex items-center gap-1 focus:outline-none group"
+                          className="mt-2 text-sm font-semibold text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 focus:outline-none group"
                         >
                           {isDescriptionExpanded ? (
                             <>See less <ChevronUp className="w-4 h-4 transition-transform group-hover:-translate-y-0.5" /></>
@@ -360,28 +360,28 @@ const ProductDetail = () => {
                 )}
 
                 {/* Divider */}
-                <div className="h-px w-full bg-slate-100 mb-8"></div>
+                <div className="h-px w-full bg-border/60 mb-10"></div>
 
                 {/* Actions Area */}
                 <div className="space-y-6">
                     <div className="flex flex-col sm:flex-row gap-4">
                         {/* Quantity */}
                         {product.stock_quantity > 0 && (
-                            <div className="flex items-center border border-slate-200 rounded-xl h-14 w-full sm:w-40 bg-white shadow-sm">
+                            <div className="flex items-center border border-border rounded-xl h-14 w-full sm:w-40 bg-background shadow-sm hover:border-primary/50 transition-colors">
                                 <button 
                                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                                     disabled={quantity <= 1}
-                                    className="w-12 h-full flex items-center justify-center text-slate-400 hover:text-slate-900 disabled:opacity-30 transition-colors"
+                                    className="w-12 h-full flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
                                 >
                                     <Minus className="w-5 h-5" />
                                 </button>
-                                <div className="flex-1 text-center font-bold text-lg text-slate-900">
+                                <div className="flex-1 text-center font-bold text-lg text-foreground">
                                     {quantity}
                                 </div>
                                 <button 
                                     onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))}
                                     disabled={quantity >= product.stock_quantity}
-                                    className="w-12 h-full flex items-center justify-center text-slate-400 hover:text-slate-900 disabled:opacity-30 transition-colors"
+                                    className="w-12 h-full flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
                                 >
                                     <Plus className="w-5 h-5" />
                                 </button>
@@ -393,7 +393,7 @@ const ProductDetail = () => {
                             onClick={handleBuyNow}
                             size="lg"
                             disabled={product.stock_quantity === 0}
-                            className="flex-1 h-14 bg-orange-600 hover:bg-orange-700 text-white font-bold text-lg shadow-lg shadow-orange-200 rounded-xl transition-all hover:-translate-y-0.5 active:translate-y-0"
+                            className="flex-1 h-14 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg shadow-lg shadow-primary/20 rounded-xl transition-all hover:-translate-y-0.5 active:translate-y-0"
                         >
                             Buy Now
                         </Button>
@@ -405,7 +405,7 @@ const ProductDetail = () => {
                         variant="outline"
                         size="lg"
                         disabled={product.stock_quantity === 0 || addToCartMutation.isPending}
-                        className="w-full h-14 border-2 border-slate-200 text-slate-700 hover:border-orange-600 hover:text-orange-600 hover:bg-orange-50 font-semibold text-lg rounded-xl transition-all"
+                        className="w-full h-14 border-2 border-border text-foreground hover:border-primary hover:text-primary hover:bg-primary/5 font-semibold text-lg rounded-xl transition-all"
                     >
                         <ShoppingCart className="w-5 h-5 mr-2" />
                         Add to Cart
@@ -413,14 +413,14 @@ const ProductDetail = () => {
                 </div>
 
                 {/* Trust Badges */}
-                <div className="mt-8 pt-8 border-t border-slate-100 grid grid-cols-2 gap-4">
-                    <div className="flex items-center gap-3 text-sm text-slate-500">
-                        <div className="p-2 bg-slate-100 rounded-full"><Check className="w-4 h-4 text-slate-700" /></div>
-                        <span>Official Warranty</span>
+                <div className="mt-10 pt-8 border-t border-border/60 grid grid-cols-2 gap-6">
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="p-2.5 bg-secondary rounded-full"><Check className="w-5 h-5 text-foreground" /></div>
+                        <span className="font-medium">Official Warranty</span>
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-slate-500">
-                        <div className="p-2 bg-slate-100 rounded-full"><Package className="w-4 h-4 text-slate-700" /></div>
-                        <span>Secure Shipping</span>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="p-2.5 bg-secondary rounded-full"><Package className="w-5 h-5 text-foreground" /></div>
+                        <span className="font-medium">Secure Shipping</span>
                     </div>
                 </div>
 
@@ -628,18 +628,18 @@ const ProductDetail = () => {
       </motion.main>
 
       {/* Mobile Sticky Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 lg:hidden z-50 shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)] safe-area-bottom">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-border lg:hidden z-50 shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)] safe-area-bottom">
         <div className="flex gap-3">
           <Button 
             variant="outline" 
-            className="flex-1 h-12 border-slate-300 text-slate-700 font-semibold text-base" 
+            className="flex-1 h-12 border-border text-foreground font-semibold text-base hover:bg-secondary" 
             onClick={handleAddToCart}
             disabled={product.stock_quantity === 0 || addToCartMutation.isPending}
           >
             Add to Cart
           </Button>
           <Button 
-            className="flex-1 h-12 bg-orange-600 text-white font-bold shadow-md text-base" 
+            className="flex-1 h-12 bg-primary text-primary-foreground font-bold shadow-md text-base hover:bg-primary/90" 
             onClick={handleBuyNow}
             disabled={product.stock_quantity === 0}
           >

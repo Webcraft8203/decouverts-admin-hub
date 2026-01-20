@@ -20,7 +20,8 @@ import {
   Grid3X3,
   LayoutGrid,
   SlidersHorizontal,
-  X
+  X,
+  Check
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
@@ -167,10 +168,10 @@ const Shop = () => {
   const ProductCard = ({ product }: { product: Product }) => (
     <div
       onClick={() => navigate(`/product/${product.id}`)}
-      className="group cursor-pointer"
+      className="group flex flex-col h-full bg-card border border-border/40 rounded-xl overflow-hidden hover:shadow-md transition-all duration-300 cursor-pointer"
     >
       {/* Image Container */}
-      <div className="relative aspect-square overflow-hidden rounded-lg bg-secondary/50 mb-4">
+      <div className="relative aspect-square overflow-hidden bg-secondary/20">
         {product.images && product.images.length > 0 ? (
           <>
             <img
@@ -188,54 +189,59 @@ const Shop = () => {
           </>
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Package className="w-16 h-16 text-muted-foreground/20" />
+            <Package className="w-12 h-12 text-muted-foreground/20" />
           </div>
         )}
         
         {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-2">
+        <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
           {product.is_highlighted && (
-            <Badge className="bg-foreground text-background text-[10px] font-medium px-2.5 py-1 rounded-sm">
+            <Badge className="bg-primary text-primary-foreground text-[10px] font-bold px-2.5 py-0.5 shadow-sm">
               BESTSELLER
             </Badge>
           )}
           {product.stock_quantity <= 5 && (
-            <Badge className="bg-destructive text-destructive-foreground text-[10px] font-medium px-2.5 py-1 rounded-sm">
+            <Badge variant="destructive" className="text-[10px] font-bold px-2.5 py-0.5 shadow-sm">
               LOW STOCK
             </Badge>
           )}
         </div>
 
-        {/* Quick Actions */}
-        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
-          <WishlistButton productId={product.id} size="sm" />
+        {/* Wishlist */}
+        <div className="absolute top-3 right-3 z-10">
+          <div className="bg-background/80 backdrop-blur-sm rounded-full p-1.5 shadow-sm transition-opacity hover:bg-background">
+            <WishlistButton productId={product.id} size="sm" />
+          </div>
         </div>
+      </div>
 
-        {/* Quick Add Button */}
-        <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-4 group-hover:translate-y-0">
+      {/* Product Info */}
+      <div className="flex flex-col flex-1 p-4">
+        {product.categories && (
+          <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-1">
+            {product.categories.name}
+          </p>
+        )}
+        <h3 className="font-medium text-foreground text-sm sm:text-base leading-snug mb-2 line-clamp-2 min-h-[2.5em]">
+          {product.name}
+        </h3>
+        
+        <div className="mt-auto pt-2">
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <p className="text-base sm:text-lg font-bold text-foreground">
+              ₹{product.price.toLocaleString("en-IN")}
+            </p>
+          </div>
+          
           <Button
             onClick={(e) => handleAddToCart(e, product.id)}
-            className="w-full bg-foreground hover:bg-foreground/90 text-background font-medium h-11 rounded-md shadow-lg"
+            className="w-full bg-foreground hover:bg-foreground/90 text-background h-9 sm:h-10 rounded-lg font-medium transition-transform active:scale-[0.98] shadow-sm"
+            size="sm"
           >
             <ShoppingCart className="w-4 h-4 mr-2" />
             Add to Cart
           </Button>
         </div>
-      </div>
-
-      {/* Product Info */}
-      <div className="space-y-2">
-        {product.categories && (
-          <p className="text-xs text-muted-foreground uppercase tracking-wider">
-            {product.categories.name}
-          </p>
-        )}
-        <h3 className="font-medium text-foreground text-sm sm:text-base leading-tight group-hover:text-primary transition-colors line-clamp-2">
-          {product.name}
-        </h3>
-        <p className="text-base sm:text-lg font-semibold text-foreground">
-          ₹{product.price.toLocaleString("en-IN")}
-        </p>
       </div>
     </div>
   );
@@ -244,29 +250,31 @@ const Shop = () => {
   const FilterContent = () => (
     <div className="space-y-6">
       <div>
-        <h4 className="font-semibold text-foreground mb-4">Categories</h4>
-        <div className="space-y-2">
+        <h4 className="font-semibold text-foreground mb-4 px-2 text-sm uppercase tracking-wider">Categories</h4>
+        <div className="space-y-1">
           <button
             onClick={() => setSelectedCategory(null)}
-            className={`w-full text-left px-3 py-2.5 rounded-md text-sm transition-colors ${
+            className={`w-full text-left px-3 py-2 rounded-md text-sm transition-all duration-200 flex items-center justify-between ${
               !selectedCategory 
-                ? "bg-foreground text-background font-medium" 
-                : "hover:bg-secondary text-foreground"
+                ? "bg-primary text-primary-foreground font-medium shadow-sm" 
+                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
             }`}
           >
             All Products
+            {!selectedCategory && <Check className="w-3.5 h-3.5" />}
           </button>
           {categories?.map((category) => (
             <button
               key={category.id}
               onClick={() => setSelectedCategory(category.id)}
-              className={`w-full text-left px-3 py-2.5 rounded-md text-sm transition-colors ${
+              className={`w-full text-left px-3 py-2 rounded-md text-sm transition-all duration-200 flex items-center justify-between ${
                 selectedCategory === category.id 
-                  ? "bg-foreground text-background font-medium" 
-                  : "hover:bg-secondary text-foreground"
+                  ? "bg-primary text-primary-foreground font-medium shadow-sm" 
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
               }`}
             >
               {category.name}
+              {selectedCategory === category.id && <Check className="w-3.5 h-3.5" />}
             </button>
           ))}
         </div>
