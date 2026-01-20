@@ -3,8 +3,8 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Mail, Phone, MapPin, ChevronDown, 
-  CreditCard, FileText, Truck, ShieldCheck, Settings, 
-  X, HelpCircle
+  CreditCard, FileText, Truck, ShieldCheck, Settings,
+  X, HelpCircle, Wrench, Layers, Plane
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
@@ -114,6 +114,24 @@ const faqData = [
     question: "Custom Product Configuration",
     answer: "Use our online configurators for 3D printers and drones to select specific components. For complex industrial requirements not listed, please request a custom quote via the Help Center.",
     icon: Settings
+  },
+  {
+    id: "support",
+    question: "Technical Support & Training",
+    answer: "We provide comprehensive technical support and training for all our equipment. On-site installation and training packages are available for industrial 3D printers and drone systems.",
+    icon: Wrench
+  },
+  {
+    id: "materials",
+    question: "Available Materials",
+    answer: "Our manufacturing services cover a wide spectrum of materials including engineering-grade thermoplastics (ABS, Nylon, PC), resins, and high-performance composites like Carbon Fiber PEEK.",
+    icon: Layers
+  },
+  {
+    id: "drones",
+    question: "Drone Regulations & Compliance",
+    answer: "Our drone solutions are designed in accordance with DGCA guidelines. We assist customers with documentation required for UIN generation and operational compliance in India.",
+    icon: Plane
   }
 ];
 
