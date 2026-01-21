@@ -68,8 +68,8 @@ export const PublicNavbar = () => {
       height: 0,
       transition: {
         duration: 0.3,
-        ease: "easeInOut",
-        when: "afterChildren",
+        ease: [0.4, 0, 0.2, 1] as const,
+        when: "afterChildren" as const,
       },
     },
     visible: {
@@ -77,8 +77,8 @@ export const PublicNavbar = () => {
       height: "auto",
       transition: {
         duration: 0.3,
-        ease: "easeInOut",
-        when: "beforeChildren",
+        ease: [0.4, 0, 0.2, 1] as const,
+        when: "beforeChildren" as const,
         staggerChildren: 0.1,
       },
     },

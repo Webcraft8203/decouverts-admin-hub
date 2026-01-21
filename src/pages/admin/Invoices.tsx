@@ -2,19 +2,23 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { Plus, Trash2, Download, FileText, Eye, X } from "lucide-react";
+import { Plus, Trash2, Download, FileText, Eye, X, Search, Filter, Calendar, CreditCard, Banknote, CheckCircle, Clock, AlertCircle, Receipt, FileCheck } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { INDIAN_STATES } from "@/constants/indianStates";
 import { jsPDF } from "jspdf";
+import { format } from "date-fns";
 
 // Invoice item interface - standardized
 interface InvoiceItem {
@@ -47,6 +51,8 @@ function normalizeInvoiceItem(item: any): InvoiceItem {
 interface Invoice {
   id: string;
   invoice_number: string;
+  invoice_type: string;
+  is_final: boolean;
   client_name: string;
   client_email: string | null;
   client_address: string | null;
@@ -57,6 +63,8 @@ interface Invoice {
   notes: string | null;
   pdf_url: string | null;
   created_at: string;
+  delivery_date: string | null;
+  order_id: string | null;
   buyer_state?: string | null;
   seller_state?: string | null;
   is_igst?: boolean | null;
@@ -64,6 +72,12 @@ interface Invoice {
   sgst_amount?: number | null;
   igst_amount?: number | null;
   buyer_gstin?: string | null;
+  order?: {
+    order_number: string;
+    payment_status: string;
+    payment_id: string | null;
+    status: string;
+  } | null;
 }
 
 // Default GST rate
@@ -83,6 +97,15 @@ const COMPANY_SETTINGS = {
   terms_and_conditions: "1. Goods once sold are non-refundable.\n2. Payment due within 30 days.\n3. Warranty as per product terms.",
 };
 
+// Payment status config for COD
+const paymentStatusConfig = {
+  pending: { label: "Pending", color: "bg-amber-500/10 text-amber-500 border-amber-500/20", icon: Clock },
+  paid: { label: "Paid", color: "bg-green-500/10 text-green-500 border-green-500/20", icon: CheckCircle },
+  cod_collected: { label: "COD Collected", color: "bg-blue-500/10 text-blue-500 border-blue-500/20", icon: Banknote },
+  cod_settled: { label: "Settled", color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20", icon: CheckCircle },
+  failed: { label: "Failed", color: "bg-destructive/10 text-destructive border-destructive/20", icon: AlertCircle },
+};
+
 export default function Invoices() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -90,6 +113,13 @@ export default function Invoices() {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [activeTab, setActiveTab] = useState<"proforma" | "final">("proforma");
+  
+  // Search and filter states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [paymentFilter, setPaymentFilter] = useState<string>("all");
+  const [dateRange, setDateRange] = useState<{ from: string; to: string }>({ from: "", to: "" });
+  
   const [formData, setFormData] = useState({
     client_name: "",
     client_email: "",
@@ -109,19 +139,66 @@ export default function Invoices() {
   const fetchData = async () => {
     const { data } = await supabase
       .from("invoices")
-      .select("id, invoice_number, client_name, client_email, client_address, total_amount, subtotal, tax_amount, items, notes, pdf_url, created_at, buyer_state, seller_state, is_igst, cgst_amount, sgst_amount, igst_amount, buyer_gstin")
+      .select(`
+        id, invoice_number, invoice_type, is_final, client_name, client_email, client_address, 
+        total_amount, subtotal, tax_amount, items, notes, pdf_url, created_at, delivery_date,
+        order_id, buyer_state, seller_state, is_igst, cgst_amount, sgst_amount, igst_amount, buyer_gstin
+      `)
       .order("created_at", { ascending: false });
 
-    // Parse and normalize items from Json to InvoiceItem[]
-    const parsed = (data || []).map((inv) => ({
-      ...inv,
-      items: Array.isArray(inv.items)
-        ? (inv.items as unknown as any[]).map(normalizeInvoiceItem)
-        : [],
-    }));
-    setInvoices(parsed);
+    // Fetch related order data separately
+    const invoicesWithOrders = await Promise.all(
+      (data || []).map(async (inv) => {
+        let order = null;
+        if (inv.order_id) {
+          const { data: orderData } = await supabase
+            .from("orders")
+            .select("order_number, payment_status, payment_id, status")
+            .eq("id", inv.order_id)
+            .single();
+          order = orderData;
+        }
+        return {
+          ...inv,
+          invoice_type: inv.invoice_type || (inv.is_final ? "final" : "proforma"),
+          items: Array.isArray(inv.items)
+            ? (inv.items as unknown as any[]).map(normalizeInvoiceItem)
+            : [],
+          order,
+        };
+      })
+    );
+
+    setInvoices(invoicesWithOrders);
     setIsLoading(false);
   };
+
+  // Filter invoices based on active tab, search, and filters
+  const filteredInvoices = invoices.filter((invoice) => {
+    // Tab filter
+    const matchesTab = activeTab === "proforma" 
+      ? invoice.invoice_type !== "final"
+      : invoice.invoice_type === "final";
+    
+    // Search filter
+    const query = searchQuery.toLowerCase();
+    const matchesSearch = !query || 
+      invoice.invoice_number.toLowerCase().includes(query) ||
+      invoice.client_name.toLowerCase().includes(query) ||
+      (invoice.order?.order_number || "").toLowerCase().includes(query);
+    
+    // Payment filter
+    const matchesPayment = paymentFilter === "all" || 
+      (paymentFilter === "online" && invoice.order?.payment_id && !invoice.order.payment_id.startsWith("COD")) ||
+      (paymentFilter === "cod" && (!invoice.order?.payment_id || invoice.order.payment_id.startsWith("COD")));
+    
+    // Date range filter
+    const invoiceDate = new Date(invoice.created_at);
+    const matchesDateFrom = !dateRange.from || invoiceDate >= new Date(dateRange.from);
+    const matchesDateTo = !dateRange.to || invoiceDate <= new Date(dateRange.to + "T23:59:59");
+    
+    return matchesTab && matchesSearch && matchesPayment && matchesDateFrom && matchesDateTo;
+  });
 
   const addItem = () => setItems([...items, { description: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
   const removeItem = (i: number) => setItems(items.filter((_, idx) => idx !== i));
@@ -195,6 +272,8 @@ export default function Invoices() {
     const { error } = await supabase.from("invoices").insert([
       {
         invoice_number: invoiceNumber,
+        invoice_type: "manual",
+        is_final: false,
         client_name: formData.client_name,
         client_email: formData.client_email || null,
         client_address: formData.client_address || null,
@@ -227,9 +306,9 @@ export default function Invoices() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete?")) return;
+    if (!confirm("Delete this invoice?")) return;
     await supabase.from("invoices").delete().eq("id", id);
-    toast({ title: "Deleted" });
+    toast({ title: "Invoice deleted" });
     fetchData();
   };
 
@@ -241,6 +320,44 @@ export default function Invoices() {
   // Format currency in Indian format
   const formatCurrency = (amount: number): string => {
     return `₹${Number(amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  // Get payment type badge
+  const getPaymentTypeBadge = (invoice: Invoice) => {
+    const isCOD = !invoice.order?.payment_id || invoice.order.payment_id.startsWith("COD");
+    if (isCOD) {
+      return (
+        <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20">
+          <Banknote className="w-3 h-3 mr-1" />
+          COD
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20">
+        <CreditCard className="w-3 h-3 mr-1" />
+        Online
+      </Badge>
+    );
+  };
+
+  // Get payment status for COD orders
+  const getPaymentStatus = (invoice: Invoice) => {
+    const status = invoice.order?.payment_status || "pending";
+    const orderStatus = invoice.order?.status || "";
+    const isCOD = !invoice.order?.payment_id || invoice.order.payment_id?.startsWith("COD");
+    
+    if (isCOD) {
+      if (orderStatus === "delivered") {
+        // COD order delivered = payment collected by delivery partner
+        return { label: "Collected by Delivery Partner", color: "bg-blue-500/10 text-blue-600 border-blue-500/20", icon: Banknote };
+      } else if (status === "pending") {
+        return { label: "Awaiting Delivery", color: "bg-amber-500/10 text-amber-600 border-amber-500/20", icon: Clock };
+      }
+    }
+    
+    const config = paymentStatusConfig[status as keyof typeof paymentStatusConfig];
+    return config || paymentStatusConfig.pending;
   };
 
   // Generate PDF using jsPDF
@@ -262,19 +379,48 @@ export default function Invoices() {
     const textGray: [number, number, number] = [102, 102, 102];
     const textLight: [number, number, number] = [128, 128, 128];
     const borderColor: [number, number, number] = [220, 220, 220];
+    const warningColor: [number, number, number] = [255, 152, 0];
+    const successColor: [number, number, number] = [76, 175, 80];
+
+    const isFinal = invoice.is_final || invoice.invoice_type === "final";
 
     // ==================== HEADER ====================
+    // Left side - Company info
     doc.setFontSize(22);
     doc.setTextColor(...primaryColor);
     doc.setFont("helvetica", "bold");
     doc.text(COMPANY_SETTINGS.business_name, margin, y + 8);
 
-    // Invoice title
-    doc.setFontSize(18);
-    doc.setTextColor(...textDark);
-    doc.text("TAX INVOICE", pageWidth - margin, y + 5, { align: "right" });
+    // Right side - Invoice type box
+    const boxWidth = 65;
+    const boxHeight = 24;
+    const boxX = pageWidth - margin - boxWidth;
+    const boxY = y - 2;
+    
+    if (isFinal) {
+      doc.setFillColor(76, 175, 80);
+    } else {
+      doc.setFillColor(255, 152, 0);
+    }
+    doc.roundedRect(boxX, boxY, boxWidth, boxHeight, 2, 2, "F");
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    const invoiceTypeText = isFinal ? "TAX INVOICE" : "PROFORMA INVOICE";
+    doc.text(invoiceTypeText, boxX + boxWidth / 2, boxY + 10, { align: "center" });
+    
+    if (!isFinal) {
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "normal");
+      doc.text("Temporary - Not a Tax Document", boxX + boxWidth / 2, boxY + 17, { align: "center" });
+    } else {
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "normal");
+      doc.text("GST Compliant", boxX + boxWidth / 2, boxY + 17, { align: "center" });
+    }
 
-    y += 10;
+    y += 12;
 
     // Company tagline
     doc.setFontSize(9);
@@ -298,30 +444,44 @@ export default function Invoices() {
       y += 4;
     });
 
-    // Invoice details on right side
+    // Invoice details on right side (below the box)
     const invoiceDate = new Date(invoice.created_at).toLocaleDateString("en-IN", {
       day: "2-digit",
       month: "short",
       year: "numeric",
     });
 
-    const invoiceDetailsY = y - 16;
-    doc.setFontSize(9);
+    const invoiceDetailsY = boxY + boxHeight + 8;
+    const rightColX = pageWidth - margin - 55;
+    
+    doc.setFontSize(8);
     doc.setTextColor(...textDark);
+    
     doc.setFont("helvetica", "bold");
-    doc.text("Invoice No:", pageWidth - margin - 50, invoiceDetailsY);
+    doc.text(isFinal ? "Invoice No:" : "Proforma No:", rightColX, invoiceDetailsY);
     doc.setFont("helvetica", "normal");
     doc.text(invoice.invoice_number, pageWidth - margin, invoiceDetailsY, { align: "right" });
 
     doc.setFont("helvetica", "bold");
-    doc.text("Date:", pageWidth - margin - 50, invoiceDetailsY + 5);
+    doc.text("Date:", rightColX, invoiceDetailsY + 5);
     doc.setFont("helvetica", "normal");
     doc.text(invoiceDate, pageWidth - margin, invoiceDetailsY + 5, { align: "right" });
+
+    if (invoice.order?.order_number) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Order No:", rightColX, invoiceDetailsY + 10);
+      doc.setFont("helvetica", "normal");
+      doc.text(invoice.order.order_number, pageWidth - margin, invoiceDetailsY + 10, { align: "right" });
+    }
 
     y += 5;
 
     // Separator line
-    doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    if (isFinal) {
+      doc.setDrawColor(successColor[0], successColor[1], successColor[2]);
+    } else {
+      doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    }
     doc.setLineWidth(0.8);
     doc.line(margin, y, pageWidth - margin, y);
 
@@ -387,7 +547,7 @@ export default function Invoices() {
     doc.rect(tableX, y, tableWidth, 8, "F");
 
     // Header border
-    doc.setDrawColor(...primaryColor);
+    doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.setLineWidth(0.5);
     doc.line(tableX, y + 8, tableX + tableWidth, y + 8);
 
@@ -592,20 +752,6 @@ export default function Invoices() {
       });
     }
 
-    // Notes
-    if (invoice.notes && y < pageHeight - 40) {
-      y += 5;
-      doc.setFontSize(8);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(...textDark);
-      doc.text("Notes:", margin, y);
-      y += 4;
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(7);
-      doc.setTextColor(...textGray);
-      doc.text(invoice.notes, margin, y);
-    }
-
     // ==================== FOOTER ====================
     y = pageHeight - 15;
 
@@ -646,7 +792,8 @@ export default function Invoices() {
               const url = URL.createObjectURL(blob);
               const link = document.createElement("a");
               link.href = url;
-              link.download = `INVOICE_${invoice.invoice_number}.pdf`;
+              const prefix = invoice.is_final ? "TAX-INVOICE" : "PROFORMA";
+              link.download = `${prefix}_${invoice.invoice_number}.pdf`;
               document.body.appendChild(link);
               link.click();
               document.body.removeChild(link);
@@ -666,7 +813,8 @@ export default function Invoices() {
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `INVOICE_${invoice.invoice_number}.pdf`;
+      const prefix = invoice.is_final ? "TAX-INVOICE" : "PROFORMA";
+      link.download = `${prefix}_${invoice.invoice_number}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -691,305 +839,508 @@ export default function Invoices() {
     return `CGST: ${formatCurrency(cgst)} + SGST: ${formatCurrency(sgst)}`;
   };
 
+  // Stats for tabs
+  const proformaCount = invoices.filter(i => i.invoice_type !== "final").length;
+  const finalCount = invoices.filter(i => i.invoice_type === "final").length;
+
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Invoices</h1>
+          <h1 className="text-3xl font-bold text-foreground">Invoice Management</h1>
           <p className="text-muted-foreground">Generate and manage GST-compliant invoices</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Create Invoice
+            <Button className="gap-2">
+              <Plus className="w-4 h-4" />
+              Create Manual Invoice
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Create GST Invoice</DialogTitle>
+              <DialogTitle>Create New Invoice</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Client Name *</Label>
-                  <Input
-                    value={formData.client_name}
-                    onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label>Client Email</Label>
-                  <Input
-                    type="email"
-                    value={formData.client_email}
-                    onChange={(e) => setFormData({ ...formData, client_email: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Buyer State *</Label>
-                  <Select
-                    value={formData.buyer_state}
-                    onValueChange={(value) => setFormData({ ...formData, buyer_state: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select state" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {INDIAN_STATES.map((state) => (
-                        <SelectItem key={state} value={state}>
-                          {state}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {isInterState ? "IGST will apply (Inter-State)" : "CGST + SGST will apply (Intra-State)"}
-                  </p>
-                </div>
-                <div>
-                  <Label>Buyer GSTIN</Label>
-                  <Input
-                    value={formData.buyer_gstin}
-                    onChange={(e) => setFormData({ ...formData, buyer_gstin: e.target.value.toUpperCase() })}
-                    placeholder="e.g., 27AAAAA0000A1Z5"
-                    maxLength={15}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label>Address</Label>
-                <Textarea
-                  value={formData.client_address}
-                  onChange={(e) => setFormData({ ...formData, client_address: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Items</Label>
-                {items.map((item, i) => (
-                  <div key={i} className="flex gap-2 items-center">
+            <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+              {/* Client Information */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-primary" />
+                  Client Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="client_name">Client Name *</Label>
                     <Input
-                      placeholder="Description"
-                      value={item.description}
-                      onChange={(e) => updateItem(i, "description", e.target.value)}
-                      className="flex-1"
+                      id="client_name"
+                      value={formData.client_name}
+                      onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
                       required
                     />
-                    <Input
-                      type="number"
-                      placeholder="Qty"
-                      value={item.quantity}
-                      onChange={(e) => updateItem(i, "quantity", parseInt(e.target.value) || 0)}
-                      className="w-16"
-                      min="1"
-                    />
-                    <Input
-                      type="number"
-                      step="0.01"
-                      placeholder="Price"
-                      value={item.price}
-                      onChange={(e) => updateItem(i, "price", parseFloat(e.target.value) || 0)}
-                      className="w-24"
-                      min="0"
-                    />
-                    <Input
-                      type="number"
-                      placeholder="GST%"
-                      value={item.gst_rate || DEFAULT_GST_RATE}
-                      onChange={(e) => updateItem(i, "gst_rate", parseInt(e.target.value) || DEFAULT_GST_RATE)}
-                      className="w-16"
-                      min="0"
-                      max="28"
-                    />
-                    {items.length > 1 && (
-                      <Button type="button" variant="ghost" size="icon" onClick={() => removeItem(i)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
                   </div>
-                ))}
-                <Button type="button" variant="outline" size="sm" onClick={addItem}>
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Item
-                </Button>
-              </div>
-
-              <div>
-                <Label>Notes</Label>
-                <Textarea
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                />
-              </div>
-
-              <div className="border-t pt-4 space-y-1 text-sm">
-                <div className="flex justify-between">
-                  <span>Subtotal:</span>
-                  <span>{formatCurrency(totals.subtotal)}</span>
-                </div>
-                {isInterState ? (
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>IGST:</span>
-                    <span>{formatCurrency(totals.totalIgst)}</span>
+                  <div>
+                    <Label htmlFor="client_email">Client Email</Label>
+                    <Input
+                      id="client_email"
+                      type="email"
+                      value={formData.client_email}
+                      onChange={(e) => setFormData({ ...formData, client_email: e.target.value })}
+                    />
                   </div>
-                ) : (
-                  <>
-                    <div className="flex justify-between text-muted-foreground">
-                      <span>CGST:</span>
-                      <span>{formatCurrency(totals.totalCgst)}</span>
-                    </div>
-                    <div className="flex justify-between text-muted-foreground">
-                      <span>SGST:</span>
-                      <span>{formatCurrency(totals.totalSgst)}</span>
-                    </div>
-                  </>
-                )}
-                <div className="flex justify-between font-bold pt-2 border-t">
-                  <span>Grand Total:</span>
-                  <span className="text-primary">{formatCurrency(totals.grandTotal)}</span>
-                </div>
-              </div>
-
-              <Button type="submit" className="w-full">
-                Generate Invoice
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Invoice #</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>GST</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
-                    Loading...
-                  </TableCell>
-                </TableRow>
-              ) : invoices.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                    No invoices
-                  </TableCell>
-                </TableRow>
-              ) : (
-                invoices.map((inv) => (
-                  <TableRow key={inv.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        {inv.invoice_number}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <span className="font-medium">{inv.client_name}</span>
-                        {inv.buyer_state && (
-                          <span className="text-xs text-muted-foreground ml-2">({inv.buyer_state})</span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-xs text-muted-foreground">{getGstDisplay(inv)}</span>
-                    </TableCell>
-                    <TableCell className="font-semibold">{formatCurrency(inv.total_amount)}</TableCell>
-                    <TableCell>{new Date(inv.created_at).toLocaleDateString("en-IN")}</TableCell>
-                    <TableCell className="text-right space-x-1">
-                      <Button variant="ghost" size="icon" onClick={() => handleViewInvoice(inv)} title="View Details">
-                        <Eye className="h-4 w-4 text-primary" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => downloadInvoice(inv)}
-                        disabled={isDownloading}
-                        title="Download PDF"
-                      >
-                        <Download className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(inv.id)} title="Delete">
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      {/* View Invoice Details Dialog */}
-      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" />
-              Invoice Details
-            </DialogTitle>
-          </DialogHeader>
-          {selectedInvoice && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Invoice Number</p>
-                  <p className="font-semibold text-lg">{selectedInvoice.invoice_number}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Date</p>
-                  <p className="font-semibold">
-                    {new Date(selectedInvoice.created_at).toLocaleDateString("en-IN", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </p>
+                  <div>
+                    <Label htmlFor="buyer_state">Buyer State *</Label>
+                    <Select
+                      value={formData.buyer_state}
+                      onValueChange={(value) => setFormData({ ...formData, buyer_state: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select state" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {INDIAN_STATES.map((state) => (
+                          <SelectItem key={state} value={state}>
+                            {state}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="buyer_gstin">Buyer GSTIN</Label>
+                    <Input
+                      id="buyer_gstin"
+                      value={formData.buyer_gstin}
+                      onChange={(e) => setFormData({ ...formData, buyer_gstin: e.target.value.toUpperCase() })}
+                      placeholder="e.g., 27XXXXX1234X1ZX"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Label htmlFor="client_address">Client Address</Label>
+                    <Textarea
+                      id="client_address"
+                      value={formData.client_address}
+                      onChange={(e) => setFormData({ ...formData, client_address: e.target.value })}
+                    />
+                  </div>
                 </div>
               </div>
 
               <Separator />
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2">Bill To</p>
-                  <p className="font-semibold text-lg">{selectedInvoice.client_name}</p>
-                  {selectedInvoice.client_email && (
-                    <p className="text-sm text-muted-foreground">{selectedInvoice.client_email}</p>
-                  )}
-                  {selectedInvoice.client_address && (
-                    <p className="text-sm text-muted-foreground mt-1">{selectedInvoice.client_address}</p>
-                  )}
+              {/* Invoice Items */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-lg">Invoice Items</h3>
+                  <Button type="button" variant="outline" size="sm" onClick={addItem}>
+                    <Plus className="w-4 h-4 mr-1" /> Add Item
+                  </Button>
                 </div>
+                {items.map((item, i) => (
+                  <div key={i} className="grid grid-cols-12 gap-2 items-end p-4 bg-muted/30 rounded-lg">
+                    <div className="col-span-12 md:col-span-4">
+                      <Label>Description</Label>
+                      <Input
+                        value={item.description}
+                        onChange={(e) => updateItem(i, "description", e.target.value)}
+                        placeholder="Product or service"
+                        required
+                      />
+                    </div>
+                    <div className="col-span-4 md:col-span-2">
+                      <Label>Qty</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={item.quantity}
+                        onChange={(e) => updateItem(i, "quantity", Number(e.target.value))}
+                        required
+                      />
+                    </div>
+                    <div className="col-span-4 md:col-span-2">
+                      <Label>Rate (₹)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={item.price}
+                        onChange={(e) => updateItem(i, "price", Number(e.target.value))}
+                        required
+                      />
+                    </div>
+                    <div className="col-span-3 md:col-span-2">
+                      <Label>GST %</Label>
+                      <Select
+                        value={String(item.gst_rate || DEFAULT_GST_RATE)}
+                        onValueChange={(value) => updateItem(i, "gst_rate", Number(value))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="0">0%</SelectItem>
+                          <SelectItem value="5">5%</SelectItem>
+                          <SelectItem value="12">12%</SelectItem>
+                          <SelectItem value="18">18%</SelectItem>
+                          <SelectItem value="28">28%</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="col-span-1 md:col-span-2 flex justify-end">
+                      {items.length > 1 && (
+                        <Button type="button" variant="ghost" size="icon" onClick={() => removeItem(i)}>
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Totals */}
+              <Card className="bg-muted/30">
+                <CardContent className="pt-4">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Subtotal:</span>
+                      <span>{formatCurrency(totals.subtotal)}</span>
+                    </div>
+                    {isInterState ? (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">IGST ({DEFAULT_GST_RATE}%):</span>
+                        <span>{formatCurrency(totals.totalIgst)}</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">CGST ({DEFAULT_GST_RATE / 2}%):</span>
+                          <span>{formatCurrency(totals.totalCgst)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">SGST ({DEFAULT_GST_RATE / 2}%):</span>
+                          <span>{formatCurrency(totals.totalSgst)}</span>
+                        </div>
+                      </>
+                    )}
+                    <Separator className="my-2" />
+                    <div className="flex justify-between font-bold text-lg">
+                      <span>Grand Total:</span>
+                      <span className="text-primary">{formatCurrency(totals.grandTotal)}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Notes */}
+              <div>
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea
+                  id="notes"
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  placeholder="Additional notes for this invoice"
+                />
+              </div>
+
+              <Button type="submit" className="w-full">Create Invoice</Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Tabs for Proforma and Final Invoices */}
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "proforma" | "final")}>
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="proforma" className="gap-2">
+            <Receipt className="w-4 h-4" />
+            Proforma ({proformaCount})
+          </TabsTrigger>
+          <TabsTrigger value="final" className="gap-2">
+            <FileCheck className="w-4 h-4" />
+            Final Invoices ({finalCount})
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Search and Filters */}
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div className="relative md:col-span-2">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by invoice number, order number, or customer name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+            <SelectTrigger>
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Payment Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Payments</SelectItem>
+              <SelectItem value="online">Online Payments</SelectItem>
+              <SelectItem value="cod">Cash on Delivery</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="flex gap-2">
+            <Input
+              type="date"
+              placeholder="From"
+              value={dateRange.from}
+              onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
+              className="w-full"
+            />
+            <Input
+              type="date"
+              placeholder="To"
+              value={dateRange.to}
+              onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
+              className="w-full"
+            />
+          </div>
+        </div>
+
+        {/* Invoice Lists */}
+        <TabsContent value="proforma" className="mt-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Receipt className="w-5 h-5 text-amber-500" />
+                Proforma Invoices
+              </CardTitle>
+              <CardDescription>
+                Temporary invoices generated at order placement. Not valid for tax filing.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-3">
+                  {[...Array(3)].map((_, i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
+              ) : filteredInvoices.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Invoice #</TableHead>
+                        <TableHead>Order #</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Payment</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredInvoices.map((invoice) => (
+                        <TableRow key={invoice.id}>
+                          <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
+                          <TableCell>
+                            {invoice.order?.order_number || (
+                              <span className="text-muted-foreground text-xs">Manual</span>
+                            )}
+                          </TableCell>
+                          <TableCell>{invoice.client_name}</TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {format(new Date(invoice.created_at), "dd MMM yyyy")}
+                          </TableCell>
+                          <TableCell>
+                            {invoice.order && getPaymentTypeBadge(invoice)}
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">
+                            {formatCurrency(invoice.total_amount)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleViewInvoice(invoice)}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => downloadInvoice(invoice)}
+                                disabled={isDownloading}
+                              >
+                                <Download className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDelete(invoice.id)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Receipt className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <p>No proforma invoices found</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="final" className="mt-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <FileCheck className="w-5 h-5 text-green-500" />
+                Final Tax Invoices
+              </CardTitle>
+              <CardDescription>
+                Official GST-compliant invoices generated after order delivery. Valid for tax filing.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-3">
+                  {[...Array(3)].map((_, i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
+              ) : filteredInvoices.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Invoice #</TableHead>
+                        <TableHead>Order #</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Delivery Date</TableHead>
+                        <TableHead>Payment</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredInvoices.map((invoice) => {
+                        const paymentStatus = getPaymentStatus(invoice);
+                        const PaymentIcon = paymentStatus.icon;
+                        return (
+                          <TableRow key={invoice.id}>
+                            <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
+                            <TableCell>
+                              {invoice.order?.order_number || (
+                                <span className="text-muted-foreground text-xs">Manual</span>
+                              )}
+                            </TableCell>
+                            <TableCell>{invoice.client_name}</TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {invoice.delivery_date 
+                                ? format(new Date(invoice.delivery_date), "dd MMM yyyy")
+                                : format(new Date(invoice.created_at), "dd MMM yyyy")
+                              }
+                            </TableCell>
+                            <TableCell>
+                              {invoice.order && getPaymentTypeBadge(invoice)}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className={paymentStatus.color}>
+                                <PaymentIcon className="w-3 h-3 mr-1" />
+                                {paymentStatus.label}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right font-semibold">
+                              {formatCurrency(invoice.total_amount)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleViewInvoice(invoice)}
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => downloadInvoice(invoice)}
+                                  disabled={isDownloading}
+                                >
+                                  <Download className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">
+                  <FileCheck className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <p>No final invoices found</p>
+                  <p className="text-sm mt-1">Final invoices are generated automatically when orders are delivered</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* View Invoice Dialog */}
+      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <FileText className="w-5 h-5 text-primary" />
+              {selectedInvoice?.is_final ? "Tax Invoice" : "Proforma Invoice"} - {selectedInvoice?.invoice_number}
+              {selectedInvoice?.is_final ? (
+                <Badge className="bg-green-500/10 text-green-600 border-green-500/20">Final</Badge>
+              ) : (
+                <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20">Proforma</Badge>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedInvoice && (
+            <div className="space-y-6 mt-4">
+              {/* Invoice Header Preview */}
+              <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-2">GST Details</p>
-                  <p className="text-sm">
-                    <span className="font-medium">Buyer State:</span> {selectedInvoice.buyer_state || "N/A"}
+                  <h3 className="font-bold text-xl text-primary">{COMPANY_SETTINGS.business_name}</h3>
+                  <p className="text-sm text-muted-foreground">{COMPANY_SETTINGS.business_address}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {COMPANY_SETTINGS.business_city}, {COMPANY_SETTINGS.business_state} - {COMPANY_SETTINGS.business_pincode}
+                  </p>
+                  <p className="text-sm text-muted-foreground">GSTIN: {COMPANY_SETTINGS.business_gstin}</p>
+                </div>
+                <div className="text-right">
+                  <div className={`inline-block px-4 py-2 rounded-lg ${selectedInvoice.is_final ? 'bg-green-500/10' : 'bg-amber-500/10'}`}>
+                    <p className={`font-bold ${selectedInvoice.is_final ? 'text-green-600' : 'text-amber-600'}`}>
+                      {selectedInvoice.is_final ? "TAX INVOICE" : "PROFORMA INVOICE"}
+                    </p>
+                    {!selectedInvoice.is_final && (
+                      <p className="text-xs text-muted-foreground">Temporary - Not a Tax Document</p>
+                    )}
+                  </div>
+                  <p className="text-sm mt-2">
+                    <span className="text-muted-foreground">Invoice #:</span> {selectedInvoice.invoice_number}
                   </p>
                   <p className="text-sm">
-                    <span className="font-medium">Type:</span>{" "}
-                    {selectedInvoice.is_igst ? "Inter-State (IGST)" : "Intra-State (CGST+SGST)"}
+                    <span className="text-muted-foreground">Date:</span>{" "}
+                    {format(new Date(selectedInvoice.created_at), "dd MMM yyyy")}
                   </p>
-                  {selectedInvoice.buyer_gstin && (
+                  {selectedInvoice.order?.order_number && (
                     <p className="text-sm">
-                      <span className="font-medium">Buyer GSTIN:</span> {selectedInvoice.buyer_gstin}
+                      <span className="text-muted-foreground">Order #:</span> {selectedInvoice.order.order_number}
                     </p>
                   )}
                 </div>
@@ -997,87 +1348,79 @@ export default function Invoices() {
 
               <Separator />
 
+              {/* Bill To */}
               <div>
-                <p className="text-sm text-muted-foreground mb-3">Items</p>
-                <div className="border rounded-lg overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-muted/50">
-                        <TableHead>Description</TableHead>
-                        <TableHead className="text-center">Qty</TableHead>
-                        <TableHead className="text-right">Price</TableHead>
-                        <TableHead className="text-right">GST</TableHead>
-                        <TableHead className="text-right">Total</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {selectedInvoice.items.map((item, idx) => {
-                        const normalizedItem = normalizeInvoiceItem(item);
-                        const taxableValue = normalizedItem.quantity * normalizedItem.price;
-                        const gstRate = normalizedItem.gst_rate || DEFAULT_GST_RATE;
-                        const gstAmount = (taxableValue * gstRate) / 100;
-                        const itemTotal = taxableValue + gstAmount;
-
-                        return (
-                          <TableRow key={idx}>
-                            <TableCell>{normalizedItem.description}</TableCell>
-                            <TableCell className="text-center">{normalizedItem.quantity}</TableCell>
-                            <TableCell className="text-right">{formatCurrency(normalizedItem.price)}</TableCell>
-                            <TableCell className="text-right text-muted-foreground">
-                              {formatCurrency(gstAmount)} ({gstRate}%)
-                            </TableCell>
-                            <TableCell className="text-right font-medium">{formatCurrency(itemTotal)}</TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-
-              <div className="bg-muted/30 rounded-lg p-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span>{formatCurrency(selectedInvoice.subtotal)}</span>
-                </div>
-                {selectedInvoice.is_igst ? (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">IGST</span>
-                    <span>{formatCurrency(selectedInvoice.igst_amount || selectedInvoice.tax_amount)}</span>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">CGST</span>
-                      <span>{formatCurrency(selectedInvoice.cgst_amount || selectedInvoice.tax_amount / 2)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">SGST</span>
-                      <span>{formatCurrency(selectedInvoice.sgst_amount || selectedInvoice.tax_amount / 2)}</span>
-                    </div>
-                  </>
+                <h4 className="text-sm font-semibold text-primary mb-2">BILL TO</h4>
+                <p className="font-medium">{selectedInvoice.client_name}</p>
+                {selectedInvoice.client_address && (
+                  <p className="text-sm text-muted-foreground">{selectedInvoice.client_address}</p>
                 )}
-                <Separator />
-                <div className="flex justify-between font-bold text-lg">
-                  <span>Total</span>
-                  <span className="text-primary">{formatCurrency(selectedInvoice.total_amount)}</span>
+                {selectedInvoice.client_email && (
+                  <p className="text-sm text-muted-foreground">{selectedInvoice.client_email}</p>
+                )}
+                {selectedInvoice.buyer_state && (
+                  <p className="text-sm text-muted-foreground">State: {selectedInvoice.buyer_state}</p>
+                )}
+                {selectedInvoice.buyer_gstin && (
+                  <p className="text-sm font-medium text-primary">GSTIN: {selectedInvoice.buyer_gstin}</p>
+                )}
+              </div>
+
+              {/* Items Table */}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>#</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead className="text-right">Qty</TableHead>
+                    <TableHead className="text-right">Rate</TableHead>
+                    <TableHead className="text-right">GST</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedInvoice.items.map((item, i) => (
+                    <TableRow key={i}>
+                      <TableCell>{i + 1}</TableCell>
+                      <TableCell>{item.description}</TableCell>
+                      <TableCell className="text-right">{item.quantity}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(item.price)}</TableCell>
+                      <TableCell className="text-right">{item.gst_rate || 18}%</TableCell>
+                      <TableCell className="text-right font-medium">
+                        {formatCurrency(item.total || item.quantity * item.price)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {/* Totals */}
+              <div className="flex justify-end">
+                <div className="w-72 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Subtotal:</span>
+                    <span>{formatCurrency(selectedInvoice.subtotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">GST:</span>
+                    <span>{getGstDisplay(selectedInvoice)}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between font-bold text-lg">
+                    <span>Total:</span>
+                    <span className="text-primary">{formatCurrency(selectedInvoice.total_amount)}</span>
+                  </div>
                 </div>
               </div>
 
-              {selectedInvoice.notes && (
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Notes</p>
-                  <p className="text-sm bg-muted/30 p-3 rounded-lg">{selectedInvoice.notes}</p>
-                </div>
-              )}
-
-              <div className="flex gap-3 pt-2">
-                <Button className="flex-1" onClick={() => downloadInvoice(selectedInvoice)} disabled={isDownloading}>
-                  <Download className="h-4 w-4 mr-2" />
-                  {isDownloading ? "Downloading..." : "Download PDF"}
-                </Button>
+              {/* Actions */}
+              <div className="flex gap-3 justify-end pt-4">
                 <Button variant="outline" onClick={() => setViewDialogOpen(false)}>
                   Close
+                </Button>
+                <Button onClick={() => downloadInvoice(selectedInvoice)} disabled={isDownloading}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Download PDF
                 </Button>
               </div>
             </div>
