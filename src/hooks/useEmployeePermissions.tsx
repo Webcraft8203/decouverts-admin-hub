@@ -32,7 +32,13 @@ export type EmployeePermission =
   | "view_salary_info"
   | "manage_salary"
   | "view_employee_documents"
-  | "manage_employee_documents";
+  | "manage_employee_documents"
+  | "mark_attendance"
+  | "view_attendance"
+  | "manage_leave"
+  | "view_leave_requests"
+  | "generate_payslips"
+  | "view_payslips";
 
 export const ALL_PERMISSIONS: { key: EmployeePermission; label: string; category: string }[] = [
   // Order Management
@@ -46,6 +52,8 @@ export const ALL_PERMISSIONS: { key: EmployeePermission; label: string; category
   { key: "view_gst_reports", label: "View GST Reports", category: "Accounting & Finance" },
   { key: "view_revenue", label: "View Revenue Analytics", category: "Accounting & Finance" },
   { key: "download_financials", label: "Download Financial Reports", category: "Accounting & Finance" },
+  { key: "generate_payslips", label: "Generate Payslips", category: "Accounting & Finance" },
+  { key: "view_payslips", label: "View Payslips", category: "Accounting & Finance" },
   
   // Invoice Management
   { key: "view_invoices", label: "View Invoices", category: "Invoice Management" },
@@ -64,13 +72,19 @@ export const ALL_PERMISSIONS: { key: EmployeePermission; label: string; category
   { key: "manage_partners", label: "Manage Partners", category: "Content Management" },
   { key: "manage_customer_reviews", label: "Manage Customer Reviews", category: "Content Management" },
   
-  // HR & Employee Management
-  { key: "view_employee_profiles", label: "View Employee Profiles", category: "HR & Employee Management" },
-  { key: "manage_employee_profiles", label: "Manage Employee Profiles", category: "HR & Employee Management" },
-  { key: "view_employee_documents", label: "View Employee Documents", category: "HR & Employee Management" },
-  { key: "manage_employee_documents", label: "Manage Employee Documents", category: "HR & Employee Management" },
-  { key: "view_salary_info", label: "View Salary Information", category: "HR & Employee Management" },
-  { key: "manage_salary", label: "Manage Salary & Payments", category: "HR & Employee Management" },
+  // HR & Attendance
+  { key: "mark_attendance", label: "Mark Attendance", category: "HR & Attendance" },
+  { key: "view_attendance", label: "View Attendance Records", category: "HR & Attendance" },
+  { key: "manage_leave", label: "Manage Leave Requests", category: "HR & Attendance" },
+  { key: "view_leave_requests", label: "View Leave Requests", category: "HR & Attendance" },
+  
+  // Employee Management
+  { key: "view_employee_profiles", label: "View Employee Profiles", category: "Employee Management" },
+  { key: "manage_employee_profiles", label: "Manage Employee Profiles", category: "Employee Management" },
+  { key: "view_employee_documents", label: "View Employee Documents", category: "Employee Management" },
+  { key: "manage_employee_documents", label: "Manage Employee Documents", category: "Employee Management" },
+  { key: "view_salary_info", label: "View Salary Information", category: "Employee Management" },
+  { key: "manage_salary", label: "Manage Salary & Payments", category: "Employee Management" },
   
   // Support & Configuration
   { key: "view_customers", label: "View Customers", category: "Support & Configuration" },
@@ -126,6 +140,10 @@ const ROUTE_PERMISSIONS: Record<string, EmployeePermission[]> = {
   "/admin/blog-slides": ["manage_blog"],
   "/admin/employees": [], // Super admin only
   "/admin/accounting": ["view_accounting", "view_gst_reports", "view_revenue"],
+  "/admin/attendance": ["mark_attendance", "view_attendance"],
+  "/admin/leave-management": ["manage_leave", "view_leave_requests"],
+  "/admin/payslips": ["generate_payslips", "view_payslips"],
+  "/admin/salary-reports": ["view_salary_info", "view_accounting"],
 };
 
 export function PermissionsProvider({ children }: { children: ReactNode }) {

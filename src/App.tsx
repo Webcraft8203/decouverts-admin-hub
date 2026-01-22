@@ -60,6 +60,10 @@ import BlogPosts from "./pages/admin/BlogPosts";
 import Employees from "./pages/admin/Employees";
 import EmployeeDetail from "./pages/admin/EmployeeDetail";
 import Accounting from "./pages/admin/Accounting";
+import Attendance from "./pages/admin/Attendance";
+import LeaveManagement from "./pages/admin/LeaveManagement";
+import Payslips from "./pages/admin/Payslips";
+import SalaryReports from "./pages/admin/SalaryReports";
 import VerifyOrder from "./pages/VerifyOrder";
 import NotFound from "./pages/NotFound";
 
@@ -143,6 +147,10 @@ const App = () => (
               <Route path="/admin/employees" element={<AdminRoute><Employees /></AdminRoute>} />
               <Route path="/admin/employees/:id" element={<AdminRoute><EmployeeDetail /></AdminRoute>} />
               <Route path="/admin/accounting" element={<AdminRoute><Accounting /></AdminRoute>} />
+              <Route path="/admin/attendance" element={<AdminRoute><Attendance /></AdminRoute>} />
+              <Route path="/admin/leave-management" element={<AdminRoute><LeaveManagement /></AdminRoute>} />
+              <Route path="/admin/payslips" element={<AdminRoute><Payslips /></AdminRoute>} />
+              <Route path="/admin/salary-reports" element={<AdminRoute><SalaryReports /></AdminRoute>} />
 
               {/* 404 */}
               <Route path="*" element={<NotFound />} />

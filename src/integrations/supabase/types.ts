@@ -513,6 +513,53 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_attendance: {
+        Row: {
+          attendance_date: string
+          check_in_time: string | null
+          check_out_time: string | null
+          created_at: string | null
+          employee_id: string
+          id: string
+          marked_by: string | null
+          notes: string | null
+          status: Database["public"]["Enums"]["attendance_status"]
+          updated_at: string | null
+        }
+        Insert: {
+          attendance_date: string
+          check_in_time?: string | null
+          check_out_time?: string | null
+          created_at?: string | null
+          employee_id: string
+          id?: string
+          marked_by?: string | null
+          notes?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"]
+          updated_at?: string | null
+        }
+        Update: {
+          attendance_date?: string
+          check_in_time?: string | null
+          check_out_time?: string | null
+          created_at?: string | null
+          employee_id?: string
+          id?: string
+          marked_by?: string | null
+          notes?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_attendance_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_bank_info: {
         Row: {
           account_number_encrypted: string | null
@@ -606,6 +653,181 @@ export type Database = {
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_leave_balance: {
+        Row: {
+          casual_leave: number | null
+          casual_leave_used: number | null
+          created_at: string | null
+          earned_leave: number | null
+          earned_leave_used: number | null
+          employee_id: string
+          id: string
+          sick_leave: number | null
+          sick_leave_used: number | null
+          updated_at: string | null
+          year: number | null
+        }
+        Insert: {
+          casual_leave?: number | null
+          casual_leave_used?: number | null
+          created_at?: string | null
+          earned_leave?: number | null
+          earned_leave_used?: number | null
+          employee_id: string
+          id?: string
+          sick_leave?: number | null
+          sick_leave_used?: number | null
+          updated_at?: string | null
+          year?: number | null
+        }
+        Update: {
+          casual_leave?: number | null
+          casual_leave_used?: number | null
+          created_at?: string | null
+          earned_leave?: number | null
+          earned_leave_used?: number | null
+          employee_id?: string
+          id?: string
+          sick_leave?: number | null
+          sick_leave_used?: number | null
+          updated_at?: string | null
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_leave_balance_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_leave_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string | null
+          employee_id: string
+          end_date: string
+          id: string
+          leave_type: string
+          reason: string | null
+          rejection_reason: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["leave_status"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          employee_id: string
+          end_date: string
+          id?: string
+          leave_type?: string
+          reason?: string | null
+          rejection_reason?: string | null
+          start_date: string
+          status?: Database["public"]["Enums"]["leave_status"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          employee_id?: string
+          end_date?: string
+          id?: string
+          leave_type?: string
+          reason?: string | null
+          rejection_reason?: string | null
+          start_date?: string
+          status?: Database["public"]["Enums"]["leave_status"] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_leave_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_payslips: {
+        Row: {
+          basic_salary: number
+          bonuses: number | null
+          created_at: string | null
+          deductions: number | null
+          employee_id: string
+          generated_at: string | null
+          generated_by: string | null
+          id: string
+          leave_days: number | null
+          net_salary: number
+          payment_id: string | null
+          payslip_month: string
+          payslip_year: number
+          pdf_url: string | null
+          present_days: number | null
+          working_days: number | null
+        }
+        Insert: {
+          basic_salary?: number
+          bonuses?: number | null
+          created_at?: string | null
+          deductions?: number | null
+          employee_id: string
+          generated_at?: string | null
+          generated_by?: string | null
+          id?: string
+          leave_days?: number | null
+          net_salary?: number
+          payment_id?: string | null
+          payslip_month: string
+          payslip_year: number
+          pdf_url?: string | null
+          present_days?: number | null
+          working_days?: number | null
+        }
+        Update: {
+          basic_salary?: number
+          bonuses?: number | null
+          created_at?: string | null
+          deductions?: number | null
+          employee_id?: string
+          generated_at?: string | null
+          generated_by?: string | null
+          id?: string
+          leave_days?: number | null
+          net_salary?: number
+          payment_id?: string | null
+          payslip_month?: string
+          payslip_year?: number
+          pdf_url?: string | null
+          present_days?: number | null
+          working_days?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_payslips_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_payslips_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "salary_payments"
             referencedColumns: ["id"]
           },
         ]
