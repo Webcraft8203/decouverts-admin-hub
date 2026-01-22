@@ -69,9 +69,12 @@ const statusOptions = [
 const paymentFilterOptions = [
   { value: "all", label: "All Payments" },
   { value: "online", label: "Online Paid" },
-  { value: "cod", label: "Cash on Delivery" },
-  { value: "cod_pending", label: "COD Pending" },
-  { value: "cod_received", label: "COD Received" },
+  { value: "cod", label: "Cash on Delivery (All)" },
+  { value: "cod_pending", label: "COD - Pending" },
+  { value: "cod_collected", label: "COD - With Courier" },
+  { value: "cod_awaiting", label: "COD - Awaiting Settlement" },
+  { value: "cod_settled", label: "COD - Settled" },
+  { value: "cod_issue", label: "COD - Issue" },
 ];
 
 const getStatusInfo = (status: string) => {
@@ -275,9 +278,15 @@ const AdminOrders = () => {
     } else if (filterPayment === "cod") {
       matchesPayment = isCod === true;
     } else if (filterPayment === "cod_pending") {
-      matchesPayment = isCod === true && codStatus !== "received";
-    } else if (filterPayment === "cod_received") {
-      matchesPayment = isCod === true && codStatus === "received";
+      matchesPayment = isCod === true && codStatus === "pending";
+    } else if (filterPayment === "cod_collected") {
+      matchesPayment = isCod === true && codStatus === "collected_by_courier";
+    } else if (filterPayment === "cod_awaiting") {
+      matchesPayment = isCod === true && codStatus === "awaiting_settlement";
+    } else if (filterPayment === "cod_settled") {
+      matchesPayment = isCod === true && (codStatus === "settled" || codStatus === "received");
+    } else if (filterPayment === "cod_issue") {
+      matchesPayment = isCod === true && codStatus === "not_received";
     }
     
     // Search filter
@@ -301,9 +310,10 @@ const AdminOrders = () => {
   });
 
   const pendingCount = orders?.filter((o) => o.status === "pending").length || 0;
-  const codPendingCount = orders?.filter((o) => 
+  // COD orders that are delivered but payment not yet settled
+  const codAwaitingPaymentCount = orders?.filter((o) => 
     o.payment_id?.startsWith("COD") && 
-    (o as any).cod_payment_status !== "received" &&
+    !["settled", "received"].includes((o as any).cod_payment_status || "") &&
     o.status === "delivered"
   ).length || 0;
 
@@ -320,10 +330,10 @@ const AdminOrders = () => {
               {pendingCount} Pending
             </Badge>
           )}
-          {codPendingCount > 0 && (
+          {codAwaitingPaymentCount > 0 && (
             <Badge variant="secondary" className="bg-orange-500/10 text-orange-500 border-orange-500/20">
               <Banknote className="w-3 h-3 mr-1" />
-              {codPendingCount} COD Awaiting Payment
+              {codAwaitingPaymentCount} COD Awaiting Payment
             </Badge>
           )}
         </div>
