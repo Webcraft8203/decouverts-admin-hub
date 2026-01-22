@@ -16,6 +16,7 @@ import ProductDetail from "./pages/ProductDetail";
 import Checkout from "./pages/Checkout";
 import CustomerAuth from "./pages/CustomerAuth";
 import Auth from "./pages/Auth";
+import EmployeeAuth from "./pages/EmployeeAuth";
 import Blogs from "./pages/Blogs";
 import BlogDetail from "./pages/BlogDetail";
 import UserDashboard from "./pages/user/Dashboard";
@@ -83,6 +84,7 @@ const App = () => (
               <Route path="/checkout/:productId" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
               <Route path="/login" element={<CustomerAuth />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/employee-login" element={<EmployeeAuth />} />
               <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
               <Route path="/dashboard/cart" element={<ProtectedRoute><UserCart /></ProtectedRoute>} />
               <Route path="/dashboard/orders" element={<ProtectedRoute><UserOrders /></ProtectedRoute>} />
