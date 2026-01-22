@@ -60,6 +60,19 @@ export default function EmployeeAuth() {
         return;
       }
 
+      // Handle rate limiting / IP throttle
+      if (checkData?.blocked) {
+        const waitMinutes = Math.ceil((checkData.waitSeconds || 900) / 60);
+        setError(`Too many login attempts. Please try again in ${waitMinutes} minutes.`);
+        toast({
+          title: "Too Many Attempts",
+          description: `Your IP has been temporarily blocked. Try again in ${waitMinutes} minutes.`,
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       if (checkData?.isDeactivated) {
         setError("Your account has been deactivated. Please contact your administrator.");
         toast({

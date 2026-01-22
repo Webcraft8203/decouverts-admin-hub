@@ -1366,6 +1366,33 @@ export type Database = {
           },
         ]
       }
+      login_attempts: {
+        Row: {
+          attempt_type: string
+          created_at: string
+          email: string | null
+          id: string
+          ip_address: string
+          portal_type: string
+        }
+        Insert: {
+          attempt_type: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          ip_address: string
+          portal_type: string
+        }
+        Update: {
+          attempt_type?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          ip_address?: string
+          portal_type?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -2364,7 +2391,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_ip_throttle: {
+        Args: {
+          _ip_address: string
+          _max_attempts?: number
+          _portal_type: string
+          _window_minutes?: number
+        }
+        Returns: Json
+      }
       cleanup_old_employee_activity_logs: { Args: never; Returns: undefined }
+      clear_login_attempts: {
+        Args: { _ip_address: string; _portal_type: string }
+        Returns: undefined
+      }
       generate_order_number: { Args: never; Returns: string }
       generate_shipment_id: { Args: never; Returns: string }
       has_admin_access: { Args: { _user_id: string }; Returns: boolean }
@@ -2385,6 +2425,15 @@ export type Database = {
       is_blocked: { Args: { _user_id: string }; Returns: boolean }
       is_employee: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      record_login_attempt: {
+        Args: {
+          _email: string
+          _ip_address: string
+          _portal_type: string
+          _success: boolean
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "user" | "employee"
