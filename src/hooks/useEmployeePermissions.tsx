@@ -139,6 +139,17 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
 
     try {
       setIsLoading(true);
+
+      // IMPORTANT: Any account with the admin role is a Super Admin.
+      // Even if an admin also has an employee record, they must not be downgraded
+      // to an employee for access control purposes.
+      if (isAdmin) {
+        setIsSuperAdmin(true);
+        setIsEmployee(false);
+        setPermissions([]);
+        setEmployeeInfo(null);
+        return;
+      }
       
       // Get session for API calls
       const { data: sessionData } = await supabase.auth.getSession();
