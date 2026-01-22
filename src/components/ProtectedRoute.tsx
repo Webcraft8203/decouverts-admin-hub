@@ -15,7 +15,7 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
   const [checkingAccess, setCheckingAccess] = useState(false);
 
   useEffect(() => {
-    const checkAdminAccess = async () => {
+    const checkAndLinkEmployee = async () => {
       if (!user || !requireAdmin) {
         setHasAdminAccess(null);
         return;
@@ -29,7 +29,6 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
 
       setCheckingAccess(true);
       try {
-        // Check if user is an active employee
         const { data: sessionData } = await supabase.auth.getSession();
         const token = sessionData.session?.access_token;
 
@@ -39,6 +38,7 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
           return;
         }
 
+        // First check if already linked as active employee
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/employees?user_id=eq.${user.id}&is_active=eq.true&select=id`,
           {
@@ -49,7 +49,30 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
           }
         );
         const employees = await response.json();
-        setHasAdminAccess(employees && employees.length > 0);
+
+        if (employees && employees.length > 0) {
+          // Already linked
+          setHasAdminAccess(true);
+        } else if (user.email) {
+          // Try to link by email
+          console.log("Attempting to link employee account for:", user.email);
+          const { data: linkData, error: linkError } = await supabase.functions.invoke("link-employee-account", {
+            body: { email: user.email, userId: user.id },
+          });
+
+          if (linkError) {
+            console.error("Error linking employee:", linkError);
+            setHasAdminAccess(false);
+          } else if (linkData?.linked) {
+            console.log("Employee account linked successfully");
+            setHasAdminAccess(true);
+          } else {
+            console.log("Could not link employee account:", linkData?.error);
+            setHasAdminAccess(false);
+          }
+        } else {
+          setHasAdminAccess(false);
+        }
       } catch (error) {
         console.error("Error checking admin access:", error);
         setHasAdminAccess(false);
@@ -59,7 +82,7 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
     };
 
     if (!isLoading && user && requireAdmin) {
-      checkAdminAccess();
+      checkAndLinkEmployee();
     }
   }, [user, isAdmin, isLoading, requireAdmin]);
 
