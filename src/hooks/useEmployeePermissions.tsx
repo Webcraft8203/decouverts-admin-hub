@@ -148,7 +148,7 @@ const ROUTE_PERMISSIONS: Record<string, EmployeePermission[]> = {
 };
 
 export function PermissionsProvider({ children }: { children: ReactNode }) {
-  const { user, isAdmin, isLoading: authLoading } = useAuth();
+  const { user, isAdmin, isLoading: authLoading, isAdminResolved } = useAuth();
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [isEmployee, setIsEmployee] = useState(false);
   const [permissions, setPermissions] = useState<EmployeePermission[]>([]);
@@ -156,8 +156,9 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchPermissions = async () => {
-    // Wait for auth to be ready
-    if (authLoading) {
+    // CRITICAL: Wait for BOTH auth loading AND admin status to be resolved
+    // This prevents the race condition where isAdmin is still false during initial load
+    if (authLoading || !isAdminResolved) {
       return;
     }
 
@@ -173,22 +174,31 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
 
-      // IMPORTANT: Any account with the admin role is a Super Admin.
-      // Even if an admin also has an employee record, they must not be downgraded
-      // to an employee for access control purposes.
+      // CRITICAL: Super Admin check MUST happen first and take absolute precedence
+      // If user has admin role in user_roles table, they are ALWAYS a Super Admin
+      // regardless of any employee records that may exist
       if (isAdmin) {
+        console.log("[Permissions] User is Super Admin - skipping employee check");
         setIsSuperAdmin(true);
         setIsEmployee(false);
         setPermissions([]);
         setEmployeeInfo(null);
+        setIsLoading(false);
         return;
       }
+      
+      // Only check employee status if user is NOT an admin
+      console.log("[Permissions] User is not admin - checking employee status");
       
       // Get session for API calls
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
       
       if (!token) {
+        setIsSuperAdmin(false);
+        setIsEmployee(false);
+        setPermissions([]);
+        setEmployeeInfo(null);
         setIsLoading(false);
         return;
       }
@@ -207,7 +217,8 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
       const employeeData = employees?.[0];
 
       if (employeeData && employeeData.is_active) {
-        // User is an active employee
+        // User is an active employee (and NOT an admin)
+        console.log("[Permissions] User is active employee:", employeeData.employee_name);
         setIsEmployee(true);
         setIsSuperAdmin(false);
         setEmployeeInfo({
@@ -232,13 +243,9 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
         if (perms && Array.isArray(perms)) {
           setPermissions(perms.map((p: any) => p.permission as EmployeePermission));
         }
-      } else if (isAdmin) {
-        // User has admin role and is NOT an employee = Super Admin
-        setIsSuperAdmin(true);
-        setIsEmployee(false);
-        setPermissions([]);
-        setEmployeeInfo(null);
       } else {
+        // User is neither admin nor active employee
+        console.log("[Permissions] User has no admin or employee access");
         setIsSuperAdmin(false);
         setIsEmployee(false);
         setPermissions([]);
@@ -250,18 +257,24 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
       if (isAdmin) {
         setIsSuperAdmin(true);
         setIsEmployee(false);
+      } else {
+        setIsSuperAdmin(false);
+        setIsEmployee(false);
       }
+      setPermissions([]);
+      setEmployeeInfo(null);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    // Don't run while auth is still loading
-    if (!authLoading) {
+    // CRITICAL: Only run when auth is fully loaded AND admin status is resolved
+    // This prevents running with stale isAdmin=false value
+    if (!authLoading && isAdminResolved) {
       fetchPermissions();
     }
-  }, [user, isAdmin, authLoading]);
+  }, [user, isAdmin, authLoading, isAdminResolved]);
 
   const hasPermission = (permission: EmployeePermission): boolean => {
     if (isSuperAdmin) return true;

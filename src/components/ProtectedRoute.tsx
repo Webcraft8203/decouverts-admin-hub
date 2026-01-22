@@ -10,7 +10,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
-  const { user, isAdmin, isLoading } = useAuth();
+  const { user, isAdmin, isLoading, isAdminResolved } = useAuth();
   const [hasAdminAccess, setHasAdminAccess] = useState<boolean | null>(null);
   const [checkingAccess, setCheckingAccess] = useState(false);
 
@@ -21,13 +21,22 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
         return;
       }
 
-      // If already admin, no need to check further
+      // CRITICAL: Wait for admin status to be fully resolved before making decisions
+      if (!isAdminResolved) {
+        return;
+      }
+
+      // If user is confirmed as admin, grant access immediately
       if (isAdmin) {
+        console.log("[ProtectedRoute] User is admin - granting access");
         setHasAdminAccess(true);
         return;
       }
 
+      // Only check employee status if user is NOT an admin
+      console.log("[ProtectedRoute] User is not admin - checking employee status");
       setCheckingAccess(true);
+      
       try {
         const { data: sessionData } = await supabase.auth.getSession();
         const token = sessionData.session?.access_token;
@@ -51,47 +60,52 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
         const employees = await response.json();
 
         if (employees && employees.length > 0) {
-          // Already linked
+          // Already linked as active employee
+          console.log("[ProtectedRoute] User is active employee - granting access");
           setHasAdminAccess(true);
         } else if (user.email) {
           // Try to link by email
-          console.log("Attempting to link employee account for:", user.email);
+          console.log("[ProtectedRoute] Attempting to link employee account for:", user.email);
           const { data: linkData, error: linkError } = await supabase.functions.invoke("link-employee-account", {
             body: { email: user.email, userId: user.id },
           });
 
           if (linkError) {
-            console.error("Error linking employee:", linkError);
+            console.error("[ProtectedRoute] Error linking employee:", linkError);
             setHasAdminAccess(false);
           } else if (linkData?.linked) {
-            console.log("Employee account linked successfully");
+            console.log("[ProtectedRoute] Employee account linked successfully");
             setHasAdminAccess(true);
           } else {
-            console.log("Could not link employee account:", linkData?.error);
+            console.log("[ProtectedRoute] Could not link employee account:", linkData?.error);
             setHasAdminAccess(false);
           }
         } else {
           setHasAdminAccess(false);
         }
       } catch (error) {
-        console.error("Error checking admin access:", error);
+        console.error("[ProtectedRoute] Error checking admin access:", error);
         setHasAdminAccess(false);
       } finally {
         setCheckingAccess(false);
       }
     };
 
-    if (!isLoading && user && requireAdmin) {
+    // Only run when auth is fully loaded AND admin status is resolved
+    if (!isLoading && isAdminResolved && user && requireAdmin) {
       checkAndLinkEmployee();
     }
-  }, [user, isAdmin, isLoading, requireAdmin]);
+  }, [user, isAdmin, isLoading, isAdminResolved, requireAdmin]);
 
-  if (isLoading || (requireAdmin && checkingAccess)) {
+  // Show loading while auth is initializing OR admin status is being resolved
+  if (isLoading || !isAdminResolved || (requireAdmin && checkingAccess)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">
+            {!isAdminResolved ? "Verifying identity..." : "Loading..."}
+          </p>
         </div>
       </div>
     );
@@ -101,6 +115,12 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
     return <Navigate to={requireAdmin ? "/auth" : "/login"} replace />;
   }
 
+  // For admin routes: admin users get immediate access
+  if (requireAdmin && isAdmin) {
+    return <>{children}</>;
+  }
+
+  // For admin routes: non-admin users need employee access check
   if (requireAdmin && !isAdmin && hasAdminAccess === false) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -114,7 +134,7 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
     );
   }
 
-  // Allow access if admin OR active employee
+  // Still waiting for employee check
   if (requireAdmin && !isAdmin && hasAdminAccess === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
