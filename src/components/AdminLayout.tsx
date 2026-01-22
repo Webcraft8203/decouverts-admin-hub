@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { PermissionsProvider } from "@/hooks/useEmployeePermissions";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -73,6 +74,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   return (
+    <PermissionsProvider>
     <div className="min-h-screen bg-background">
       {/* Mobile Header */}
       <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-sidebar border-b border-sidebar-border flex items-center justify-between px-4 z-50">
@@ -172,5 +174,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <div className="p-6 lg:p-8">{children}</div>
       </main>
     </div>
+    </PermissionsProvider>
   );
 }
