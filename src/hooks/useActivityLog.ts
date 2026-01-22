@@ -10,7 +10,8 @@ export type ActionType =
   | "invoice_create"
   | "customer_block" | "customer_unblock"
   | "quotation_sent" | "revised_quotation" | "price_locked" | "price_updated" | "status_change" | "rejected"
-  | "cod_payment_pending" | "cod_payment_received" | "cod_payment_not_received";
+  | "cod_payment_pending" | "cod_payment_received" | "cod_payment_not_received"
+  | "cod_collected_by_courier" | "cod_awaiting_settlement" | "cod_settled" | "cod_not_received";
 
 export type EntityType = "product" | "category" | "raw_material" | "order" | "invoice" | "user" | "system" | "design_request";
 

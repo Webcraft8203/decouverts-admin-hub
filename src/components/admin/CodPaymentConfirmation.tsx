@@ -3,8 +3,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePermissions } from "@/hooks/useEmployeePermissions";
 import { useActivityLog } from "@/hooks/useActivityLog";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -29,7 +30,10 @@ import {
   Clock, 
   XCircle,
   AlertTriangle,
-  Loader2
+  Loader2,
+  Truck,
+  Building2,
+  ArrowRight
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -43,33 +47,69 @@ interface CodPaymentConfirmationProps {
     cod_payment_status: string | null;
     cod_confirmed_at: string | null;
     cod_confirmed_by: string | null;
+    cod_collected_at?: string | null;
+    cod_settled_at?: string | null;
+    cod_courier_name?: string | null;
     total_amount: number;
   };
   compact?: boolean;
 }
 
+// Updated status config with granular COD flow
 const COD_STATUS_CONFIG = {
   pending: {
     label: "COD Pending",
+    shortLabel: "Pending",
     icon: Clock,
     variant: "secondary" as const,
     color: "text-orange-500",
     bgColor: "bg-orange-500/10",
+    step: 1,
   },
-  received: {
-    label: "COD Received",
+  collected_by_courier: {
+    label: "Collected by Courier",
+    shortLabel: "Collected",
+    icon: Truck,
+    variant: "outline" as const,
+    color: "text-blue-600",
+    bgColor: "bg-blue-500/10",
+    step: 2,
+  },
+  awaiting_settlement: {
+    label: "Awaiting Settlement",
+    shortLabel: "Awaiting",
+    icon: Building2,
+    variant: "outline" as const,
+    color: "text-purple-600",
+    bgColor: "bg-purple-500/10",
+    step: 3,
+  },
+  settled: {
+    label: "Payment Settled",
+    shortLabel: "Settled",
     icon: CheckCircle2,
     variant: "default" as const,
     color: "text-green-600",
     bgColor: "bg-green-500/10",
+    step: 4,
   },
   not_received: {
     label: "COD Issue",
+    shortLabel: "Issue",
     icon: XCircle,
     variant: "destructive" as const,
     color: "text-destructive",
     bgColor: "bg-destructive/10",
+    step: 0,
   },
+};
+
+// For backward compatibility with old "received" status
+const getStatusConfig = (status: string) => {
+  if (status === "received") {
+    return COD_STATUS_CONFIG.settled;
+  }
+  return COD_STATUS_CONFIG[status as keyof typeof COD_STATUS_CONFIG] || COD_STATUS_CONFIG.pending;
 };
 
 export function CodPaymentConfirmation({ order, compact = false }: CodPaymentConfirmationProps) {
@@ -79,6 +119,7 @@ export function CodPaymentConfirmation({ order, compact = false }: CodPaymentCon
   
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
+  const [courierName, setCourierName] = useState(order.cod_courier_name || "");
 
   // Check if this is a COD order
   const isCodOrder = order.payment_id?.startsWith("COD") || false;
@@ -89,16 +130,21 @@ export function CodPaymentConfirmation({ order, compact = false }: CodPaymentCon
   // Is order delivered
   const isDelivered = order.status === "delivered";
   
-  // Current COD status
-  const codStatus = order.cod_payment_status || "pending";
-  const statusConfig = COD_STATUS_CONFIG[codStatus as keyof typeof COD_STATUS_CONFIG] || COD_STATUS_CONFIG.pending;
+  // Current COD status (handle backward compatibility)
+  const codStatus = order.cod_payment_status === "received" ? "settled" : (order.cod_payment_status || "pending");
+  const statusConfig = getStatusConfig(codStatus);
   const StatusIcon = statusConfig.icon;
 
   const updateCodStatusMutation = useMutation({
-    mutationFn: async (newStatus: string) => {
+    mutationFn: async ({ newStatus, courier }: { newStatus: string; courier?: string }) => {
+      const updateData: Record<string, any> = { cod_payment_status: newStatus };
+      if (courier) {
+        updateData.cod_courier_name = courier;
+      }
+      
       const { error } = await supabase
         .from("orders")
-        .update({ cod_payment_status: newStatus })
+        .update(updateData)
         .eq("id", order.id);
       
       if (error) throw error;
@@ -107,25 +153,28 @@ export function CodPaymentConfirmation({ order, compact = false }: CodPaymentCon
     onSuccess: async ({ newStatus }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
       
-      const statusLabel = COD_STATUS_CONFIG[newStatus as keyof typeof COD_STATUS_CONFIG]?.label || newStatus;
-      toast.success(`COD payment marked as ${statusLabel}`);
+      const config = getStatusConfig(newStatus);
+      toast.success(`COD status updated to ${config.label}`);
       
       // Map status to action type
-      const actionTypeMap: Record<string, "cod_payment_pending" | "cod_payment_received" | "cod_payment_not_received"> = {
+      const actionTypeMap: Record<string, "cod_payment_pending" | "cod_collected_by_courier" | "cod_awaiting_settlement" | "cod_settled" | "cod_not_received"> = {
         pending: "cod_payment_pending",
-        received: "cod_payment_received",
-        not_received: "cod_payment_not_received",
+        collected_by_courier: "cod_collected_by_courier",
+        awaiting_settlement: "cod_awaiting_settlement",
+        settled: "cod_settled",
+        not_received: "cod_not_received",
       };
       
       await logActivity({
         actionType: actionTypeMap[newStatus] || "cod_payment_pending",
         entityType: "order",
         entityId: order.id,
-        description: `COD payment for order ${order.order_number} marked as ${statusLabel}`,
+        description: `COD payment for order ${order.order_number} marked as ${config.label}`,
         metadata: { 
           orderNumber: order.order_number,
           amount: order.total_amount,
-          newStatus 
+          newStatus,
+          courierName: courierName || undefined
         },
       });
       
@@ -141,12 +190,25 @@ export function CodPaymentConfirmation({ order, compact = false }: CodPaymentCon
   });
 
   const handleStatusChange = (newStatus: string) => {
-    if (newStatus === "received") {
-      // Confirm before marking as received (it's locked after)
+    if (newStatus === "settled") {
+      // Confirm before marking as settled (it's locked after)
       setPendingStatus(newStatus);
       setConfirmDialogOpen(true);
     } else {
-      updateCodStatusMutation.mutate(newStatus);
+      updateCodStatusMutation.mutate({ newStatus, courier: courierName });
+    }
+  };
+
+  const getNextStatus = () => {
+    switch (codStatus) {
+      case "pending":
+        return "collected_by_courier";
+      case "collected_by_courier":
+        return "awaiting_settlement";
+      case "awaiting_settlement":
+        return "settled";
+      default:
+        return null;
     }
   };
 
@@ -163,15 +225,18 @@ export function CodPaymentConfirmation({ order, compact = false }: CodPaymentCon
         className={`${statusConfig.bgColor} ${statusConfig.color} border-0`}
       >
         <StatusIcon className="w-3 h-3 mr-1" />
-        {statusConfig.label}
+        {statusConfig.shortLabel}
       </Badge>
     );
   }
 
+  const isSettled = codStatus === "settled";
+  const nextStatus = getNextStatus();
+
   return (
     <>
-      <div className={`p-3 rounded-lg ${statusConfig.bgColor} border border-${statusConfig.color}/20`}>
-        <div className="flex items-center justify-between mb-2">
+      <div className={`p-4 rounded-lg ${statusConfig.bgColor} border`}>
+        <div className="flex items-center justify-between mb-3">
           <p className="font-medium flex items-center gap-2 text-sm">
             <Banknote className="w-4 h-4" />
             Cash on Delivery
@@ -182,48 +247,99 @@ export function CodPaymentConfirmation({ order, compact = false }: CodPaymentCon
           </Badge>
         </div>
 
-        {/* Show confirmation details if received */}
-        {codStatus === "received" && order.cod_confirmed_at && (
-          <p className="text-xs text-muted-foreground mb-2">
-            Confirmed on {format(new Date(order.cod_confirmed_at), "MMM d, yyyy 'at' h:mm a")}
-          </p>
-        )}
+        {/* Progress indicator */}
+        <div className="flex items-center gap-1 mb-4">
+          {["pending", "collected_by_courier", "awaiting_settlement", "settled"].map((step, index) => {
+            const stepConfig = COD_STATUS_CONFIG[step as keyof typeof COD_STATUS_CONFIG];
+            const isActive = stepConfig.step <= statusConfig.step && statusConfig.step > 0;
+            const isCurrent = step === codStatus;
+            return (
+              <div key={step} className="flex items-center flex-1">
+                <div 
+                  className={`h-2 flex-1 rounded-full transition-colors ${
+                    isActive ? stepConfig.color.replace('text-', 'bg-') : 'bg-muted'
+                  } ${isCurrent ? 'ring-2 ring-offset-1' : ''}`}
+                />
+                {index < 3 && <ArrowRight className="w-3 h-3 mx-1 text-muted-foreground" />}
+              </div>
+            );
+          })}
+        </div>
 
-        {/* Payment confirmation controls - only show for delivered orders */}
-        {canConfirmPayment && isDelivered && codStatus !== "received" && (
-          <div className="mt-3 pt-3 border-t border-current/10">
-            <p className="text-xs text-muted-foreground mb-2">
-              Confirm COD Payment Status:
-            </p>
-            <Select
-              value={codStatus}
-              onValueChange={handleStatusChange}
-              disabled={updateCodStatusMutation.isPending}
-            >
-              <SelectTrigger className="w-full h-9 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pending">
-                  <span className="flex items-center gap-2">
-                    <Clock className="w-3.5 h-3.5 text-orange-500" />
-                    Pending
-                  </span>
-                </SelectItem>
-                <SelectItem value="received">
-                  <span className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
-                    Payment Received
-                  </span>
-                </SelectItem>
-                <SelectItem value="not_received">
-                  <span className="flex items-center gap-2">
-                    <XCircle className="w-3.5 h-3.5 text-destructive" />
-                    Not Received / Issue
-                  </span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+        {/* Show timestamps */}
+        <div className="space-y-1 text-xs text-muted-foreground mb-3">
+          {order.cod_collected_at && (
+            <p>Collected: {format(new Date(order.cod_collected_at), "MMM d, yyyy 'at' h:mm a")}</p>
+          )}
+          {order.cod_settled_at && (
+            <p>Settled: {format(new Date(order.cod_settled_at), "MMM d, yyyy 'at' h:mm a")}</p>
+          )}
+          {order.cod_courier_name && (
+            <p>Courier: {order.cod_courier_name}</p>
+          )}
+        </div>
+
+        {/* Payment confirmation controls - only show for delivered orders and non-settled status */}
+        {canConfirmPayment && isDelivered && !isSettled && codStatus !== "not_received" && (
+          <div className="mt-3 pt-3 border-t border-current/10 space-y-3">
+            {/* Courier name input - show when moving to collected */}
+            {codStatus === "pending" && (
+              <div>
+                <Label htmlFor="courier-name" className="text-xs">Courier/Delivery Partner Name</Label>
+                <Input
+                  id="courier-name"
+                  placeholder="e.g., Delhivery, BlueDart"
+                  value={courierName}
+                  onChange={(e) => setCourierName(e.target.value)}
+                  className="h-8 text-sm mt-1"
+                />
+              </div>
+            )}
+            
+            <div>
+              <Label className="text-xs mb-2 block">Update COD Status:</Label>
+              <Select
+                value={codStatus}
+                onValueChange={handleStatusChange}
+                disabled={updateCodStatusMutation.isPending}
+              >
+                <SelectTrigger className="w-full h-9 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">
+                    <span className="flex items-center gap-2">
+                      <Clock className="w-3.5 h-3.5 text-orange-500" />
+                      Pending
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="collected_by_courier">
+                    <span className="flex items-center gap-2">
+                      <Truck className="w-3.5 h-3.5 text-blue-600" />
+                      Collected by Courier
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="awaiting_settlement">
+                    <span className="flex items-center gap-2">
+                      <Building2 className="w-3.5 h-3.5 text-purple-600" />
+                      Awaiting Settlement
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="settled">
+                    <span className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+                      Payment Settled
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="not_received">
+                    <span className="flex items-center gap-2">
+                      <XCircle className="w-3.5 h-3.5 text-destructive" />
+                      Not Received / Issue
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         )}
 
@@ -237,8 +353,8 @@ export function CodPaymentConfirmation({ order, compact = false }: CodPaymentCon
           </div>
         )}
 
-        {/* Show locked message for received status */}
-        {codStatus === "received" && (
+        {/* Show locked message for settled status */}
+        {isSettled && (
           <div className="mt-2">
             <p className="text-xs text-green-600 flex items-center gap-1">
               <CheckCircle2 className="w-3 h-3" />
@@ -248,18 +364,18 @@ export function CodPaymentConfirmation({ order, compact = false }: CodPaymentCon
         )}
       </div>
 
-      {/* Confirmation Dialog */}
+      {/* Confirmation Dialog for Settlement */}
       <AlertDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-green-600" />
-              Confirm COD Payment Received
+              Confirm COD Payment Settlement
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
               <p>
                 You are about to confirm that <strong>₹{order.total_amount.toLocaleString()}</strong> has been 
-                collected for order <strong>{order.order_number}</strong>.
+                settled to your account for order <strong>{order.order_number}</strong>.
               </p>
               <p className="text-orange-600 font-medium">
                 ⚠️ This action cannot be undone (except by Super Admin).
@@ -271,7 +387,7 @@ export function CodPaymentConfirmation({ order, compact = false }: CodPaymentCon
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => pendingStatus && updateCodStatusMutation.mutate(pendingStatus)}
+              onClick={() => pendingStatus && updateCodStatusMutation.mutate({ newStatus: pendingStatus })}
               disabled={updateCodStatusMutation.isPending}
               className="bg-green-600 hover:bg-green-700"
             >
@@ -283,7 +399,7 @@ export function CodPaymentConfirmation({ order, compact = false }: CodPaymentCon
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4 mr-2" />
-                  Confirm Payment
+                  Confirm Settlement
                 </>
               )}
             </AlertDialogAction>
@@ -300,8 +416,8 @@ export function CodBadge({ order }: { order: { payment_id: string | null; cod_pa
   
   if (!isCodOrder) return null;
   
-  const codStatus = order.cod_payment_status || "pending";
-  const statusConfig = COD_STATUS_CONFIG[codStatus as keyof typeof COD_STATUS_CONFIG] || COD_STATUS_CONFIG.pending;
+  const codStatus = order.cod_payment_status === "received" ? "settled" : (order.cod_payment_status || "pending");
+  const statusConfig = getStatusConfig(codStatus);
   const StatusIcon = statusConfig.icon;
   
   return (
@@ -310,7 +426,7 @@ export function CodBadge({ order }: { order: { payment_id: string | null; cod_pa
       className={`${statusConfig.bgColor} ${statusConfig.color} border-0 text-xs`}
     >
       <StatusIcon className="w-3 h-3 mr-1" />
-      {statusConfig.label}
+      {statusConfig.shortLabel}
     </Badge>
   );
 }

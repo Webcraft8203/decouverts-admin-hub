@@ -36,7 +36,9 @@ interface AccountingStats {
   paidOrders: number;
   pendingPayments: number;
   pendingAmount: number;
-  codCollected: number;
+  codSettled: number;
+  codCollectedByCourier: number;
+  codAwaitingSettlement: number;
   codPending: number;
 }
 
@@ -61,7 +63,9 @@ export default function Accounting() {
     paidOrders: 0,
     pendingPayments: 0,
     pendingAmount: 0,
-    codCollected: 0,
+    codSettled: 0,
+    codCollectedByCourier: 0,
+    codAwaitingSettlement: 0,
     codPending: 0,
   });
   const [invoiceSummary, setInvoiceSummary] = useState<InvoiceSummary>({
@@ -112,22 +116,34 @@ export default function Accounting() {
       const paidOrders = orders?.filter((o) => o.payment_status === "paid") || [];
       const pendingOrders = orders?.filter((o) => o.payment_status !== "paid") || [];
 
-      // COD specific calculations
+      // COD specific calculations with granular statuses
       const codOrders = orders?.filter((o) => o.payment_id?.startsWith("COD")) || [];
-      const codReceivedOrders = codOrders.filter((o) => (o as any).cod_payment_status === "received");
-      const codPendingOrders = codOrders.filter((o) => (o as any).cod_payment_status !== "received" && o.status === "delivered");
-      const codAwaitingDelivery = codOrders.filter((o) => (o as any).cod_payment_status !== "received" && o.status !== "delivered" && o.status !== "cancelled");
+      
+      // Settled = payment received to company account (includes old 'received' status for backward compatibility)
+      const codSettledOrders = codOrders.filter((o) => 
+        (o as any).cod_payment_status === "settled" || (o as any).cod_payment_status === "received"
+      );
+      // Collected by courier = courier has picked up money, awaiting transfer
+      const codCollectedByCourierOrders = codOrders.filter((o) => (o as any).cod_payment_status === "collected_by_courier");
+      // Awaiting settlement = money in transit from courier
+      const codAwaitingSettlementOrders = codOrders.filter((o) => (o as any).cod_payment_status === "awaiting_settlement");
+      // Pending = delivered but payment not yet collected, or still in transit
+      const codPendingOrders = codOrders.filter((o) => 
+        (o as any).cod_payment_status === "pending" && 
+        o.status !== "cancelled"
+      );
 
-      const codCollected = codReceivedOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+      const codSettled = codSettledOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+      const codCollectedByCourier = codCollectedByCourierOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+      const codAwaitingSettlement = codAwaitingSettlementOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
       const codPending = codPendingOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
-      const codAwaitingAmount = codAwaitingDelivery.reduce((sum, o) => sum + (o.total_amount || 0), 0);
 
       // Online paid orders
       const onlinePaidOrders = paidOrders.filter((o) => !o.payment_id?.startsWith("COD"));
       const onlineRevenue = onlinePaidOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
 
-      // Total confirmed revenue = online paid + COD received
-      const totalRevenue = onlineRevenue + codCollected;
+      // Total confirmed revenue = online paid + COD settled
+      const totalRevenue = onlineRevenue + codSettled;
       
       // Pending = orders not yet paid (excluding COD which has its own flow)
       const pendingAmount = pendingOrders
@@ -178,8 +194,10 @@ export default function Accounting() {
         paidOrders: paidOrders.length,
         pendingPayments: pendingOrders.filter((o) => !o.payment_id?.startsWith("COD")).length,
         pendingAmount,
-        codCollected,
-        codPending: codPending + codAwaitingAmount,
+        codSettled,
+        codCollectedByCourier,
+        codAwaitingSettlement,
+        codPending,
       });
 
       // Sales data for chart
@@ -360,38 +378,72 @@ export default function Accounting() {
         </Card>
       </div>
 
-      {/* COD Payment Tracking */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="bg-gradient-to-br from-amber-500/10 to-amber-500/5 border-amber-500/20">
+      {/* COD Payment Tracking - Granular View */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              COD Collected
+              COD Settled
             </CardTitle>
-            <Wallet className="h-4 w-4 text-amber-600" />
+            <Wallet className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-600">
-              {formatCurrency(stats.codCollected)}
+            <div className="text-2xl font-bold text-green-600">
+              {formatCurrency(stats.codSettled)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Cash received from courier
+              Money received in account
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-rose-500/10 to-rose-500/5 border-rose-500/20">
+        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              With Courier
+            </CardTitle>
+            <Wallet className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              {formatCurrency(stats.codCollectedByCourier)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Collected by delivery partner
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border-purple-500/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Awaiting Settlement
+            </CardTitle>
+            <PiggyBank className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-600">
+              {formatCurrency(stats.codAwaitingSettlement)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              In transit from courier
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border-orange-500/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               COD Pending
             </CardTitle>
-            <PiggyBank className="h-4 w-4 text-rose-600" />
+            <CreditCard className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-rose-600">
+            <div className="text-2xl font-bold text-orange-600">
               {formatCurrency(stats.codPending)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Awaiting delivery or payment confirmation
+              Awaiting delivery/collection
             </p>
           </CardContent>
         </Card>

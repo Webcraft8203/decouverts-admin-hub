@@ -1445,9 +1445,12 @@ export type Database = {
         Row: {
           address_id: string | null
           buyer_gstin: string | null
+          cod_collected_at: string | null
           cod_confirmed_at: string | null
           cod_confirmed_by: string | null
+          cod_courier_name: string | null
           cod_payment_status: string | null
+          cod_settled_at: string | null
           courier_name: string | null
           created_at: string
           delivered_at: string | null
@@ -1483,9 +1486,12 @@ export type Database = {
         Insert: {
           address_id?: string | null
           buyer_gstin?: string | null
+          cod_collected_at?: string | null
           cod_confirmed_at?: string | null
           cod_confirmed_by?: string | null
+          cod_courier_name?: string | null
           cod_payment_status?: string | null
+          cod_settled_at?: string | null
           courier_name?: string | null
           created_at?: string
           delivered_at?: string | null
@@ -1521,9 +1527,12 @@ export type Database = {
         Update: {
           address_id?: string | null
           buyer_gstin?: string | null
+          cod_collected_at?: string | null
           cod_confirmed_at?: string | null
           cod_confirmed_by?: string | null
+          cod_courier_name?: string | null
           cod_payment_status?: string | null
+          cod_settled_at?: string | null
           courier_name?: string | null
           created_at?: string
           delivered_at?: string | null
