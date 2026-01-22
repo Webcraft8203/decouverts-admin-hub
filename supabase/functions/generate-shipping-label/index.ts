@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsPDF } from "https://esm.sh/jspdf@2.5.1";
-// CHANGED: We removed 'qrcode' and added 'qr-image' (Pure JS)
+// CHANGED: Using 'qr-image' (Pure JS) because 'qrcode' crashes on the server
 import qr from "https://esm.sh/qr-image@3.2.0";
 
 const corsHeaders = {
@@ -121,18 +121,18 @@ serve(async (req) => {
       timestamp: new Date().toISOString(),
     };
 
-    // --- FIXED QR GENERATION (Pure JS) ---
-    // Generate QR code as PNG Buffer using qr-image
+    // --- START: QR CODE GENERATION FIX ---
+    // Generate QR code as PNG Buffer using qr-image (Server-side compatible)
     const qrPngBuffer = qr.imageSync(JSON.stringify(qrData), { type: "png", margin: 2 });
 
-    // Safely convert Buffer to Base64 string for jsPDF
+    // Convert Buffer to Base64 string safely
     const qrBytes = new Uint8Array(qrPngBuffer);
     let qrBinary = "";
     for (let i = 0; i < qrBytes.byteLength; i++) {
       qrBinary += String.fromCharCode(qrBytes[i]);
     }
     const qrCodeDataUrl = `data:image/png;base64,${btoa(qrBinary)}`;
-    // --- END FIX ---
+    // --- END: QR CODE GENERATION FIX ---
 
     // Create PDF
     const doc = new jsPDF({
