@@ -121,15 +121,17 @@ serve(async (req) => {
       timestamp: new Date().toISOString(),
     };
 
-    // Create verification URL
-    const verificationUrl = `${supabaseUrl.replace(".supabase.co", ".lovable.app")}/verify-order?id=${order.id}`;
-
     // --- CHANGED SECTION START ---
     // Generate QR code as PNG Buffer using qr-image (Pure JS, no Canvas required)
     const qrPngBuffer = qr.imageSync(JSON.stringify(qrData), { type: "png", margin: 2 });
 
-    // Convert the Buffer to a Base64 string that jsPDF can accept
-    const qrCodeDataUrl = `data:image/png;base64,${btoa(String.fromCharCode(...new Uint8Array(qrPngBuffer)))}`;
+    // Safely convert Buffer to Base64 string
+    const qrBytes = new Uint8Array(qrPngBuffer);
+    let qrBinary = "";
+    for (let i = 0; i < qrBytes.byteLength; i++) {
+      qrBinary += String.fromCharCode(qrBytes[i]);
+    }
+    const qrCodeDataUrl = `data:image/png;base64,${btoa(qrBinary)}`;
     // --- CHANGED SECTION END ---
 
     // Create PDF
