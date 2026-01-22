@@ -513,6 +513,74 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_permissions: {
+        Row: {
+          created_at: string
+          employee_id: string
+          id: string
+          permission: Database["public"]["Enums"]["employee_permission"]
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          id?: string
+          permission: Database["public"]["Enums"]["employee_permission"]
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          id?: string
+          permission?: Database["public"]["Enums"]["employee_permission"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_permissions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employees: {
+        Row: {
+          created_at: string
+          created_by: string
+          department: string | null
+          designation: string | null
+          employee_email: string
+          employee_name: string
+          id: string
+          is_active: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          department?: string | null
+          designation?: string | null
+          employee_email: string
+          employee_name: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          department?: string | null
+          designation?: string | null
+          employee_email?: string
+          employee_name?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       homepage_images: {
         Row: {
           alt_text: string | null
@@ -1726,6 +1794,14 @@ export type Database = {
     Functions: {
       generate_order_number: { Args: never; Returns: string }
       generate_shipment_id: { Args: never; Returns: string }
+      has_admin_access: { Args: { _user_id: string }; Returns: boolean }
+      has_permission: {
+        Args: {
+          _permission: Database["public"]["Enums"]["employee_permission"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1734,9 +1810,35 @@ export type Database = {
         Returns: boolean
       }
       is_blocked: { Args: { _user_id: string }; Returns: boolean }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "employee"
+      employee_permission:
+        | "view_orders"
+        | "update_orders"
+        | "manage_shipping"
+        | "view_accounting"
+        | "view_gst_reports"
+        | "view_revenue"
+        | "download_financials"
+        | "view_invoices"
+        | "generate_invoices"
+        | "download_invoices"
+        | "manage_products"
+        | "manage_categories"
+        | "manage_inventory"
+        | "manage_homepage"
+        | "manage_blog"
+        | "manage_partners"
+        | "manage_customer_reviews"
+        | "view_customers"
+        | "manage_promo_codes"
+        | "view_activity_logs"
+        | "manage_design_requests"
+        | "manage_printer_configs"
+        | "manage_drone_configs"
+        | "view_contact_requests"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1864,7 +1966,33 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "employee"],
+      employee_permission: [
+        "view_orders",
+        "update_orders",
+        "manage_shipping",
+        "view_accounting",
+        "view_gst_reports",
+        "view_revenue",
+        "download_financials",
+        "view_invoices",
+        "generate_invoices",
+        "download_invoices",
+        "manage_products",
+        "manage_categories",
+        "manage_inventory",
+        "manage_homepage",
+        "manage_blog",
+        "manage_partners",
+        "manage_customer_reviews",
+        "view_customers",
+        "manage_promo_codes",
+        "view_activity_logs",
+        "manage_design_requests",
+        "manage_printer_configs",
+        "manage_drone_configs",
+        "view_contact_requests",
+      ],
     },
   },
 } as const
