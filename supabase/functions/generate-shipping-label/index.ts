@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsPDF } from "https://esm.sh/jspdf@2.5.1";
-// CHANGED: Use a pure JS library that doesn't require Canvas
+// CHANGED: Use 'qr-image' (Pure JS) instead of 'qrcode' (Canvas-based)
 import qr from "https://esm.sh/qr-image@3.2.0";
 
 const corsHeaders = {
@@ -123,9 +123,10 @@ serve(async (req) => {
 
     // --- CHANGED SECTION START ---
     // Generate QR code as PNG Buffer using qr-image (Pure JS, no Canvas required)
+    // type: 'png' returns a Buffer (Uint8Array in Deno via polyfill)
     const qrPngBuffer = qr.imageSync(JSON.stringify(qrData), { type: "png", margin: 2 });
 
-    // Safely convert Buffer to Base64 string
+    // Safely convert Buffer to Base64 string for jsPDF
     const qrBytes = new Uint8Array(qrPngBuffer);
     let qrBinary = "";
     for (let i = 0; i < qrBytes.byteLength; i++) {
