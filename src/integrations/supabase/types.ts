@@ -2117,6 +2117,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user" | "employee"
+      attendance_status:
+        | "present"
+        | "absent"
+        | "half_day"
+        | "on_leave"
+        | "holiday"
       employee_permission:
         | "view_orders"
         | "update_orders"
@@ -2148,6 +2154,13 @@ export type Database = {
         | "manage_salary"
         | "view_employee_documents"
         | "manage_employee_documents"
+        | "mark_attendance"
+        | "view_attendance"
+        | "manage_leave"
+        | "view_leave_requests"
+        | "generate_payslips"
+        | "view_payslips"
+      leave_status: "pending" | "approved" | "rejected"
       salary_status: "pending" | "paid" | "on_hold"
       salary_type: "monthly" | "hourly" | "contract"
     }
@@ -2278,6 +2291,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user", "employee"],
+      attendance_status: [
+        "present",
+        "absent",
+        "half_day",
+        "on_leave",
+        "holiday",
+      ],
       employee_permission: [
         "view_orders",
         "update_orders",
@@ -2309,7 +2329,14 @@ export const Constants = {
         "manage_salary",
         "view_employee_documents",
         "manage_employee_documents",
+        "mark_attendance",
+        "view_attendance",
+        "manage_leave",
+        "view_leave_requests",
+        "generate_payslips",
+        "view_payslips",
       ],
+      leave_status: ["pending", "approved", "rejected"],
       salary_status: ["pending", "paid", "on_hold"],
       salary_type: ["monthly", "hourly", "contract"],
     },
