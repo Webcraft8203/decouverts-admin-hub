@@ -112,8 +112,27 @@ export default function Accounting() {
       const paidOrders = orders?.filter((o) => o.payment_status === "paid") || [];
       const pendingOrders = orders?.filter((o) => o.payment_status !== "paid") || [];
 
-      const totalRevenue = paidOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
-      const pendingAmount = pendingOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+      // COD specific calculations
+      const codOrders = orders?.filter((o) => o.payment_id?.startsWith("COD")) || [];
+      const codReceivedOrders = codOrders.filter((o) => (o as any).cod_payment_status === "received");
+      const codPendingOrders = codOrders.filter((o) => (o as any).cod_payment_status !== "received" && o.status === "delivered");
+      const codAwaitingDelivery = codOrders.filter((o) => (o as any).cod_payment_status !== "received" && o.status !== "delivered" && o.status !== "cancelled");
+
+      const codCollected = codReceivedOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+      const codPending = codPendingOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+      const codAwaitingAmount = codAwaitingDelivery.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+
+      // Online paid orders
+      const onlinePaidOrders = paidOrders.filter((o) => !o.payment_id?.startsWith("COD"));
+      const onlineRevenue = onlinePaidOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+
+      // Total confirmed revenue = online paid + COD received
+      const totalRevenue = onlineRevenue + codCollected;
+      
+      // Pending = orders not yet paid (excluding COD which has its own flow)
+      const pendingAmount = pendingOrders
+        .filter((o) => !o.payment_id?.startsWith("COD"))
+        .reduce((sum, o) => sum + (o.total_amount || 0), 0);
 
       // Fetch final invoices for GST calculations
       const { data: finalInvoices, error: invoicesError } = await supabase
@@ -146,8 +165,7 @@ export default function Accounting() {
         finalAmount: finalInvs.reduce((sum, i) => sum + i.total_amount, 0),
       });
 
-      // Calculate profit (would need cost data from products)
-      // For now using a rough estimate
+      // Calculate profit (using rough estimate for now)
       const estimatedProfit = totalRevenue * 0.3; // 30% margin estimate
 
       setStats({
@@ -158,10 +176,10 @@ export default function Accounting() {
         totalIgst,
         totalTax: totalCgst + totalSgst + totalIgst,
         paidOrders: paidOrders.length,
-        pendingPayments: pendingOrders.length,
+        pendingPayments: pendingOrders.filter((o) => !o.payment_id?.startsWith("COD")).length,
         pendingAmount,
-        codCollected: 0, // Would need COD tracking
-        codPending: 0,
+        codCollected,
+        codPending: codPending + codAwaitingAmount,
       });
 
       // Sales data for chart
@@ -337,6 +355,43 @@ export default function Accounting() {
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               From final invoices
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* COD Payment Tracking */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="bg-gradient-to-br from-amber-500/10 to-amber-500/5 border-amber-500/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              COD Collected
+            </CardTitle>
+            <Wallet className="h-4 w-4 text-amber-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-amber-600">
+              {formatCurrency(stats.codCollected)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Cash received from courier
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-rose-500/10 to-rose-500/5 border-rose-500/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              COD Pending
+            </CardTitle>
+            <PiggyBank className="h-4 w-4 text-rose-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-rose-600">
+              {formatCurrency(stats.codPending)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Awaiting delivery or payment confirmation
             </p>
           </CardContent>
         </Card>

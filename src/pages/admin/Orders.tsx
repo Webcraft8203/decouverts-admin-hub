@@ -26,12 +26,15 @@ import {
   ExternalLink,
   Calendar,
   FileDown,
-  QrCode
+  QrCode,
+  Banknote,
+  CreditCard
 } from "lucide-react";
 import { AdminNotes } from "@/components/admin/AdminNotes";
 import { OrderTimeline } from "@/components/admin/OrderTimeline";
 import { ShippingDetailsModal } from "@/components/admin/ShippingDetailsModal";
 import { WhatsAppButton } from "@/components/admin/WhatsAppButton";
+import { CodPaymentConfirmation, CodBadge } from "@/components/admin/CodPaymentConfirmation";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -63,6 +66,14 @@ const statusOptions = [
   { value: "cancelled", label: "Cancelled", icon: XCircle, color: "bg-destructive/10 text-destructive" },
 ];
 
+const paymentFilterOptions = [
+  { value: "all", label: "All Payments" },
+  { value: "online", label: "Online Paid" },
+  { value: "cod", label: "Cash on Delivery" },
+  { value: "cod_pending", label: "COD Pending" },
+  { value: "cod_received", label: "COD Received" },
+];
+
 const getStatusInfo = (status: string) => {
   return statusOptions.find((s) => s.value === status) || statusOptions[0];
 };
@@ -71,6 +82,7 @@ const AdminOrders = () => {
   const queryClient = useQueryClient();
   const { logActivity } = useActivityLog();
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterPayment, setFilterPayment] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [shippingModalOpen, setShippingModalOpen] = useState(false);
@@ -253,8 +265,23 @@ const AdminOrders = () => {
     // Status filter
     const matchesStatus = filterStatus === "all" || order.status === filterStatus;
     
+    // Payment filter
+    let matchesPayment = true;
+    const isCod = order.payment_id?.startsWith("COD");
+    const codStatus = (order as any).cod_payment_status;
+    
+    if (filterPayment === "online") {
+      matchesPayment = !isCod && order.payment_status === "paid";
+    } else if (filterPayment === "cod") {
+      matchesPayment = isCod === true;
+    } else if (filterPayment === "cod_pending") {
+      matchesPayment = isCod === true && codStatus !== "received";
+    } else if (filterPayment === "cod_received") {
+      matchesPayment = isCod === true && codStatus === "received";
+    }
+    
     // Search filter
-    if (!searchQuery.trim()) return matchesStatus;
+    if (!searchQuery.trim()) return matchesStatus && matchesPayment;
     
     const query = searchQuery.toLowerCase();
     const shippingAddress = order.shipping_address as any;
@@ -270,10 +297,15 @@ const AdminOrders = () => {
       new Date(order.created_at).toLocaleDateString().includes(query) ||
       new Date(order.created_at).toLocaleTimeString().includes(query);
     
-    return matchesStatus && matchesSearch;
+    return matchesStatus && matchesPayment && matchesSearch;
   });
 
   const pendingCount = orders?.filter((o) => o.status === "pending").length || 0;
+  const codPendingCount = orders?.filter((o) => 
+    o.payment_id?.startsWith("COD") && 
+    (o as any).cod_payment_status !== "received" &&
+    o.status === "delivered"
+  ).length || 0;
 
   return (
     <div className="space-y-6">
@@ -282,10 +314,16 @@ const AdminOrders = () => {
           <h1 className="text-2xl font-bold">Orders Management</h1>
           <p className="text-muted-foreground">View and process customer orders</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {pendingCount > 0 && (
             <Badge variant="destructive" className="animate-pulse">
               {pendingCount} Pending
+            </Badge>
+          )}
+          {codPendingCount > 0 && (
+            <Badge variant="secondary" className="bg-orange-500/10 text-orange-500 border-orange-500/20">
+              <Banknote className="w-3 h-3 mr-1" />
+              {codPendingCount} COD Awaiting Payment
             </Badge>
           )}
         </div>
@@ -303,7 +341,7 @@ const AdminOrders = () => {
           />
         </div>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-full sm:w-48">
+          <SelectTrigger className="w-full sm:w-44">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
@@ -311,6 +349,18 @@ const AdminOrders = () => {
             {statusOptions.map((s) => (
               <SelectItem key={s.value} value={s.value}>
                 {s.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={filterPayment} onValueChange={setFilterPayment}>
+          <SelectTrigger className="w-full sm:w-44">
+            <SelectValue placeholder="Payment type" />
+          </SelectTrigger>
+          <SelectContent>
+            {paymentFilterOptions.map((p) => (
+              <SelectItem key={p.value} value={p.value}>
+                {p.label}
               </SelectItem>
             ))}
           </SelectContent>
@@ -364,6 +414,15 @@ const AdminOrders = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
+                      {/* Payment method badge */}
+                      {order.payment_id?.startsWith("COD") ? (
+                        <CodBadge order={{ payment_id: order.payment_id, cod_payment_status: (order as any).cod_payment_status }} />
+                      ) : order.payment_status === "paid" ? (
+                        <Badge variant="default" className="bg-green-500/10 text-green-600 border-0 text-xs">
+                          <CreditCard className="w-3 h-3 mr-1" />
+                          Paid Online
+                        </Badge>
+                      ) : null}
                       <Badge className={statusInfo.color}>
                         <StatusIcon className="w-3 h-3 mr-1" />
                         {statusInfo.label}
@@ -624,17 +683,34 @@ const AdminOrders = () => {
                         </div>
                       </div>
 
-                      <div className="p-3 bg-muted/50 rounded-lg text-sm">
-                        <p className="text-muted-foreground mb-1">Payment Status</p>
-                        <Badge variant={order.payment_status === "paid" ? "default" : "secondary"}>
-                          {order.payment_status === "paid" ? "Paid" : "Pending"}
-                        </Badge>
-                        {order.payment_id && (
-                          <p className="text-xs text-muted-foreground mt-1 truncate">
-                            ID: {order.payment_id}
-                          </p>
-                        )}
-                      </div>
+                      {/* Payment Status - Show COD confirmation for COD orders */}
+                      {order.payment_id?.startsWith("COD") ? (
+                        <CodPaymentConfirmation 
+                          order={{
+                            id: order.id,
+                            order_number: order.order_number,
+                            status: order.status,
+                            payment_id: order.payment_id,
+                            payment_status: order.payment_status,
+                            cod_payment_status: (order as any).cod_payment_status,
+                            cod_confirmed_at: (order as any).cod_confirmed_at,
+                            cod_confirmed_by: (order as any).cod_confirmed_by,
+                            total_amount: order.total_amount,
+                          }}
+                        />
+                      ) : (
+                        <div className="p-3 bg-muted/50 rounded-lg text-sm">
+                          <p className="text-muted-foreground mb-1">Payment Status</p>
+                          <Badge variant={order.payment_status === "paid" ? "default" : "secondary"}>
+                            {order.payment_status === "paid" ? "Paid" : "Pending"}
+                          </Badge>
+                          {order.payment_id && (
+                            <p className="text-xs text-muted-foreground mt-1 truncate">
+                              ID: {order.payment_id}
+                            </p>
+                          )}
+                        </div>
+                      )}
 
                       {/* Admin Notes Section */}
                       <div className="p-3 bg-muted/30 rounded-lg border border-border">
