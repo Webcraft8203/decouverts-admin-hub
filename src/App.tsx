@@ -31,6 +31,7 @@ import UserWishlist from "./pages/user/Wishlist";
 import UserDesignRequests from "./pages/user/DesignRequests";
 import UserDesignRequestDetail from "./pages/user/DesignRequestDetail";
 import CustomPrintRequest from "./pages/user/CustomPrintRequest";
+import EmployeePortal from "./pages/user/EmployeePortal";
 import Dashboard from "./pages/admin/Dashboard";
 import Products from "./pages/admin/Products";
 import Categories from "./pages/admin/Categories";
@@ -113,6 +114,7 @@ const App = () => (
               <Route path="/dashboard/design-requests" element={<ProtectedRoute><UserDesignRequests /></ProtectedRoute>} />
               <Route path="/dashboard/design-requests/:id" element={<ProtectedRoute><UserDesignRequestDetail /></ProtectedRoute>} />
               <Route path="/dashboard/custom-print" element={<ProtectedRoute><CustomPrintRequest /></ProtectedRoute>} />
+              <Route path="/dashboard/employee-portal" element={<ProtectedRoute><EmployeePortal /></ProtectedRoute>} />
 
               {/* Admin Routes - All wrapped with permission protection */}
               <Route path="/admin" element={<AdminRoute><Dashboard /></AdminRoute>} />
