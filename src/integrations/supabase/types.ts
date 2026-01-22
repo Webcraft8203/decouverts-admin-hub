@@ -513,6 +513,103 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_bank_info: {
+        Row: {
+          account_number_encrypted: string | null
+          account_number_last_four: string | null
+          bank_name: string | null
+          branch_name: string | null
+          created_at: string | null
+          employee_id: string
+          id: string
+          ifsc_code: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          account_number_encrypted?: string | null
+          account_number_last_four?: string | null
+          bank_name?: string | null
+          branch_name?: string | null
+          created_at?: string | null
+          employee_id: string
+          id?: string
+          ifsc_code?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          account_number_encrypted?: string | null
+          account_number_last_four?: string | null
+          bank_name?: string | null
+          branch_name?: string | null
+          created_at?: string | null
+          employee_id?: string
+          id?: string
+          ifsc_code?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_bank_info_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_documents: {
+        Row: {
+          approval_status: string | null
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string | null
+          document_name: string
+          document_type: string
+          employee_id: string
+          file_path: string
+          id: string
+          rejection_reason: string | null
+          updated_at: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          document_name: string
+          document_type: string
+          employee_id: string
+          file_path: string
+          id?: string
+          rejection_reason?: string | null
+          updated_at?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          document_name?: string
+          document_type?: string
+          employee_id?: string
+          file_path?: string
+          id?: string
+          rejection_reason?: string | null
+          updated_at?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_permissions: {
         Row: {
           created_at: string
@@ -542,40 +639,193 @@ export type Database = {
           },
         ]
       }
+      employee_profile_updates: {
+        Row: {
+          employee_id: string
+          field_name: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          processed_at: string | null
+          processed_by: string | null
+          rejection_reason: string | null
+          requested_at: string | null
+          status: string | null
+        }
+        Insert: {
+          employee_id: string
+          field_name: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          rejection_reason?: string | null
+          requested_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          employee_id?: string
+          field_name?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          rejection_reason?: string | null
+          requested_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_profile_updates_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_salary: {
+        Row: {
+          created_at: string | null
+          effective_from: string | null
+          employee_id: string
+          id: string
+          salary_amount: number | null
+          salary_type: Database["public"]["Enums"]["salary_type"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          effective_from?: string | null
+          employee_id: string
+          id?: string
+          salary_amount?: number | null
+          salary_type?: Database["public"]["Enums"]["salary_type"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          effective_from?: string | null
+          employee_id?: string
+          id?: string
+          salary_amount?: number | null
+          salary_type?: Database["public"]["Enums"]["salary_type"] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_salary_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_sensitive_info: {
+        Row: {
+          aadhaar_last_four: string | null
+          aadhaar_number_encrypted: string | null
+          created_at: string | null
+          employee_id: string
+          id: string
+          pan_last_four: string | null
+          pan_number_encrypted: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          aadhaar_last_four?: string | null
+          aadhaar_number_encrypted?: string | null
+          created_at?: string | null
+          employee_id: string
+          id?: string
+          pan_last_four?: string | null
+          pan_number_encrypted?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          aadhaar_last_four?: string | null
+          aadhaar_number_encrypted?: string | null
+          created_at?: string | null
+          employee_id?: string
+          id?: string
+          pan_last_four?: string | null
+          pan_number_encrypted?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_sensitive_info_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
+          blood_group: string | null
           created_at: string
           created_by: string
+          current_address: string | null
+          date_of_birth: string | null
+          date_of_joining: string | null
           department: string | null
           designation: string | null
+          emergency_contact_name: string | null
+          emergency_contact_number: string | null
           employee_email: string
           employee_name: string
+          gender: string | null
           id: string
           is_active: boolean
+          permanent_address: string | null
+          phone_number: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          blood_group?: string | null
           created_at?: string
           created_by: string
+          current_address?: string | null
+          date_of_birth?: string | null
+          date_of_joining?: string | null
           department?: string | null
           designation?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_number?: string | null
           employee_email: string
           employee_name: string
+          gender?: string | null
           id?: string
           is_active?: boolean
+          permanent_address?: string | null
+          phone_number?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          blood_group?: string | null
           created_at?: string
           created_by?: string
+          current_address?: string | null
+          date_of_birth?: string | null
+          date_of_joining?: string | null
           department?: string | null
           designation?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_number?: string | null
           employee_email?: string
           employee_name?: string
+          gender?: string | null
           id?: string
           is_active?: boolean
+          permanent_address?: string | null
+          phone_number?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -1642,6 +1892,59 @@ export type Database = {
         }
         Relationships: []
       }
+      salary_payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          employee_id: string
+          id: string
+          notes: string | null
+          payment_date: string | null
+          payment_method: string | null
+          payment_period: string
+          processed_by: string | null
+          status: Database["public"]["Enums"]["salary_status"] | null
+          transaction_reference: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          employee_id: string
+          id?: string
+          notes?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_period: string
+          processed_by?: string | null
+          status?: Database["public"]["Enums"]["salary_status"] | null
+          transaction_reference?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          employee_id?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_period?: string
+          processed_by?: string | null
+          status?: Database["public"]["Enums"]["salary_status"] | null
+          transaction_reference?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salary_payments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shop_slides: {
         Row: {
           created_at: string
@@ -1845,6 +2148,8 @@ export type Database = {
         | "manage_salary"
         | "view_employee_documents"
         | "manage_employee_documents"
+      salary_status: "pending" | "paid" | "on_hold"
+      salary_type: "monthly" | "hourly" | "contract"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2005,6 +2310,8 @@ export const Constants = {
         "view_employee_documents",
         "manage_employee_documents",
       ],
+      salary_status: ["pending", "paid", "on_hold"],
+      salary_type: ["monthly", "hourly", "contract"],
     },
   },
 } as const

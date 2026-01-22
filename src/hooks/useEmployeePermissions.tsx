@@ -26,7 +26,13 @@ export type EmployeePermission =
   | "manage_design_requests"
   | "manage_printer_configs"
   | "manage_drone_configs"
-  | "view_contact_requests";
+  | "view_contact_requests"
+  | "view_employee_profiles"
+  | "manage_employee_profiles"
+  | "view_salary_info"
+  | "manage_salary"
+  | "view_employee_documents"
+  | "manage_employee_documents";
 
 export const ALL_PERMISSIONS: { key: EmployeePermission; label: string; category: string }[] = [
   // Order Management
@@ -57,6 +63,14 @@ export const ALL_PERMISSIONS: { key: EmployeePermission; label: string; category
   { key: "manage_blog", label: "Manage Blog Posts", category: "Content Management" },
   { key: "manage_partners", label: "Manage Partners", category: "Content Management" },
   { key: "manage_customer_reviews", label: "Manage Customer Reviews", category: "Content Management" },
+  
+  // HR & Employee Management
+  { key: "view_employee_profiles", label: "View Employee Profiles", category: "HR & Employee Management" },
+  { key: "manage_employee_profiles", label: "Manage Employee Profiles", category: "HR & Employee Management" },
+  { key: "view_employee_documents", label: "View Employee Documents", category: "HR & Employee Management" },
+  { key: "manage_employee_documents", label: "Manage Employee Documents", category: "HR & Employee Management" },
+  { key: "view_salary_info", label: "View Salary Information", category: "HR & Employee Management" },
+  { key: "manage_salary", label: "Manage Salary & Payments", category: "HR & Employee Management" },
   
   // Support & Configuration
   { key: "view_customers", label: "View Customers", category: "Support & Configuration" },

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions, ALL_PERMISSIONS, EmployeePermission } from "@/hooks/useEmployeePermissions";
@@ -13,7 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Users, Shield, Mail, Building, Briefcase, RefreshCw, Pencil, Trash2, UserX, UserCheck } from "lucide-react";
+import { Loader2, Plus, Users, Shield, Mail, Building, Briefcase, RefreshCw, Pencil, Trash2, UserX, UserCheck, Eye } from "lucide-react";
 import { format } from "date-fns";
 
 interface Employee {
@@ -57,6 +58,7 @@ const apiCall = async (endpoint: string, options: RequestInit = {}) => {
 };
 
 export default function Employees() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { isSuperAdmin } = usePermissions();
   const { toast } = useToast();
@@ -610,6 +612,14 @@ export default function Employees() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => navigate(`/admin/employees/${employee.id}`)}
+                            title="View Details"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
                           <Button
                             size="icon"
                             variant="outline"
