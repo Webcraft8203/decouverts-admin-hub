@@ -834,6 +834,7 @@ export type Database = {
           courier_name: string | null
           created_at: string
           delivered_at: string | null
+          delivery_notes: string | null
           design_request_id: string | null
           discount_amount: number | null
           expected_delivery_date: string | null
@@ -848,9 +849,11 @@ export type Database = {
           payment_status: string | null
           proforma_invoice_url: string | null
           promo_code_id: string | null
+          shipment_id: string | null
           shipped_at: string | null
           shipping_address: Json | null
           shipping_amount: number
+          shipping_label_url: string | null
           status: string
           subtotal: number
           tax_amount: number
@@ -866,6 +869,7 @@ export type Database = {
           courier_name?: string | null
           created_at?: string
           delivered_at?: string | null
+          delivery_notes?: string | null
           design_request_id?: string | null
           discount_amount?: number | null
           expected_delivery_date?: string | null
@@ -880,9 +884,11 @@ export type Database = {
           payment_status?: string | null
           proforma_invoice_url?: string | null
           promo_code_id?: string | null
+          shipment_id?: string | null
           shipped_at?: string | null
           shipping_address?: Json | null
           shipping_amount?: number
+          shipping_label_url?: string | null
           status?: string
           subtotal?: number
           tax_amount?: number
@@ -898,6 +904,7 @@ export type Database = {
           courier_name?: string | null
           created_at?: string
           delivered_at?: string | null
+          delivery_notes?: string | null
           design_request_id?: string | null
           discount_amount?: number | null
           expected_delivery_date?: string | null
@@ -912,9 +919,11 @@ export type Database = {
           payment_status?: string | null
           proforma_invoice_url?: string | null
           promo_code_id?: string | null
+          shipment_id?: string | null
           shipped_at?: string | null
           shipping_address?: Json | null
           shipping_amount?: number
+          shipping_label_url?: string | null
           status?: string
           subtotal?: number
           tax_amount?: number
@@ -1716,6 +1725,7 @@ export type Database = {
     }
     Functions: {
       generate_order_number: { Args: never; Returns: string }
+      generate_shipment_id: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

@@ -24,7 +24,9 @@ import {
   Trash2,
   Palette,
   ExternalLink,
-  Calendar
+  Calendar,
+  FileDown,
+  QrCode
 } from "lucide-react";
 import { AdminNotes } from "@/components/admin/AdminNotes";
 import { OrderTimeline } from "@/components/admin/OrderTimeline";
@@ -196,6 +198,49 @@ const AdminOrders = () => {
     },
     onError: () => toast.error("Failed to delete order"),
   });
+
+  // Shipping Label Generation Mutation
+  const generateShippingLabelMutation = useMutation({
+    mutationFn: async ({ orderId, orderNumber }: { orderId: string; orderNumber: string }) => {
+      const { data, error } = await supabase.functions.invoke("generate-shipping-label", {
+        body: { orderId },
+      });
+      
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Failed to generate shipping label");
+      
+      return { orderId, orderNumber, labelPath: data.labelPath, shipmentId: data.shipmentId };
+    },
+    onSuccess: async ({ orderId, orderNumber, shipmentId }) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      toast.success(`Shipping label generated: ${shipmentId}`);
+      
+      await logActivity({
+        actionType: "shipping_label_generated",
+        entityType: "order",
+        entityId: orderId,
+        description: `Shipping label generated for order ${orderNumber}`,
+        metadata: { shipmentId },
+      });
+    },
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to generate shipping label"),
+  });
+
+  // Download Shipping Label
+  const downloadShippingLabel = async (orderId: string, labelPath: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from("invoices")
+        .createSignedUrl(labelPath, 60 * 5); // 5 minutes
+      
+      if (error) throw error;
+      
+      window.open(data.signedUrl, "_blank");
+    } catch (error) {
+      console.error("Error downloading label:", error);
+      toast.error("Failed to download shipping label");
+    }
+  };
 
   const filteredOrders = orders?.filter((order) => {
     // Status filter
@@ -485,8 +530,15 @@ const AdminOrders = () => {
                       {/* Courier/Shipping Details */}
                       {(order as any).courier_name && (
                         <div className="p-3 bg-indigo-500/10 rounded-lg text-sm">
-                          <p className="font-medium flex items-center gap-1 mb-2">
-                            <Truck className="w-4 h-4" /> Shipping Details
+                          <p className="font-medium flex items-center justify-between mb-2">
+                            <span className="flex items-center gap-1">
+                              <Truck className="w-4 h-4" /> Shipping Details
+                            </span>
+                            {(order as any).shipment_id && (
+                              <Badge variant="outline" className="text-xs">
+                                {(order as any).shipment_id}
+                              </Badge>
+                            )}
                           </p>
                           <p className="font-medium">{(order as any).courier_name}</p>
                           <p className="text-muted-foreground">
@@ -508,6 +560,43 @@ const AdminOrders = () => {
                               <ExternalLink className="w-3 h-3" /> Track Package
                             </a>
                           )}
+                          
+                          {/* Shipping Label Actions */}
+                          <div className="flex gap-2 mt-3 pt-3 border-t border-indigo-500/20">
+                            {(order as any).shipping_label_url ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1"
+                                onClick={() => downloadShippingLabel(order.id, (order as any).shipping_label_url)}
+                              >
+                                <FileDown className="w-3.5 h-3.5 mr-1" />
+                                Download Label
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1"
+                                onClick={() => generateShippingLabelMutation.mutate({ 
+                                  orderId: order.id, 
+                                  orderNumber: order.order_number 
+                                })}
+                                disabled={generateShippingLabelMutation.isPending}
+                              >
+                                <QrCode className="w-3.5 h-3.5 mr-1" />
+                                {generateShippingLabelMutation.isPending ? "Generating..." : "Generate Label"}
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => window.open(`/verify-order?id=${order.id}`, "_blank")}
+                              title="Preview Verification Page"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
                         </div>
                       )}
 

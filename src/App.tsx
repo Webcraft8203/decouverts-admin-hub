@@ -54,6 +54,7 @@ import Partners from "./pages/admin/Partners";
 import ShopSlides from "./pages/admin/ShopSlides";
 import BlogSlides from "./pages/admin/BlogSlides";
 import BlogPosts from "./pages/admin/BlogPosts";
+import VerifyOrder from "./pages/VerifyOrder";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -114,6 +115,7 @@ const App = () => (
               <Route path="/admin/shop-slides" element={<ProtectedRoute requireAdmin><AdminLayout><ShopSlides /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/blog-slides" element={<ProtectedRoute requireAdmin><AdminLayout><BlogSlides /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/blog-posts" element={<ProtectedRoute requireAdmin><AdminLayout><BlogPosts /></AdminLayout></ProtectedRoute>} />
+              <Route path="/verify-order" element={<VerifyOrder />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
