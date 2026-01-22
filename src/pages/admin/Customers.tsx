@@ -19,7 +19,11 @@ import {
   Shield,
   ShieldOff,
   ArrowLeft,
-  Clock
+  Clock,
+  FileText,
+  Download,
+  ExternalLink,
+  Loader2
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -42,6 +46,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface CustomerWithStats {
   id: string;
@@ -56,11 +61,27 @@ interface CustomerWithStats {
   total_spent: number;
 }
 
+interface CustomerInvoice {
+  id: string;
+  invoice_number: string;
+  invoice_type: string;
+  client_name: string;
+  total_amount: number;
+  created_at: string;
+  pdf_url: string | null;
+  order_id: string | null;
+  order?: {
+    order_number: string;
+    status: string;
+  } | null;
+}
+
 export default function Customers() {
   const queryClient = useQueryClient();
   const { logActivity } = useActivityLog();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerWithStats | null>(null);
+  const [downloadingInvoice, setDownloadingInvoice] = useState<string | null>(null);
 
   const { data: customers, isLoading } = useQuery({
     queryKey: ["admin-customers"],
@@ -112,6 +133,91 @@ export default function Customers() {
     },
     enabled: !!selectedCustomer,
   });
+
+  // Fetch customer invoices via their orders
+  const { data: customerInvoices, isLoading: isLoadingInvoices } = useQuery({
+    queryKey: ["customer-invoices", selectedCustomer?.id],
+    queryFn: async () => {
+      if (!selectedCustomer) return [];
+      
+      // First get customer's order IDs
+      const { data: orders, error: ordersError } = await supabase
+        .from("orders")
+        .select("id")
+        .eq("user_id", selectedCustomer.id);
+      
+      if (ordersError) throw ordersError;
+      if (!orders || orders.length === 0) return [];
+
+      const orderIds = orders.map(o => o.id);
+
+      // Fetch invoices for those orders
+      const { data: invoices, error: invoicesError } = await supabase
+        .from("invoices")
+        .select(`
+          id,
+          invoice_number,
+          invoice_type,
+          client_name,
+          total_amount,
+          created_at,
+          pdf_url,
+          order_id
+        `)
+        .in("order_id", orderIds)
+        .order("created_at", { ascending: false });
+
+      if (invoicesError) throw invoicesError;
+
+      // Get order details for each invoice
+      const invoicesWithOrders = await Promise.all(
+        (invoices || []).map(async (invoice) => {
+          if (invoice.order_id) {
+            const order = orders.find(o => o.id === invoice.order_id);
+            if (order) {
+              const { data: orderData } = await supabase
+                .from("orders")
+                .select("order_number, status")
+                .eq("id", invoice.order_id)
+                .single();
+              return { ...invoice, order: orderData };
+            }
+          }
+          return { ...invoice, order: null };
+        })
+      );
+
+      return invoicesWithOrders as CustomerInvoice[];
+    },
+    enabled: !!selectedCustomer,
+  });
+
+  const handleDownloadInvoice = async (invoice: CustomerInvoice) => {
+    if (!invoice.pdf_url) {
+      toast.error("Invoice PDF not available");
+      return;
+    }
+
+    setDownloadingInvoice(invoice.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("get-invoice-url", {
+        body: { invoiceId: invoice.id },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      } else {
+        toast.error("Failed to get invoice URL");
+      }
+    } catch (error) {
+      console.error("Error downloading invoice:", error);
+      toast.error("Failed to download invoice");
+    } finally {
+      setDownloadingInvoice(null);
+    }
+  };
 
   const toggleBlockMutation = useMutation({
     mutationFn: async ({ id, isBlocked }: { id: string; isBlocked: boolean }) => {
@@ -307,45 +413,124 @@ export default function Customers() {
             </CardContent>
           </Card>
 
-          {/* Order History */}
+          {/* Order History & Invoices */}
           <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ShoppingBag className="w-5 h-5" />
-                Order History
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {customerOrders && customerOrders.length > 0 ? (
-                <div className="space-y-3">
-                  {customerOrders.map((order) => (
-                    <div key={order.id} className="p-4 border rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium">{order.order_number}</span>
-                        <Badge variant="outline">{order.status}</Badge>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {format(new Date(order.created_at), "MMM d, yyyy")}
-                        </span>
-                        <span className="font-medium text-foreground">
-                          ₹{Number(order.total_amount).toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {order.order_items?.map((item: any) => item.product_name).join(", ")}
-                      </div>
+            <Tabs defaultValue="orders" className="w-full">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle>Customer Activity</CardTitle>
+                  <TabsList>
+                    <TabsTrigger value="orders" className="flex items-center gap-1.5">
+                      <ShoppingBag className="w-4 h-4" />
+                      Orders
+                    </TabsTrigger>
+                    <TabsTrigger value="invoices" className="flex items-center gap-1.5">
+                      <FileText className="w-4 h-4" />
+                      Invoices
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <TabsContent value="orders" className="mt-0">
+                  {customerOrders && customerOrders.length > 0 ? (
+                    <div className="space-y-3">
+                      {customerOrders.map((order) => (
+                        <div key={order.id} className="p-4 border rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium">{order.order_number}</span>
+                            <Badge variant="outline">{order.status}</Badge>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {format(new Date(order.created_at), "MMM d, yyyy")}
+                            </span>
+                            <span className="font-medium text-foreground">
+                              ₹{Number(order.total_amount).toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {order.order_items?.map((item: any) => item.product_name).join(", ")}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <ShoppingBag className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                  <p>No orders yet</p>
-                </div>
-              )}
-            </CardContent>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <ShoppingBag className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                      <p>No orders yet</p>
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="invoices" className="mt-0">
+                  {isLoadingInvoices ? (
+                    <div className="space-y-3">
+                      {[...Array(3)].map((_, i) => (
+                        <Skeleton key={i} className="h-20" />
+                      ))}
+                    </div>
+                  ) : customerInvoices && customerInvoices.length > 0 ? (
+                    <div className="space-y-3">
+                      {customerInvoices.map((invoice) => (
+                        <div key={invoice.id} className="p-4 border rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-primary" />
+                              <span className="font-medium">{invoice.invoice_number}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant={invoice.invoice_type === "final" ? "default" : "secondary"}>
+                                {invoice.invoice_type === "final" ? "Tax Invoice" : "Proforma"}
+                              </Badge>
+                              {invoice.pdf_url && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => handleDownloadInvoice(invoice)}
+                                  disabled={downloadingInvoice === invoice.id}
+                                >
+                                  {downloadingInvoice === invoice.id ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <Download className="w-4 h-4" />
+                                  )}
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-1">
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {format(new Date(invoice.created_at), "MMM d, yyyy")}
+                            </span>
+                            <span className="font-medium text-foreground">
+                              ₹{Number(invoice.total_amount).toLocaleString()}
+                            </span>
+                          </div>
+                          {invoice.order && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <ExternalLink className="w-3 h-3" />
+                              <span>Order: {invoice.order.order_number}</span>
+                              <Badge variant="outline" className="text-xs">
+                                {invoice.order.status}
+                              </Badge>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                      <p>No invoices yet</p>
+                    </div>
+                  )}
+                </TabsContent>
+              </CardContent>
+            </Tabs>
           </Card>
         </div>
       </div>
