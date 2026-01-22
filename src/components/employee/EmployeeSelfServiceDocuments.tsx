@@ -42,33 +42,6 @@ const DOCUMENT_TYPES = [
   { value: "other", label: "Other Document" },
 ];
 
-const apiCall = async (endpoint: string, options: RequestInit = {}) => {
-  const session = await supabase.auth.getSession();
-  const token = session.data.session?.access_token;
-  
-  const response = await fetch(
-    `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/${endpoint}`,
-    {
-      ...options,
-      headers: {
-        'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Prefer': options.method === 'POST' ? 'return=representation' : 'return=minimal',
-        ...options.headers,
-      },
-    }
-  );
-  
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Request failed' }));
-    throw new Error(error.message || 'Request failed');
-  }
-  
-  if (response.status === 204) return null;
-  return response.json();
-};
-
 export function EmployeeSelfServiceDocuments({ employeeId }: EmployeeSelfServiceDocumentsProps) {
   const { toast } = useToast();
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -85,11 +58,23 @@ export function EmployeeSelfServiceDocuments({ employeeId }: EmployeeSelfService
   const fetchDocuments = async () => {
     setIsLoading(true);
     try {
-      const docs = await apiCall(`employee_documents?employee_id=eq.${employeeId}&order=created_at.desc`);
+      const { data: docs, error: docsError } = await supabase
+        .from('employee_documents')
+        .select('*')
+        .eq('employee_id', employeeId)
+        .order('created_at', { ascending: false });
+      
+      if (docsError) throw docsError;
       setDocuments(docs || []);
       
       // Fetch sensitive info
-      const sensitive = await apiCall(`employee_sensitive_info?employee_id=eq.${employeeId}`);
+      const { data: sensitive, error: sensitiveError } = await supabase
+        .from('employee_sensitive_info')
+        .select('*')
+        .eq('employee_id', employeeId);
+      
+      if (sensitiveError) throw sensitiveError;
+      
       if (sensitive && sensitive.length > 0) {
         setSensitiveInfo(sensitive[0]);
       }
@@ -140,19 +125,20 @@ export function EmployeeSelfServiceDocuments({ employeeId }: EmployeeSelfService
 
       if (uploadError) throw uploadError;
 
-      // Create document record (pending approval for employee uploads)
-      const session = await supabase.auth.getSession();
-      await apiCall('employee_documents', {
-        method: 'POST',
-        body: JSON.stringify({
+      // Create document record using Supabase client
+      const { data: { session } } = await supabase.auth.getSession();
+      const { error: insertError } = await supabase
+        .from('employee_documents')
+        .insert({
           employee_id: employeeId,
           document_type: documentType,
           document_name: documentName,
           file_path: fileName,
-          uploaded_by: session.data.session?.user?.id,
-          approval_status: 'pending', // Employees' uploads need approval
-        }),
-      });
+          uploaded_by: session?.user?.id,
+          approval_status: 'pending',
+        });
+
+      if (insertError) throw insertError;
 
       toast({
         title: "Document Uploaded",

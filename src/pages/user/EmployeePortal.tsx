@@ -39,34 +39,6 @@ interface EmployeeData {
   blood_group: string | null;
 }
 
-// Helper to make authenticated REST API calls
-const apiCall = async (endpoint: string, options: RequestInit = {}) => {
-  const session = await supabase.auth.getSession();
-  const token = session.data.session?.access_token;
-  
-  const response = await fetch(
-    `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/${endpoint}`,
-    {
-      ...options,
-      headers: {
-        'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Prefer': options.method === 'POST' ? 'return=representation' : 'return=minimal',
-        ...options.headers,
-      },
-    }
-  );
-  
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Request failed' }));
-    throw new Error(error.message || 'Request failed');
-  }
-  
-  if (response.status === 204) return null;
-  return response.json();
-};
-
 export default function EmployeePortal() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -80,12 +52,14 @@ export default function EmployeePortal() {
     
     setIsLoading(true);
     try {
-      const data = await apiCall(`employees?user_id=eq.${user.id}&select=*`);
-      if (data && data.length > 0) {
-        setEmployee(data[0]);
-      } else {
-        setEmployee(null);
-      }
+      const { data, error } = await supabase
+        .from('employees')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (error) throw error;
+      setEmployee(data);
     } catch (error: any) {
       toast({
         title: "Error",

@@ -22,31 +22,6 @@ interface EmployeePendingRequestsProps {
   employeeId: string;
 }
 
-const apiCall = async (endpoint: string, options: RequestInit = {}) => {
-  const session = await supabase.auth.getSession();
-  const token = session.data.session?.access_token;
-  
-  const response = await fetch(
-    `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/${endpoint}`,
-    {
-      ...options,
-      headers: {
-        'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    }
-  );
-  
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Request failed' }));
-    throw new Error(error.message || 'Request failed');
-  }
-  
-  return response.json();
-};
-
 const FIELD_LABELS: Record<string, string> = {
   phone_number: "Phone Number",
   current_address: "Current Address",
@@ -67,7 +42,13 @@ export function EmployeePendingRequests({ employeeId }: EmployeePendingRequestsP
   const fetchRequests = async () => {
     setIsLoading(true);
     try {
-      const data = await apiCall(`employee_profile_updates?employee_id=eq.${employeeId}&order=requested_at.desc`);
+      const { data, error } = await supabase
+        .from('employee_profile_updates')
+        .select('*')
+        .eq('employee_id', employeeId)
+        .order('requested_at', { ascending: false });
+      
+      if (error) throw error;
       setRequests(data || []);
     } catch (error: any) {
       toast({
