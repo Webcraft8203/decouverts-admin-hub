@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { PublicNavbar } from "@/components/PublicNavbar";
@@ -19,7 +19,9 @@ import {
   ShieldCheck,
   AlertCircle,
   ExternalLink,
-  QrCode
+  QrCode,
+  Camera,
+  X
 } from "lucide-react";
 
 interface VerificationData {
@@ -66,6 +68,10 @@ const VerifyOrder = () => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<VerificationData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showScanner, setShowScanner] = useState(false);
+  const [scannerError, setScannerError] = useState<string | null>(null);
+  const scannerRef = useRef<HTMLDivElement>(null);
+  const html5QrCodeRef = useRef<any>(null);
 
   const verifyOrder = async (id: string) => {
     if (!id) return;
@@ -105,6 +111,73 @@ const VerifyOrder = () => {
       verifyOrder(manualOrderId.trim());
     }
   };
+
+  const startScanner = async () => {
+    setScannerError(null);
+    setShowScanner(true);
+    
+    try {
+      const { Html5Qrcode } = await import("html5-qrcode");
+      
+      // Wait for DOM to be ready
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      if (!scannerRef.current) return;
+      
+      const html5QrCode = new Html5Qrcode("qr-reader");
+      html5QrCodeRef.current = html5QrCode;
+      
+      await html5QrCode.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+        },
+        (decodedText) => {
+          // Try to parse QR data
+          try {
+            const qrData = JSON.parse(decodedText);
+            if (qrData.orderId) {
+              stopScanner();
+              verifyOrder(qrData.orderId);
+            }
+          } catch {
+            // If not JSON, might be a direct order ID
+            stopScanner();
+            verifyOrder(decodedText);
+          }
+        },
+        () => {
+          // Ignore scan errors (no QR detected)
+        }
+      );
+    } catch (err: any) {
+      console.error("Scanner error:", err);
+      setScannerError(err?.message || "Failed to start camera. Please ensure camera permissions are granted.");
+      setShowScanner(false);
+    }
+  };
+
+  const stopScanner = async () => {
+    if (html5QrCodeRef.current) {
+      try {
+        await html5QrCodeRef.current.stop();
+        html5QrCodeRef.current = null;
+      } catch (err) {
+        console.error("Error stopping scanner:", err);
+      }
+    }
+    setShowScanner(false);
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (html5QrCodeRef.current) {
+        html5QrCodeRef.current.stop().catch(() => {});
+      }
+    };
+  }, []);
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "—";
@@ -157,17 +230,76 @@ const VerifyOrder = () => {
             </div>
             <h1 className="text-2xl font-bold mb-2">Order Verification</h1>
             <p className="text-muted-foreground">
-              Verify your order authenticity and track delivery status
+              Scan QR code or enter order ID to verify authenticity
             </p>
           </div>
 
-          {/* Manual Search */}
-          {!orderId && !data && (
-            <Card className="mb-8">
+          {/* Scanner Section */}
+          {showScanner && (
+            <Card className="mb-6">
               <CardContent className="pt-6">
+                <div className="flex justify-between items-center mb-4">
+                  <p className="font-medium flex items-center gap-2">
+                    <Camera className="w-4 h-4" />
+                    Scanning for QR Code...
+                  </p>
+                  <Button variant="ghost" size="sm" onClick={stopScanner}>
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+                <div 
+                  id="qr-reader" 
+                  ref={scannerRef} 
+                  className="w-full rounded-lg overflow-hidden"
+                  style={{ minHeight: "300px" }}
+                />
+                <p className="text-sm text-muted-foreground text-center mt-3">
+                  Point your camera at the QR code on the shipping label
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Scanner Error */}
+          {scannerError && (
+            <Card className="mb-6 border-destructive">
+              <CardContent className="py-4">
+                <div className="flex items-center gap-3 text-destructive">
+                  <AlertCircle className="w-5 h-5" />
+                  <p className="text-sm">{scannerError}</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Manual Search */}
+          {!orderId && !data && !showScanner && (
+            <Card className="mb-8">
+              <CardContent className="pt-6 space-y-4">
+                {/* Scan QR Button */}
+                <Button 
+                  onClick={startScanner} 
+                  className="w-full h-14 text-lg"
+                  size="lg"
+                >
+                  <Camera className="w-5 h-5 mr-2" />
+                  Scan QR Code
+                </Button>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      Or enter Order ID
+                    </span>
+                  </div>
+                </div>
+
                 <div className="flex gap-3">
                   <Input
-                    placeholder="Enter Order ID or scan QR code"
+                    placeholder="Enter Order ID"
                     value={manualOrderId}
                     onChange={(e) => setManualOrderId(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleManualVerify()}
@@ -376,11 +508,15 @@ const VerifyOrder = () => {
 
               {/* Search Another */}
               <Card>
-                <CardContent className="pt-6">
-                  <p className="text-sm text-muted-foreground mb-3">Verify another order:</p>
+                <CardContent className="pt-6 space-y-3">
+                  <p className="text-sm text-muted-foreground">Verify another order:</p>
                   <div className="flex gap-3">
+                    <Button variant="outline" onClick={startScanner} className="flex-1">
+                      <Camera className="w-4 h-4 mr-2" />
+                      Scan QR
+                    </Button>
                     <Input
-                      placeholder="Enter Order ID"
+                      placeholder="Order ID"
                       value={manualOrderId}
                       onChange={(e) => setManualOrderId(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleManualVerify()}
