@@ -1839,6 +1839,12 @@ export type Database = {
         | "manage_printer_configs"
         | "manage_drone_configs"
         | "view_contact_requests"
+        | "view_employee_profiles"
+        | "manage_employee_profiles"
+        | "view_salary_info"
+        | "manage_salary"
+        | "view_employee_documents"
+        | "manage_employee_documents"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1992,6 +1998,12 @@ export const Constants = {
         "manage_printer_configs",
         "manage_drone_configs",
         "view_contact_requests",
+        "view_employee_profiles",
+        "manage_employee_profiles",
+        "view_salary_info",
+        "manage_salary",
+        "view_employee_documents",
+        "manage_employee_documents",
       ],
     },
   },
