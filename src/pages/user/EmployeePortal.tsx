@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useEmployeeActivityLog } from "@/hooks/useEmployeeActivityLog";
 import { 
   Loader2, 
   User, 
@@ -42,10 +42,22 @@ interface EmployeeData {
 export default function EmployeePortal() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { logActivity } = useEmployeeActivityLog();
   
   const [employee, setEmployee] = useState<EmployeeData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("profile");
+
+  // Log page view when employee data is loaded
+  useEffect(() => {
+    if (employee) {
+      logActivity({
+        actionType: "page_viewed",
+        entityType: "profile",
+        description: "Viewed Employee Self-Service Portal"
+      });
+    }
+  }, [employee?.id]);
 
   const fetchEmployee = async () => {
     if (!user?.id) return;

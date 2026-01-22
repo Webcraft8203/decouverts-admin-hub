@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useActivityLog } from "@/hooks/useActivityLog";
 import { usePermissions } from "@/hooks/useEmployeePermissions";
 import { AccessDeniedBanner } from "@/components/admin/AccessDeniedBanner";
 import { Loader2, Calendar, Check, X, RefreshCw, Clock, FileText } from "lucide-react";
@@ -44,32 +45,6 @@ interface LeaveBalance {
   year: number;
 }
 
-const apiCall = async (endpoint: string, options: RequestInit = {}) => {
-  const session = await supabase.auth.getSession();
-  const token = session.data.session?.access_token;
-  
-  const response = await fetch(
-    `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/${endpoint}`,
-    {
-      ...options,
-      headers: {
-        'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Prefer': options.method === 'POST' ? 'return=representation' : 'return=minimal',
-        ...options.headers,
-      },
-    }
-  );
-  
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Request failed' }));
-    throw new Error(error.message || 'Request failed');
-  }
-  
-  if (response.status === 204) return null;
-  return response.json();
-};
 
 const leaveTypeLabels: Record<string, string> = {
   casual: "Casual Leave",
@@ -86,6 +61,7 @@ const statusConfig: Record<string, { label: string; variant: "default" | "second
 
 export default function LeaveManagement() {
   const { toast } = useToast();
+  const { logActivity } = useActivityLog();
   const { isSuperAdmin, hasPermission } = usePermissions();
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [balances, setBalances] = useState<LeaveBalance[]>([]);
@@ -102,22 +78,23 @@ export default function LeaveManagement() {
     
     setIsLoading(true);
     try {
-      const [reqs, emps] = await Promise.all([
-        apiCall("employee_leave_requests?select=*&order=created_at.desc"),
-        apiCall("employees?is_active=eq.true&select=id,employee_name,department"),
+      const [reqsRes, empsRes, balsRes] = await Promise.all([
+        supabase.from('employee_leave_requests').select('*').order('created_at', { ascending: false }),
+        supabase.from('employees').select('id,employee_name,department').eq('is_active', true),
+        supabase.from('employee_leave_balance').select('*'),
       ]);
       
+      const reqs = reqsRes.data || [];
+      const emps = empsRes.data || [];
+      
       // Map employee info to requests
-      const enrichedRequests = (reqs || []).map((req: LeaveRequest) => ({
+      const enrichedRequests = reqs.map((req: LeaveRequest) => ({
         ...req,
-        employee: emps?.find((e: any) => e.id === req.employee_id),
+        employee: emps.find((e: any) => e.id === req.employee_id),
       }));
       
       setRequests(enrichedRequests);
-      
-      // Fetch leave balances
-      const bals = await apiCall("employee_leave_balance?select=*");
-      setBalances(bals || []);
+      setBalances(balsRes.data || []);
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
@@ -137,15 +114,17 @@ export default function LeaveManagement() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      await apiCall(`employee_leave_requests?id=eq.${request.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({
+      const { error: updateError } = await supabase
+        .from('employee_leave_requests')
+        .update({
           status: action === "approve" ? "approved" : "rejected",
           approved_by: user?.id,
           approved_at: new Date().toISOString(),
           rejection_reason: action === "reject" ? rejectionReason : null,
-        }),
-      });
+        })
+        .eq('id', request.id);
+      
+      if (updateError) throw updateError;
       
       // Update leave balance if approved
       if (action === "approve") {
@@ -161,15 +140,21 @@ export default function LeaveManagement() {
           
           const field = fieldMap[request.leave_type];
           if (field) {
-            await apiCall(`employee_leave_balance?id=eq.${balance.id}`, {
-              method: "PATCH",
-              body: JSON.stringify({
-                [field]: (balance as any)[field] + days,
-              }),
-            });
+            await supabase
+              .from('employee_leave_balance')
+              .update({ [field]: (balance as any)[field] + days })
+              .eq('id', balance.id);
           }
         }
       }
+      
+      logActivity({
+        actionType: "order_update",
+        entityType: "system",
+        entityId: request.id,
+        description: `Leave request ${action === "approve" ? "approved" : "rejected"} for employee`,
+        metadata: { action, leaveType: request.leave_type }
+      });
       
       toast({ 
         title: "Success", 

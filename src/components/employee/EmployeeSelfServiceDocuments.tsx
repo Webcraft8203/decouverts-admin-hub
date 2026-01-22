@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import { useEmployeeActivityLog } from "@/hooks/useEmployeeActivityLog";
 import { Loader2, Upload, FileText, Eye, Info } from "lucide-react";
 import { format } from "date-fns";
 
@@ -44,6 +45,7 @@ const DOCUMENT_TYPES = [
 
 export function EmployeeSelfServiceDocuments({ employeeId }: EmployeeSelfServiceDocumentsProps) {
   const { toast } = useToast();
+  const { logActivity } = useEmployeeActivityLog();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [sensitiveInfo, setSensitiveInfo] = useState<SensitiveInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -139,6 +141,15 @@ export function EmployeeSelfServiceDocuments({ employeeId }: EmployeeSelfService
         });
 
       if (insertError) throw insertError;
+
+      // Log the activity
+      logActivity({
+        actionType: "document_uploaded",
+        entityType: "document",
+        entityId: employeeId,
+        description: `Uploaded document: ${documentName}`,
+        metadata: { documentType, documentName }
+      });
 
       toast({
         title: "Document Uploaded",

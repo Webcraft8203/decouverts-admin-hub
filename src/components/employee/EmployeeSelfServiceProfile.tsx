@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { useEmployeeActivityLog } from "@/hooks/useEmployeeActivityLog";
 import { Loader2, Save, User, MapPin, Heart, Info } from "lucide-react";
 import { format } from "date-fns";
 
@@ -37,6 +38,7 @@ const EDITABLE_FIELDS = ['phone_number', 'current_address', 'permanent_address',
 
 export function EmployeeSelfServiceProfile({ employee, onUpdate }: EmployeeSelfServiceProfileProps) {
   const { toast } = useToast();
+  const { logActivity } = useEmployeeActivityLog();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
@@ -88,6 +90,15 @@ export function EmployeeSelfServiceProfile({ employee, onUpdate }: EmployeeSelfS
         .insert(updates);
 
       if (error) throw error;
+
+      // Log the activity
+      logActivity({
+        actionType: "profile_update_requested",
+        entityType: "profile",
+        entityId: employee.id,
+        description: `Submitted ${updates.length} profile update request(s)`,
+        metadata: { fields: updates.map(u => u.field_name) }
+      });
 
       toast({
         title: "Update Requests Submitted",

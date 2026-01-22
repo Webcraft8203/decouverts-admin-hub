@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { useActivityLog } from "@/hooks/useActivityLog";
 import { Plus, Pencil, Trash2, Upload, X, Image, Loader2, Star, MessageSquare, Video, Play, ExternalLink, ClipboardList } from "lucide-react";
 import { AdminNotes } from "@/components/admin/AdminNotes";
 import { ProductParameters } from "@/components/admin/ProductParameters";
@@ -61,6 +62,7 @@ export default function Products() {
   const [videoUrlError, setVideoUrlError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { logActivity } = useActivityLog();
 
   useEffect(() => { fetchData(); }, []);
 
@@ -138,18 +140,42 @@ export default function Products() {
       const { error } = await supabase.from("products").update(data).eq("id", editingProduct.id);
       if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
       toast({ title: "Product updated" });
+      logActivity({
+        actionType: "product_update",
+        entityType: "product",
+        entityId: editingProduct.id,
+        description: `Updated product: ${formData.name}`,
+        metadata: { price: formData.price, stock: formData.stock_quantity }
+      });
     } else {
-      const { error } = await supabase.from("products").insert([data]);
+      const { data: newProduct, error } = await supabase.from("products").insert([data]).select().single();
       if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
       toast({ title: "Product created" });
+      if (newProduct) {
+        logActivity({
+          actionType: "product_create",
+          entityType: "product",
+          entityId: newProduct.id,
+          description: `Created product: ${formData.name}`,
+          metadata: { price: formData.price, stock: formData.stock_quantity }
+        });
+      }
     }
     setDialogOpen(false); resetForm(); fetchData();
   };
 
   const handleDelete = async (id: string) => {
+    const product = products.find(p => p.id === id);
     if (!confirm("Delete this product?")) return;
     await supabase.from("products").delete().eq("id", id);
-    toast({ title: "Product deleted" }); fetchData();
+    toast({ title: "Product deleted" }); 
+    logActivity({
+      actionType: "product_delete",
+      entityType: "product",
+      entityId: id,
+      description: `Deleted product: ${product?.name || id}`
+    });
+    fetchData();
   };
 
   const toggleHighlight = async (product: Product) => {
