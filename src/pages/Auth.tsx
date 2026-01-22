@@ -58,6 +58,19 @@ export default function Auth() {
         return;
       }
 
+      // Handle rate limiting / IP throttle
+      if (checkData?.blocked) {
+        const waitMinutes = Math.ceil((checkData.waitSeconds || 900) / 60);
+        setError(`Too many login attempts. Please try again in ${waitMinutes} minutes.`);
+        toast({
+          title: "Too Many Attempts",
+          description: `Your IP has been temporarily blocked. Try again in ${waitMinutes} minutes.`,
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       if (!checkData?.isAdmin) {
         setError("This email is not registered as an admin.");
         toast({
