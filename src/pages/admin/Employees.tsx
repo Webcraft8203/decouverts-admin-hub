@@ -128,14 +128,13 @@ export default function Employees() {
 
     setIsSaving(true);
     try {
-      // Create employee record
+      // Create employee record without user_id - will be linked when employee logs in
       const newEmployees = await apiCall('employees', {
         method: 'POST',
         headers: { 'Prefer': 'return=representation' },
         body: JSON.stringify({
-          user_id: user!.id, // Temporary - will be updated when employee signs up
           employee_name: formName,
-          employee_email: formEmail,
+          employee_email: formEmail.toLowerCase(),
           department: formDepartment || null,
           designation: formDesignation || null,
           created_by: user!.id,
