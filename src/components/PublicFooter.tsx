@@ -26,6 +26,7 @@ const supportLinks = [
   { label: "Order Tracking", href: "/dashboard", action: "link" },
   { label: "Verify Order / Scan QR", href: "/verify-order", action: "link" },
   { label: "FAQs", action: "faq", href: "#" },
+  { label: "Employee Login", href: "/auth", action: "link" },
 ];
 
 const legalLinks = [
