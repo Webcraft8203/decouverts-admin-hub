@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useActivityLog } from "@/hooks/useActivityLog";
 import { usePermissions } from "@/hooks/useEmployeePermissions";
 import { AccessDeniedBanner } from "@/components/admin/AccessDeniedBanner";
 import { Loader2, Calendar as CalendarIcon, Clock, Users, CheckCircle, XCircle, RefreshCw } from "lucide-react";
@@ -33,32 +34,6 @@ interface AttendanceRecord {
   notes: string | null;
 }
 
-const apiCall = async (endpoint: string, options: RequestInit = {}) => {
-  const session = await supabase.auth.getSession();
-  const token = session.data.session?.access_token;
-  
-  const response = await fetch(
-    `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/${endpoint}`,
-    {
-      ...options,
-      headers: {
-        'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Prefer': options.method === 'POST' ? 'return=representation' : 'return=minimal',
-        ...options.headers,
-      },
-    }
-  );
-  
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Request failed' }));
-    throw new Error(error.message || 'Request failed');
-  }
-  
-  if (response.status === 204) return null;
-  return response.json();
-};
 
 const statusConfig: Record<string, { label: string; color: string }> = {
   present: { label: "Present", color: "bg-green-500" },
@@ -70,6 +45,7 @@ const statusConfig: Record<string, { label: string; color: string }> = {
 
 export default function Attendance() {
   const { toast } = useToast();
+  const { logActivity } = useActivityLog();
   const { isSuperAdmin, hasPermission } = usePermissions();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
@@ -93,12 +69,12 @@ export default function Attendance() {
     
     setIsLoading(true);
     try {
-      const [emps, att] = await Promise.all([
-        apiCall("employees?is_active=eq.true&select=id,employee_name,department,designation"),
-        apiCall(`employee_attendance?attendance_date=eq.${format(selectedDate, "yyyy-MM-dd")}&select=*`),
+      const [empsRes, attRes] = await Promise.all([
+        supabase.from('employees').select('id,employee_name,department,designation').eq('is_active', true),
+        supabase.from('employee_attendance').select('*').eq('attendance_date', format(selectedDate, "yyyy-MM-dd")),
       ]);
-      setEmployees(emps || []);
-      setAttendance(att || []);
+      setEmployees(empsRes.data || []);
+      setAttendance(attRes.data || []);
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
@@ -117,28 +93,39 @@ export default function Attendance() {
       const existingRecord = attendance.find(a => a.employee_id === markingFor.employeeId);
       
       if (existingRecord) {
-        await apiCall(`employee_attendance?id=eq.${existingRecord.id}`, {
-          method: "PATCH",
-          body: JSON.stringify({
+        const { error } = await supabase
+          .from('employee_attendance')
+          .update({
             status: markData.status,
             check_in_time: markData.check_in_time || null,
             check_out_time: markData.check_out_time || null,
             notes: markData.notes || null,
-          }),
-        });
+          })
+          .eq('id', existingRecord.id);
+        
+        if (error) throw error;
       } else {
-        await apiCall("employee_attendance", {
-          method: "POST",
-          body: JSON.stringify({
+        const { error } = await supabase
+          .from('employee_attendance')
+          .insert({
             employee_id: markingFor.employeeId,
             attendance_date: format(selectedDate, "yyyy-MM-dd"),
             status: markData.status,
             check_in_time: markData.check_in_time || null,
             check_out_time: markData.check_out_time || null,
             notes: markData.notes || null,
-          }),
-        });
+          });
+        
+        if (error) throw error;
       }
+      
+      logActivity({
+        actionType: "order_update",
+        entityType: "system",
+        entityId: markingFor.employeeId,
+        description: `Marked attendance for ${markingFor.employeeName} as ${markData.status}`,
+        metadata: { status: markData.status, date: format(selectedDate, "yyyy-MM-dd") }
+      });
       
       toast({ title: "Success", description: `Attendance marked for ${markingFor.employeeName}` });
       setMarkDialogOpen(false);
@@ -167,10 +154,11 @@ export default function Attendance() {
         status,
       }));
       
-      await apiCall("employee_attendance", {
-        method: "POST",
-        body: JSON.stringify(records),
-      });
+      const { error } = await supabase
+        .from('employee_attendance')
+        .insert(records);
+      
+      if (error) throw error;
       
       toast({ title: "Success", description: `Marked ${unmarkedEmployees.length} employees as ${status}` });
       fetchData();

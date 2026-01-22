@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useActivityLog } from "@/hooks/useActivityLog";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 
 interface Category { id: string; name: string; description: string | null; }
@@ -19,6 +20,7 @@ export default function Categories() {
   const [editing, setEditing] = useState<Category | null>(null);
   const [formData, setFormData] = useState({ name: "", description: "" });
   const { toast } = useToast();
+  const { logActivity } = useActivityLog();
 
   useEffect(() => { fetchData(); }, []);
   const fetchData = async () => { const { data } = await supabase.from("categories").select("*").order("name"); setCategories(data || []); setIsLoading(false); };
@@ -26,12 +28,44 @@ export default function Categories() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const data = { name: formData.name, description: formData.description || null };
-    if (editing) { await supabase.from("categories").update(data).eq("id", editing.id); toast({ title: "Category updated" }); }
-    else { await supabase.from("categories").insert(data); toast({ title: "Category created" }); }
+    if (editing) { 
+      await supabase.from("categories").update(data).eq("id", editing.id); 
+      toast({ title: "Category updated" });
+      logActivity({
+        actionType: "category_update",
+        entityType: "category",
+        entityId: editing.id,
+        description: `Updated category: ${formData.name}`,
+        metadata: { oldName: editing.name, newName: formData.name }
+      });
+    } else { 
+      const { data: newCategory } = await supabase.from("categories").insert(data).select().single(); 
+      toast({ title: "Category created" });
+      if (newCategory) {
+        logActivity({
+          actionType: "category_create",
+          entityType: "category",
+          entityId: newCategory.id,
+          description: `Created category: ${formData.name}`
+        });
+      }
+    }
     setDialogOpen(false); setFormData({ name: "", description: "" }); setEditing(null); fetchData();
   };
 
-  const handleDelete = async (id: string) => { if (!confirm("Delete?")) return; await supabase.from("categories").delete().eq("id", id); toast({ title: "Deleted" }); fetchData(); };
+  const handleDelete = async (id: string) => { 
+    const category = categories.find(c => c.id === id);
+    if (!confirm("Delete?")) return; 
+    await supabase.from("categories").delete().eq("id", id); 
+    toast({ title: "Deleted" }); 
+    logActivity({
+      actionType: "category_delete",
+      entityType: "category",
+      entityId: id,
+      description: `Deleted category: ${category?.name || id}`
+    });
+    fetchData(); 
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">

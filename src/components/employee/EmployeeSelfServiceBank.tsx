@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { useEmployeeActivityLog } from "@/hooks/useEmployeeActivityLog";
 import { Loader2, Save, CreditCard, Wallet, Info } from "lucide-react";
 import { format } from "date-fns";
 
@@ -30,6 +31,7 @@ interface EmployeeSelfServiceBankProps {
 
 export function EmployeeSelfServiceBank({ employeeId }: EmployeeSelfServiceBankProps) {
   const { toast } = useToast();
+  const { logActivity } = useEmployeeActivityLog();
   const [bankInfo, setBankInfo] = useState<BankInfo | null>(null);
   const [salaryInfo, setSalaryInfo] = useState<SalaryInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -134,6 +136,15 @@ export function EmployeeSelfServiceBank({ employeeId }: EmployeeSelfServiceBankP
         .insert(updates);
 
       if (error) throw error;
+
+      // Log the activity
+      logActivity({
+        actionType: "profile_update_requested",
+        entityType: "profile",
+        entityId: employeeId,
+        description: `Submitted ${updates.length} bank detail update request(s)`,
+        metadata: { fields: updates.map(u => u.field_name) }
+      });
 
       toast({
         title: "Update Requests Submitted",
