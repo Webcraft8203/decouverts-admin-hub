@@ -115,7 +115,7 @@ const ROUTE_PERMISSIONS: Record<string, EmployeePermission[]> = {
 };
 
 export function PermissionsProvider({ children }: { children: ReactNode }) {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isLoading: authLoading } = useAuth();
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [isEmployee, setIsEmployee] = useState(false);
   const [permissions, setPermissions] = useState<EmployeePermission[]>([]);
@@ -123,6 +123,11 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchPermissions = async () => {
+    // Wait for auth to be ready
+    if (authLoading) {
+      return;
+    }
+
     if (!user) {
       setIsSuperAdmin(false);
       setIsEmployee(false);
@@ -133,28 +138,29 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      // Check if user is an employee first - use raw SQL query to bypass type issues with new tables
-      const { data: employee, error: empError } = await supabase
-        .rpc('get_employee_by_user_id' as any, { p_user_id: user.id })
-        .maybeSingle();
-
-      // Fallback: direct table query with type bypass
-      let employeeData: any = null;
-      if (!employee) {
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/employees?user_id=eq.${user.id}&select=id,employee_name,department,designation,is_active`,
-          {
-            headers: {
-              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-              'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-            },
-          }
-        );
-        const data = await response.json();
-        employeeData = data?.[0];
-      } else {
-        employeeData = employee;
+      setIsLoading(true);
+      
+      // Get session for API calls
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      
+      if (!token) {
+        setIsLoading(false);
+        return;
       }
+
+      // Check if user is in employees table
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/employees?user_id=eq.${user.id}&select=id,employee_name,department,designation,is_active`,
+        {
+          headers: {
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+      const employees = await response.json();
+      const employeeData = employees?.[0];
 
       if (employeeData && employeeData.is_active) {
         // User is an active employee
@@ -173,7 +179,7 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
           {
             headers: {
               'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-              'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+              'Authorization': `Bearer ${token}`,
             },
           }
         );
@@ -183,7 +189,7 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
           setPermissions(perms.map((p: any) => p.permission as EmployeePermission));
         }
       } else if (isAdmin) {
-        // User is a super admin (has admin role but not in employees table)
+        // User has admin role and is NOT an employee = Super Admin
         setIsSuperAdmin(true);
         setIsEmployee(false);
         setPermissions([]);
@@ -196,14 +202,22 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error("Error fetching permissions:", error);
+      // If there's an error but user is admin, still grant super admin access
+      if (isAdmin) {
+        setIsSuperAdmin(true);
+        setIsEmployee(false);
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchPermissions();
-  }, [user, isAdmin]);
+    // Don't run while auth is still loading
+    if (!authLoading) {
+      fetchPermissions();
+    }
+  }, [user, isAdmin, authLoading]);
 
   const hasPermission = (permission: EmployeePermission): boolean => {
     if (isSuperAdmin) return true;
