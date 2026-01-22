@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { PublicFooter } from "@/components/PublicFooter";
+import { useFormRateLimit } from "@/hooks/useFormRateLimit";
 
 type Step = "details" | "configuration";
 
@@ -54,6 +55,7 @@ export default function DroneConfiguration() {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("details");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { checkRateLimit, recordSubmission, isChecking } = useFormRateLimit("drone_config");
 
   const [userDetails, setUserDetails] = useState<UserDetails>({
     fullName: "",
@@ -124,6 +126,10 @@ export default function DroneConfiguration() {
       return;
     }
 
+    // Check rate limit before submission
+    const allowed = await checkRateLimit();
+    if (!allowed) return;
+
     setIsSubmitting(true);
 
     try {
@@ -158,10 +164,12 @@ export default function DroneConfiguration() {
 
       if (error) throw error;
 
+      await recordSubmission(true);
       toast.success("Drone configuration request submitted successfully!");
       navigate("/manufacturing");
     } catch (error) {
       console.error("Error submitting configuration:", error);
+      await recordSubmission(false);
       toast.error("Failed to submit configuration. Please try again.");
     } finally {
       setIsSubmitting(false);
