@@ -170,14 +170,21 @@ const AdminOrders = () => {
 
   const deleteOrderMutation = useMutation({
     mutationFn: async ({ orderId, orderNumber }: { orderId: string; orderNumber: string }) => {
-      // First delete order items
+      // First delete associated invoices (foreign key constraint)
+      const { error: invoicesError } = await supabase
+        .from("invoices")
+        .delete()
+        .eq("order_id", orderId);
+      if (invoicesError) throw invoicesError;
+
+      // Then delete order items
       const { error: itemsError } = await supabase
         .from("order_items")
         .delete()
         .eq("order_id", orderId);
       if (itemsError) throw itemsError;
       
-      // Then delete the order
+      // Finally delete the order
       const { error } = await supabase
         .from("orders")
         .delete()
