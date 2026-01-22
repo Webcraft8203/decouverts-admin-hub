@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsPDF } from "https://esm.sh/jspdf@2.5.1";
-import QRCode from "https://esm.sh/qrcode@1.5.3";
+import { qrcode } from "https://deno.land/x/qrcode@v2.0.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -126,12 +126,10 @@ serve(async (req) => {
     // Create verification URL
     const verificationUrl = `${supabaseUrl.replace('.supabase.co', '.lovable.app')}/verify-order?id=${order.id}`;
     
-    // Generate QR code as data URL
-    const qrCodeDataUrl = await QRCode.toDataURL(JSON.stringify(qrData), {
-      width: 200,
-      margin: 2,
-      errorCorrectionLevel: 'M',
-    });
+    // Generate QR code as base64 image using Deno-compatible library
+    console.log("Generating QR code...");
+    const qrCodeDataUrl = await qrcode(JSON.stringify(qrData));
+    console.log("QR code generated successfully");
 
     // Create PDF
     const doc = new jsPDF({
