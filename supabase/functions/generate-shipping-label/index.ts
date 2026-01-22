@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsPDF } from "https://esm.sh/jspdf@2.5.1";
-import QRCode from "https://esm.sh/qrcode@1.5.3";
+import qr from "https://esm.sh/qr-image@3.2.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -123,12 +123,13 @@ serve(async (req) => {
     // Create verification URL
     const verificationUrl = `${supabaseUrl.replace(".supabase.co", ".lovable.app")}/verify-order?id=${order.id}`;
 
-    // Generate QR code as data URL
-    const qrCodeDataUrl = await QRCode.toDataURL(JSON.stringify(qrData), {
-      width: 200,
-      margin: 2,
-      errorCorrectionLevel: "M",
-    });
+    // --- CHANGED SECTION START ---
+    // Generate QR code as PNG Buffer using qr-image (Pure JS, no Canvas required)
+    const qrPngBuffer = qr.imageSync(JSON.stringify(qrData), { type: "png", margin: 2 });
+
+    // Convert the Buffer to a Base64 string that jsPDF can accept
+    const qrCodeDataUrl = `data:image/png;base64,${btoa(String.fromCharCode(...new Uint8Array(qrPngBuffer)))}`;
+    // --- CHANGED SECTION END ---
 
     // Create PDF
     const doc = new jsPDF({
