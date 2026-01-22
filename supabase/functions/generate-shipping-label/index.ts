@@ -1,8 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsPDF } from "https://esm.sh/jspdf@2.5.1";
-// CHANGED: Using 'qr-image' (Pure JS) because 'qrcode' crashes on the server
-import qr from "https://esm.sh/qr-image@3.2.0";
+import QRCode from "https://esm.sh/qrcode@1.5.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -38,12 +37,12 @@ const fetchImageAsBase64 = async (url: string): Promise<string | null> => {
     }
     const arrayBuffer = await response.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
-    let binary = "";
+    let binary = '';
     for (let i = 0; i < uint8Array.byteLength; i++) {
       binary += String.fromCharCode(uint8Array[i]);
     }
     const base64 = btoa(binary);
-    const contentType = response.headers.get("content-type") || "image/png";
+    const contentType = response.headers.get('content-type') || 'image/png';
     return `data:${contentType};base64,${base64}`;
   } catch (error) {
     console.error("Error fetching logo:", error);
@@ -91,7 +90,10 @@ serve(async (req) => {
     }
 
     // Fetch invoice settings for company info
-    const { data: settings } = await supabase.from("invoice_settings").select("*").single();
+    const { data: settings } = await supabase
+      .from("invoice_settings")
+      .select("*")
+      .single();
 
     const companySettings = settings || {
       business_name: "Decouverts",
@@ -110,7 +112,7 @@ serve(async (req) => {
 
     const shippingAddress = order.shipping_address as any;
     const shipmentId = order.shipment_id || `SHP-${Date.now()}`;
-
+    
     // Generate QR code data
     const qrData = {
       orderId: order.id,
@@ -120,19 +122,16 @@ serve(async (req) => {
       trackingId: order.tracking_id,
       timestamp: new Date().toISOString(),
     };
-
-    // --- START: QR CODE GENERATION FIX ---
-    // Generate QR code as PNG Buffer using qr-image (Server-side compatible)
-    const qrPngBuffer = qr.imageSync(JSON.stringify(qrData), { type: "png", margin: 2 });
-
-    // Convert Buffer to Base64 string safely
-    const qrBytes = new Uint8Array(qrPngBuffer);
-    let qrBinary = "";
-    for (let i = 0; i < qrBytes.byteLength; i++) {
-      qrBinary += String.fromCharCode(qrBytes[i]);
-    }
-    const qrCodeDataUrl = `data:image/png;base64,${btoa(qrBinary)}`;
-    // --- END: QR CODE GENERATION FIX ---
+    
+    // Create verification URL
+    const verificationUrl = `${supabaseUrl.replace('.supabase.co', '.lovable.app')}/verify-order?id=${order.id}`;
+    
+    // Generate QR code as data URL
+    const qrCodeDataUrl = await QRCode.toDataURL(JSON.stringify(qrData), {
+      width: 200,
+      margin: 2,
+      errorCorrectionLevel: 'M',
+    });
 
     // Create PDF
     const doc = new jsPDF({
@@ -165,7 +164,7 @@ serve(async (req) => {
     const logoHeight = 15;
     if (logoBase64) {
       try {
-        doc.addImage(logoBase64, "PNG", margin, y, logoWidth, logoHeight);
+        doc.addImage(logoBase64, 'PNG', margin, y, logoWidth, logoHeight);
       } catch (logoError) {
         console.error("Failed to add logo to PDF:", logoError);
       }
@@ -224,7 +223,7 @@ serve(async (req) => {
     doc.setFontSize(9);
     doc.setTextColor(...textDark);
     doc.setFont("helvetica", "normal");
-
+    
     const orderDetails = [
       { label: "Order No:", value: order.order_number },
       { label: "Order Date:", value: formatDate(order.created_at) },
@@ -241,16 +240,16 @@ serve(async (req) => {
 
     orderDetails.forEach((detail, i) => {
       doc.setFont("helvetica", "bold");
-      doc.text(detail.label, margin, y + i * 5);
+      doc.text(detail.label, margin, y + (i * 5));
       doc.setFont("helvetica", "normal");
-      doc.text(detail.value, margin + 28, y + i * 5);
+      doc.text(detail.value, margin + 28, y + (i * 5));
     });
 
     shipmentDetails.forEach((detail, i) => {
       doc.setFont("helvetica", "bold");
-      doc.text(detail.label, margin + colWidth + 10, y + i * 5);
+      doc.text(detail.label, margin + colWidth + 10, y + (i * 5));
       doc.setFont("helvetica", "normal");
-      doc.text(detail.value, margin + colWidth + 38, y + i * 5);
+      doc.text(detail.value, margin + colWidth + 38, y + (i * 5));
     });
 
     y += 25;
@@ -286,7 +285,7 @@ serve(async (req) => {
       `Phone: ${companySettings.business_phone}`,
     ];
     fromAddressLines.forEach((line, i) => {
-      doc.text(line, margin + 5, y + 20 + i * 5);
+      doc.text(line, margin + 5, y + 20 + (i * 5));
     });
 
     // TO Address (Customer/Delivery)
@@ -314,7 +313,7 @@ serve(async (req) => {
     ].filter(Boolean);
     toAddressLines.forEach((line, i) => {
       if (line) {
-        doc.text(line.toString(), margin + colWidth + 15, y + 20 + i * 5);
+        doc.text(line.toString(), margin + colWidth + 15, y + 20 + (i * 5));
       }
     });
 
@@ -352,8 +351,9 @@ serve(async (req) => {
       y += 8;
     } else {
       order.order_items?.forEach((item: any) => {
-        const productName =
-          item.product_name.length > 45 ? item.product_name.substring(0, 42) + "..." : item.product_name;
+        const productName = item.product_name.length > 45 
+          ? item.product_name.substring(0, 42) + "..." 
+          : item.product_name;
         doc.text(productName, margin + 3, y + 3);
         doc.text(String(item.quantity), pageWidth - margin - 30, y + 3);
         doc.text("-", pageWidth - margin - 15, y + 3);
@@ -373,7 +373,7 @@ serve(async (req) => {
     // QR Code
     const qrSize = 40;
     try {
-      doc.addImage(qrCodeDataUrl, "PNG", margin, y, qrSize, qrSize);
+      doc.addImage(qrCodeDataUrl, 'PNG', margin, y, qrSize, qrSize);
     } catch (qrError) {
       console.error("Failed to add QR code:", qrError);
     }
@@ -389,7 +389,7 @@ serve(async (req) => {
     doc.setFont("helvetica", "normal");
     doc.text("Scan this QR code to verify order", margin + qrSize + 10, y + 15);
     doc.text("authenticity and track delivery status.", margin + qrSize + 10, y + 20);
-
+    
     doc.setTextColor(...accentBlue);
     doc.text("Order ID: " + order.id.substring(0, 8) + "...", margin + qrSize + 10, y + 28);
 
@@ -399,11 +399,7 @@ serve(async (req) => {
     doc.setFont("helvetica", "bold");
     doc.text("Dispatched:", pageWidth - margin - 50, y + 10);
     doc.setFont("helvetica", "normal");
-    doc.text(
-      order.shipped_at ? formatDateTime(order.shipped_at) : formatDateTime(new Date().toISOString()),
-      pageWidth - margin - 50,
-      y + 16,
-    );
+    doc.text(order.shipped_at ? formatDateTime(order.shipped_at) : formatDateTime(new Date().toISOString()), pageWidth - margin - 50, y + 16);
 
     y += qrSize + 10;
 
@@ -433,7 +429,7 @@ serve(async (req) => {
       doc.setFont("helvetica", "bold");
       doc.text("💰 COLLECT ON DELIVERY", margin + 5, y + 8);
       doc.text(`₹${Number(order.total_amount).toLocaleString()}`, pageWidth - margin - 5, y + 8, { align: "right" });
-
+      
       doc.setFontSize(8);
       doc.setTextColor(127, 29, 29);
       doc.setFont("helvetica", "normal");
@@ -450,12 +446,7 @@ serve(async (req) => {
     doc.setFontSize(8);
     doc.setTextColor(...textGray);
     doc.setFont("helvetica", "normal");
-    doc.text(
-      `Generated: ${formatDateTime(new Date().toISOString())} | ${companySettings.business_name}`,
-      pageWidth / 2,
-      y + 2,
-      { align: "center" },
-    );
+    doc.text(`Generated: ${formatDateTime(new Date().toISOString())} | ${companySettings.business_name}`, pageWidth / 2, y + 2, { align: "center" });
     doc.text("Verify this shipment at: decouverts.com/verify-order", pageWidth / 2, y + 7, { align: "center" });
 
     // Generate PDF as array buffer
@@ -464,7 +455,7 @@ serve(async (req) => {
 
     // Upload to storage
     const fileName = `shipping-labels/${order.order_number}-${shipmentId}.pdf`;
-
+    
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from("invoices")
       .upload(fileName, pdfUint8Array, {
@@ -482,7 +473,7 @@ serve(async (req) => {
     // Update order with shipping label URL
     const { error: updateError } = await supabase
       .from("orders")
-      .update({
+      .update({ 
         shipping_label_url: fileName,
         shipment_id: shipmentId,
       })
@@ -502,8 +493,9 @@ serve(async (req) => {
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
-      },
+      }
     );
+
   } catch (error) {
     console.error("Error generating shipping label:", error);
     return new Response(
@@ -514,7 +506,7 @@ serve(async (req) => {
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 400,
-      },
+      }
     );
   }
 });
