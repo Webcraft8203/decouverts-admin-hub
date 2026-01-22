@@ -28,33 +28,6 @@ interface EmployeeSelfServiceBankProps {
   employeeId: string;
 }
 
-const apiCall = async (endpoint: string, options: RequestInit = {}) => {
-  const session = await supabase.auth.getSession();
-  const token = session.data.session?.access_token;
-  
-  const response = await fetch(
-    `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/${endpoint}`,
-    {
-      ...options,
-      headers: {
-        'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Prefer': options.method === 'POST' ? 'return=representation' : 'return=minimal',
-        ...options.headers,
-      },
-    }
-  );
-  
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Request failed' }));
-    throw new Error(error.message || 'Request failed');
-  }
-  
-  if (response.status === 204) return null;
-  return response.json();
-};
-
 export function EmployeeSelfServiceBank({ employeeId }: EmployeeSelfServiceBankProps) {
   const { toast } = useToast();
   const [bankInfo, setBankInfo] = useState<BankInfo | null>(null);
@@ -73,7 +46,13 @@ export function EmployeeSelfServiceBank({ employeeId }: EmployeeSelfServiceBankP
     setIsLoading(true);
     try {
       // Fetch bank info
-      const bank = await apiCall(`employee_bank_info?employee_id=eq.${employeeId}`);
+      const { data: bank, error: bankError } = await supabase
+        .from('employee_bank_info')
+        .select('*')
+        .eq('employee_id', employeeId);
+      
+      if (bankError) throw bankError;
+      
       if (bank && bank.length > 0) {
         setBankInfo(bank[0]);
         setBankName(bank[0].bank_name || "");
@@ -82,7 +61,13 @@ export function EmployeeSelfServiceBank({ employeeId }: EmployeeSelfServiceBankP
       }
       
       // Fetch salary info
-      const salary = await apiCall(`employee_salary?employee_id=eq.${employeeId}`);
+      const { data: salary, error: salaryError } = await supabase
+        .from('employee_salary')
+        .select('*')
+        .eq('employee_id', employeeId);
+      
+      if (salaryError) throw salaryError;
+      
       if (salary && salary.length > 0) {
         setSalaryInfo(salary[0]);
       }
@@ -143,13 +128,12 @@ export function EmployeeSelfServiceBank({ employeeId }: EmployeeSelfServiceBankP
         return;
       }
 
-      // Insert update requests
-      for (const update of updates) {
-        await apiCall('employee_profile_updates', {
-          method: 'POST',
-          body: JSON.stringify(update),
-        });
-      }
+      // Insert update requests using Supabase client
+      const { error } = await supabase
+        .from('employee_profile_updates')
+        .insert(updates);
+
+      if (error) throw error;
 
       toast({
         title: "Update Requests Submitted",

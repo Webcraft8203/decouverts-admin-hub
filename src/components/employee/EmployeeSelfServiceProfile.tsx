@@ -32,32 +32,6 @@ interface EmployeeSelfServiceProfileProps {
   onUpdate: () => void;
 }
 
-const apiCall = async (endpoint: string, options: RequestInit = {}) => {
-  const session = await supabase.auth.getSession();
-  const token = session.data.session?.access_token;
-  
-  const response = await fetch(
-    `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/${endpoint}`,
-    {
-      ...options,
-      headers: {
-        'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Prefer': options.method === 'POST' ? 'return=representation' : 'return=minimal',
-        ...options.headers,
-      },
-    }
-  );
-  
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Request failed' }));
-    throw new Error(error.message || 'Request failed');
-  }
-  
-  return response;
-};
-
 // Fields that employees can edit directly
 const EDITABLE_FIELDS = ['phone_number', 'current_address', 'permanent_address', 'emergency_contact_name', 'emergency_contact_number'];
 
@@ -82,7 +56,6 @@ export function EmployeeSelfServiceProfile({ employee, onUpdate }: EmployeeSelfS
     setIsSaving(true);
     try {
       // Create update requests for HR approval
-      const session = await supabase.auth.getSession();
       const updates: any[] = [];
 
       EDITABLE_FIELDS.forEach(field => {
@@ -109,13 +82,12 @@ export function EmployeeSelfServiceProfile({ employee, onUpdate }: EmployeeSelfS
         return;
       }
 
-      // Insert update requests
-      for (const update of updates) {
-        await apiCall('employee_profile_updates', {
-          method: 'POST',
-          body: JSON.stringify(update),
-        });
-      }
+      // Insert update requests using Supabase client
+      const { error } = await supabase
+        .from('employee_profile_updates')
+        .insert(updates);
+
+      if (error) throw error;
 
       toast({
         title: "Update Requests Submitted",
