@@ -128,7 +128,6 @@ const ROUTE_PERMISSIONS: Record<string, EmployeePermission[]> = {
   "/admin/raw-materials": ["manage_inventory"],
   "/admin/invoices": ["view_invoices", "generate_invoices"],
   "/admin/customers": ["view_customers"],
-  "/admin/activity-logs": ["view_activity_logs"],
   "/admin/homepage-settings": ["manage_homepage"],
   "/admin/homepage-images": ["manage_homepage"],
   "/admin/contact-requests": ["view_contact_requests"],
@@ -139,6 +138,8 @@ const ROUTE_PERMISSIONS: Record<string, EmployeePermission[]> = {
   "/admin/blog-posts": ["manage_blog"],
   "/admin/blog-slides": ["manage_blog"],
   "/admin/employees": [], // Super admin only
+  "/admin/activity-logs": [], // Super admin only
+  "/admin/employee-activity-logs": [], // Super admin only
   "/admin/accounting": ["view_accounting", "view_gst_reports", "view_revenue"],
   "/admin/attendance": ["mark_attendance", "view_attendance"],
   "/admin/leave-management": ["manage_leave", "view_leave_requests"],

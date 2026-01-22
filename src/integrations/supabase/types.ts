@@ -513,6 +513,53 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_activity_logs: {
+        Row: {
+          action_type: string
+          created_at: string
+          description: string | null
+          employee_id: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          user_agent: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          description?: string | null
+          employee_id: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          user_agent?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          description?: string | null
+          employee_id?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_activity_logs_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_attendance: {
         Row: {
           attendance_date: string
@@ -2317,6 +2364,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_old_employee_activity_logs: { Args: never; Returns: undefined }
       generate_order_number: { Args: never; Returns: string }
       generate_shipment_id: { Args: never; Returns: string }
       has_admin_access: { Args: { _user_id: string }; Returns: boolean }

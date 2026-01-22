@@ -43,6 +43,7 @@ import AdminPromoCodes from "./pages/admin/PromoCodes";
 import Invoices from "./pages/admin/Invoices";
 import Customers from "./pages/admin/Customers";
 import ActivityLogs from "./pages/admin/ActivityLogs";
+import EmployeeActivityLogs from "./pages/admin/EmployeeActivityLogs";
 import AdminDesignRequests from "./pages/admin/DesignRequests";
 import AdminDesignRequestDetail from "./pages/admin/DesignRequestDetail";
 import HomepageSettings from "./pages/admin/HomepageSettings";
@@ -132,6 +133,7 @@ const App = () => (
               <Route path="/admin/invoices" element={<AdminRoute><Invoices /></AdminRoute>} />
               <Route path="/admin/customers" element={<AdminRoute><Customers /></AdminRoute>} />
               <Route path="/admin/activity-logs" element={<AdminRoute><ActivityLogs /></AdminRoute>} />
+              <Route path="/admin/employee-activity-logs" element={<AdminRoute><EmployeeActivityLogs /></AdminRoute>} />
               <Route path="/admin/design-requests" element={<AdminRoute><AdminDesignRequests /></AdminRoute>} />
               <Route path="/admin/design-requests/:id" element={<AdminRoute><AdminDesignRequestDetail /></AdminRoute>} />
               <Route path="/admin/homepage-settings" element={<AdminRoute><HomepageSettings /></AdminRoute>} />
