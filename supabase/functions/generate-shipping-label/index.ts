@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsPDF } from "https://esm.sh/jspdf@2.5.1";
-// CHANGED: Replaced 'qrcode' with 'qr-image' to fix the Canvas error
+// CHANGED: We removed 'qrcode' and added 'qr-image' (Pure JS)
 import qr from "https://esm.sh/qr-image@3.2.0";
 
 const corsHeaders = {
@@ -121,8 +121,8 @@ serve(async (req) => {
       timestamp: new Date().toISOString(),
     };
 
-    // --- FIXED QR GENERATION SECTION ---
-    // Generate QR code as PNG Buffer using qr-image (Pure JS, server-compatible)
+    // --- FIXED QR GENERATION (Pure JS) ---
+    // Generate QR code as PNG Buffer using qr-image
     const qrPngBuffer = qr.imageSync(JSON.stringify(qrData), { type: "png", margin: 2 });
 
     // Safely convert Buffer to Base64 string for jsPDF
