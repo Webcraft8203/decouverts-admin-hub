@@ -7,6 +7,7 @@ interface AuthContextType {
   session: Session | null;
   isAdmin: boolean;
   isLoading: boolean;
+  isAdminResolved: boolean; // New flag to indicate admin check is complete
   signOut: () => Promise<void>;
 }
 
@@ -17,52 +18,97 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdminResolved, setIsAdminResolved] = useState(false);
 
-  const checkAdminStatus = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle();
+  const checkAdminStatus = async (userId: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .maybeSingle();
 
-    if (error) {
-      console.error("Error checking admin status:", error);
+      if (error) {
+        console.error("Error checking admin status:", error);
+        return false;
+      }
+      return !!data;
+    } catch (error) {
+      console.error("Error in checkAdminStatus:", error);
       return false;
     }
-    return !!data;
   };
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+    let isMounted = true;
 
-        // Defer admin check to avoid deadlock
-        if (session?.user) {
-          setTimeout(() => {
-            checkAdminStatus(session.user.id).then(setIsAdmin);
-          }, 0);
-        } else {
-          setIsAdmin(false);
+    const initializeAuth = async () => {
+      // Get the initial session first
+      const { data: { session: initialSession } } = await supabase.auth.getSession();
+      
+      if (!isMounted) return;
+
+      if (initialSession?.user) {
+        setSession(initialSession);
+        setUser(initialSession.user);
+        
+        // CRITICAL: Check admin status BEFORE setting isLoading to false
+        const adminStatus = await checkAdminStatus(initialSession.user.id);
+        if (isMounted) {
+          setIsAdmin(adminStatus);
+          setIsAdminResolved(true);
+          setIsLoading(false);
         }
+      } else {
+        setSession(null);
+        setUser(null);
+        setIsAdmin(false);
+        setIsAdminResolved(true);
         setIsLoading(false);
+      }
+    };
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, newSession) => {
+        if (!isMounted) return;
+
+        // For auth state changes after initial load
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          setSession(newSession);
+          setUser(newSession?.user ?? null);
+          
+          if (newSession?.user) {
+            // Reset resolved state while checking
+            setIsAdminResolved(false);
+            
+            // Use setTimeout(0) to avoid Supabase deadlock
+            setTimeout(async () => {
+              if (!isMounted) return;
+              const adminStatus = await checkAdminStatus(newSession.user.id);
+              if (isMounted) {
+                setIsAdmin(adminStatus);
+                setIsAdminResolved(true);
+              }
+            }, 0);
+          }
+        } else if (event === 'SIGNED_OUT') {
+          setSession(null);
+          setUser(null);
+          setIsAdmin(false);
+          setIsAdminResolved(true);
+        }
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        checkAdminStatus(session.user.id).then(setIsAdmin);
-      }
-      setIsLoading(false);
-    });
+    // Initialize on mount
+    initializeAuth();
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
@@ -70,10 +116,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
     setIsAdmin(false);
+    setIsAdminResolved(true);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, isLoading, signOut }}>
+    <AuthContext.Provider value={{ user, session, isAdmin, isLoading, isAdminResolved, signOut }}>
       {children}
     </AuthContext.Provider>
   );

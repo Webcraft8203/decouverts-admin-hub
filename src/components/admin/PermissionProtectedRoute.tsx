@@ -19,6 +19,7 @@ export function PermissionProtectedRoute({ children }: PermissionProtectedRouteP
   const location = useLocation();
 
   // Show loading state while checking permissions
+  // This ensures we don't make routing decisions with stale data
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -30,12 +31,13 @@ export function PermissionProtectedRoute({ children }: PermissionProtectedRouteP
     );
   }
 
-  // Super admins always have access
+  // CRITICAL: Super admins ALWAYS have access - no further checks needed
   if (isSuperAdmin) {
+    console.log("[PermissionProtectedRoute] Super Admin - full access granted");
     return <>{children}</>;
   }
 
-  // Check if employee can access this route
+  // For employees, check route-level permissions
   const currentPath = location.pathname;
   
   // Handle dynamic routes (e.g., /admin/design-requests/:id)
@@ -46,6 +48,7 @@ export function PermissionProtectedRoute({ children }: PermissionProtectedRouteP
                    (currentPath !== basePath && canAccessRoute(basePath));
 
   if (!hasAccess) {
+    console.log("[PermissionProtectedRoute] Access denied for path:", currentPath);
     // Redirect to admin dashboard with access denied message
     return <Navigate to="/admin" state={{ accessDenied: true, attemptedPath: currentPath }} replace />;
   }
