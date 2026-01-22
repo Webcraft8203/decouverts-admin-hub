@@ -1,20 +1,29 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { PublicNavbar } from "./PublicNavbar";
 import { PublicFooter } from "./PublicFooter";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { ShoppingBag, MapPin, FileText, User, ShoppingCart, Heart, Palette, PenTool } from "lucide-react";
+import { ShoppingBag, MapPin, FileText, User, ShoppingCart, Heart, Palette, PenTool, Briefcase } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UserLayoutProps {
   children: ReactNode;
 }
 
-const userNavItems = [
+interface NavItem {
+  title: string;
+  href: string;
+  icon: React.ElementType;
+  employeeOnly?: boolean;
+}
+
+const baseNavItems: NavItem[] = [
   { title: "My Orders", href: "/dashboard/orders", icon: ShoppingBag },
   { title: "My Cart", href: "/dashboard/cart", icon: ShoppingCart },
   { title: "Wishlist", href: "/dashboard/wishlist", icon: Heart },
   { title: "Design Requests", href: "/dashboard/design-requests", icon: Palette },
   { title: "Custom Print", href: "/dashboard/custom-print", icon: PenTool },
+  { title: "Employee Portal", href: "/dashboard/employee-portal", icon: Briefcase, employeeOnly: true },
   { title: "Addresses", href: "/dashboard/addresses", icon: MapPin },
   { title: "Invoices", href: "/dashboard/invoices", icon: FileText },
   { title: "Profile", href: "/dashboard/profile", icon: User },
@@ -22,6 +31,26 @@ const userNavItems = [
 
 export const UserLayout = ({ children }: UserLayoutProps) => {
   const location = useLocation();
+  const [isEmployee, setIsEmployee] = useState(false);
+
+  useEffect(() => {
+    const checkEmployeeStatus = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data } = await supabase
+          .from('employees')
+          .select('id')
+          .eq('user_id', session.user.id)
+          .eq('is_active', true)
+          .maybeSingle();
+        setIsEmployee(!!data);
+      }
+    };
+    checkEmployeeStatus();
+  }, []);
+
+  // Filter nav items based on employee status
+  const userNavItems = baseNavItems.filter(item => !item.employeeOnly || isEmployee);
 
   return (
     <div className="min-h-screen flex flex-col">
