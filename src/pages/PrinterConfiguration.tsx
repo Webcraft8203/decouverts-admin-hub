@@ -15,6 +15,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft, ArrowRight, Check, Printer, User, Settings, Package, Cpu, Thermometer, Shield, Wrench, GraduationCap } from "lucide-react";
+import { useFormRateLimit } from "@/hooks/useFormRateLimit";
 
 interface UserDetails {
   fullName: string;
@@ -71,6 +72,7 @@ const PrinterConfiguration = () => {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const { checkRateLimit, recordSubmission, isChecking } = useFormRateLimit("printer_config");
   
   const [userDetails, setUserDetails] = useState<UserDetails>({
     fullName: "",
@@ -160,6 +162,10 @@ const PrinterConfiguration = () => {
   const handleSubmit = async () => {
     if (!validateConfig()) return;
 
+    // Check rate limit before submission
+    const allowed = await checkRateLimit();
+    if (!allowed) return;
+
     setIsSubmitting(true);
     try {
       const { error } = await supabase.from("printer_configurations").insert({
@@ -211,9 +217,11 @@ const PrinterConfiguration = () => {
 
       if (error) throw error;
 
+      await recordSubmission(true);
       setSubmitted(true);
       toast.success("Configuration request submitted successfully!");
     } catch (error: any) {
+      await recordSubmission(false);
       toast.error("Failed to submit configuration. Please try again.");
       console.error(error);
     } finally {
@@ -336,10 +344,10 @@ const PrinterConfiguration = () => {
                   <Button 
                     size="lg" 
                     onClick={handleSubmit}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isChecking}
                     className="gap-2 px-8"
                   >
-                    {isSubmitting ? "Submitting..." : "Submit Configuration Request"}
+                    {isSubmitting || isChecking ? "Submitting..." : "Submit Configuration Request"}
                     <ArrowRight className="w-4 h-4" />
                   </Button>
                 </div>

@@ -17,6 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Mail, Phone, User, MessageSquare, Send, CheckCircle, MapPin, Building2 } from "lucide-react";
+import { useFormRateLimit } from "@/hooks/useFormRateLimit";
 
 const contactSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name too long"),
@@ -54,6 +55,7 @@ const contactInfo = [
 export function ContactSection() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const { checkRateLimit, recordSubmission, isChecking } = useFormRateLimit("contact");
 
   const form = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
@@ -66,6 +68,10 @@ export function ContactSection() {
   });
 
   const onSubmit = async (data: ContactFormData) => {
+    // Check rate limit before submission
+    const allowed = await checkRateLimit();
+    if (!allowed) return;
+
     setIsSubmitting(true);
     try {
       const { error } = await supabase.from("contact_requests").insert({
@@ -77,11 +83,13 @@ export function ContactSection() {
 
       if (error) throw error;
 
+      await recordSubmission(true);
       setIsSubmitted(true);
       form.reset();
       toast.success("Message sent successfully!");
     } catch (error) {
       console.error("Error submitting contact form:", error);
+      await recordSubmission(false);
       toast.error("Failed to send message. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -286,9 +294,9 @@ export function ContactSection() {
                   type="submit"
                   size="lg"
                   className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 rounded-xl text-base font-semibold transition-all duration-300 hover:scale-[1.02]"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isChecking}
                 >
-                  {isSubmitting ? (
+                  {isSubmitting || isChecking ? (
                     "Sending..."
                   ) : (
                     <>
