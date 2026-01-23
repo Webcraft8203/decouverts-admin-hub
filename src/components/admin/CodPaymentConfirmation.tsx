@@ -121,8 +121,8 @@ export function CodPaymentConfirmation({ order, compact = false }: CodPaymentCon
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
   const [courierName, setCourierName] = useState(order.cod_courier_name || "");
 
-  // Check if this is a COD order
-  const isCodOrder = order.payment_id?.startsWith("COD") || false;
+  // Check if this is a COD order (payment_id starts with COD OR cod_payment_status exists)
+  const isCodOrder = order.payment_id?.startsWith("COD") || order.cod_payment_status != null;
   
   // Can confirm COD payment
   const canConfirmPayment = isSuperAdmin || hasAnyPermission(["view_accounting", "update_orders"]);
@@ -446,7 +446,8 @@ export function CodPaymentConfirmation({ order, compact = false }: CodPaymentCon
 
 // Helper component for displaying COD badge in order list
 export function CodBadge({ order }: { order: { payment_id: string | null; cod_payment_status: string | null } }) {
-  const isCodOrder = order.payment_id?.startsWith("COD") || false;
+  // Check if it's a COD order using payment_id OR cod_payment_status presence
+  const isCodOrder = order.payment_id?.startsWith("COD") || order.cod_payment_status != null;
   
   if (!isCodOrder) return null;
   
