@@ -264,13 +264,20 @@ const AdminOrders = () => {
     }
   };
 
+  // Helper to check if order is COD
+  const isCodOrder = (order: any) => {
+    return order.payment_id?.startsWith("COD") || 
+           order.order_type === "cod" || 
+           order.cod_payment_status != null;
+  };
+
   const filteredOrders = orders?.filter((order) => {
     // Status filter
     const matchesStatus = filterStatus === "all" || order.status === filterStatus;
     
     // Payment filter
     let matchesPayment = true;
-    const isCod = order.payment_id?.startsWith("COD");
+    const isCod = isCodOrder(order);
     const codStatus = (order as any).cod_payment_status;
     
     if (filterPayment === "online") {
@@ -312,7 +319,7 @@ const AdminOrders = () => {
   const pendingCount = orders?.filter((o) => o.status === "pending").length || 0;
   // COD orders that are delivered but payment not yet settled
   const codAwaitingPaymentCount = orders?.filter((o) => 
-    o.payment_id?.startsWith("COD") && 
+    isCodOrder(o) && 
     !["settled", "received"].includes((o as any).cod_payment_status || "") &&
     o.status === "delivered"
   ).length || 0;
@@ -425,7 +432,7 @@ const AdminOrders = () => {
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       {/* Payment method badge */}
-                      {order.payment_id?.startsWith("COD") ? (
+                      {isCodOrder(order) ? (
                         <CodBadge order={{ payment_id: order.payment_id, cod_payment_status: (order as any).cod_payment_status }} />
                       ) : order.payment_status === "paid" ? (
                         <Badge variant="default" className="bg-green-500/10 text-green-600 border-0 text-xs">
@@ -694,7 +701,7 @@ const AdminOrders = () => {
                       </div>
 
                       {/* Payment Status - Show COD confirmation for COD orders */}
-                      {order.payment_id?.startsWith("COD") ? (
+                      {isCodOrder(order) ? (
                         <CodPaymentConfirmation 
                           order={{
                             id: order.id,
