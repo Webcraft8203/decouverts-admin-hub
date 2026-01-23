@@ -705,6 +705,9 @@ const AdminOrders = () => {
                             cod_payment_status: (order as any).cod_payment_status,
                             cod_confirmed_at: (order as any).cod_confirmed_at,
                             cod_confirmed_by: (order as any).cod_confirmed_by,
+                            cod_collected_at: (order as any).cod_collected_at,
+                            cod_settled_at: (order as any).cod_settled_at,
+                            cod_courier_name: (order as any).cod_courier_name,
                             total_amount: order.total_amount,
                           }}
                         />
