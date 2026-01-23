@@ -296,8 +296,42 @@ export function CodPaymentConfirmation({ order, compact = false }: CodPaymentCon
               </div>
             )}
             
+            {/* Quick action button for next status */}
+            {nextStatus && (
+              <button
+                onClick={() => handleStatusChange(nextStatus)}
+                disabled={updateCodStatusMutation.isPending}
+                className={`w-full py-2.5 px-4 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-all ${
+                  nextStatus === "settled" 
+                    ? "bg-green-600 hover:bg-green-700 text-white" 
+                    : nextStatus === "awaiting_settlement"
+                    ? "bg-purple-600 hover:bg-purple-700 text-white"
+                    : "bg-blue-600 hover:bg-blue-700 text-white"
+                } ${updateCodStatusMutation.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                {updateCodStatusMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : nextStatus === "collected_by_courier" ? (
+                  <>
+                    <Truck className="w-4 h-4" />
+                    Mark as Collected by Courier
+                  </>
+                ) : nextStatus === "awaiting_settlement" ? (
+                  <>
+                    <Building2 className="w-4 h-4" />
+                    Mark as Awaiting Settlement
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    Confirm Payment Received
+                  </>
+                )}
+              </button>
+            )}
+            
             <div>
-              <Label className="text-xs mb-2 block">Update COD Status:</Label>
+              <Label className="text-xs mb-2 block text-muted-foreground">Or select status manually:</Label>
               <Select
                 value={codStatus}
                 onValueChange={handleStatusChange}
