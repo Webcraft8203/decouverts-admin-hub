@@ -29,6 +29,7 @@ import {
   SlidersHorizontal,
   FileText as BlogIcon,
   Newspaper,
+  Briefcase,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -43,10 +44,13 @@ interface NavItem {
   permissions?: EmployeePermission[];
   /** If true, only super admins can see this item */
   superAdminOnly?: boolean;
+  /** If true, only employees (not super admins) can see this item */
+  employeeOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
   { to: "/admin", icon: LayoutDashboard, label: "Dashboard", exact: true },
+  { to: "/dashboard/employee-portal", icon: Briefcase, label: "My Profile", employeeOnly: true },
   { to: "/admin/orders", icon: ShoppingBag, label: "Orders", permissions: ["view_orders", "update_orders"] },
   { to: "/admin/design-requests", icon: Palette, label: "Design Requests", permissions: ["manage_design_requests"] },
   { to: "/admin/products", icon: Package, label: "Products", permissions: ["manage_products"] },
@@ -95,6 +99,11 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
   const filteredNavItems = navItems.filter((item) => {
     // Dashboard is always visible
     if (item.exact && item.to === "/admin") return true;
+    
+    // Employee-only items (like My Profile) - only show to employees, not super admins
+    if (item.employeeOnly) {
+      return isEmployee && !isSuperAdmin;
+    }
     
     // Super admin only items
     if (item.superAdminOnly) {
