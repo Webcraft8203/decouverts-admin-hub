@@ -117,19 +117,24 @@ export default function Accounting() {
       const pendingOrders = orders?.filter((o) => o.payment_status !== "paid") || [];
 
       // COD specific calculations with granular statuses
-      const codOrders = orders?.filter((o) => o.payment_id?.startsWith("COD")) || [];
+      // Match COD by payment_id prefix, order_type, or cod_payment_status presence
+      const codOrders = orders?.filter((o) => 
+        o.payment_id?.startsWith("COD") || 
+        o.order_type === "cod" || 
+        o.cod_payment_status != null
+      ) || [];
       
       // Settled = payment received to company account (includes old 'received' status for backward compatibility)
       const codSettledOrders = codOrders.filter((o) => 
-        (o as any).cod_payment_status === "settled" || (o as any).cod_payment_status === "received"
+        o.cod_payment_status === "settled" || o.cod_payment_status === "received"
       );
       // Collected by courier = courier has picked up money, awaiting transfer
-      const codCollectedByCourierOrders = codOrders.filter((o) => (o as any).cod_payment_status === "collected_by_courier");
+      const codCollectedByCourierOrders = codOrders.filter((o) => o.cod_payment_status === "collected_by_courier");
       // Awaiting settlement = money in transit from courier
-      const codAwaitingSettlementOrders = codOrders.filter((o) => (o as any).cod_payment_status === "awaiting_settlement");
+      const codAwaitingSettlementOrders = codOrders.filter((o) => o.cod_payment_status === "awaiting_settlement");
       // Pending = delivered but payment not yet collected, or still in transit
       const codPendingOrders = codOrders.filter((o) => 
-        (o as any).cod_payment_status === "pending" && 
+        o.cod_payment_status === "pending" && 
         o.status !== "cancelled"
       );
 
@@ -138,8 +143,14 @@ export default function Accounting() {
       const codAwaitingSettlement = codAwaitingSettlementOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
       const codPending = codPendingOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
 
-      // Online paid orders
-      const onlinePaidOrders = paidOrders.filter((o) => !o.payment_id?.startsWith("COD"));
+      // Helper to check if order is COD
+      const isCodOrder = (o: any) => 
+        o.payment_id?.startsWith("COD") || 
+        o.order_type === "cod" || 
+        o.cod_payment_status != null;
+
+      // Online paid orders (exclude COD orders)
+      const onlinePaidOrders = paidOrders.filter((o) => !isCodOrder(o));
       const onlineRevenue = onlinePaidOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
 
       // Total confirmed revenue = online paid + COD settled
@@ -147,7 +158,7 @@ export default function Accounting() {
       
       // Pending = orders not yet paid (excluding COD which has its own flow)
       const pendingAmount = pendingOrders
-        .filter((o) => !o.payment_id?.startsWith("COD"))
+        .filter((o) => !isCodOrder(o))
         .reduce((sum, o) => sum + (o.total_amount || 0), 0);
 
       // Fetch final invoices for GST calculations
@@ -192,7 +203,7 @@ export default function Accounting() {
         totalIgst,
         totalTax: totalCgst + totalSgst + totalIgst,
         paidOrders: paidOrders.length,
-        pendingPayments: pendingOrders.filter((o) => !o.payment_id?.startsWith("COD")).length,
+        pendingPayments: pendingOrders.filter((o) => !isCodOrder(o)).length,
         pendingAmount,
         codSettled,
         codCollectedByCourier,
