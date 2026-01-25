@@ -124,12 +124,12 @@ export function useAnalytics() {
     const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
 
     const [ordersRes, productsRes, profilesRes, todayOrdersRes, orderItemsRes, invoicesRes] = await Promise.all([
-      supabase.from("orders").select("id, total_amount, payment_status"),
+      supabase.from("orders").select("id, total_amount, payment_status, order_type, payment_id, cod_payment_status, subtotal"),
       supabase.from("products").select("id, cost_price"),
       supabase.from("profiles").select("id"),
       supabase
         .from("orders")
-        .select("id, total_amount, payment_status")
+        .select("id, total_amount, payment_status, order_type, payment_id, cod_payment_status")
         .gte("created_at", startOfDay)
         .lt("created_at", endOfDay),
       supabase.from("order_items").select("product_id, quantity, total_price"),
@@ -137,14 +137,42 @@ export function useAnalytics() {
     ]);
 
     const orders = ordersRes.data || [];
-    const paidOrders = orders.filter((o) => o.payment_status === "paid");
-    const totalRevenue = paidOrders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
+    
+    // Helper to check if order is COD
+    const isCodOrder = (o: any) => 
+      o.payment_id?.startsWith("COD") || 
+      o.order_type === "cod" || 
+      o.cod_payment_status != null;
 
+    // COD settled orders (payment received to company)
+    const codSettledOrders = orders.filter((o) => 
+      isCodOrder(o) && (o.cod_payment_status === "settled" || o.cod_payment_status === "received")
+    );
+    const codSettledRevenue = codSettledOrders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
+
+    // Online paid orders (exclude COD)
+    const onlinePaidOrders = orders.filter((o) => o.payment_status === "paid" && !isCodOrder(o));
+    const onlineRevenue = onlinePaidOrders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
+
+    // Total revenue = online paid + COD settled (matching Accounting dashboard logic)
+    const totalRevenue = onlineRevenue + codSettledRevenue;
+
+    // Today's revenue calculation
     const todayOrders = todayOrdersRes.data || [];
-    const todayPaidOrders = todayOrders.filter((o) => o.payment_status === "paid");
-    const todayRevenue = todayPaidOrders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
+    const todayCodSettled = todayOrders.filter((o) => 
+      isCodOrder(o) && (o.cod_payment_status === "settled" || o.cod_payment_status === "received")
+    );
+    const todayOnlinePaid = todayOrders.filter((o) => o.payment_status === "paid" && !isCodOrder(o));
+    const todayRevenue = todayCodSettled.reduce((sum, o) => sum + Number(o.total_amount || 0), 0) +
+                         todayOnlinePaid.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
 
     // Calculate profit based on order items and product cost prices
+    // Only include items from paid/settled orders
+    const paidOrderIds = new Set([
+      ...onlinePaidOrders.map(o => o.id),
+      ...codSettledOrders.map(o => o.id)
+    ]);
+    
     const products = productsRes.data || [];
     const productCostMap: Record<string, number> = {};
     products.forEach((p) => {
@@ -154,13 +182,20 @@ export function useAnalytics() {
     const orderItems = orderItemsRes.data || [];
     let totalCost = 0;
     let totalSalesRevenue = 0;
+    
+    // For proper profit calculation, use subtotal from paid orders
+    const paidOrderSubtotals = [...onlinePaidOrders, ...codSettledOrders].reduce(
+      (sum, o) => sum + Number(o.subtotal || 0), 0
+    );
+    
     orderItems.forEach((item) => {
-      totalSalesRevenue += Number(item.total_price || 0);
       if (item.product_id && productCostMap[item.product_id]) {
         totalCost += productCostMap[item.product_id] * item.quantity;
       }
     });
-    const totalProfit = totalSalesRevenue - totalCost;
+    
+    // Profit = Revenue (excluding taxes/shipping) - Cost
+    const totalProfit = paidOrderSubtotals - totalCost;
 
     // Calculate GST collections from final invoices
     const invoices = invoicesRes.data || [];
