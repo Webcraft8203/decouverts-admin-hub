@@ -12,12 +12,14 @@ import {
   FileText, 
   CreditCard, 
   ClipboardList,
-  AlertCircle
+  AlertCircle,
+  Calendar
 } from "lucide-react";
 import { EmployeeSelfServiceProfile } from "@/components/employee/EmployeeSelfServiceProfile";
 import { EmployeeSelfServiceDocuments } from "@/components/employee/EmployeeSelfServiceDocuments";
 import { EmployeeSelfServiceBank } from "@/components/employee/EmployeeSelfServiceBank";
 import { EmployeePendingRequests } from "@/components/employee/EmployeePendingRequests";
+import { EmployeeLeaveRequests } from "@/components/employee/EmployeeLeaveRequests";
 
 interface EmployeeData {
   id: string;
@@ -146,11 +148,16 @@ export default function EmployeePortal() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-auto">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 h-auto">
           <TabsTrigger value="profile" className="flex items-center gap-2 py-3">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">My Profile</span>
             <span className="sm:hidden">Profile</span>
+          </TabsTrigger>
+          <TabsTrigger value="leave" className="flex items-center gap-2 py-3">
+            <Calendar className="h-4 w-4" />
+            <span className="hidden sm:inline">Leave</span>
+            <span className="sm:hidden">Leave</span>
           </TabsTrigger>
           <TabsTrigger value="documents" className="flex items-center gap-2 py-3">
             <FileText className="h-4 w-4" />
@@ -173,6 +180,12 @@ export default function EmployeePortal() {
           <EmployeeSelfServiceProfile 
             employee={employee} 
             onUpdate={fetchEmployee}
+          />
+        </TabsContent>
+
+        <TabsContent value="leave" className="mt-6">
+          <EmployeeLeaveRequests 
+            employeeId={employee.id}
           />
         </TabsContent>
 
