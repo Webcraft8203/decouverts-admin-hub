@@ -128,10 +128,14 @@ export default function Accounting() {
 
       // COD specific calculations with granular statuses
       // Match COD by payment_id prefix, order_type, or cod_payment_status presence
+      // IMPORTANT: Exclude orders that have online payment (pay_ prefix from Razorpay)
+      const isOnlinePaid = (o: any) => o.payment_id?.startsWith("pay_");
       const codOrders = orders?.filter((o) => 
-        o.payment_id?.startsWith("COD") || 
-        o.order_type === "cod" || 
-        o.cod_payment_status != null
+        !isOnlinePaid(o) && (
+          o.payment_id?.startsWith("COD") || 
+          o.order_type === "cod" || 
+          o.cod_payment_status != null
+        )
       ) || [];
       
       // Settled = payment received to company account (includes old 'received' status for backward compatibility)
