@@ -106,11 +106,21 @@ export default function Accounting() {
       // Fetch orders with payment status
       const { data: orders, error: ordersError } = await supabase
         .from("orders")
-        .select("*")
+        .select("*, order_items(product_id, quantity, total_price)")
         .gte("created_at", start.toISOString())
         .lte("created_at", end.toISOString());
 
       if (ordersError) throw ordersError;
+
+      // Fetch products for cost price calculation
+      const { data: products } = await supabase
+        .from("products")
+        .select("id, cost_price");
+      
+      const productCostMap: Record<string, number> = {};
+      (products || []).forEach((p) => {
+        productCostMap[p.id] = Number(p.cost_price || 0);
+      });
 
       // Calculate stats from orders
       const paidOrders = orders?.filter((o) => o.payment_status === "paid") || [];
@@ -192,8 +202,21 @@ export default function Accounting() {
         finalAmount: finalInvs.reduce((sum, i) => sum + i.total_amount, 0),
       });
 
-      // Calculate profit (using rough estimate for now)
-      const estimatedProfit = totalRevenue * 0.3; // 30% margin estimate
+      // Calculate profit using actual cost prices (matching Analytics dashboard)
+      const paidSettledOrders = [...onlinePaidOrders, ...codSettledOrders];
+      const paidOrderSubtotals = paidSettledOrders.reduce((sum, o) => sum + (o.subtotal || 0), 0);
+      
+      let totalCost = 0;
+      paidSettledOrders.forEach((order) => {
+        const items = order.order_items || [];
+        items.forEach((item: any) => {
+          if (item.product_id && productCostMap[item.product_id]) {
+            totalCost += productCostMap[item.product_id] * item.quantity;
+          }
+        });
+      });
+      
+      const estimatedProfit = paidOrderSubtotals - totalCost;
 
       setStats({
         totalRevenue,
@@ -349,7 +372,7 @@ export default function Accounting() {
               {formatCurrency(stats.totalProfit)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              ~30% margin
+              Revenue - Cost
             </p>
           </CardContent>
         </Card>
