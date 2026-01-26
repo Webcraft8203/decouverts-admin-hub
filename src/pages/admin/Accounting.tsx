@@ -238,9 +238,21 @@ export default function Accounting() {
         codPending,
       });
 
-      // Sales data for chart
+      // Sales data for chart - include both online paid and settled COD orders
       const salesByDate: Record<string, { revenue: number; orders: number }> = {};
-      paidOrders.forEach((order) => {
+      
+      // Add online paid orders (non-COD with payment_status = paid)
+      onlinePaidOrders.forEach((order) => {
+        const date = format(new Date(order.created_at), "MMM dd");
+        if (!salesByDate[date]) {
+          salesByDate[date] = { revenue: 0, orders: 0 };
+        }
+        salesByDate[date].revenue += order.total_amount || 0;
+        salesByDate[date].orders += 1;
+      });
+      
+      // Add settled/received COD orders
+      codSettledOrders.forEach((order) => {
         const date = format(new Date(order.created_at), "MMM dd");
         if (!salesByDate[date]) {
           salesByDate[date] = { revenue: 0, orders: 0 };

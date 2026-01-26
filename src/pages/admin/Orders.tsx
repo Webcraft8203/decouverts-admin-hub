@@ -264,8 +264,11 @@ const AdminOrders = () => {
     }
   };
 
-  // Helper to check if order is COD
+  // Helper to check if order is COD (exclude online paid orders)
   const isCodOrder = (order: any) => {
+    // If paid online (Razorpay), it's NOT a COD order
+    if (order.payment_id?.startsWith("pay_")) return false;
+    
     return order.payment_id?.startsWith("COD") || 
            order.order_type === "cod" || 
            order.cod_payment_status != null;
