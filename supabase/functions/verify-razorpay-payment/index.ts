@@ -408,6 +408,22 @@ serve(async (req) => {
       
       if (invoiceResponse.ok) {
         console.log("Proforma invoice generated successfully");
+        
+        // Now trigger order confirmation email with invoice attached
+        console.log("Triggering order confirmation email for:", newOrder.id);
+        fetch(`${supabaseUrl}/functions/v1/send-order-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${supabaseServiceKey}`,
+          },
+          body: JSON.stringify({
+            orderId: newOrder.id,
+            emailType: "order_placed",
+          }),
+        }).catch((emailErr) => {
+          console.error("Error triggering order email:", emailErr);
+        });
       } else {
         console.error("Failed to generate proforma invoice:", await invoiceResponse.text());
       }
