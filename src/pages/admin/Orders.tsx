@@ -179,6 +179,21 @@ const AdminOrders = () => {
         description: `Order ${orderNumber} status changed to ${status}${shippingDetails ? ` - Courier: ${shippingDetails.courier_name}` : ''}`,
         metadata
       });
+
+      // Send status update email to customer
+      try {
+        await supabase.functions.invoke("send-order-email", {
+          body: {
+            orderId: id,
+            emailType: "status_update",
+            newStatus: status,
+          },
+        });
+        console.log("Status update email sent for order:", orderNumber);
+      } catch (emailError) {
+        console.error("Failed to send status update email:", emailError);
+        // Don't show error to user - email is secondary
+      }
     },
     onError: () => toast.error("Failed to update status"),
   });

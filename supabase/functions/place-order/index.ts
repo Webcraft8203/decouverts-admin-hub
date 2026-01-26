@@ -301,6 +301,27 @@ serve(async (req) => {
 
     console.log("Order placed successfully:", newOrder.order_number, "Discount:", discountAmount);
 
+    // Trigger order confirmation email (in background)
+    try {
+      console.log("Triggering order confirmation email for:", newOrder.id);
+      fetch(`${supabaseUrl}/functions/v1/send-order-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${supabaseServiceKey}`,
+        },
+        body: JSON.stringify({
+          orderId: newOrder.id,
+          emailType: "order_placed",
+        }),
+      }).catch((emailErr) => {
+        console.error("Error triggering order email:", emailErr);
+      });
+    } catch (emailError) {
+      console.error("Error sending order email:", emailError);
+      // Don't throw - order was successful, email failure shouldn't affect response
+    }
+
     return new Response(JSON.stringify({ orderId: newOrder.id, orderNumber: newOrder.order_number }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
