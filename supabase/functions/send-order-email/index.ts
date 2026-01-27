@@ -92,13 +92,20 @@ serve(async (req) => {
     // Fetch invoice settings for company info
     const { data: settings } = await supabase
       .from("invoice_settings")
-      .select("business_name, business_email, business_phone, business_logo_url")
+      .select("business_name, business_email, business_phone, business_address, business_city, business_state, business_pincode, business_gstin")
       .single();
 
-    const companyName = settings?.business_name || "Decouverts";
+    const companyName = settings?.business_name || "Decouverts Plus";
     const companyEmail = settings?.business_email || "info@decouverts.com";
     const companyPhone = settings?.business_phone || "+91 98765 43210";
-    const logoUrl = settings?.business_logo_url || "";
+    const companyAddress = settings?.business_address || "";
+    const companyCity = settings?.business_city || "";
+    const companyState = settings?.business_state || "";
+    const companyPincode = settings?.business_pincode || "";
+    const companyGstin = settings?.business_gstin || "";
+    
+    // Use hosted logo from public bucket
+    const logoUrl = `${supabaseUrl}/storage/v1/object/public/customer-partner-images/email-logo.png?v=1`;
 
     // Get invoice PDF if available
     let invoiceAttachment: { filename: string; content: string } | null = null;
@@ -145,9 +152,33 @@ serve(async (req) => {
       `)
       .join("");
 
-    // Determine payment method
-    const isCod = order.payment_id?.startsWith("COD") || order.order_type === "cod";
-    const paymentMethod = isCod ? "Cash on Delivery" : "Paid Online";
+    // Determine payment method - proper COD detection
+    const isOnlinePaid = order.payment_id?.startsWith("pay_");
+    const isCod = !isOnlinePaid && (
+      order.payment_id?.startsWith("COD") || 
+      order.order_type === "cod" || 
+      order.cod_payment_status != null
+    );
+    
+    let paymentMethod: string;
+    let paymentStatus: string;
+    
+    if (isCod) {
+      paymentMethod = "Cash on Delivery (COD)";
+      const codStatus = order.cod_payment_status || "pending";
+      if (codStatus === "settled" || codStatus === "received") {
+        paymentStatus = "Paid";
+      } else if (codStatus === "collected_by_courier") {
+        paymentStatus = "Collected by Courier";
+      } else if (codStatus === "awaiting_settlement") {
+        paymentStatus = "Awaiting Settlement";
+      } else {
+        paymentStatus = "Payment on Delivery";
+      }
+    } else {
+      paymentMethod = "Online Payment";
+      paymentStatus = order.payment_status === "paid" ? "Paid" : "Pending";
+    }
 
     // Build email content based on type
     let subject: string;
@@ -224,6 +255,10 @@ serve(async (req) => {
                 <td style="color: #6b7280; padding: 5px 0;">Payment Method:</td>
                 <td style="color: #111827; text-align: right;">${paymentMethod}</td>
               </tr>
+              <tr>
+                <td style="color: #6b7280; padding: 5px 0;">Payment Status:</td>
+                <td style="color: ${paymentStatus === 'Paid' ? '#22c55e' : '#f59e0b'}; font-weight: bold; text-align: right;">${paymentStatus}</td>
+              </tr>
             </table>
           </div>
 
@@ -297,16 +332,29 @@ serve(async (req) => {
         </div>
 
         <!-- Footer -->
-        <div style="background-color: #f9fafb; padding: 25px; text-align: center; border-top: 1px solid #e5e7eb;">
-          <p style="color: #6b7280; font-size: 14px; margin: 0 0 10px 0;">
-            If you have any questions, please contact us at:
+        <div style="background-color: #1f2937; padding: 30px; text-align: center;">
+          <img src="${logoUrl}" alt="${companyName}" style="height: 40px; margin-bottom: 15px;">
+          <p style="color: #e5e7eb; font-size: 14px; margin: 0 0 10px 0;">
+            ${companyName}
           </p>
-          <p style="color: #374151; font-size: 14px; margin: 0;">
-            <a href="mailto:${companyEmail}" style="color: #3b82f6;">${companyEmail}</a> | ${companyPhone}
+          ${companyAddress ? `
+          <p style="color: #9ca3af; font-size: 12px; margin: 0 0 5px 0;">
+            ${companyAddress}${companyCity ? `, ${companyCity}` : ""}${companyState ? `, ${companyState}` : ""}${companyPincode ? ` - ${companyPincode}` : ""}
           </p>
-          <p style="color: #9ca3af; font-size: 12px; margin-top: 20px;">
-            © ${new Date().getFullYear()} ${companyName}. All rights reserved.
+          ` : ""}
+          ${companyGstin ? `
+          <p style="color: #9ca3af; font-size: 12px; margin: 0 0 10px 0;">
+            GSTIN: ${companyGstin}
           </p>
+          ` : ""}
+          <p style="color: #9ca3af; font-size: 12px; margin: 10px 0;">
+            <a href="mailto:${companyEmail}" style="color: #60a5fa;">${companyEmail}</a> | ${companyPhone}
+          </p>
+          <div style="border-top: 1px solid #374151; margin-top: 20px; padding-top: 15px;">
+            <p style="color: #6b7280; font-size: 11px; margin: 0;">
+              © ${new Date().getFullYear()} ${companyName}. All rights reserved.
+            </p>
+          </div>
         </div>
 
       </div>
