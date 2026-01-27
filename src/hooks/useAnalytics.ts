@@ -223,10 +223,30 @@ export function useAnalytics() {
 
     const { data: orders } = await supabase
       .from("orders")
-      .select("created_at, total_amount, payment_status")
+      .select("created_at, total_amount, payment_status, payment_id, order_type, cod_payment_status")
       .gte("created_at", startDate.toISOString())
-      .lte("created_at", endDate.toISOString())
-      .eq("payment_status", "paid");
+      .lte("created_at", endDate.toISOString());
+
+    // Helper to check if order is online paid (Razorpay)
+    const isOnlinePaid = (o: any) => o.payment_id?.startsWith("pay_");
+    
+    // Helper to check if order is COD
+    const isCodOrder = (o: any) => 
+      !isOnlinePaid(o) && (
+        o.payment_id?.startsWith("COD") || 
+        o.order_type === "cod" || 
+        o.cod_payment_status != null
+      );
+
+    // Online paid orders (non-COD with payment_status = paid)
+    const onlinePaidOrders = (orders || []).filter((o) => 
+      o.payment_status === "paid" && !isCodOrder(o)
+    );
+
+    // COD settled orders (payment received to company)
+    const codSettledOrders = (orders || []).filter((o) => 
+      isCodOrder(o) && (o.cod_payment_status === "settled" || o.cod_payment_status === "received")
+    );
 
     // Group by date
     const dailyData: Record<string, { revenue: number; orders: number }> = {};
@@ -237,8 +257,17 @@ export function useAnalytics() {
       dailyData[date] = { revenue: 0, orders: 0 };
     }
 
-    // Fill in data
-    (orders || []).forEach((order) => {
+    // Fill in data from online paid orders
+    onlinePaidOrders.forEach((order) => {
+      const date = format(new Date(order.created_at), "MMM dd");
+      if (dailyData[date]) {
+        dailyData[date].revenue += Number(order.total_amount || 0);
+        dailyData[date].orders += 1;
+      }
+    });
+
+    // Fill in data from COD settled orders
+    codSettledOrders.forEach((order) => {
       const date = format(new Date(order.created_at), "MMM dd");
       if (dailyData[date]) {
         dailyData[date].revenue += Number(order.total_amount || 0);
