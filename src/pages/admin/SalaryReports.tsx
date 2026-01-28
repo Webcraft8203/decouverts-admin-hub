@@ -151,57 +151,203 @@ export default function SalaryReports() {
     return p.payment_period === period;
   });
 
-  const downloadReport = () => {
+  const downloadReport = async () => {
     const doc = new jsPDF();
     
-    doc.setFontSize(20);
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    let y = 12;
+
+    // Colors
+    const primaryColor: [number, number, number] = [234, 171, 28]; // Brand gold #EAAB1C
+    const textDark: [number, number, number] = [33, 33, 33];
+    const textGray: [number, number, number] = [102, 102, 102];
+    const successColor: [number, number, number] = [76, 175, 80];
+    const borderColor: [number, number, number] = [220, 220, 220];
+
+    // Company settings
+    const companySettings = {
+      business_name: "Decouverts",
+      business_address: "Innovation Hub, Tech Park",
+      business_city: "Pune",
+      business_state: "Maharashtra",
+      business_pincode: "411001",
+      business_phone: "+91 98765 43210",
+      business_email: "info@decouverts.com",
+      business_gstin: "27XXXXX1234X1ZX",
+    };
+
+    // Header background
+    doc.setFillColor(250, 250, 250);
+    doc.rect(0, 0, pageWidth, 45, "F");
+
+    // Try to load logo
+    try {
+      const logoUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/customer-partner-images/email-logo.png`;
+      const response = await fetch(logoUrl);
+      if (response.ok) {
+        const blob = await response.blob();
+        const reader = new FileReader();
+        await new Promise((resolve) => {
+          reader.onload = () => {
+            try {
+              const logoBase64 = reader.result as string;
+              doc.addImage(logoBase64, 'PNG', margin, y, 35, 18);
+            } catch (e) {
+              console.error("Failed to add logo:", e);
+            }
+            resolve(true);
+          };
+          reader.readAsDataURL(blob);
+        });
+      }
+    } catch (e) {
+      console.error("Logo fetch error:", e);
+    }
+
+    // Report Badge - Top Right
+    const badgeWidth = 55;
+    const badgeHeight = 18;
+    const badgeX = pageWidth - margin - badgeWidth;
+    const badgeY = y;
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.roundedRect(badgeX, badgeY, badgeWidth, badgeHeight, 3, 3, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
-    doc.text("Salary Report", 105, 20, { align: "center" });
-    
-    doc.setFontSize(12);
+    doc.text("SALARY REPORT", badgeX + badgeWidth / 2, badgeY + 8, { align: "center" });
+    doc.setFontSize(7);
     doc.setFont("helvetica", "normal");
-    doc.text(`${selectedMonth} ${selectedYear}`, 105, 30, { align: "center" });
-    doc.text(`Generated: ${format(new Date(), "MMM d, yyyy")}`, 105, 38, { align: "center" });
-    
-    // Summary
-    doc.setFontSize(14);
+    doc.text(`${selectedMonth} ${selectedYear}`, badgeX + badgeWidth / 2, badgeY + 14, { align: "center" });
+
+    // Company Name
+    const companyNameY = y + 22;
+    doc.setFontSize(18);
+    doc.setTextColor(...primaryColor);
     doc.setFont("helvetica", "bold");
-    doc.text("Summary", 20, 55);
-    doc.line(20, 58, 190, 58);
-    
+    doc.text(companySettings.business_name, margin, companyNameY);
+
+    // Tagline
+    doc.setFontSize(8);
+    doc.setTextColor(...textGray);
+    doc.setFont("helvetica", "italic");
+    doc.text("Discovering Future Technologies", margin, companyNameY + 5);
+
+    y = 50;
+
+    // Company details row
+    doc.setFontSize(8);
+    doc.setTextColor(...textGray);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${companySettings.business_address}, ${companySettings.business_city}, ${companySettings.business_state} - ${companySettings.business_pincode}`, margin, y);
+    y += 4;
+    doc.text(`Phone: ${companySettings.business_phone} | Email: ${companySettings.business_email} | GSTIN: ${companySettings.business_gstin}`, margin, y);
+    y += 4;
+
+    // Generated date - right
+    doc.text(`Generated: ${format(new Date(), "dd MMM yyyy, HH:mm")}`, pageWidth - margin, y, { align: "right" });
+
+    y += 8;
+
+    // Separator
+    doc.setDrawColor(...primaryColor);
+    doc.setLineWidth(0.8);
+    doc.line(margin, y, pageWidth - margin, y);
+
+    y += 10;
+
+    // Summary Section
+    doc.setFillColor(248, 248, 248);
+    doc.rect(margin, y, pageWidth - 2 * margin, 6, "F");
     doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Total Employees: ${stats.totalEmployees}`, 20, 68);
-    doc.text(`Monthly Salary Budget: ${formatCurrency(stats.totalMonthlySalary)}`, 20, 76);
-    doc.text(`Total Paid: ${formatCurrency(stats.totalPaid)}`, 120, 68);
-    doc.text(`Total Pending: ${formatCurrency(stats.totalPending)}`, 120, 76);
-    
-    // Employee Salaries
-    doc.setFontSize(14);
+    doc.setTextColor(...primaryColor);
     doc.setFont("helvetica", "bold");
-    doc.text("Employee Salaries", 20, 95);
-    doc.line(20, 98, 190, 98);
-    
-    let yPos = 108;
-    doc.setFontSize(9);
+    doc.text("SUMMARY", margin + 3, y + 4);
+
+    y += 12;
+
+    const colWidth = (pageWidth - 2 * margin) / 4;
+    const summaryItems = [
+      { label: "Total Employees", value: String(stats.totalEmployees) },
+      { label: "Monthly Budget", value: formatCurrency(stats.totalMonthlySalary) },
+      { label: "Total Paid", value: formatCurrency(stats.totalPaid) },
+      { label: "Total Pending", value: formatCurrency(stats.totalPending) },
+    ];
+
+    doc.setFontSize(8);
+    summaryItems.forEach((item, i) => {
+      const x = margin + i * colWidth;
+      doc.setTextColor(...textGray);
+      doc.setFont("helvetica", "normal");
+      doc.text(item.label, x, y);
+      doc.setTextColor(...textDark);
+      doc.setFont("helvetica", "bold");
+      doc.text(item.value, x, y + 5);
+    });
+
+    y += 18;
+
+    // Employee Salaries Table
+    doc.setFillColor(248, 248, 248);
+    doc.rect(margin, y, pageWidth - 2 * margin, 6, "F");
+    doc.setFontSize(10);
+    doc.setTextColor(...primaryColor);
     doc.setFont("helvetica", "bold");
-    doc.text("Employee", 20, yPos);
-    doc.text("Department", 80, yPos);
-    doc.text("Salary", 140, yPos);
-    doc.text("Type", 170, yPos);
+    doc.text("EMPLOYEE SALARIES", margin + 3, y + 4);
+
+    y += 10;
+
+    // Table Header
+    const tableColWidths = [55, 40, 40, 30];
+    const tableHeaders = ["Employee", "Department", "Salary", "Type"];
     
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.rect(margin, y, pageWidth - 2 * margin, 8, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    
+    let xPos = margin + 3;
+    tableHeaders.forEach((header, i) => {
+      doc.text(header, xPos, y + 5.5);
+      xPos += tableColWidths[i];
+    });
+
+    y += 10;
+
+    // Table Rows
     doc.setFont("helvetica", "normal");
     salaries.forEach((sal, index) => {
-      yPos = 116 + (index * 8);
-      if (yPos > 270) {
+      if (y > 270) {
         doc.addPage();
-        yPos = 20;
+        y = 20;
       }
-      doc.text(sal.employee?.employee_name || "N/A", 20, yPos);
-      doc.text(sal.employee?.department || "-", 80, yPos);
-      doc.text(formatCurrency(sal.salary_amount), 140, yPos);
-      doc.text(sal.salary_type, 170, yPos);
+      
+      // Alternating row background
+      if (index % 2 === 0) {
+        doc.setFillColor(250, 250, 250);
+        doc.rect(margin, y - 2, pageWidth - 2 * margin, 7, "F");
+      }
+      
+      doc.setTextColor(...textDark);
+      xPos = margin + 3;
+      doc.text((sal.employee?.employee_name || "N/A").substring(0, 25), xPos, y + 3);
+      xPos += tableColWidths[0];
+      doc.text((sal.employee?.department || "-").substring(0, 18), xPos, y + 3);
+      xPos += tableColWidths[1];
+      doc.text(formatCurrency(sal.salary_amount), xPos, y + 3);
+      xPos += tableColWidths[2];
+      doc.text(sal.salary_type || "Monthly", xPos, y + 3);
+      
+      y += 7;
     });
+
+    // Footer
+    doc.setDrawColor(...borderColor);
+    doc.line(margin, 280, pageWidth - margin, 280);
+    doc.setFontSize(8);
+    doc.setTextColor(...textGray);
+    doc.text(`${companySettings.business_name} | ${companySettings.business_phone} | ${companySettings.business_email}`, pageWidth / 2, 286, { align: "center" });
     
     doc.save(`Salary_Report_${selectedMonth}_${selectedYear}.pdf`);
   };
