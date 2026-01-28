@@ -12,9 +12,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { Plus, Trash2, Download, FileText, Eye, X, Search, Filter, Calendar, CreditCard, Banknote, CheckCircle, Clock, AlertCircle, Receipt, FileCheck } from "lucide-react";
+import { useBulkInvoiceDownload } from "@/hooks/useBulkInvoiceDownload";
+import { Plus, Trash2, Download, FileText, Eye, X, Search, Filter, Calendar, CreditCard, Banknote, CheckCircle, Clock, AlertCircle, Receipt, FileCheck, FileDown, Loader2 } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { INDIAN_STATES } from "@/constants/indianStates";
 import { jsPDF } from "jspdf";
@@ -115,6 +117,9 @@ export default function Invoices() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [activeTab, setActiveTab] = useState<"proforma" | "final">("proforma");
   
+  // Selection state for bulk operations
+  const [selectedInvoiceIds, setSelectedInvoiceIds] = useState<Set<string>>(new Set());
+  
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState("");
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
@@ -131,6 +136,9 @@ export default function Invoices() {
   const [items, setItems] = useState<InvoiceItem[]>([{ description: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
   const { toast } = useToast();
   const { user } = useAuth();
+  
+  // Bulk download hook
+  const { downloadBulkInvoices, downloadInvoiceReport, isDownloading: isBulkDownloading, progress } = useBulkInvoiceDownload();
 
   useEffect(() => {
     fetchData();
@@ -842,6 +850,45 @@ export default function Invoices() {
   // Stats for tabs
   const proformaCount = invoices.filter(i => i.invoice_type !== "final").length;
   const finalCount = invoices.filter(i => i.invoice_type === "final").length;
+  
+  // Get final invoices for selection
+  const finalInvoices = filteredInvoices.filter(i => i.invoice_type === "final");
+  
+  // Selection handlers for bulk operations
+  const toggleInvoiceSelection = (invoiceId: string) => {
+    const newSelection = new Set(selectedInvoiceIds);
+    if (newSelection.has(invoiceId)) {
+      newSelection.delete(invoiceId);
+    } else {
+      newSelection.add(invoiceId);
+    }
+    setSelectedInvoiceIds(newSelection);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedInvoiceIds.size === finalInvoices.length) {
+      setSelectedInvoiceIds(new Set());
+    } else {
+      setSelectedInvoiceIds(new Set(finalInvoices.map(inv => inv.id)));
+    }
+  };
+
+  const handleBulkDownload = async () => {
+    const selectedIds = Array.from(selectedInvoiceIds);
+    await downloadBulkInvoices(selectedIds);
+    setSelectedInvoiceIds(new Set());
+  };
+
+  const handleDownloadReport = async () => {
+    const dateRangeLabel = dateRange.from && dateRange.to 
+      ? `${format(new Date(dateRange.from), "dd MMM yyyy")} - ${format(new Date(dateRange.to), "dd MMM yyyy")}`
+      : "All Time";
+    await downloadInvoiceReport({
+      dateFrom: dateRange.from || undefined,
+      dateTo: dateRange.to || undefined,
+      dateRange: dateRangeLabel,
+    });
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -1198,13 +1245,49 @@ export default function Invoices() {
         <TabsContent value="final" className="mt-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <FileCheck className="w-5 h-5 text-green-500" />
-                Final Tax Invoices
-              </CardTitle>
-              <CardDescription>
-                Official GST-compliant invoices generated after order delivery. Valid for tax filing.
-              </CardDescription>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <FileCheck className="w-5 h-5 text-green-500" />
+                    Final Tax Invoices
+                  </CardTitle>
+                  <CardDescription>
+                    Official GST-compliant invoices generated after order delivery. Valid for tax filing.
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  {selectedInvoiceIds.size > 0 && (
+                    <Button
+                      size="sm"
+                      onClick={handleBulkDownload}
+                      disabled={isBulkDownloading}
+                      className="gap-2"
+                    >
+                      {isBulkDownloading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          {progress.current}/{progress.total}
+                        </>
+                      ) : (
+                        <>
+                          <FileDown className="w-4 h-4" />
+                          Download Selected ({selectedInvoiceIds.size})
+                        </>
+                      )}
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDownloadReport}
+                    disabled={isBulkDownloading || finalInvoices.length === 0}
+                    className="gap-2"
+                  >
+                    <FileText className="w-4 h-4" />
+                    Download Report
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               {isLoading ? (
@@ -1218,6 +1301,13 @@ export default function Invoices() {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead className="w-10">
+                          <Checkbox
+                            checked={selectedInvoiceIds.size === finalInvoices.length && finalInvoices.length > 0}
+                            onCheckedChange={toggleSelectAll}
+                            aria-label="Select all"
+                          />
+                        </TableHead>
                         <TableHead>Invoice #</TableHead>
                         <TableHead>Order #</TableHead>
                         <TableHead>Customer</TableHead>
@@ -1233,7 +1323,14 @@ export default function Invoices() {
                         const paymentStatus = getPaymentStatus(invoice);
                         const PaymentIcon = paymentStatus.icon;
                         return (
-                          <TableRow key={invoice.id}>
+                          <TableRow key={invoice.id} className={selectedInvoiceIds.has(invoice.id) ? "bg-muted/50" : ""}>
+                            <TableCell>
+                              <Checkbox
+                                checked={selectedInvoiceIds.has(invoice.id)}
+                                onCheckedChange={() => toggleInvoiceSelection(invoice.id)}
+                                aria-label={`Select invoice ${invoice.invoice_number}`}
+                              />
+                            </TableCell>
                             <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
                             <TableCell>
                               {invoice.order?.order_number || (
