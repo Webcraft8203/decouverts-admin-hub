@@ -272,8 +272,8 @@ export default function Invoices() {
     const { error } = await supabase.from("invoices").insert([
       {
         invoice_number: invoiceNumber,
-        invoice_type: "manual",
-        is_final: false,
+        invoice_type: "final",
+        is_final: true,
         client_name: formData.client_name,
         client_email: formData.client_email || null,
         client_address: formData.client_address || null,

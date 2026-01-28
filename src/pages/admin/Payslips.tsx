@@ -198,68 +198,263 @@ export default function Payslips() {
     }
   };
 
-  const downloadPayslip = (payslip: Payslip) => {
+  const downloadPayslip = async (payslip: Payslip) => {
     const doc = new jsPDF();
     const employee = payslip.employee;
+    
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    let y = 12;
 
-    // Header
-    doc.setFontSize(20);
+    // Colors
+    const primaryColor: [number, number, number] = [234, 171, 28]; // Brand gold #EAAB1C
+    const textDark: [number, number, number] = [33, 33, 33];
+    const textGray: [number, number, number] = [102, 102, 102];
+    const successColor: [number, number, number] = [76, 175, 80];
+    const borderColor: [number, number, number] = [220, 220, 220];
+
+    // Company settings (same as invoices)
+    const companySettings = {
+      business_name: "Decouverts",
+      business_address: "Innovation Hub, Tech Park",
+      business_city: "Pune",
+      business_state: "Maharashtra",
+      business_pincode: "411001",
+      business_phone: "+91 98765 43210",
+      business_email: "info@decouverts.com",
+      business_gstin: "27XXXXX1234X1ZX",
+    };
+
+    // Header background
+    doc.setFillColor(250, 250, 250);
+    doc.rect(0, 0, pageWidth, 45, "F");
+
+    // Try to load logo
+    try {
+      const logoUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/customer-partner-images/email-logo.png`;
+      const response = await fetch(logoUrl);
+      if (response.ok) {
+        const blob = await response.blob();
+        const reader = new FileReader();
+        await new Promise((resolve) => {
+          reader.onload = () => {
+            try {
+              const logoBase64 = reader.result as string;
+              doc.addImage(logoBase64, 'PNG', margin, y, 35, 18);
+            } catch (e) {
+              console.error("Failed to add logo:", e);
+            }
+            resolve(true);
+          };
+          reader.readAsDataURL(blob);
+        });
+      }
+    } catch (e) {
+      console.error("Logo fetch error:", e);
+    }
+
+    // Payslip Badge - Top Right
+    const badgeWidth = 50;
+    const badgeHeight = 18;
+    const badgeX = pageWidth - margin - badgeWidth;
+    const badgeY = y;
+    doc.setFillColor(successColor[0], successColor[1], successColor[2]);
+    doc.roundedRect(badgeX, badgeY, badgeWidth, badgeHeight, 3, 3, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
-    doc.text("PAYSLIP", 105, 20, { align: "center" });
-
-    doc.setFontSize(12);
+    doc.text("PAYSLIP", badgeX + badgeWidth / 2, badgeY + 8, { align: "center" });
+    doc.setFontSize(7);
     doc.setFont("helvetica", "normal");
-    doc.text("Decouverts Plus", 105, 30, { align: "center" });
+    doc.text("Salary Statement", badgeX + badgeWidth / 2, badgeY + 14, { align: "center" });
 
-    // Period
-    doc.setFontSize(14);
-    doc.text(`${payslip.payslip_month} ${payslip.payslip_year}`, 105, 45, { align: "center" });
+    // Company Name
+    const companyNameY = y + 22;
+    doc.setFontSize(18);
+    doc.setTextColor(...primaryColor);
+    doc.setFont("helvetica", "bold");
+    doc.text(companySettings.business_name, margin, companyNameY);
 
-    // Employee Details
-    doc.setFontSize(11);
-    doc.text("Employee Details", 20, 65);
-    doc.setDrawColor(200, 200, 200);
-    doc.line(20, 68, 190, 68);
+    // Tagline
+    doc.setFontSize(8);
+    doc.setTextColor(...textGray);
+    doc.setFont("helvetica", "italic");
+    doc.text("Discovering Future Technologies", margin, companyNameY + 5);
 
+    y = 50;
+
+    // Company details row
+    doc.setFontSize(8);
+    doc.setTextColor(...textGray);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${companySettings.business_address}, ${companySettings.business_city}, ${companySettings.business_state} - ${companySettings.business_pincode}`, margin, y);
+    y += 4;
+    doc.text(`Phone: ${companySettings.business_phone} | Email: ${companySettings.business_email} | GSTIN: ${companySettings.business_gstin}`, margin, y);
+    y += 6;
+
+    // Period & Document details box - right aligned
+    const detailsBoxWidth = 65;
+    const detailsBoxX = pageWidth - margin - detailsBoxWidth;
+    doc.setFillColor(248, 248, 248);
+    doc.setDrawColor(...borderColor);
+    doc.roundedRect(detailsBoxX, y - 6, detailsBoxWidth, 16, 2, 2, "FD");
+    
+    doc.setFontSize(8);
+    doc.setTextColor(...textDark);
+    doc.setFont("helvetica", "bold");
+    doc.text("Pay Period:", detailsBoxX + 4, y);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${payslip.payslip_month} ${payslip.payslip_year}`, detailsBoxX + detailsBoxWidth - 4, y, { align: "right" });
+    doc.setFont("helvetica", "bold");
+    doc.text("Generated:", detailsBoxX + 4, y + 6);
+    doc.setFont("helvetica", "normal");
+    doc.text(format(new Date(payslip.generated_at), "dd MMM yyyy"), detailsBoxX + detailsBoxWidth - 4, y + 6, { align: "right" });
+
+    y += 14;
+
+    // Separator
+    doc.setDrawColor(...primaryColor);
+    doc.setLineWidth(0.8);
+    doc.line(margin, y, pageWidth - margin, y);
+
+    y += 10;
+
+    // Employee Details Section
+    doc.setFillColor(248, 248, 248);
+    doc.rect(margin, y, pageWidth - 2 * margin, 6, "F");
     doc.setFontSize(10);
-    doc.text(`Name: ${employee?.employee_name || "N/A"}`, 20, 78);
-    doc.text(`Department: ${employee?.department || "N/A"}`, 20, 86);
-    doc.text(`Designation: ${employee?.designation || "N/A"}`, 120, 78);
-    doc.text(`Date of Joining: ${employee?.date_of_joining ? format(new Date(employee.date_of_joining), "MMM d, yyyy") : "N/A"}`, 120, 86);
+    doc.setTextColor(...primaryColor);
+    doc.setFont("helvetica", "bold");
+    doc.text("EMPLOYEE DETAILS", margin + 3, y + 4);
 
-    // Attendance
-    doc.setFontSize(11);
-    doc.text("Attendance Summary", 20, 105);
-    doc.line(20, 108, 190, 108);
+    y += 10;
 
+    const colWidth = (pageWidth - 2 * margin) / 2;
+
+    doc.setFontSize(9);
+    doc.setTextColor(...textDark);
+    doc.setFont("helvetica", "bold");
+    doc.text("Name:", margin, y);
+    doc.setFont("helvetica", "normal");
+    doc.text(employee?.employee_name || "N/A", margin + 30, y);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Department:", margin + colWidth, y);
+    doc.setFont("helvetica", "normal");
+    doc.text(employee?.department || "N/A", margin + colWidth + 30, y);
+
+    y += 6;
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Designation:", margin, y);
+    doc.setFont("helvetica", "normal");
+    doc.text(employee?.designation || "N/A", margin + 30, y);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Date of Joining:", margin + colWidth, y);
+    doc.setFont("helvetica", "normal");
+    doc.text(employee?.date_of_joining ? format(new Date(employee.date_of_joining), "dd MMM yyyy") : "N/A", margin + colWidth + 35, y);
+
+    y += 12;
+
+    // Attendance Summary
+    doc.setFillColor(248, 248, 248);
+    doc.rect(margin, y, pageWidth - 2 * margin, 6, "F");
     doc.setFontSize(10);
-    doc.text(`Working Days: ${payslip.working_days}`, 20, 118);
-    doc.text(`Present Days: ${payslip.present_days}`, 80, 118);
-    doc.text(`Leave Days: ${payslip.leave_days}`, 140, 118);
+    doc.setTextColor(...primaryColor);
+    doc.setFont("helvetica", "bold");
+    doc.text("ATTENDANCE SUMMARY", margin + 3, y + 4);
 
-    // Earnings & Deductions
-    doc.setFontSize(11);
-    doc.text("Earnings", 20, 138);
-    doc.text("Deductions", 120, 138);
-    doc.line(20, 141, 100, 141);
-    doc.line(120, 141, 190, 141);
+    y += 12;
 
-    doc.setFontSize(10);
-    doc.text(`Basic Salary: ${formatCurrency(payslip.basic_salary)}`, 20, 151);
-    doc.text(`Bonuses: ${formatCurrency(payslip.bonuses)}`, 20, 159);
-    doc.text(`Deductions: ${formatCurrency(payslip.deductions)}`, 120, 151);
+    const attColWidth = (pageWidth - 2 * margin) / 3;
+    doc.setFontSize(9);
+    doc.setTextColor(...textGray);
 
-    // Total
+    ["Working Days", "Present Days", "Leave Days"].forEach((label, i) => {
+      const value = i === 0 ? payslip.working_days : i === 1 ? payslip.present_days : payslip.leave_days;
+      const x = margin + i * attColWidth;
+      doc.setFont("helvetica", "normal");
+      doc.text(label, x, y);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...textDark);
+      doc.text(String(value || 0), x, y + 6);
+      doc.setTextColor(...textGray);
+    });
+
+    y += 16;
+
+    // Earnings & Deductions Table
+    const tableX = margin;
+    const tableWidth = pageWidth - 2 * margin;
+    const earningsWidth = tableWidth / 2 - 5;
+    const deductionsWidth = tableWidth / 2 - 5;
+
+    // Earnings Header
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.rect(tableX, y, earningsWidth, 8, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.text("EARNINGS", tableX + earningsWidth / 2, y + 5.5, { align: "center" });
+
+    // Deductions Header
+    doc.rect(tableX + earningsWidth + 10, y, deductionsWidth, 8, "F");
+    doc.text("DEDUCTIONS", tableX + earningsWidth + 10 + deductionsWidth / 2, y + 5.5, { align: "center" });
+
+    y += 10;
+
+    // Earnings content
+    doc.setTextColor(...textDark);
+    doc.setFont("helvetica", "normal");
+    doc.text("Basic Salary", tableX + 3, y + 4);
+    doc.text(formatCurrency(payslip.basic_salary), tableX + earningsWidth - 3, y + 4, { align: "right" });
+
+    doc.text("Bonuses", tableX + 3, y + 12);
+    doc.text(formatCurrency(payslip.bonuses || 0), tableX + earningsWidth - 3, y + 12, { align: "right" });
+
+    // Deductions content
+    doc.text("Deductions", tableX + earningsWidth + 13, y + 4);
+    doc.text(formatCurrency(payslip.deductions || 0), tableX + earningsWidth + 10 + deductionsWidth - 3, y + 4, { align: "right" });
+
+    y += 24;
+
+    // Total Earnings & Deductions
+    doc.setDrawColor(...borderColor);
+    doc.line(tableX, y, tableX + earningsWidth, y);
+    doc.line(tableX + earningsWidth + 10, y, tableX + earningsWidth + 10 + deductionsWidth, y);
+
+    y += 6;
+    doc.setFont("helvetica", "bold");
+    doc.text("Total Earnings", tableX + 3, y);
+    doc.text(formatCurrency(payslip.basic_salary + (payslip.bonuses || 0)), tableX + earningsWidth - 3, y, { align: "right" });
+
+    doc.text("Total Deductions", tableX + earningsWidth + 13, y);
+    doc.text(formatCurrency(payslip.deductions || 0), tableX + earningsWidth + 10 + deductionsWidth - 3, y, { align: "right" });
+
+    y += 16;
+
+    // Net Salary Box
+    doc.setFillColor(76, 175, 80);
+    doc.roundedRect(margin, y, pageWidth - 2 * margin, 16, 3, 3, "F");
+    doc.setTextColor(255, 255, 255);
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
-    doc.line(20, 175, 190, 175);
-    doc.text(`Net Salary: ${formatCurrency(payslip.net_salary)}`, 20, 185);
+    doc.text("NET SALARY", margin + 10, y + 10);
+    doc.setFontSize(14);
+    doc.text(formatCurrency(payslip.net_salary), pageWidth - margin - 10, y + 10, { align: "right" });
+
+    y += 26;
 
     // Footer
     doc.setFontSize(8);
+    doc.setTextColor(...textGray);
     doc.setFont("helvetica", "normal");
-    doc.text("This is a computer-generated payslip and does not require a signature.", 105, 280, { align: "center" });
-    doc.text(`Generated on: ${format(new Date(payslip.generated_at), "MMM d, yyyy")}`, 105, 286, { align: "center" });
+    doc.text("This is a computer-generated payslip and does not require a signature.", pageWidth / 2, 275, { align: "center" });
+    
+    doc.setDrawColor(...borderColor);
+    doc.line(margin, 280, pageWidth - margin, 280);
+    doc.text(`${companySettings.business_name} | ${companySettings.business_phone} | ${companySettings.business_email}`, pageWidth / 2, 286, { align: "center" });
 
     doc.save(`Payslip_${employee?.employee_name}_${payslip.payslip_month}_${payslip.payslip_year}.pdf`);
   };

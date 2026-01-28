@@ -151,9 +151,13 @@ serve(async (req) => {
     const borderColor: [number, number, number] = [200, 200, 200];
 
     // ==================== HEADER ====================
-    // Fetch logo if available
+    // Fetch logo from Supabase storage (reliable URL)
     let logoBase64: string | null = null;
-    if (companySettings.business_logo_url) {
+    const storedLogoUrl = `${supabaseUrl}/storage/v1/object/public/customer-partner-images/email-logo.png`;
+    
+    // Try storage logo first, then fallback to settings
+    logoBase64 = await fetchImageAsBase64(storedLogoUrl);
+    if (!logoBase64 && companySettings.business_logo_url) {
       logoBase64 = await fetchImageAsBase64(companySettings.business_logo_url);
     }
 
