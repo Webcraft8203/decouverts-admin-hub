@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePermissions } from "@/hooks/useEmployeePermissions";
+import { useBulkInvoiceDownload } from "@/hooks/useBulkInvoiceDownload";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +22,9 @@ import {
   Wallet,
   PiggyBank,
   BarChart3,
-  Shield
+  Shield,
+  Loader2,
+  FileDown
 } from "lucide-react";
 import { format, startOfMonth, endOfMonth, subMonths, startOfYear, endOfYear } from "date-fns";
 import { SalesChart } from "@/components/admin/analytics/SalesChart";
@@ -52,6 +55,7 @@ interface InvoiceSummary {
 export default function Accounting() {
   const { isSuperAdmin, hasPermission, hasAnyPermission } = usePermissions();
   const { toast } = useToast();
+  const { downloadInvoiceReport, downloadBulkInvoices, isDownloading: isBulkDownloading, progress } = useBulkInvoiceDownload();
   
   const [stats, setStats] = useState<AccountingStats>({
     totalRevenue: 0,
@@ -349,9 +353,34 @@ export default function Accounting() {
             Refresh
           </Button>
           {canDownload && (
-            <Button variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Export
+            <Button 
+              variant="outline"
+              onClick={() => {
+                const { start, end } = getDateRange();
+                const dateRangeLabel = dateRange === "this_month" ? "This Month" 
+                  : dateRange === "last_month" ? "Last Month"
+                  : dateRange === "last_3_months" ? "Last 3 Months"
+                  : dateRange === "this_year" ? "This Year"
+                  : format(start, "dd MMM yyyy") + " - " + format(end, "dd MMM yyyy");
+                downloadInvoiceReport({
+                  dateFrom: format(start, "yyyy-MM-dd"),
+                  dateTo: format(end, "yyyy-MM-dd"),
+                  dateRange: dateRangeLabel,
+                });
+              }}
+              disabled={isBulkDownloading || invoiceSummary.finalCount === 0}
+            >
+              {isBulkDownloading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Export Report
+                </>
+              )}
             </Button>
           )}
         </div>
@@ -598,9 +627,45 @@ export default function Accounting() {
 
         <TabsContent value="invoices">
           <Card>
-            <CardHeader>
-              <CardTitle>Recent Invoices</CardTitle>
-              <CardDescription>Last 10 invoices generated</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Recent Invoices</CardTitle>
+                <CardDescription>Last 10 invoices generated</CardDescription>
+              </div>
+              {canDownload && invoiceSummary.finalCount > 0 && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={async () => {
+                    const { start, end } = getDateRange();
+                    // Get all final invoice IDs for the period
+                    const { data: invoices } = await supabase
+                      .from("invoices")
+                      .select("id")
+                      .eq("is_final", true)
+                      .gte("created_at", start.toISOString())
+                      .lte("created_at", end.toISOString());
+                    
+                    if (invoices && invoices.length > 0) {
+                      await downloadBulkInvoices(invoices.map(i => i.id));
+                    }
+                  }}
+                  disabled={isBulkDownloading}
+                  className="gap-2"
+                >
+                  {isBulkDownloading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      {progress.current}/{progress.total}
+                    </>
+                  ) : (
+                    <>
+                      <FileDown className="w-4 h-4" />
+                      Download All Final ({invoiceSummary.finalCount})
+                    </>
+                  )}
+                </Button>
+              )}
             </CardHeader>
             <CardContent>
               <Table>
