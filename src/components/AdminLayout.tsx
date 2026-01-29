@@ -30,6 +30,7 @@ import {
   FileText as BlogIcon,
   Newspaper,
   Briefcase,
+  FileBarChart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -66,6 +67,7 @@ const navItems: NavItem[] = [
   { to: "/admin/leave-management", icon: Activity, label: "Leave Management", permissions: ["manage_leave", "view_leave_requests"] },
   { to: "/admin/payslips", icon: FileText, label: "Payslips", permissions: ["generate_payslips", "view_payslips"] },
   { to: "/admin/salary-reports", icon: Activity, label: "Salary Reports", permissions: ["view_salary_info", "view_accounting"] },
+  { to: "/admin/reports", icon: FileBarChart, label: "Reports", permissions: ["view_accounting", "view_revenue", "download_financials"] },
   { to: "/admin/customers", icon: Users, label: "Customers", permissions: ["view_customers"] },
   { to: "/admin/employees", icon: Shield, label: "Employees", superAdminOnly: true },
   { to: "/admin/activity-logs", icon: Activity, label: "Admin Logs", superAdminOnly: true },
