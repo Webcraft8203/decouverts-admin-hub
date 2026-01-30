@@ -38,7 +38,7 @@ export default function Reports() {
   } = useReportGenerator();
 
   const [customers, setCustomers] = useState<{ id: string; full_name: string; email: string }[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<string>("");
+  const [selectedCustomer, setSelectedCustomer] = useState<string>("all");
   const [salesDateRange, setSalesDateRange] = useState("this_month");
   const [customSalesStart, setCustomSalesStart] = useState("");
   const [customSalesEnd, setCustomSalesEnd] = useState("");
@@ -164,7 +164,7 @@ export default function Reports() {
       color: "text-purple-600",
       bgColor: "bg-purple-500/10",
       borderColor: "border-purple-500/20",
-      action: () => generateCustomerReport(selectedCustomer || undefined),
+      action: () => generateCustomerReport(selectedCustomer === "all" ? undefined : selectedCustomer),
       hasCustomerSelect: true,
     },
     {
@@ -338,7 +338,7 @@ export default function Reports() {
                         <SelectValue placeholder="All Customers" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Customers</SelectItem>
+                        <SelectItem value="all">All Customers</SelectItem>
                         {customers.map((customer) => (
                           <SelectItem key={customer.id} value={customer.id}>
                             {customer.full_name || customer.email}
