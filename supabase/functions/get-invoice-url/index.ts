@@ -37,21 +37,60 @@ serve(async (req) => {
 
     const user = userData.user;
 
-    const { orderId } = await req.json();
-    if (!orderId) throw new Error("Order ID is required");
+    const body = await req.json();
+    const { orderId, invoiceId } = body;
+    
+    if (!orderId && !invoiceId) {
+      throw new Error("Order ID or Invoice ID is required");
+    }
 
-    const { data: order, error: orderError } = await supabase
-      .from("orders")
-      .select("id, user_id, invoice_url")
-      .eq("id", orderId)
-      .single();
+    let invoicePath: string | null = null;
+    let orderUserId: string | null = null;
 
-    if (orderError || !order) throw new Error("Order not found");
-    if (!order.invoice_url) throw new Error("Invoice not generated yet");
+    if (invoiceId) {
+      // Fetch invoice directly by ID
+      const { data: invoice, error: invoiceError } = await supabase
+        .from("invoices")
+        .select("id, pdf_url, order_id")
+        .eq("id", invoiceId)
+        .single();
 
-    const isOwner = order.user_id === user.id;
+      if (invoiceError || !invoice) throw new Error("Invoice not found");
+      if (!invoice.pdf_url) throw new Error("Invoice PDF not generated yet");
+
+      invoicePath = invoice.pdf_url;
+
+      // Get order to check ownership
+      if (invoice.order_id) {
+        const { data: order } = await supabase
+          .from("orders")
+          .select("user_id")
+          .eq("id", invoice.order_id)
+          .single();
+        orderUserId = order?.user_id || null;
+      }
+    } else if (orderId) {
+      // Fetch by order ID (legacy support)
+      const { data: order, error: orderError } = await supabase
+        .from("orders")
+        .select("id, user_id, invoice_url")
+        .eq("id", orderId)
+        .single();
+
+      if (orderError || !order) throw new Error("Order not found");
+      if (!order.invoice_url) throw new Error("Invoice not generated yet");
+
+      invoicePath = order.invoice_url;
+      orderUserId = order.user_id;
+    }
+
+    if (!invoicePath) throw new Error("Invoice path not found");
+
+    // Check permissions
+    const isOwner = orderUserId === user.id;
 
     if (!isOwner) {
+      // Check if user is admin
       const { data: roleRow } = await supabase
         .from("user_roles")
         .select("id")
@@ -59,7 +98,19 @@ serve(async (req) => {
         .eq("role", "admin")
         .maybeSingle();
 
-      if (!roleRow) {
+      // Check if user is employee with invoice permissions
+      const { data: employeePermission } = await supabase
+        .from("employees")
+        .select("id, employee_permissions!inner(permission)")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      const hasInvoicePermission = employeePermission?.employee_permissions?.some(
+        (p: any) => ["view_invoices", "download_invoices", "generate_invoices"].includes(p.permission)
+      );
+
+      if (!roleRow && !hasInvoicePermission) {
         return new Response(JSON.stringify({ error: "Forbidden" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 403,
@@ -69,9 +120,10 @@ serve(async (req) => {
 
     const { data: signed, error: signError } = await supabase.storage
       .from("invoices")
-      .createSignedUrl(order.invoice_url, 60 * 15); // 15 minutes
+      .createSignedUrl(invoicePath, 60 * 15); // 15 minutes
 
     if (signError || !signed?.signedUrl) {
+      console.error("Sign error:", signError);
       throw new Error("Failed to create invoice link");
     }
 
