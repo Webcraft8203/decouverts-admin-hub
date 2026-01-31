@@ -69,13 +69,27 @@ const COMPANY_SETTINGS = {
   terms_and_conditions: "1. Goods once sold are non-refundable.\n2. Payment due within 30 days.\n3. Warranty as per product terms.",
 };
 
-// Payment status config for COD
-const paymentStatusConfig = {
-  pending: { label: "Pending", color: "bg-amber-500/10 text-amber-500 border-amber-500/20", icon: Clock },
-  paid: { label: "Paid", color: "bg-green-500/10 text-green-500 border-green-500/20", icon: CheckCircle },
-  cod_collected: { label: "COD Collected", color: "bg-blue-500/10 text-blue-500 border-blue-500/20", icon: Banknote },
-  cod_settled: { label: "Settled", color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20", icon: CheckCircle },
-  failed: { label: "Failed", color: "bg-destructive/10 text-destructive border-destructive/20", icon: AlertCircle },
+// Enhanced status badges with more states
+const invoiceStatusConfig = {
+  // Invoice type badges
+  proforma: { label: "Proforma", color: "bg-amber-100 text-amber-700 border-amber-200", icon: Receipt },
+  final: { label: "Tax Invoice", color: "bg-emerald-100 text-emerald-700 border-emerald-200", icon: FileCheck },
+  
+  // Payment status
+  pending: { label: "Pending", color: "bg-slate-100 text-slate-600 border-slate-200", icon: Clock },
+  paid: { label: "Paid", color: "bg-green-100 text-green-700 border-green-200", icon: CheckCircle },
+  awaiting_delivery: { label: "Awaiting Delivery", color: "bg-blue-100 text-blue-700 border-blue-200", icon: Clock },
+  delivered: { label: "Delivered", color: "bg-teal-100 text-teal-700 border-teal-200", icon: CheckCircle },
+  
+  // COD specific
+  cod_pending: { label: "COD Pending", color: "bg-amber-100 text-amber-700 border-amber-200", icon: Banknote },
+  cod_collected: { label: "Collected by Courier", color: "bg-blue-100 text-blue-700 border-blue-200", icon: Banknote },
+  cod_settled: { label: "COD Settled", color: "bg-green-100 text-green-700 border-green-200", icon: CheckCircle },
+  
+  // Offline payment
+  offline_paid: { label: "Offline Paid", color: "bg-purple-100 text-purple-700 border-purple-200", icon: Banknote },
+  
+  failed: { label: "Failed", color: "bg-red-100 text-red-700 border-red-200", icon: AlertCircle },
 };
 
 export default function Invoices() {
@@ -93,6 +107,7 @@ export default function Invoices() {
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState("");
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<{ from: string; to: string }>({ from: "", to: "" });
   
   const [formData, setFormData] = useState({
@@ -166,19 +181,35 @@ export default function Invoices() {
     const matchesSearch = !query || 
       invoice.invoice_number.toLowerCase().includes(query) ||
       invoice.client_name.toLowerCase().includes(query) ||
-      (invoice.order?.order_number || "").toLowerCase().includes(query);
+      (invoice.order?.order_number || "").toLowerCase().includes(query) ||
+      (invoice.client_email || "").toLowerCase().includes(query);
     
-    // Payment filter
+    // Payment type filter
+    const isCOD = !invoice.order?.payment_id || invoice.order.payment_id.startsWith("COD");
+    const isOnline = invoice.order?.payment_id?.startsWith("pay_");
+    const isOffline = !invoice.order_id; // Manual/offline invoices have no order
+    
     const matchesPayment = paymentFilter === "all" || 
-      (paymentFilter === "online" && invoice.order?.payment_id && !invoice.order.payment_id.startsWith("COD")) ||
-      (paymentFilter === "cod" && (!invoice.order?.payment_id || invoice.order.payment_id.startsWith("COD")));
+      (paymentFilter === "online" && isOnline) ||
+      (paymentFilter === "cod" && isCOD && !isOffline) ||
+      (paymentFilter === "offline" && isOffline);
+    
+    // Status filter
+    const orderStatus = invoice.order?.status || "";
+    const paymentStatus = invoice.order?.payment_status || "";
+    
+    const matchesStatus = statusFilter === "all" ||
+      (statusFilter === "delivered" && orderStatus === "delivered") ||
+      (statusFilter === "awaiting" && orderStatus !== "delivered" && !isOffline) ||
+      (statusFilter === "paid" && paymentStatus === "paid") ||
+      (statusFilter === "pending" && paymentStatus !== "paid" && !isOffline);
     
     // Date range filter
     const invoiceDate = new Date(invoice.created_at);
     const matchesDateFrom = !dateRange.from || invoiceDate >= new Date(dateRange.from);
     const matchesDateTo = !dateRange.to || invoiceDate <= new Date(dateRange.to + "T23:59:59");
     
-    return matchesTab && matchesSearch && matchesPayment && matchesDateFrom && matchesDateTo;
+    return matchesTab && matchesSearch && matchesPayment && matchesStatus && matchesDateFrom && matchesDateTo;
   });
 
   const addItem = () => setItems([...items, { description: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
@@ -303,43 +334,72 @@ export default function Invoices() {
     return `₹${Number(amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  // Get payment type badge
+  // Get payment type badge with improved styling
   const getPaymentTypeBadge = (invoice: Invoice) => {
-    const isCOD = !invoice.order?.payment_id || invoice.order.payment_id.startsWith("COD");
+    const isOffline = !invoice.order_id;
+    const isCOD = !isOffline && (!invoice.order?.payment_id || invoice.order.payment_id.startsWith("COD"));
+    const isOnline = invoice.order?.payment_id?.startsWith("pay_");
+    
+    if (isOffline) {
+      return (
+        <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 font-medium">
+          <Banknote className="w-3 h-3 mr-1" />
+          Offline
+        </Badge>
+      );
+    }
     if (isCOD) {
       return (
-        <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20">
+        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 font-medium">
           <Banknote className="w-3 h-3 mr-1" />
           COD
         </Badge>
       );
     }
     return (
-      <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20">
+      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 font-medium">
         <CreditCard className="w-3 h-3 mr-1" />
         Online
       </Badge>
     );
   };
 
-  // Get payment status for COD orders
-  const getPaymentStatus = (invoice: Invoice) => {
-    const status = invoice.order?.payment_status || "pending";
+  // Get comprehensive status badge
+  const getStatusBadge = (invoice: Invoice) => {
     const orderStatus = invoice.order?.status || "";
-    const isCOD = !invoice.order?.payment_id || invoice.order.payment_id?.startsWith("COD");
+    const paymentStatus = invoice.order?.payment_status || "";
+    const isOffline = !invoice.order_id;
+    const isCOD = !isOffline && (!invoice.order?.payment_id || invoice.order.payment_id?.startsWith("COD"));
     
-    if (isCOD) {
-      if (orderStatus === "delivered") {
-        // COD order delivered = payment collected by delivery partner
-        return { label: "Collected by Delivery Partner", color: "bg-blue-500/10 text-blue-600 border-blue-500/20", icon: Banknote };
-      } else if (status === "pending") {
-        return { label: "Awaiting Delivery", color: "bg-amber-500/10 text-amber-600 border-amber-500/20", icon: Clock };
-      }
+    // Offline/Manual invoices - always show as paid
+    if (isOffline) {
+      return invoiceStatusConfig.offline_paid;
     }
     
-    const config = paymentStatusConfig[status as keyof typeof paymentStatusConfig];
-    return config || paymentStatusConfig.pending;
+    // COD orders
+    if (isCOD) {
+      if (paymentStatus === "paid") {
+        return invoiceStatusConfig.cod_settled;
+      }
+      if (orderStatus === "delivered") {
+        return invoiceStatusConfig.cod_collected;
+      }
+      return invoiceStatusConfig.cod_pending;
+    }
+    
+    // Online orders
+    if (paymentStatus === "paid") {
+      if (orderStatus === "delivered") {
+        return invoiceStatusConfig.delivered;
+      }
+      return invoiceStatusConfig.paid;
+    }
+    
+    return invoiceStatusConfig.pending;
   };
+
+  // Legacy function for backward compatibility
+  const getPaymentStatus = getStatusBadge;
 
   // PDF generation and download now handled by useUnifiedInvoicePdf hook
 
@@ -616,43 +676,100 @@ export default function Invoices() {
         </TabsList>
 
         {/* Search and Filters */}
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-3">
-          <div className="relative md:col-span-2">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by invoice number, order number, or customer name..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+        <div className="mt-4 space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+            {/* Search - takes more space */}
+            <div className="relative md:col-span-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search invoice, order, customer..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            {/* Payment Type Filter */}
+            <div className="md:col-span-2">
+              <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+                <SelectTrigger>
+                  <CreditCard className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Payment" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Payments</SelectItem>
+                  <SelectItem value="online">Online</SelectItem>
+                  <SelectItem value="cod">COD</SelectItem>
+                  <SelectItem value="offline">Offline/Manual</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Status Filter */}
+            <div className="md:col-span-2">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="delivered">Delivered</SelectItem>
+                  <SelectItem value="awaiting">Awaiting Delivery</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Date Range */}
+            <div className="md:col-span-4 flex gap-2">
+              <div className="flex-1">
+                <Input
+                  type="date"
+                  placeholder="From"
+                  value={dateRange.from}
+                  onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
+                  className="w-full"
+                />
+              </div>
+              <div className="flex-1">
+                <Input
+                  type="date"
+                  placeholder="To"
+                  value={dateRange.to}
+                  onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
+                  className="w-full"
+                />
+              </div>
+              {(searchQuery || paymentFilter !== "all" || statusFilter !== "all" || dateRange.from || dateRange.to) && (
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setPaymentFilter("all");
+                    setStatusFilter("all");
+                    setDateRange({ from: "", to: "" });
+                  }}
+                  className="shrink-0"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
           </div>
-          <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-            <SelectTrigger>
-              <Filter className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Payment Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Payments</SelectItem>
-              <SelectItem value="online">Online Payments</SelectItem>
-              <SelectItem value="cod">Cash on Delivery</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="flex gap-2">
-            <Input
-              type="date"
-              placeholder="From"
-              value={dateRange.from}
-              onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
-              className="w-full"
-            />
-            <Input
-              type="date"
-              placeholder="To"
-              value={dateRange.to}
-              onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
-              className="w-full"
-            />
-          </div>
+          
+          {/* Active filters summary */}
+          {(searchQuery || paymentFilter !== "all" || statusFilter !== "all" || dateRange.from || dateRange.to) && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>Showing {filteredInvoices.length} of {activeTab === "proforma" ? proformaCount : finalCount} invoices</span>
+              {searchQuery && <Badge variant="secondary" className="text-xs">Search: {searchQuery}</Badge>}
+              {paymentFilter !== "all" && <Badge variant="secondary" className="text-xs capitalize">{paymentFilter}</Badge>}
+              {statusFilter !== "all" && <Badge variant="secondary" className="text-xs capitalize">{statusFilter}</Badge>}
+              {(dateRange.from || dateRange.to) && <Badge variant="secondary" className="text-xs">Date filtered</Badge>}
+            </div>
+          )}
         </div>
 
         {/* Invoice Lists */}
