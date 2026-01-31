@@ -206,14 +206,13 @@ export default function Customers() {
 
       if (error) throw error;
 
-      if (data?.url) {
-        window.open(data.url, "_blank");
-      } else {
-        toast.error("Failed to get invoice URL");
-      }
-    } catch (error) {
+      const signedUrl = (data as any)?.signedUrl as string | undefined;
+      if (!signedUrl) throw new Error("Failed to get invoice URL");
+
+      window.open(signedUrl, "_blank");
+    } catch (error: any) {
       console.error("Error downloading invoice:", error);
-      toast.error("Failed to download invoice");
+      toast.error(error?.message || "Failed to download invoice");
     } finally {
       setDownloadingInvoice(null);
     }
