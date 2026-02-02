@@ -62,33 +62,6 @@ export const PublicNavbar = () => {
   // Show cart/account only on shop-related pages when e-commerce is enabled
   const showCartAndAccount = isEcommerceEnabled && isShopPage;
 
-  const menuVariants = {
-    hidden: {
-      opacity: 0,
-      height: 0,
-      transition: {
-        duration: 0.3,
-        ease: [0.4, 0, 0.2, 1] as const,
-        when: "afterChildren" as const,
-      },
-    },
-    visible: {
-      opacity: 1,
-      height: "auto",
-      transition: {
-        duration: 0.3,
-        ease: [0.4, 0, 0.2, 1] as const,
-        when: "beforeChildren" as const,
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: { opacity: 1, x: 0 },
-  };
-
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault();
     const newCount = logoClickCount + 1;
@@ -356,205 +329,207 @@ export const PublicNavbar = () => {
         </div>
 
         {/* Mobile Navigation */}
-        <AnimatePresence>
-          {isMenuOpen && (
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-              variants={menuVariants}
-              className="md:hidden border-t border-border bg-white/95 backdrop-blur-xl rounded-b-2xl shadow-lg overflow-hidden"
-            >
-              <div className="py-6 max-h-[calc(100vh-4rem)] overflow-y-auto">
-                <div className="flex flex-col gap-1">
-                  <motion.div variants={itemVariants}>
-                    <Link 
-                      to="/" 
-                      className="block text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:translate-x-2 font-medium py-3 px-4 rounded-lg"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Home
-                    </Link>
-                  </motion.div>
-                  <motion.div variants={itemVariants}>
-                    <Link 
-                      to="/blogs" 
-                      className="block text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:translate-x-2 font-medium py-3 px-4 rounded-lg"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Blogs & News
-                    </Link>
-                  </motion.div>
-
-              {/* Show full navigation only when NOT on shop pages */}
-              {!isShopPage && (
-                <>
-                  <motion.div variants={itemVariants}>
-                    <Link 
-                      to="/about" 
-                      className="block text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:translate-x-2 font-medium py-3 px-4 rounded-lg"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      About Us
-                    </Link>
-                  </motion.div>
-                  
-                  {/* Services */}
-                  <motion.div variants={itemVariants} className="px-4 py-2">
-                    <button 
-                      onClick={() => setExpandedMobileSection(expandedMobileSection === "services" ? null : "services")}
-                      className="flex items-center justify-between w-full text-foreground font-semibold py-2 text-sm uppercase tracking-wider"
-                    >
-                      Services
-                      <ChevronDown className={cn("w-4 h-4 transition-transform duration-200", expandedMobileSection === "services" ? "rotate-180" : "")} />
-                    </button>
-                    <AnimatePresence>
-                      {expandedMobileSection === "services" && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="overflow-hidden"
-                        >
-                          <div className="pl-3 flex flex-col gap-1 border-l-2 border-primary/20 pb-2">
-                            <Link 
-                              to="/manufacturing" 
-                              className="block text-foreground/70 hover:text-primary transition-all duration-300 hover:translate-x-2 text-sm py-2"
-                              onClick={() => setIsMenuOpen(false)}
-                            >
-                              Manufacturing
-                            </Link>
-                            <Link 
-                              to="/engineering" 
-                              className="block text-foreground/70 hover:text-primary transition-all duration-300 hover:translate-x-2 text-sm py-2"
-                              onClick={() => setIsMenuOpen(false)}
-                            >
-                              Engineering
-                            </Link>
-                            <button 
-                              onClick={() => scrollToSection("services-section")}
-                              className="block w-full text-foreground/70 hover:text-primary transition-all duration-300 hover:translate-x-2 text-sm text-left py-2"
-                            >
-                              All Services
-                            </button>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
-
-                  {/* Solutions */}
-                  <motion.div variants={itemVariants} className="px-4 py-2">
-                    <button 
-                      onClick={() => setExpandedMobileSection(expandedMobileSection === "solutions" ? null : "solutions")}
-                      className="flex items-center justify-between w-full text-foreground font-semibold py-2 text-sm uppercase tracking-wider"
-                    >
-                      Solutions
-                      <ChevronDown className={cn("w-4 h-4 transition-transform duration-200", expandedMobileSection === "solutions" ? "rotate-180" : "")} />
-                    </button>
-                    <AnimatePresence>
-                      {expandedMobileSection === "solutions" && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="overflow-hidden"
-                        >
-                          <div className="pl-3 flex flex-col gap-1 border-l-2 border-primary/20 pb-2">
-                            <button 
-                              onClick={() => scrollToSection("industry-solutions")}
-                              className="block w-full text-foreground/70 hover:text-primary transition-all duration-300 hover:translate-x-2 text-sm text-left py-2"
-                            >
-                              Industry Solutions
-                            </button>
-                            <Link 
-                              to="/printer-configuration" 
-                              className="block text-foreground/70 hover:text-primary transition-all duration-300 hover:translate-x-2 text-sm py-2"
-                              onClick={() => setIsMenuOpen(false)}
-                            >
-                              3D Printer Configuration
-                            </Link>
-                            <Link 
-                              to="/drone-configuration" 
-                              className="block text-foreground/70 hover:text-primary transition-all duration-300 hover:translate-x-2 text-sm py-2"
-                              onClick={() => setIsMenuOpen(false)}
-                            >
-                              Drone Configuration
-                            </Link>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
-
-                  <motion.div variants={itemVariants}>
-                    <button 
-                      onClick={() => scrollToSection("gallery-section")}
-                      className="block w-full text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:translate-x-2 font-medium py-3 px-4 rounded-lg text-left"
-                    >
-                      Gallery
-                    </button>
-                  </motion.div>
-
-                  <motion.div variants={itemVariants}>
-                    <button 
-                      onClick={() => scrollToSection("contact-section")}
-                      className="block w-full text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:translate-x-2 font-medium py-3 px-4 rounded-lg text-left"
-                    >
-                      Contact Us
-                    </button>
-                  </motion.div>
-                </>
-              )}
-
-              {/* Shop - only show if e-commerce is enabled */}
-              {isEcommerceEnabled && (
-                <motion.div variants={itemVariants}>
-                  <Link 
-                    to="/shop" 
+        {isMenuOpen && (
+          <div className="md:hidden border-t border-border bg-white/95 backdrop-blur-xl rounded-b-2xl shadow-lg overflow-hidden">
+            <div className="py-6 max-h-[calc(100vh-4rem)] overflow-y-auto">
+              <div className="flex flex-col gap-1">
+                <div>
+                  <Link
+                    to="/"
                     className="block text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:translate-x-2 font-medium py-3 px-4 rounded-lg"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Shop
+                    Home
                   </Link>
-                </motion.div>
-              )}
-
-              {/* Account - only show on shop pages when e-commerce is enabled */}
-              {showCartAndAccount && (
-                <motion.div variants={itemVariants} className="pt-4 px-4">
-                  {user ? (
-                    <Button 
-                      onClick={() => {
-                        navigate("/dashboard");
-                        setIsMenuOpen(false);
-                      }}
-                      className="w-full bg-dark hover:bg-dark-elevated text-white"
-                    >
-                      <User className="w-4 h-4 mr-2" />
-                      My Account
-                    </Button>
-                  ) : (
-                    <Button 
-                      onClick={() => {
-                        navigate("/login");
-                        setIsMenuOpen(false);
-                      }}
-                      className="w-full bg-primary hover:bg-primary/90"
-                    >
-                      <User className="w-4 h-4 mr-2" />
-                      Login
-                    </Button>
-                  )}
-                </motion.div>
-              )}
                 </div>
+                <div>
+                  <Link
+                    to="/blogs"
+                    className="block text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:translate-x-2 font-medium py-3 px-4 rounded-lg"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Blogs & News
+                  </Link>
+                </div>
+
+                {/* Show full navigation only when NOT on shop pages */}
+                {!isShopPage && (
+                  <>
+                    <div>
+                      <Link
+                        to="/about"
+                        className="block text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:translate-x-2 font-medium py-3 px-4 rounded-lg"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        About Us
+                      </Link>
+                    </div>
+
+                    {/* Services */}
+                    <div className="px-4 py-2">
+                      <button
+                        onClick={() => setExpandedMobileSection(expandedMobileSection === "services" ? null : "services")}
+                        className="flex items-center justify-between w-full text-foreground font-semibold py-2 text-sm uppercase tracking-wider"
+                      >
+                        Services
+                        <ChevronDown
+                          className={cn(
+                            "w-4 h-4 transition-transform duration-200",
+                            expandedMobileSection === "services" ? "rotate-180" : ""
+                          )}
+                        />
+                      </button>
+                      <AnimatePresence>
+                        {expandedMobileSection === "services" && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="pl-3 flex flex-col gap-1 border-l-2 border-primary/20 pb-2">
+                              <Link
+                                to="/manufacturing"
+                                className="block text-foreground/70 hover:text-primary transition-all duration-300 hover:translate-x-2 text-sm py-2"
+                                onClick={() => setIsMenuOpen(false)}
+                              >
+                                Manufacturing
+                              </Link>
+                              <Link
+                                to="/engineering"
+                                className="block text-foreground/70 hover:text-primary transition-all duration-300 hover:translate-x-2 text-sm py-2"
+                                onClick={() => setIsMenuOpen(false)}
+                              >
+                                Engineering
+                              </Link>
+                              <button
+                                onClick={() => scrollToSection("services-section")}
+                                className="block w-full text-foreground/70 hover:text-primary transition-all duration-300 hover:translate-x-2 text-sm text-left py-2"
+                              >
+                                All Services
+                              </button>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                    {/* Solutions */}
+                    <div className="px-4 py-2">
+                      <button
+                        onClick={() => setExpandedMobileSection(expandedMobileSection === "solutions" ? null : "solutions")}
+                        className="flex items-center justify-between w-full text-foreground font-semibold py-2 text-sm uppercase tracking-wider"
+                      >
+                        Solutions
+                        <ChevronDown
+                          className={cn(
+                            "w-4 h-4 transition-transform duration-200",
+                            expandedMobileSection === "solutions" ? "rotate-180" : ""
+                          )}
+                        />
+                      </button>
+                      <AnimatePresence>
+                        {expandedMobileSection === "solutions" && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="pl-3 flex flex-col gap-1 border-l-2 border-primary/20 pb-2">
+                              <button
+                                onClick={() => scrollToSection("industry-solutions")}
+                                className="block w-full text-foreground/70 hover:text-primary transition-all duration-300 hover:translate-x-2 text-sm text-left py-2"
+                              >
+                                Industry Solutions
+                              </button>
+                              <Link
+                                to="/printer-configuration"
+                                className="block text-foreground/70 hover:text-primary transition-all duration-300 hover:translate-x-2 text-sm py-2"
+                                onClick={() => setIsMenuOpen(false)}
+                              >
+                                3D Printer Configuration
+                              </Link>
+                              <Link
+                                to="/drone-configuration"
+                                className="block text-foreground/70 hover:text-primary transition-all duration-300 hover:translate-x-2 text-sm py-2"
+                                onClick={() => setIsMenuOpen(false)}
+                              >
+                                Drone Configuration
+                              </Link>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                    <div>
+                      <button
+                        onClick={() => scrollToSection("gallery-section")}
+                        className="block w-full text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:translate-x-2 font-medium py-3 px-4 rounded-lg text-left"
+                      >
+                        Gallery
+                      </button>
+                    </div>
+
+                    <div>
+                      <button
+                        onClick={() => scrollToSection("contact-section")}
+                        className="block w-full text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:translate-x-2 font-medium py-3 px-4 rounded-lg text-left"
+                      >
+                        Contact Us
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {/* Shop - only show if e-commerce is enabled */}
+                {isEcommerceEnabled && (
+                  <div>
+                    <Link
+                      to="/shop"
+                      className="block text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:translate-x-2 font-medium py-3 px-4 rounded-lg"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Shop
+                    </Link>
+                  </div>
+                )}
+
+                {/* Account - only show on shop pages when e-commerce is enabled */}
+                {showCartAndAccount && (
+                  <div className="pt-4 px-4">
+                    {user ? (
+                      <Button
+                        onClick={() => {
+                          navigate("/dashboard");
+                          setIsMenuOpen(false);
+                        }}
+                        className="w-full bg-dark hover:bg-dark-elevated text-white"
+                      >
+                        <User className="w-4 h-4 mr-2" />
+                        My Account
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => {
+                          navigate("/login");
+                          setIsMenuOpen(false);
+                        }}
+                        className="w-full bg-primary hover:bg-primary/90"
+                      >
+                        <User className="w-4 h-4 mr-2" />
+                        Login
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
