@@ -21,13 +21,13 @@ export const FloatingSocials = () => {
       name: "Instagram",
       icon: <Instagram className="w-5 h-5" />,
       color: "bg-[#E1306C] hover:bg-[#c92b60]",
-      href: "https://instagram.com",
+      href: "https://www.instagram.com/deco_tech_india?igsh=MWJmcWJjeGxtd2tpbA%3D%3D&utm_source=qr",
     },
     {
       name: "YouTube",
       icon: <Youtube className="w-5 h-5" />,
       color: "bg-[#FF0000] hover:bg-[#e60000]",
-      href: "https://youtube.com",
+      href: "https://youtube.com/@the_art_of_india?si=BNAe6-1PFY74Hir7",
     },
   ];
 
