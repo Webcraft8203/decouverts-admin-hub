@@ -4,17 +4,23 @@ import { jsPDF } from "jspdf";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
-// Brand colors
-const PRIMARY_COLOR: [number, number, number] = [234, 171, 28]; // #EAAB1C
-const TEXT_DARK: [number, number, number] = [33, 33, 33];
-const TEXT_GRAY: [number, number, number] = [102, 102, 102];
-const TEXT_LIGHT: [number, number, number] = [140, 140, 140];
-const BORDER_COLOR: [number, number, number] = [220, 220, 220];
-const SUCCESS_COLOR: [number, number, number] = [76, 175, 80];
+// Enterprise color palette - consistent with invoice system
+const colors = {
+  brand: [45, 62, 80] as [number, number, number],
+  primary: [30, 41, 59] as [number, number, number],
+  secondary: [71, 85, 105] as [number, number, number],
+  accent: [16, 185, 129] as [number, number, number],
+  muted: [148, 163, 184] as [number, number, number],
+  border: [226, 232, 240] as [number, number, number],
+  light: [248, 250, 252] as [number, number, number],
+  white: [255, 255, 255] as [number, number, number],
+  warning: [245, 158, 11] as [number, number, number],
+  success: [34, 197, 94] as [number, number, number],
+  error: [239, 68, 68] as [number, number, number],
+};
 
-// Company settings (should match invoice settings)
 const COMPANY_SETTINGS = {
-  business_name: "Decouverts",
+  business_name: "DECOUVERTS",
   business_address: "Innovation Hub, Tech Park",
   business_city: "Pune",
   business_state: "Maharashtra",
@@ -29,7 +35,6 @@ const formatCurrency = (amount: number): string => {
   return `₹${Number(amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
-// Fetch and convert image to base64
 const fetchLogoAsBase64 = async (): Promise<string | null> => {
   try {
     const logoUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/customer-partner-images/email-logo.png`;
@@ -51,131 +56,288 @@ interface ReportConfig {
   subtitle: string;
   dateRange: string;
   badgeText: string;
+  badgeColor?: [number, number, number];
 }
 
 export function useReportGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Create standard report header
+  // Create standard enterprise report header
   const createReportHeader = async (
     doc: jsPDF,
     config: ReportConfig
   ): Promise<number> => {
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 15;
-    let y = 12;
+    let y = 5;
 
-    // Header background
-    doc.setFillColor(250, 250, 250);
-    doc.rect(0, 0, pageWidth, 45, "F");
+    // Top accent bar
+    doc.setFillColor(...colors.brand);
+    doc.rect(0, 0, pageWidth, 3, "F");
 
-    // Try to add logo
+    y = 8;
+
+    // Logo
     const logoBase64 = await fetchLogoAsBase64();
     if (logoBase64) {
       try {
-        doc.addImage(logoBase64, "PNG", margin, y, 35, 18);
+        doc.addImage(logoBase64, "PNG", margin, y, 28, 14);
       } catch (e) {
         console.error("Failed to add logo:", e);
       }
     }
 
-    // Badge on right
-    const badgeWidth = 55;
-    const badgeHeight = 20;
-    const badgeX = pageWidth - margin - badgeWidth;
-
-    doc.setFillColor(...SUCCESS_COLOR);
-    doc.roundedRect(badgeX, y, badgeWidth, badgeHeight, 3, 3, "F");
-
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(11);
+    // Company name in CAPITALS
+    const companyNameX = margin + (logoBase64 ? 32 : 0);
+    doc.setFontSize(18);
+    doc.setTextColor(...colors.brand);
     doc.setFont("helvetica", "bold");
-    doc.text(config.badgeText, badgeX + badgeWidth / 2, y + 8, { align: "center" });
+    doc.text("DECOUVERTS", companyNameX, y + 7);
 
     doc.setFontSize(7);
-    doc.setFont("helvetica", "normal");
-    doc.text(config.dateRange, badgeX + badgeWidth / 2, y + 14, { align: "center" });
-
-    // Company name
-    const companyNameY = y + 22;
-    doc.setFontSize(18);
-    doc.setTextColor(...PRIMARY_COLOR);
-    doc.setFont("helvetica", "bold");
-    doc.text(COMPANY_SETTINGS.business_name, margin, companyNameY);
-
-    // Tagline
-    doc.setFontSize(8);
-    doc.setTextColor(...TEXT_GRAY);
+    doc.setTextColor(...colors.secondary);
     doc.setFont("helvetica", "italic");
-    doc.text("Discovering Future Technologies", margin, companyNameY + 5);
+    doc.text("Discovering Future Technologies", companyNameX, y + 12);
 
-    y = 50;
+    // Report badge on right
+    const badgeWidth = 55;
+    const badgeX = pageWidth - margin - badgeWidth;
+    const badgeColor = config.badgeColor || colors.accent;
 
-    // Company address
+    doc.setFillColor(...badgeColor);
+    doc.roundedRect(badgeX, y, badgeWidth, 16, 2, 2, "F");
+
+    doc.setFontSize(7);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.text(config.badgeText, badgeX + badgeWidth / 2, y + 6, { align: "center" });
+
     doc.setFontSize(8);
-    doc.setTextColor(...TEXT_GRAY);
     doc.setFont("helvetica", "normal");
+    doc.text(config.dateRange, badgeX + badgeWidth / 2, y + 12, { align: "center" });
 
-    const companyDetails = [
-      COMPANY_SETTINGS.business_address,
-      `${COMPANY_SETTINGS.business_city}, ${COMPANY_SETTINGS.business_state} - ${COMPANY_SETTINGS.business_pincode}`,
-      `Phone: ${COMPANY_SETTINGS.business_phone} | Email: ${COMPANY_SETTINGS.business_email}`,
-    ];
+    y = 28;
 
-    companyDetails.forEach((line) => {
-      doc.text(line, margin, y);
-      y += 4;
-    });
-
-    y += 4;
-
-    // Separator line
-    doc.setDrawColor(...PRIMARY_COLOR);
+    // Separator
+    doc.setDrawColor(...colors.brand);
     doc.setLineWidth(0.8);
     doc.line(margin, y, pageWidth - margin, y);
 
-    y += 8;
+    y += 5;
 
-    // Report title
+    // Company address bar
+    doc.setFillColor(...colors.light);
+    doc.roundedRect(margin, y, pageWidth - 2 * margin, 10, 2, 2, "F");
+
+    doc.setFontSize(7);
+    doc.setTextColor(...colors.secondary);
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      `${COMPANY_SETTINGS.business_address}, ${COMPANY_SETTINGS.business_city}, ${COMPANY_SETTINGS.business_state} - ${COMPANY_SETTINGS.business_pincode} | Ph: ${COMPANY_SETTINGS.business_phone}`,
+      pageWidth / 2,
+      y + 6,
+      { align: "center" }
+    );
+
+    y += 14;
+
+    // Report title section
     doc.setFontSize(14);
-    doc.setTextColor(...TEXT_DARK);
+    doc.setTextColor(...colors.brand);
     doc.setFont("helvetica", "bold");
     doc.text(config.title, margin, y);
 
     y += 5;
 
-    doc.setFontSize(9);
-    doc.setTextColor(...TEXT_GRAY);
+    doc.setFontSize(8);
+    doc.setTextColor(...colors.secondary);
     doc.setFont("helvetica", "normal");
     doc.text(config.subtitle, margin, y);
 
-    y += 10;
+    y += 8;
 
     return y;
   };
 
-  // Add standard footer
-  const addReportFooter = (doc: jsPDF) => {
+  // Add standard footer with page number
+  const addReportFooter = (doc: jsPDF, pageNum: number, totalPages?: number) => {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 15;
-    let y = pageHeight - 15;
+    const footerY = pageHeight - 12;
 
-    doc.setDrawColor(...BORDER_COLOR);
+    doc.setDrawColor(...colors.border);
     doc.setLineWidth(0.3);
-    doc.line(margin, y - 5, pageWidth - margin, y - 5);
-
-    doc.setFontSize(8);
-    doc.setTextColor(...TEXT_GRAY);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Generated on: ${format(new Date(), "dd MMM yyyy, hh:mm a")}`, margin, y);
-    doc.text("Decouverts - Confidential", pageWidth - margin, y, { align: "right" });
-
-    y += 4;
+    doc.line(margin, footerY - 4, pageWidth - margin, footerY - 4);
 
     doc.setFontSize(7);
-    doc.setTextColor(...TEXT_LIGHT);
-    doc.text("This is a computer-generated report.", pageWidth / 2, y, { align: "center" });
+    doc.setTextColor(...colors.muted);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Generated on: ${format(new Date(), "dd MMM yyyy, hh:mm a")}`, margin, footerY);
+    
+    const pageText = totalPages ? `Page ${pageNum} of ${totalPages}` : `Page ${pageNum}`;
+    doc.text(pageText, pageWidth - margin, footerY, { align: "right" });
+
+    doc.setFontSize(6);
+    doc.text("DECOUVERTS - Confidential Business Report", pageWidth / 2, footerY + 4, { align: "center" });
+  };
+
+  // Create summary stat cards
+  const createStatCards = (
+    doc: jsPDF,
+    stats: { label: string; value: string; color?: [number, number, number] }[],
+    y: number
+  ): number => {
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    const cardWidth = (pageWidth - 2 * margin - (stats.length - 1) * 5) / stats.length;
+    const cardHeight = 22;
+
+    stats.forEach((stat, index) => {
+      const x = margin + index * (cardWidth + 5);
+      
+      doc.setFillColor(...colors.light);
+      doc.setDrawColor(...colors.border);
+      doc.roundedRect(x, y, cardWidth, cardHeight, 3, 3, "FD");
+
+      // Top accent line
+      const accentColor = stat.color || colors.accent;
+      doc.setFillColor(...accentColor);
+      doc.roundedRect(x, y, cardWidth, 3, 3, 3, "F");
+      doc.setFillColor(...colors.light);
+      doc.rect(x, y + 2, cardWidth, 2, "F");
+
+      doc.setFontSize(7);
+      doc.setTextColor(...colors.muted);
+      doc.setFont("helvetica", "normal");
+      doc.text(stat.label.toUpperCase(), x + cardWidth / 2, y + 10, { align: "center" });
+
+      doc.setFontSize(11);
+      doc.setTextColor(...(stat.color || colors.brand));
+      doc.setFont("helvetica", "bold");
+      doc.text(stat.value, x + cardWidth / 2, y + 18, { align: "center" });
+    });
+
+    return y + cardHeight + 8;
+  };
+
+  // Create data table with pagination support
+  const createDataTable = (
+    doc: jsPDF,
+    headers: string[],
+    rows: string[][],
+    y: number,
+    colWidths: number[],
+    options?: { 
+      valueColumnIndices?: number[];
+      statusColumnIndex?: number;
+    }
+  ): number => {
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
+    const tableWidth = pageWidth - 2 * margin;
+
+    // Table header
+    doc.setFillColor(...colors.brand);
+    doc.rect(margin, y, tableWidth, 8, "F");
+
+    doc.setFontSize(7);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+
+    let x = margin + 3;
+    headers.forEach((h, i) => {
+      const align = options?.valueColumnIndices?.includes(i) ? "right" : "left";
+      if (align === "right") {
+        doc.text(h, x + colWidths[i] - 3, y + 5.5, { align: "right" });
+      } else {
+        doc.text(h, x, y + 5.5);
+      }
+      x += colWidths[i];
+    });
+
+    y += 8;
+
+    // Table rows
+    rows.forEach((row, rowIndex) => {
+      // Check for page break
+      if (y > pageHeight - 30) {
+        addReportFooter(doc, doc.getNumberOfPages());
+        doc.addPage();
+        y = 20;
+        
+        // Re-add header on new page
+        doc.setFillColor(...colors.brand);
+        doc.rect(margin, y, tableWidth, 8, "F");
+        doc.setFontSize(7);
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "bold");
+        
+        x = margin + 3;
+        headers.forEach((h, i) => {
+          const align = options?.valueColumnIndices?.includes(i) ? "right" : "left";
+          if (align === "right") {
+            doc.text(h, x + colWidths[i] - 3, y + 5.5, { align: "right" });
+          } else {
+            doc.text(h, x, y + 5.5);
+          }
+          x += colWidths[i];
+        });
+        y += 8;
+      }
+
+      const rowH = 7;
+
+      // Alternate row background
+      if (rowIndex % 2 === 0) {
+        doc.setFillColor(250, 251, 252);
+      } else {
+        doc.setFillColor(255, 255, 255);
+      }
+      doc.rect(margin, y, tableWidth, rowH, "F");
+
+      // Row border
+      doc.setDrawColor(...colors.border);
+      doc.setLineWidth(0.1);
+      doc.line(margin, y + rowH, pageWidth - margin, y + rowH);
+
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "normal");
+
+      x = margin + 3;
+      row.forEach((cell, cellIndex) => {
+        // Handle status column coloring
+        if (cellIndex === options?.statusColumnIndex) {
+          const status = cell.toLowerCase();
+          if (status.includes("paid") || status.includes("delivered") || status.includes("in stock") || status.includes("active")) {
+            doc.setTextColor(...colors.success);
+          } else if (status.includes("pending") || status.includes("processing") || status.includes("low")) {
+            doc.setTextColor(...colors.warning);
+          } else if (status.includes("cancelled") || status.includes("out") || status.includes("failed")) {
+            doc.setTextColor(...colors.error);
+          } else {
+            doc.setTextColor(...colors.primary);
+          }
+          doc.setFont("helvetica", "bold");
+        } else {
+          doc.setTextColor(...colors.primary);
+          doc.setFont("helvetica", "normal");
+        }
+
+        const align = options?.valueColumnIndices?.includes(cellIndex) ? "right" : "left";
+        if (align === "right") {
+          doc.text(cell, x + colWidths[cellIndex] - 3, y + 5, { align: "right" });
+        } else {
+          doc.text(cell.substring(0, 35), x, y + 5);
+        }
+        x += colWidths[cellIndex];
+      });
+
+      y += rowH;
+    });
+
+    return y + 5;
   };
 
   // Generate Today's Orders Report
@@ -196,14 +358,13 @@ export function useReportGenerator() {
       if (error) throw error;
 
       const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const margin = 15;
 
       let y = await createReportHeader(doc, {
-        title: "Today's Orders Report",
-        subtitle: `Orders received on ${format(today, "dd MMMM yyyy")}`,
+        title: "Daily Orders Report",
+        subtitle: `Orders received on ${format(today, "EEEE, dd MMMM yyyy")}`,
         dateRange: format(today, "dd MMM yyyy"),
         badgeText: "DAILY REPORT",
+        badgeColor: colors.success,
       });
 
       // Summary stats
@@ -212,103 +373,46 @@ export function useReportGenerator() {
       const paidOrders = orders?.filter((o) => o.payment_status === "paid").length || 0;
       const codOrders = orders?.filter((o) => o.order_type === "cod" || o.payment_id?.startsWith("COD")).length || 0;
 
-      // Stats cards
-      doc.setFillColor(248, 248, 248);
-      const cardWidth = (pageWidth - 2 * margin - 15) / 4;
-
-      const stats = [
-        { label: "Total Orders", value: totalOrders.toString() },
-        { label: "Total Value", value: formatCurrency(totalRevenue) },
-        { label: "Paid Orders", value: paidOrders.toString() },
-        { label: "COD Orders", value: codOrders.toString() },
-      ];
-
-      stats.forEach((stat, index) => {
-        const x = margin + index * (cardWidth + 5);
-        doc.setFillColor(248, 248, 248);
-        doc.setDrawColor(...BORDER_COLOR);
-        doc.roundedRect(x, y, cardWidth, 18, 2, 2, "FD");
-
-        doc.setFontSize(8);
-        doc.setTextColor(...TEXT_GRAY);
-        doc.setFont("helvetica", "normal");
-        doc.text(stat.label, x + cardWidth / 2, y + 5, { align: "center" });
-
-        doc.setFontSize(11);
-        doc.setTextColor(...TEXT_DARK);
-        doc.setFont("helvetica", "bold");
-        doc.text(stat.value, x + cardWidth / 2, y + 13, { align: "center" });
-      });
-
-      y += 25;
+      y = createStatCards(doc, [
+        { label: "Total Orders", value: totalOrders.toString(), color: colors.brand },
+        { label: "Total Value", value: formatCurrency(totalRevenue), color: colors.accent },
+        { label: "Paid Orders", value: paidOrders.toString(), color: colors.success },
+        { label: "COD Orders", value: codOrders.toString(), color: colors.warning },
+      ], y);
 
       // Orders table
       if (orders && orders.length > 0) {
-        // Table header
-        doc.setFillColor(...PRIMARY_COLOR);
-        doc.rect(margin, y, pageWidth - 2 * margin, 8, "F");
-
-        doc.setFontSize(8);
-        doc.setTextColor(255, 255, 255);
-        doc.setFont("helvetica", "bold");
-
-        const colWidths = [25, 50, 25, 30, 30, 20];
-        let x = margin + 2;
-
         const headers = ["Order #", "Customer", "Items", "Amount", "Payment", "Status"];
-        headers.forEach((h, i) => {
-          doc.text(h, x, y + 5);
-          x += colWidths[i];
-        });
-
-        y += 8;
-
-        // Table rows
-        orders.forEach((order, index) => {
-          if (y > 260) {
-            doc.addPage();
-            y = 20;
-          }
-
-          const rowBg = index % 2 === 0 ? [255, 255, 255] : [248, 248, 248];
-          doc.setFillColor(rowBg[0], rowBg[1], rowBg[2]);
-          doc.rect(margin, y, pageWidth - 2 * margin, 8, "F");
-
-          doc.setFontSize(7);
-          doc.setTextColor(...TEXT_DARK);
-          doc.setFont("helvetica", "normal");
-
-          x = margin + 2;
+        const colWidths = [28, 45, 25, 32, 25, 25];
+        
+        const rows = orders.map((order) => {
           const shippingAddr = order.shipping_address as any;
           const customerName = shippingAddr?.full_name || "Customer";
           const itemCount = order.order_items?.length || 0;
           const isCod = order.order_type === "cod" || order.payment_id?.startsWith("COD");
 
-          const rowData = [
+          return [
             order.order_number,
             customerName.substring(0, 20),
             `${itemCount} item(s)`,
             formatCurrency(order.total_amount || 0),
             isCod ? "COD" : "Online",
-            order.status,
+            order.status.replace(/_/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase()),
           ];
+        });
 
-          rowData.forEach((cell, i) => {
-            doc.text(String(cell), x, y + 5);
-            x += colWidths[i];
-          });
-
-          y += 8;
+        y = createDataTable(doc, headers, rows, y, colWidths, {
+          valueColumnIndices: [3],
+          statusColumnIndex: 5,
         });
       } else {
         doc.setFontSize(10);
-        doc.setTextColor(...TEXT_GRAY);
-        doc.text("No orders received today.", margin, y + 10);
+        doc.setTextColor(...colors.muted);
+        doc.text("No orders received today.", 15, y + 10);
       }
 
-      addReportFooter(doc);
+      addReportFooter(doc, 1);
 
-      // Download
       const blob = doc.output("blob");
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -319,7 +423,7 @@ export function useReportGenerator() {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      toast.success("Today's orders report downloaded!");
+      toast.success("Daily orders report downloaded!");
     } catch (e: any) {
       console.error("Error generating report:", e);
       toast.error(e?.message || "Failed to generate report");
@@ -348,16 +452,14 @@ export function useReportGenerator() {
       });
 
       const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const margin = 15;
-
       const dateRangeStr = `${format(startDate, "dd MMM")} - ${format(endDate, "dd MMM yyyy")}`;
 
       let y = await createReportHeader(doc, {
-        title: "Sales Report",
-        subtitle: `Sales performance for ${dateRangeStr}`,
+        title: "Sales Performance Report",
+        subtitle: `Revenue and profit analysis for ${dateRangeStr}`,
         dateRange: dateRangeStr,
         badgeText: "SALES REPORT",
+        badgeColor: colors.accent,
       });
 
       // Calculate stats
@@ -382,62 +484,41 @@ export function useReportGenerator() {
 
       const profit = subtotals - totalCost;
 
-      // Stats section
-      const stats = [
-        { label: "Total Revenue", value: formatCurrency(totalRevenue), color: SUCCESS_COLOR },
-        { label: "Subtotal (Pre-Tax)", value: formatCurrency(subtotals), color: [100, 149, 237] },
-        { label: "Total Tax", value: formatCurrency(totalTax), color: [255, 152, 0] },
-        { label: "Estimated Profit", value: formatCurrency(profit), color: [76, 175, 80] },
-      ];
-
-      const cardWidth = (pageWidth - 2 * margin - 15) / 4;
-
-      stats.forEach((stat, index) => {
-        const x = margin + index * (cardWidth + 5);
-        doc.setFillColor(248, 248, 248);
-        doc.setDrawColor(...BORDER_COLOR);
-        doc.roundedRect(x, y, cardWidth, 20, 2, 2, "FD");
-
-        doc.setFontSize(7);
-        doc.setTextColor(...TEXT_GRAY);
-        doc.setFont("helvetica", "normal");
-        doc.text(stat.label, x + cardWidth / 2, y + 5, { align: "center" });
-
-        doc.setFontSize(10);
-        doc.setTextColor(stat.color[0], stat.color[1], stat.color[2]);
-        doc.setFont("helvetica", "bold");
-        doc.text(stat.value, x + cardWidth / 2, y + 14, { align: "center" });
-      });
-
-      y += 28;
+      y = createStatCards(doc, [
+        { label: "Total Revenue", value: formatCurrency(totalRevenue), color: colors.accent },
+        { label: "Pre-Tax Subtotal", value: formatCurrency(subtotals), color: colors.brand },
+        { label: "Total GST", value: formatCurrency(totalTax), color: colors.warning },
+        { label: "Est. Profit", value: formatCurrency(profit), color: colors.success },
+      ], y);
 
       // Order breakdown by status
       doc.setFontSize(10);
-      doc.setTextColor(...TEXT_DARK);
+      doc.setTextColor(...colors.brand);
       doc.setFont("helvetica", "bold");
-      doc.text("Order Breakdown by Status", margin, y);
+      doc.text("Order Status Breakdown", 15, y);
       y += 6;
 
       const statusCounts: Record<string, number> = {};
       (orders || []).forEach((o) => {
-        statusCounts[o.status] = (statusCounts[o.status] || 0) + 1;
+        const status = o.status.replace(/_/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase());
+        statusCounts[status] = (statusCounts[status] || 0) + 1;
       });
 
       Object.entries(statusCounts).forEach(([status, count]) => {
         doc.setFontSize(8);
-        doc.setTextColor(...TEXT_GRAY);
+        doc.setTextColor(...colors.secondary);
         doc.setFont("helvetica", "normal");
-        doc.text(`• ${status.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}: ${count} orders`, margin + 5, y);
+        doc.text(`• ${status}: ${count} orders`, 18, y);
         y += 5;
       });
 
-      y += 10;
+      y += 8;
 
-      // Top selling products
+      // Top products section
       doc.setFontSize(10);
-      doc.setTextColor(...TEXT_DARK);
+      doc.setTextColor(...colors.brand);
       doc.setFont("helvetica", "bold");
-      doc.text("Top Selling Products", margin, y);
+      doc.text("Top Selling Products", 15, y);
       y += 6;
 
       const productSales: Record<string, { name: string; quantity: number; revenue: number }> = {};
@@ -456,37 +537,20 @@ export function useReportGenerator() {
         .sort((a, b) => b.revenue - a.revenue)
         .slice(0, 5);
 
-      // Table header
-      doc.setFillColor(...PRIMARY_COLOR);
-      doc.rect(margin, y, pageWidth - 2 * margin, 7, "F");
+      const headers = ["Product Name", "Qty Sold", "Revenue"];
+      const colWidths = [100, 35, 45];
+      const rows = topProducts.map((product) => [
+        product.name.substring(0, 45),
+        product.quantity.toString(),
+        formatCurrency(product.revenue),
+      ]);
 
-      doc.setFontSize(8);
-      doc.setTextColor(255, 255, 255);
-      doc.setFont("helvetica", "bold");
-      doc.text("Product Name", margin + 3, y + 5);
-      doc.text("Qty Sold", margin + 100, y + 5);
-      doc.text("Revenue", margin + 130, y + 5);
-
-      y += 7;
-
-      topProducts.forEach((product, index) => {
-        const rowBg = index % 2 === 0 ? [255, 255, 255] : [248, 248, 248];
-        doc.setFillColor(rowBg[0], rowBg[1], rowBg[2]);
-        doc.rect(margin, y, pageWidth - 2 * margin, 7, "F");
-
-        doc.setFontSize(8);
-        doc.setTextColor(...TEXT_DARK);
-        doc.setFont("helvetica", "normal");
-        doc.text(product.name.substring(0, 50), margin + 3, y + 5);
-        doc.text(product.quantity.toString(), margin + 100, y + 5);
-        doc.text(formatCurrency(product.revenue), margin + 130, y + 5);
-
-        y += 7;
+      y = createDataTable(doc, headers, rows, y, colWidths, {
+        valueColumnIndices: [2],
       });
 
-      addReportFooter(doc);
+      addReportFooter(doc, 1);
 
-      // Download
       const blob = doc.output("blob");
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -518,156 +582,58 @@ export function useReportGenerator() {
       const { data: customers, error } = await query.order("created_at", { ascending: false });
       if (error) throw error;
 
-      // Get orders for each customer
       const { data: orders } = await supabase.from("orders").select("user_id, total_amount, status, created_at");
 
       const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const margin = 15;
 
       const reportTitle = customerId ? "Customer Detail Report" : "Customer Data Report";
       const subtitle = customerId 
-        ? `Detailed report for selected customer` 
-        : `Overview of all registered customers`;
+        ? `Detailed analysis for selected customer` 
+        : `Complete overview of all registered customers`;
 
       let y = await createReportHeader(doc, {
         title: reportTitle,
         subtitle: subtitle,
         dateRange: format(new Date(), "dd MMM yyyy"),
         badgeText: "CUSTOMER REPORT",
+        badgeColor: colors.brand,
       });
 
-      // Summary stats
       const totalCustomers = customers?.length || 0;
       const customersWithOrders = new Set((orders || []).map((o) => o.user_id)).size;
       const totalOrderValue = (orders || []).reduce((sum, o) => sum + (o.total_amount || 0), 0);
 
-      const stats = [
-        { label: "Total Customers", value: totalCustomers.toString() },
-        { label: "With Orders", value: customersWithOrders.toString() },
-        { label: "Total Order Value", value: formatCurrency(totalOrderValue) },
-      ];
+      y = createStatCards(doc, [
+        { label: "Total Customers", value: totalCustomers.toString(), color: colors.brand },
+        { label: "Active Buyers", value: customersWithOrders.toString(), color: colors.accent },
+        { label: "Total Revenue", value: formatCurrency(totalOrderValue), color: colors.success },
+      ], y);
 
-      const cardWidth = (pageWidth - 2 * margin - 10) / 3;
-
-      stats.forEach((stat, index) => {
-        const x = margin + index * (cardWidth + 5);
-        doc.setFillColor(248, 248, 248);
-        doc.setDrawColor(...BORDER_COLOR);
-        doc.roundedRect(x, y, cardWidth, 18, 2, 2, "FD");
-
-        doc.setFontSize(8);
-        doc.setTextColor(...TEXT_GRAY);
-        doc.setFont("helvetica", "normal");
-        doc.text(stat.label, x + cardWidth / 2, y + 5, { align: "center" });
-
-        doc.setFontSize(11);
-        doc.setTextColor(...TEXT_DARK);
-        doc.setFont("helvetica", "bold");
-        doc.text(stat.value, x + cardWidth / 2, y + 13, { align: "center" });
-      });
-
-      y += 25;
-
-      // Customer list/detail
       if (customers && customers.length > 0) {
-        // Table header
-        doc.setFillColor(...PRIMARY_COLOR);
-        doc.rect(margin, y, pageWidth - 2 * margin, 8, "F");
-
-        doc.setFontSize(8);
-        doc.setTextColor(255, 255, 255);
-        doc.setFont("helvetica", "bold");
-
-        const colWidths = customerId ? [60, 50, 35, 35] : [50, 60, 30, 40];
-        let x = margin + 2;
-
-        const headers = customerId 
-          ? ["Field", "Value", "", ""]
-          : ["Name", "Email", "Orders", "Registered"];
-        headers.forEach((h, i) => {
-          if (h) doc.text(h, x, y + 5);
-          x += colWidths[i];
+        const headers = ["Name", "Email", "Orders", "Registered"];
+        const colWidths = [50, 65, 25, 40];
+        
+        const rows = customers.slice(0, 30).map((customer) => {
+          const customerOrders = (orders || []).filter((o) => o.user_id === customer.id);
+          return [
+            (customer.full_name || "N/A").substring(0, 25),
+            (customer.email || "N/A").substring(0, 30),
+            customerOrders.length.toString(),
+            format(new Date(customer.created_at), "dd MMM yyyy"),
+          ];
         });
 
-        y += 8;
+        y = createDataTable(doc, headers, rows, y, colWidths);
 
-        if (customerId && customers[0]) {
-          // Detailed view for single customer
-          const customer = customers[0];
-          const customerOrders = (orders || []).filter((o) => o.user_id === customer.id);
-          
-          const fields = [
-            ["Full Name", customer.full_name || "N/A"],
-            ["Email", customer.email || "N/A"],
-            ["Phone", customer.phone_number || "N/A"],
-            ["Age", customer.age?.toString() || "N/A"],
-            ["Registered On", format(new Date(customer.created_at), "dd MMM yyyy")],
-            ["Total Orders", customerOrders.length.toString()],
-            ["Total Spent", formatCurrency(customerOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0))],
-          ];
-
-          fields.forEach(([field, value], index) => {
-            const rowBg = index % 2 === 0 ? [255, 255, 255] : [248, 248, 248];
-            doc.setFillColor(rowBg[0], rowBg[1], rowBg[2]);
-            doc.rect(margin, y, pageWidth - 2 * margin, 8, "F");
-
-            doc.setFontSize(8);
-            doc.setTextColor(...TEXT_DARK);
-            doc.setFont("helvetica", "bold");
-            doc.text(field, margin + 3, y + 5);
-
-            doc.setFont("helvetica", "normal");
-            doc.text(value, margin + 65, y + 5);
-
-            y += 8;
-          });
-        } else {
-          // List view for all customers
-          customers.slice(0, 25).forEach((customer, index) => {
-            if (y > 260) {
-              doc.addPage();
-              y = 20;
-            }
-
-            const rowBg = index % 2 === 0 ? [255, 255, 255] : [248, 248, 248];
-            doc.setFillColor(rowBg[0], rowBg[1], rowBg[2]);
-            doc.rect(margin, y, pageWidth - 2 * margin, 8, "F");
-
-            const customerOrders = (orders || []).filter((o) => o.user_id === customer.id);
-
-            doc.setFontSize(7);
-            doc.setTextColor(...TEXT_DARK);
-            doc.setFont("helvetica", "normal");
-
-            x = margin + 2;
-            const rowData = [
-              (customer.full_name || "N/A").substring(0, 25),
-              (customer.email || "N/A").substring(0, 30),
-              customerOrders.length.toString(),
-              format(new Date(customer.created_at), "dd MMM yyyy"),
-            ];
-
-            rowData.forEach((cell, i) => {
-              doc.text(cell, x, y + 5);
-              x += colWidths[i];
-            });
-
-            y += 8;
-          });
-
-          if (customers.length > 25) {
-            y += 5;
-            doc.setFontSize(8);
-            doc.setTextColor(...TEXT_GRAY);
-            doc.text(`... and ${customers.length - 25} more customers`, margin, y);
-          }
+        if (customers.length > 30) {
+          doc.setFontSize(8);
+          doc.setTextColor(...colors.muted);
+          doc.text(`... and ${customers.length - 30} more customers`, 15, y);
         }
       }
 
-      addReportFooter(doc);
+      addReportFooter(doc, 1);
 
-      // Download
       const blob = doc.output("blob");
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -699,127 +665,56 @@ export function useReportGenerator() {
       if (error) throw error;
 
       const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const margin = 15;
 
       let y = await createReportHeader(doc, {
         title: "Raw Materials Inventory Report",
-        subtitle: "Current stock levels and availability status",
+        subtitle: "Current stock levels and material availability status",
         dateRange: format(new Date(), "dd MMM yyyy"),
         badgeText: "INVENTORY",
+        badgeColor: colors.warning,
       });
 
-      // Summary stats
       const totalMaterials = materials?.length || 0;
       const lowStock = materials?.filter((m) => m.availability_status === "low_stock").length || 0;
       const outOfStock = materials?.filter((m) => m.availability_status === "out_of_stock").length || 0;
       const inStock = materials?.filter((m) => m.availability_status === "in_stock").length || 0;
 
-      const stats = [
-        { label: "Total Materials", value: totalMaterials.toString(), color: PRIMARY_COLOR },
-        { label: "In Stock", value: inStock.toString(), color: SUCCESS_COLOR },
-        { label: "Low Stock", value: lowStock.toString(), color: [255, 152, 0] as [number, number, number] },
-        { label: "Out of Stock", value: outOfStock.toString(), color: [244, 67, 54] as [number, number, number] },
-      ];
+      y = createStatCards(doc, [
+        { label: "Total Materials", value: totalMaterials.toString(), color: colors.brand },
+        { label: "In Stock", value: inStock.toString(), color: colors.success },
+        { label: "Low Stock", value: lowStock.toString(), color: colors.warning },
+        { label: "Out of Stock", value: outOfStock.toString(), color: colors.error },
+      ], y);
 
-      const cardWidth = (pageWidth - 2 * margin - 15) / 4;
-
-      stats.forEach((stat, index) => {
-        const x = margin + index * (cardWidth + 5);
-        doc.setFillColor(248, 248, 248);
-        doc.setDrawColor(...BORDER_COLOR);
-        doc.roundedRect(x, y, cardWidth, 18, 2, 2, "FD");
-
-        doc.setFontSize(8);
-        doc.setTextColor(...TEXT_GRAY);
-        doc.setFont("helvetica", "normal");
-        doc.text(stat.label, x + cardWidth / 2, y + 5, { align: "center" });
-
-        doc.setFontSize(11);
-        doc.setTextColor(stat.color[0], stat.color[1], stat.color[2]);
-        doc.setFont("helvetica", "bold");
-        doc.text(stat.value, x + cardWidth / 2, y + 13, { align: "center" });
-      });
-
-      y += 25;
-
-      // Materials table
       if (materials && materials.length > 0) {
-        // Table header
-        doc.setFillColor(...PRIMARY_COLOR);
-        doc.rect(margin, y, pageWidth - 2 * margin, 8, "F");
-
-        doc.setFontSize(8);
-        doc.setTextColor(255, 255, 255);
-        doc.setFont("helvetica", "bold");
-
-        const colWidths = [50, 25, 25, 35, 45];
-        let x = margin + 2;
-
         const headers = ["Material Name", "Quantity", "Unit", "Min Qty", "Status"];
-        headers.forEach((h, i) => {
-          doc.text(h, x, y + 5);
-          x += colWidths[i];
-        });
-
-        y += 8;
-
-        // Table rows
-        materials.forEach((material, index) => {
-          if (y > 260) {
-            doc.addPage();
-            y = 20;
-          }
-
-          const rowBg = index % 2 === 0 ? [255, 255, 255] : [248, 248, 248];
-          doc.setFillColor(rowBg[0], rowBg[1], rowBg[2]);
-          doc.rect(margin, y, pageWidth - 2 * margin, 8, "F");
-
-          doc.setFontSize(7);
-          doc.setTextColor(...TEXT_DARK);
-          doc.setFont("helvetica", "normal");
-
-          x = margin + 2;
-
-          const status = material.availability_status || "in_stock";
-          const statusLabel = status.replace(/_/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase());
-
-          const rowData = [
-            material.name.substring(0, 25),
+        const colWidths = [60, 30, 25, 30, 35];
+        
+        const rows = materials.map((material) => {
+          const status = (material.availability_status || "in_stock")
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, (l: string) => l.toUpperCase());
+          
+          return [
+            material.name.substring(0, 30),
             material.quantity?.toString() || "0",
             material.unit || "-",
             material.min_quantity?.toString() || "-",
-            statusLabel,
+            status,
           ];
+        });
 
-          rowData.forEach((cell, i) => {
-            // Color code status
-            if (i === 4) {
-              if (status === "out_of_stock") {
-                doc.setTextColor(244, 67, 54);
-              } else if (status === "low_stock") {
-                doc.setTextColor(255, 152, 0);
-              } else {
-                doc.setTextColor(76, 175, 80);
-              }
-            } else {
-              doc.setTextColor(...TEXT_DARK);
-            }
-            doc.text(cell, x, y + 5);
-            x += colWidths[i];
-          });
-
-          y += 8;
+        y = createDataTable(doc, headers, rows, y, colWidths, {
+          statusColumnIndex: 4,
         });
       } else {
         doc.setFontSize(10);
-        doc.setTextColor(...TEXT_GRAY);
-        doc.text("No raw materials found.", margin, y + 10);
+        doc.setTextColor(...colors.muted);
+        doc.text("No raw materials found.", 15, y + 10);
       }
 
-      addReportFooter(doc);
+      addReportFooter(doc, 1);
 
-      // Download
       const blob = doc.output("blob");
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -851,120 +746,53 @@ export function useReportGenerator() {
       if (error) throw error;
 
       const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const margin = 15;
 
       let y = await createReportHeader(doc, {
         title: "Product Inventory Report",
-        subtitle: "Current product stock levels and pricing",
+        subtitle: "Complete product stock levels and pricing overview",
         dateRange: format(new Date(), "dd MMM yyyy"),
         badgeText: "INVENTORY",
+        badgeColor: colors.accent,
       });
 
-      // Summary stats
       const totalProducts = products?.length || 0;
       const lowStock = products?.filter((p) => p.availability_status === "low_stock").length || 0;
       const outOfStock = products?.filter((p) => p.availability_status === "out_of_stock").length || 0;
       const totalValue = products?.reduce((sum, p) => sum + (p.price || 0) * (p.stock_quantity || 0), 0) || 0;
 
-      const stats = [
-        { label: "Total Products", value: totalProducts.toString() },
-        { label: "Low Stock", value: lowStock.toString() },
-        { label: "Out of Stock", value: outOfStock.toString() },
-        { label: "Total Stock Value", value: formatCurrency(totalValue) },
-      ];
+      y = createStatCards(doc, [
+        { label: "Total Products", value: totalProducts.toString(), color: colors.brand },
+        { label: "Low Stock", value: lowStock.toString(), color: colors.warning },
+        { label: "Out of Stock", value: outOfStock.toString(), color: colors.error },
+        { label: "Stock Value", value: formatCurrency(totalValue), color: colors.success },
+      ], y);
 
-      const cardWidth = (pageWidth - 2 * margin - 15) / 4;
-
-      stats.forEach((stat, index) => {
-        const x = margin + index * (cardWidth + 5);
-        doc.setFillColor(248, 248, 248);
-        doc.setDrawColor(...BORDER_COLOR);
-        doc.roundedRect(x, y, cardWidth, 18, 2, 2, "FD");
-
-        doc.setFontSize(8);
-        doc.setTextColor(...TEXT_GRAY);
-        doc.setFont("helvetica", "normal");
-        doc.text(stat.label, x + cardWidth / 2, y + 5, { align: "center" });
-
-        doc.setFontSize(10);
-        doc.setTextColor(...TEXT_DARK);
-        doc.setFont("helvetica", "bold");
-        doc.text(stat.value, x + cardWidth / 2, y + 13, { align: "center" });
-      });
-
-      y += 25;
-
-      // Products table
       if (products && products.length > 0) {
-        doc.setFillColor(...PRIMARY_COLOR);
-        doc.rect(margin, y, pageWidth - 2 * margin, 8, "F");
-
-        doc.setFontSize(8);
-        doc.setTextColor(255, 255, 255);
-        doc.setFont("helvetica", "bold");
-
-        const colWidths = [55, 25, 30, 30, 40];
-        let x = margin + 2;
-
         const headers = ["Product Name", "Stock", "Price", "Cost", "Status"];
-        headers.forEach((h, i) => {
-          doc.text(h, x, y + 5);
-          x += colWidths[i];
-        });
-
-        y += 8;
-
-        products.forEach((product, index) => {
-          if (y > 260) {
-            doc.addPage();
-            y = 20;
-          }
-
-          const rowBg = index % 2 === 0 ? [255, 255, 255] : [248, 248, 248];
-          doc.setFillColor(rowBg[0], rowBg[1], rowBg[2]);
-          doc.rect(margin, y, pageWidth - 2 * margin, 8, "F");
-
-          doc.setFontSize(7);
-          doc.setTextColor(...TEXT_DARK);
-          doc.setFont("helvetica", "normal");
-
-          x = margin + 2;
-
-          const status = product.availability_status || "in_stock";
-          const statusLabel = status.replace(/_/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase());
-
-          const rowData = [
-            product.name.substring(0, 28),
+        const colWidths = [60, 25, 35, 35, 25];
+        
+        const rows = products.map((product) => {
+          const status = (product.availability_status || "in_stock")
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, (l: string) => l.toUpperCase());
+          
+          return [
+            product.name.substring(0, 30),
             (product.stock_quantity || 0).toString(),
             formatCurrency(product.price || 0),
             formatCurrency(product.cost_price || 0),
-            statusLabel,
+            status,
           ];
+        });
 
-          rowData.forEach((cell, i) => {
-            if (i === 4) {
-              if (status === "out_of_stock") {
-                doc.setTextColor(244, 67, 54);
-              } else if (status === "low_stock") {
-                doc.setTextColor(255, 152, 0);
-              } else {
-                doc.setTextColor(76, 175, 80);
-              }
-            } else {
-              doc.setTextColor(...TEXT_DARK);
-            }
-            doc.text(cell, x, y + 5);
-            x += colWidths[i];
-          });
-
-          y += 8;
+        y = createDataTable(doc, headers, rows, y, colWidths, {
+          valueColumnIndices: [2, 3],
+          statusColumnIndex: 4,
         });
       }
 
-      addReportFooter(doc);
+      addReportFooter(doc, 1);
 
-      // Download
       const blob = doc.output("blob");
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -999,141 +827,80 @@ export function useReportGenerator() {
       if (error) throw error;
 
       const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const margin = 15;
-
       const dateRangeStr = `${format(startDate, "dd MMM")} - ${format(endDate, "dd MMM yyyy")}`;
 
       let y = await createReportHeader(doc, {
-        title: "GST Tax Report",
-        subtitle: `Tax collection summary for ${dateRangeStr}`,
+        title: "GST Summary Report",
+        subtitle: `Tax collection breakdown for ${dateRangeStr}`,
         dateRange: dateRangeStr,
         badgeText: "GST REPORT",
+        badgeColor: colors.success,
       });
 
-      // Calculate totals
       const totalCgst = invoices?.reduce((sum, inv) => sum + (inv.cgst_amount || 0), 0) || 0;
       const totalSgst = invoices?.reduce((sum, inv) => sum + (inv.sgst_amount || 0), 0) || 0;
       const totalIgst = invoices?.reduce((sum, inv) => sum + (inv.igst_amount || 0), 0) || 0;
       const totalTax = totalCgst + totalSgst + totalIgst;
-      const totalInvoiceAmount = invoices?.reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0;
+      const taxableValue = invoices?.reduce((sum, inv) => sum + (inv.subtotal || 0), 0) || 0;
 
-      const stats = [
-        { label: "CGST Collected", value: formatCurrency(totalCgst), color: [33, 150, 243] },
-        { label: "SGST Collected", value: formatCurrency(totalSgst), color: [156, 39, 176] },
-        { label: "IGST Collected", value: formatCurrency(totalIgst), color: [255, 152, 0] },
-        { label: "Total GST", value: formatCurrency(totalTax), color: SUCCESS_COLOR },
-      ];
+      y = createStatCards(doc, [
+        { label: "Taxable Value", value: formatCurrency(taxableValue), color: colors.brand },
+        { label: "CGST (9%)", value: formatCurrency(totalCgst), color: colors.accent },
+        { label: "SGST (9%)", value: formatCurrency(totalSgst), color: colors.accent },
+        { label: "IGST (18%)", value: formatCurrency(totalIgst), color: colors.warning },
+      ], y);
 
-      const cardWidth = (pageWidth - 2 * margin - 15) / 4;
+      // Total tax summary box
+      doc.setFillColor(...colors.accent);
+      doc.roundedRect(15, y, 180, 16, 3, 3, "F");
 
-      stats.forEach((stat, index) => {
-        const x = margin + index * (cardWidth + 5);
-        doc.setFillColor(248, 248, 248);
-        doc.setDrawColor(...BORDER_COLOR);
-        doc.roundedRect(x, y, cardWidth, 20, 2, 2, "FD");
-
-        doc.setFontSize(7);
-        doc.setTextColor(...TEXT_GRAY);
-        doc.setFont("helvetica", "normal");
-        doc.text(stat.label, x + cardWidth / 2, y + 5, { align: "center" });
-
-        doc.setFontSize(10);
-        doc.setTextColor(stat.color[0], stat.color[1], stat.color[2]);
-        doc.setFont("helvetica", "bold");
-        doc.text(stat.value, x + cardWidth / 2, y + 14, { align: "center" });
-      });
-
-      y += 28;
-
-      // Summary
       doc.setFontSize(10);
-      doc.setTextColor(...TEXT_DARK);
+      doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
-      doc.text("Summary", margin, y);
-      y += 6;
+      doc.text("TOTAL TAX COLLECTED", 25, y + 7);
+      doc.setFontSize(14);
+      doc.text(formatCurrency(totalTax), 170, y + 10, { align: "right" });
 
-      doc.setFontSize(8);
-      doc.setTextColor(...TEXT_GRAY);
-      doc.setFont("helvetica", "normal");
-      doc.text(`Total Final Invoices: ${invoices?.length || 0}`, margin + 5, y);
-      y += 5;
-      doc.text(`Total Invoice Value: ${formatCurrency(totalInvoiceAmount)}`, margin + 5, y);
-      y += 5;
-      doc.text(`Seller GSTIN: ${COMPANY_SETTINGS.business_gstin}`, margin + 5, y);
-      y += 10;
+      y += 24;
 
-      // Invoice details table
+      // Invoice breakdown
       if (invoices && invoices.length > 0) {
         doc.setFontSize(10);
-        doc.setTextColor(...TEXT_DARK);
+        doc.setTextColor(...colors.brand);
         doc.setFont("helvetica", "bold");
-        doc.text("Invoice Details", margin, y);
+        doc.text("Invoice-wise Tax Breakdown", 15, y);
         y += 6;
 
-        doc.setFillColor(...PRIMARY_COLOR);
-        doc.rect(margin, y, pageWidth - 2 * margin, 8, "F");
+        const headers = ["Invoice #", "Customer", "Taxable", "CGST", "SGST", "IGST", "Total Tax"];
+        const colWidths = [30, 45, 28, 22, 22, 22, 25];
+        
+        const rows = invoices.slice(0, 20).map((inv) => [
+          inv.invoice_number,
+          (inv.client_name || "").substring(0, 20),
+          formatCurrency(inv.subtotal || 0),
+          formatCurrency(inv.cgst_amount || 0),
+          formatCurrency(inv.sgst_amount || 0),
+          formatCurrency(inv.igst_amount || 0),
+          formatCurrency((inv.cgst_amount || 0) + (inv.sgst_amount || 0) + (inv.igst_amount || 0)),
+        ]);
 
-        doc.setFontSize(7);
-        doc.setTextColor(255, 255, 255);
-        doc.setFont("helvetica", "bold");
-
-        const colWidths = [30, 35, 25, 25, 25, 25, 25];
-        let x = margin + 2;
-
-        const headers = ["Invoice #", "Client", "Subtotal", "CGST", "SGST", "IGST", "Total"];
-        headers.forEach((h, i) => {
-          doc.text(h, x, y + 5);
-          x += colWidths[i];
-        });
-
-        y += 8;
-
-        invoices.slice(0, 20).forEach((inv, index) => {
-          if (y > 260) {
-            doc.addPage();
-            y = 20;
-          }
-
-          const rowBg = index % 2 === 0 ? [255, 255, 255] : [248, 248, 248];
-          doc.setFillColor(rowBg[0], rowBg[1], rowBg[2]);
-          doc.rect(margin, y, pageWidth - 2 * margin, 8, "F");
-
-          doc.setFontSize(6);
-          doc.setTextColor(...TEXT_DARK);
-          doc.setFont("helvetica", "normal");
-
-          x = margin + 2;
-
-          const rowData = [
-            inv.invoice_number.substring(0, 15),
-            (inv.client_name || "").substring(0, 18),
-            formatCurrency(inv.subtotal || 0),
-            formatCurrency(inv.cgst_amount || 0),
-            formatCurrency(inv.sgst_amount || 0),
-            formatCurrency(inv.igst_amount || 0),
-            formatCurrency(inv.total_amount || 0),
-          ];
-
-          rowData.forEach((cell, i) => {
-            doc.text(cell, x, y + 5);
-            x += colWidths[i];
-          });
-
-          y += 8;
+        y = createDataTable(doc, headers, rows, y, colWidths, {
+          valueColumnIndices: [2, 3, 4, 5, 6],
         });
 
         if (invoices.length > 20) {
-          y += 5;
           doc.setFontSize(8);
-          doc.setTextColor(...TEXT_GRAY);
-          doc.text(`... and ${invoices.length - 20} more invoices`, margin, y);
+          doc.setTextColor(...colors.muted);
+          doc.text(`... and ${invoices.length - 20} more invoices`, 15, y);
         }
+      } else {
+        doc.setFontSize(10);
+        doc.setTextColor(...colors.muted);
+        doc.text("No finalized invoices found for this period.", 15, y + 10);
       }
 
-      addReportFooter(doc);
+      addReportFooter(doc, 1);
 
-      // Download
       const blob = doc.output("blob");
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
