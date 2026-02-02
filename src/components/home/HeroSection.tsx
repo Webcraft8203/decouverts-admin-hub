@@ -85,7 +85,8 @@ const IntroAnimation = ({ onComplete }: { onComplete: () => void }) => {
             {/* Text Container - Absolute to prevent layout shift */}
             <div className="absolute top-full mt-4 flex flex-col items-center whitespace-nowrap">
               <motion.h1
-                className="text-2xl md:text-3xl font-bold text-slate-900 tracking-[0.2em]"
+                className="text-2xl md:text-3xl font-bold text-slate-900 tracking-[0.15em] uppercase"
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, ease: "easeOut", delay: 0.5 }}
@@ -94,7 +95,8 @@ const IntroAnimation = ({ onComplete }: { onComplete: () => void }) => {
               </motion.h1>
               
               <motion.p
-                className="text-xs md:text-sm text-slate-500 font-light tracking-widest uppercase mt-2"
+                className="text-xs md:text-sm text-primary font-medium tracking-wider mt-2"
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, ease: "easeOut", delay: 0.7 }}

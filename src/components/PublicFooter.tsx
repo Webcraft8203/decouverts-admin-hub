@@ -98,16 +98,26 @@ export const PublicFooter = () => {
           {/* Brand Column */}
           <div className="lg:col-span-4 space-y-8">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-white rounded-xl shadow-lg shadow-white/5">
+              <div className="p-2 bg-white/70 hover:bg-white rounded-xl transition-colors duration-300">
                 <img 
                   src={logo} 
                   alt="Decouverts Plus" 
                   className="h-10 w-auto"
                 />
               </div>
-              <div>
-                <span className="text-xl font-bold text-white tracking-wide block">Decouverts</span>
-                <span className="text-[10px] text-primary font-bold tracking-widest uppercase">Discovering Future Technologies</span>
+              <div className="flex flex-col justify-center">
+                <span 
+                  className="text-xl font-bold text-white tracking-[0.15em] uppercase leading-none"
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                >
+                  DECOUVERTS
+                </span>
+                <span 
+                  className="text-[10px] text-primary font-medium tracking-wider leading-tight mt-0.5"
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                >
+                  Discovering Future Technologies
+                </span>
               </div>
             </div>
             
