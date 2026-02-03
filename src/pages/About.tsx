@@ -66,7 +66,7 @@ const About = () => {
                    Since 2023
                  </span>
                  <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 mb-6 tracking-tight leading-tight">
-                   About <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-600">Decouverts</span>
+                   About <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-600">DECOUVERTES</span>
                  </h1>
                  <p className="text-xl md:text-2xl text-slate-600 font-light leading-relaxed">
                    Discovering Future Technologies. <br className="hidden md:block" />
@@ -173,11 +173,11 @@ const About = () => {
           </div>
         </section>
 
-        {/* Why Decouverts */}
+        {/* Why DECOUVERTES */}
         <section className="py-24 px-4 bg-slate-50">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Why Decouverts?</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Why DECOUVERTES?</h2>
               <div className="h-1 w-20 bg-orange-500 mx-auto rounded-full"></div>
               <p className="mt-4 text-slate-600 max-w-2xl mx-auto">
                 Built on the pillars of innovation, integrity, and indigenous engineering.
@@ -216,9 +216,9 @@ const About = () => {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 text-center">
               {[
                 { label: "Years of R&D", value: 3, suffix: "+" },
-                { label: "Products Developed", value: 4, suffix: "" },
-                { label: "Prototypes Delivered", value: 10, suffix: "+" },
-                { label: "Institutions Served", value: 5, suffix: "+" },
+                { label: "Products Developed", value: 30, suffix: "+" },
+                { label: "Prototypes Delivered", value: 1000, suffix: "+" },
+                { label: "Institutions Served", value: 10, suffix: "+" },
               ].map((item, i) => (
                 <div key={i}>
                   <div className="text-4xl md:text-5xl font-extrabold text-orange-500 mb-2">

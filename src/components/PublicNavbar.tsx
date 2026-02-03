@@ -143,7 +143,7 @@ export const PublicNavbar = () => {
           >
             <img 
               src={logo} 
-              alt="Decouverts Plus" 
+              alt="Decouvertes" 
               className="h-9 md:h-11 lg:h-12 w-auto object-contain transition-transform group-hover:scale-105"
             />
             <div className="flex flex-col justify-center">
@@ -154,7 +154,7 @@ export const PublicNavbar = () => {
                 )}
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
-                DECOUVERTS
+                DECOUVERTES
               </span>
               <span 
                 className={cn(

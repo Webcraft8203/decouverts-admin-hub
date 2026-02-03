@@ -46,7 +46,7 @@ export const AboutSection = () => {
             <span className="text-primary">Innovation</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-3xl mx-auto leading-relaxed">
-            Founded with a vision to transform ideas into reality, Decouverts is a Pune-based 
+            Founded with a vision to transform ideas into reality, Decouvertes is a Pune-based 
             engineering and manufacturing company specializing in advanced 3D printing systems, 
             drone technology, and new product development. Our founder's passion for innovation 
             drives us to deliver cutting-edge solutions that shape the future of manufacturing.

@@ -101,7 +101,7 @@ export const PublicFooter = () => {
               <div className="p-2 bg-white/70 hover:bg-white rounded-xl transition-colors duration-300">
                 <img 
                   src={logo} 
-                  alt="Decouverts Plus" 
+                  alt="DECOUVERTES Plus" 
                   className="h-10 w-auto"
                 />
               </div>
@@ -110,7 +110,7 @@ export const PublicFooter = () => {
                   className="text-xl font-bold text-white tracking-[0.15em] uppercase leading-none"
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
-                  DECOUVERTS
+                  DECOUVERTES
                 </span>
                 <span 
                   className="text-[10px] text-primary font-medium tracking-wider leading-tight mt-0.5"
@@ -260,11 +260,11 @@ export const PublicFooter = () => {
             </div>
 
             <div className="mt-8 space-y-4">
-              <a href="mailto:contact@decouverts.com" className="flex items-center gap-3 text-slate-400 hover:text-white transition-colors text-sm group">
+              <a href="mailto:contact@DECOUVERTES.com" className="flex items-center gap-3 text-slate-400 hover:text-white transition-colors text-sm group">
                 <div className="p-2 bg-white/5 rounded-lg group-hover:bg-primary/20 transition-colors border border-white/5 group-hover:border-primary/20">
                   <Mail className="w-4 h-4 group-hover:text-primary transition-colors" />
                 </div>
-                hello@decouverts.com
+                hello@DECOUVERTES.com
               </a>
               <a href="tel:+919561103435" className="flex items-center gap-3 text-slate-400 hover:text-white transition-colors text-sm group">
                 <div className="p-2 bg-white/5 rounded-lg group-hover:bg-primary/20 transition-colors border border-white/5 group-hover:border-primary/20">
@@ -288,7 +288,7 @@ export const PublicFooter = () => {
             onClick={() => setShowCopyright(true)}
             className="text-slate-500 text-sm hover:text-slate-300 transition-colors text-left"
           >
-            © {new Date().getFullYear()} Decouverts. All rights reserved.
+            © {new Date().getFullYear()} DECOUVERTES. All rights reserved.
           </button>
           <div className="flex items-center gap-6">
              <button 
