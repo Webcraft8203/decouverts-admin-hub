@@ -4,30 +4,30 @@ import { jsPDF } from "jspdf";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
-// Enterprise color palette - consistent with invoice system
+// DECOUVERTES Brand Color Palette
 const colors = {
-  brand: [45, 62, 80] as [number, number, number],
-  primary: [30, 41, 59] as [number, number, number],
-  secondary: [71, 85, 105] as [number, number, number],
-  accent: [16, 185, 129] as [number, number, number],
-  muted: [148, 163, 184] as [number, number, number],
-  border: [226, 232, 240] as [number, number, number],
-  light: [248, 250, 252] as [number, number, number],
+  primary: [28, 28, 28] as [number, number, number],        // Deep charcoal/black
+  brand: [35, 35, 35] as [number, number, number],          // Charcoal for headers
+  accent: [212, 175, 55] as [number, number, number],       // Gold/yellow accent
+  secondary: [85, 85, 85] as [number, number, number],      // Dark gray for text
+  muted: [130, 130, 130] as [number, number, number],       // Medium gray for metadata
+  border: [220, 220, 220] as [number, number, number],      // Light gray border
+  light: [248, 248, 248] as [number, number, number],       // Off-white background
   white: [255, 255, 255] as [number, number, number],
-  warning: [245, 158, 11] as [number, number, number],
-  success: [34, 197, 94] as [number, number, number],
-  error: [239, 68, 68] as [number, number, number],
+  success: [34, 139, 34] as [number, number, number],       // Forest green
+  warning: [205, 133, 63] as [number, number, number],      // Peru/bronze
+  error: [178, 34, 34] as [number, number, number],         // Firebrick
 };
 
 const COMPANY_SETTINGS = {
-  business_name: "DECOUVERTS",
+  business_name: "DECOUVERTES",
   business_address: "Innovation Hub, Tech Park",
   business_city: "Pune",
   business_state: "Maharashtra",
   business_pincode: "411001",
   business_country: "India",
   business_phone: "+91 98765 43210",
-  business_email: "info@decouverts.com",
+  business_email: "info@decouvertes.com",
   business_gstin: "27XXXXX1234X1ZX",
 };
 
@@ -71,56 +71,58 @@ export function useReportGenerator() {
     const margin = 15;
     let y = 5;
 
-    // Top accent bar
-    doc.setFillColor(...colors.brand);
-    doc.rect(0, 0, pageWidth, 3, "F");
+    // Top accent bar with gold
+    doc.setFillColor(...colors.primary);
+    doc.rect(0, 0, pageWidth, 4, "F");
+    doc.setFillColor(...colors.accent);
+    doc.rect(0, 4, pageWidth, 1, "F");
 
-    y = 8;
+    y = 10;
 
     // Logo
     const logoBase64 = await fetchLogoAsBase64();
     if (logoBase64) {
       try {
-        doc.addImage(logoBase64, "PNG", margin, y, 28, 14);
+        doc.addImage(logoBase64, "PNG", margin, y, 30, 15);
       } catch (e) {
         console.error("Failed to add logo:", e);
       }
     }
 
     // Company name in CAPITALS
-    const companyNameX = margin + (logoBase64 ? 32 : 0);
-    doc.setFontSize(18);
-    doc.setTextColor(...colors.brand);
+    const companyNameX = margin + (logoBase64 ? 34 : 0);
+    doc.setFontSize(22);
+    doc.setTextColor(...colors.primary);
     doc.setFont("helvetica", "bold");
-    doc.text("DECOUVERTS", companyNameX, y + 7);
+    doc.text("DECOUVERTES", companyNameX, y + 9);
 
-    doc.setFontSize(7);
-    doc.setTextColor(...colors.secondary);
-    doc.setFont("helvetica", "italic");
-    doc.text("Discovering Future Technologies", companyNameX, y + 12);
+    doc.setFontSize(8);
+    doc.setTextColor(...colors.muted);
+    doc.setFont("helvetica", "normal");
+    doc.text("Business Intelligence Report", companyNameX, y + 14);
 
-    // Report badge on right
-    const badgeWidth = 55;
+    // Report badge on right with gold accent
+    const badgeWidth = 58;
     const badgeX = pageWidth - margin - badgeWidth;
     const badgeColor = config.badgeColor || colors.accent;
 
     doc.setFillColor(...badgeColor);
-    doc.roundedRect(badgeX, y, badgeWidth, 16, 2, 2, "F");
-
-    doc.setFontSize(7);
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold");
-    doc.text(config.badgeText, badgeX + badgeWidth / 2, y + 6, { align: "center" });
+    doc.roundedRect(badgeX, y, badgeWidth, 18, 2, 2, "F");
 
     doc.setFontSize(8);
+    doc.setTextColor(...colors.primary);
+    doc.setFont("helvetica", "bold");
+    doc.text(config.badgeText, badgeX + badgeWidth / 2, y + 7, { align: "center" });
+
+    doc.setFontSize(7);
     doc.setFont("helvetica", "normal");
-    doc.text(config.dateRange, badgeX + badgeWidth / 2, y + 12, { align: "center" });
+    doc.text(config.dateRange, badgeX + badgeWidth / 2, y + 13, { align: "center" });
 
-    y = 28;
+    y = 32;
 
-    // Separator
-    doc.setDrawColor(...colors.brand);
-    doc.setLineWidth(0.8);
+    // Gold separator
+    doc.setDrawColor(...colors.accent);
+    doc.setLineWidth(1);
     doc.line(margin, y, pageWidth - margin, y);
 
     y += 5;
@@ -133,7 +135,7 @@ export function useReportGenerator() {
     doc.setTextColor(...colors.secondary);
     doc.setFont("helvetica", "normal");
     doc.text(
-      `${COMPANY_SETTINGS.business_address}, ${COMPANY_SETTINGS.business_city}, ${COMPANY_SETTINGS.business_state} - ${COMPANY_SETTINGS.business_pincode} | Ph: ${COMPANY_SETTINGS.business_phone}`,
+      `${COMPANY_SETTINGS.business_address}, ${COMPANY_SETTINGS.business_city}, ${COMPANY_SETTINGS.business_state} - ${COMPANY_SETTINGS.business_pincode} | GSTIN: ${COMPANY_SETTINGS.business_gstin}`,
       pageWidth / 2,
       y + 6,
       { align: "center" }
@@ -143,14 +145,14 @@ export function useReportGenerator() {
 
     // Report title section
     doc.setFontSize(14);
-    doc.setTextColor(...colors.brand);
+    doc.setTextColor(...colors.primary);
     doc.setFont("helvetica", "bold");
     doc.text(config.title, margin, y);
 
     y += 5;
 
     doc.setFontSize(8);
-    doc.setTextColor(...colors.secondary);
+    doc.setTextColor(...colors.muted);
     doc.setFont("helvetica", "normal");
     doc.text(config.subtitle, margin, y);
 
@@ -166,9 +168,9 @@ export function useReportGenerator() {
     const margin = 15;
     const footerY = pageHeight - 12;
 
-    doc.setDrawColor(...colors.border);
-    doc.setLineWidth(0.3);
-    doc.line(margin, footerY - 4, pageWidth - margin, footerY - 4);
+    doc.setDrawColor(...colors.accent);
+    doc.setLineWidth(0.5);
+    doc.line(margin, footerY - 5, pageWidth - margin, footerY - 5);
 
     doc.setFontSize(7);
     doc.setTextColor(...colors.muted);
@@ -179,10 +181,11 @@ export function useReportGenerator() {
     doc.text(pageText, pageWidth - margin, footerY, { align: "right" });
 
     doc.setFontSize(6);
-    doc.text("DECOUVERTS - Confidential Business Report", pageWidth / 2, footerY + 4, { align: "center" });
+    doc.setTextColor(...colors.secondary);
+    doc.text("DECOUVERTES - Confidential Business Report", pageWidth / 2, footerY + 4, { align: "center" });
   };
 
-  // Create summary stat cards
+  // Create summary stat cards with gold accents
   const createStatCards = (
     doc: jsPDF,
     stats: { label: string; value: string; color?: [number, number, number] }[],
@@ -191,16 +194,17 @@ export function useReportGenerator() {
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 15;
     const cardWidth = (pageWidth - 2 * margin - (stats.length - 1) * 5) / stats.length;
-    const cardHeight = 22;
+    const cardHeight = 24;
 
     stats.forEach((stat, index) => {
       const x = margin + index * (cardWidth + 5);
       
       doc.setFillColor(...colors.light);
       doc.setDrawColor(...colors.border);
+      doc.setLineWidth(0.3);
       doc.roundedRect(x, y, cardWidth, cardHeight, 3, 3, "FD");
 
-      // Top accent line
+      // Top accent line with gold
       const accentColor = stat.color || colors.accent;
       doc.setFillColor(...accentColor);
       doc.roundedRect(x, y, cardWidth, 3, 3, 3, "F");
@@ -210,12 +214,12 @@ export function useReportGenerator() {
       doc.setFontSize(7);
       doc.setTextColor(...colors.muted);
       doc.setFont("helvetica", "normal");
-      doc.text(stat.label.toUpperCase(), x + cardWidth / 2, y + 10, { align: "center" });
+      doc.text(stat.label.toUpperCase(), x + cardWidth / 2, y + 11, { align: "center" });
 
-      doc.setFontSize(11);
-      doc.setTextColor(...(stat.color || colors.brand));
+      doc.setFontSize(12);
+      doc.setTextColor(...(stat.color || colors.primary));
       doc.setFont("helvetica", "bold");
-      doc.text(stat.value, x + cardWidth / 2, y + 18, { align: "center" });
+      doc.text(stat.value, x + cardWidth / 2, y + 20, { align: "center" });
     });
 
     return y + cardHeight + 8;
@@ -238,26 +242,26 @@ export function useReportGenerator() {
     const margin = 15;
     const tableWidth = pageWidth - 2 * margin;
 
-    // Table header
-    doc.setFillColor(...colors.brand);
-    doc.rect(margin, y, tableWidth, 8, "F");
+    // Table header with charcoal background
+    doc.setFillColor(...colors.primary);
+    doc.rect(margin, y, tableWidth, 9, "F");
 
     doc.setFontSize(7);
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
 
-    let x = margin + 3;
+    let x = margin + 4;
     headers.forEach((h, i) => {
       const align = options?.valueColumnIndices?.includes(i) ? "right" : "left";
       if (align === "right") {
-        doc.text(h, x + colWidths[i] - 3, y + 5.5, { align: "right" });
+        doc.text(h, x + colWidths[i] - 4, y + 6, { align: "right" });
       } else {
-        doc.text(h, x, y + 5.5);
+        doc.text(h, x, y + 6);
       }
       x += colWidths[i];
     });
 
-    y += 8;
+    y += 9;
 
     // Table rows
     rows.forEach((row, rowIndex) => {
@@ -268,30 +272,30 @@ export function useReportGenerator() {
         y = 20;
         
         // Re-add header on new page
-        doc.setFillColor(...colors.brand);
-        doc.rect(margin, y, tableWidth, 8, "F");
+        doc.setFillColor(...colors.primary);
+        doc.rect(margin, y, tableWidth, 9, "F");
         doc.setFontSize(7);
         doc.setTextColor(255, 255, 255);
         doc.setFont("helvetica", "bold");
         
-        x = margin + 3;
+        x = margin + 4;
         headers.forEach((h, i) => {
           const align = options?.valueColumnIndices?.includes(i) ? "right" : "left";
           if (align === "right") {
-            doc.text(h, x + colWidths[i] - 3, y + 5.5, { align: "right" });
+            doc.text(h, x + colWidths[i] - 4, y + 6, { align: "right" });
           } else {
-            doc.text(h, x, y + 5.5);
+            doc.text(h, x, y + 6);
           }
           x += colWidths[i];
         });
-        y += 8;
+        y += 9;
       }
 
       const rowH = 7;
 
       // Alternate row background
       if (rowIndex % 2 === 0) {
-        doc.setFillColor(250, 251, 252);
+        doc.setFillColor(252, 252, 252);
       } else {
         doc.setFillColor(255, 255, 255);
       }
@@ -305,7 +309,7 @@ export function useReportGenerator() {
       doc.setFontSize(7);
       doc.setFont("helvetica", "normal");
 
-      x = margin + 3;
+      x = margin + 4;
       row.forEach((cell, cellIndex) => {
         // Handle status column coloring
         if (cellIndex === options?.statusColumnIndex) {
@@ -317,19 +321,19 @@ export function useReportGenerator() {
           } else if (status.includes("cancelled") || status.includes("out") || status.includes("failed")) {
             doc.setTextColor(...colors.error);
           } else {
-            doc.setTextColor(...colors.primary);
+            doc.setTextColor(...colors.secondary);
           }
           doc.setFont("helvetica", "bold");
         } else {
-          doc.setTextColor(...colors.primary);
+          doc.setTextColor(...colors.secondary);
           doc.setFont("helvetica", "normal");
         }
 
         const align = options?.valueColumnIndices?.includes(cellIndex) ? "right" : "left";
         if (align === "right") {
-          doc.text(cell, x + colWidths[cellIndex] - 3, y + 5, { align: "right" });
+          doc.text(cell, x + colWidths[cellIndex] - 4, y + 5, { align: "right" });
         } else {
-          doc.text(cell.substring(0, 35), x, y + 5);
+          doc.text(cell.substring(0, 38), x, y + 5);
         }
         x += colWidths[cellIndex];
       });
@@ -364,7 +368,7 @@ export function useReportGenerator() {
         subtitle: `Orders received on ${format(today, "EEEE, dd MMMM yyyy")}`,
         dateRange: format(today, "dd MMM yyyy"),
         badgeText: "DAILY REPORT",
-        badgeColor: colors.success,
+        badgeColor: colors.accent,
       });
 
       // Summary stats
@@ -374,7 +378,7 @@ export function useReportGenerator() {
       const codOrders = orders?.filter((o) => o.order_type === "cod" || o.payment_id?.startsWith("COD")).length || 0;
 
       y = createStatCards(doc, [
-        { label: "Total Orders", value: totalOrders.toString(), color: colors.brand },
+        { label: "Total Orders", value: totalOrders.toString(), color: colors.primary },
         { label: "Total Value", value: formatCurrency(totalRevenue), color: colors.accent },
         { label: "Paid Orders", value: paidOrders.toString(), color: colors.success },
         { label: "COD Orders", value: codOrders.toString(), color: colors.warning },
@@ -486,67 +490,36 @@ export function useReportGenerator() {
 
       y = createStatCards(doc, [
         { label: "Total Revenue", value: formatCurrency(totalRevenue), color: colors.accent },
-        { label: "Pre-Tax Subtotal", value: formatCurrency(subtotals), color: colors.brand },
+        { label: "Pre-Tax Subtotal", value: formatCurrency(subtotals), color: colors.primary },
         { label: "Total GST", value: formatCurrency(totalTax), color: colors.warning },
         { label: "Est. Profit", value: formatCurrency(profit), color: colors.success },
       ], y);
 
       // Order breakdown by status
       doc.setFontSize(10);
-      doc.setTextColor(...colors.brand);
+      doc.setTextColor(...colors.primary);
       doc.setFont("helvetica", "bold");
       doc.text("Order Status Breakdown", 15, y);
       y += 6;
 
       const statusCounts: Record<string, number> = {};
-      (orders || []).forEach((o) => {
-        const status = o.status.replace(/_/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase());
-        statusCounts[status] = (statusCounts[status] || 0) + 1;
+      orders?.forEach((o) => {
+        statusCounts[o.status] = (statusCounts[o.status] || 0) + 1;
       });
 
-      Object.entries(statusCounts).forEach(([status, count]) => {
-        doc.setFontSize(8);
-        doc.setTextColor(...colors.secondary);
-        doc.setFont("helvetica", "normal");
-        doc.text(`• ${status}: ${count} orders`, 18, y);
-        y += 5;
-      });
-
-      y += 8;
-
-      // Top products section
-      doc.setFontSize(10);
-      doc.setTextColor(...colors.brand);
-      doc.setFont("helvetica", "bold");
-      doc.text("Top Selling Products", 15, y);
-      y += 6;
-
-      const productSales: Record<string, { name: string; quantity: number; revenue: number }> = {};
-      (orders || []).forEach((o) => {
-        (o.order_items || []).forEach((item: any) => {
-          const key = item.product_id || item.product_name;
-          if (!productSales[key]) {
-            productSales[key] = { name: item.product_name, quantity: 0, revenue: 0 };
-          }
-          productSales[key].quantity += item.quantity;
-          productSales[key].revenue += item.total_price || 0;
-        });
-      });
-
-      const topProducts = Object.values(productSales)
-        .sort((a, b) => b.revenue - a.revenue)
-        .slice(0, 5);
-
-      const headers = ["Product Name", "Qty Sold", "Revenue"];
-      const colWidths = [100, 35, 45];
-      const rows = topProducts.map((product) => [
-        product.name.substring(0, 45),
-        product.quantity.toString(),
-        formatCurrency(product.revenue),
+      const statusHeaders = ["Status", "Count", "Percentage"];
+      const statusColWidths = [70, 50, 60];
+      const totalOrderCount = orders?.length || 1;
+      
+      const statusRows = Object.entries(statusCounts).map(([status, count]) => [
+        status.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
+        count.toString(),
+        `${((count / totalOrderCount) * 100).toFixed(1)}%`,
       ]);
 
-      y = createDataTable(doc, headers, rows, y, colWidths, {
-        valueColumnIndices: [2],
+      y = createDataTable(doc, statusHeaders, statusRows, y, statusColWidths, {
+        valueColumnIndices: [1, 2],
+        statusColumnIndex: 0,
       });
 
       addReportFooter(doc, 1);
@@ -570,250 +543,8 @@ export function useReportGenerator() {
     }
   }, []);
 
-  // Generate Customer Report
-  const generateCustomerReport = useCallback(async (customerId?: string) => {
-    setIsGenerating(true);
-    try {
-      let query = supabase.from("profiles").select("*");
-      if (customerId) {
-        query = query.eq("id", customerId);
-      }
-      
-      const { data: customers, error } = await query.order("created_at", { ascending: false });
-      if (error) throw error;
-
-      const { data: orders } = await supabase.from("orders").select("user_id, total_amount, status, created_at");
-
-      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-
-      const reportTitle = customerId ? "Customer Detail Report" : "Customer Data Report";
-      const subtitle = customerId 
-        ? `Detailed analysis for selected customer` 
-        : `Complete overview of all registered customers`;
-
-      let y = await createReportHeader(doc, {
-        title: reportTitle,
-        subtitle: subtitle,
-        dateRange: format(new Date(), "dd MMM yyyy"),
-        badgeText: "CUSTOMER REPORT",
-        badgeColor: colors.brand,
-      });
-
-      const totalCustomers = customers?.length || 0;
-      const customersWithOrders = new Set((orders || []).map((o) => o.user_id)).size;
-      const totalOrderValue = (orders || []).reduce((sum, o) => sum + (o.total_amount || 0), 0);
-
-      y = createStatCards(doc, [
-        { label: "Total Customers", value: totalCustomers.toString(), color: colors.brand },
-        { label: "Active Buyers", value: customersWithOrders.toString(), color: colors.accent },
-        { label: "Total Revenue", value: formatCurrency(totalOrderValue), color: colors.success },
-      ], y);
-
-      if (customers && customers.length > 0) {
-        const headers = ["Name", "Email", "Orders", "Registered"];
-        const colWidths = [50, 65, 25, 40];
-        
-        const rows = customers.slice(0, 30).map((customer) => {
-          const customerOrders = (orders || []).filter((o) => o.user_id === customer.id);
-          return [
-            (customer.full_name || "N/A").substring(0, 25),
-            (customer.email || "N/A").substring(0, 30),
-            customerOrders.length.toString(),
-            format(new Date(customer.created_at), "dd MMM yyyy"),
-          ];
-        });
-
-        y = createDataTable(doc, headers, rows, y, colWidths);
-
-        if (customers.length > 30) {
-          doc.setFontSize(8);
-          doc.setTextColor(...colors.muted);
-          doc.text(`... and ${customers.length - 30} more customers`, 15, y);
-        }
-      }
-
-      addReportFooter(doc, 1);
-
-      const blob = doc.output("blob");
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `Customer-Report-${format(new Date(), "yyyy-MM-dd")}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      toast.success("Customer report downloaded!");
-    } catch (e: any) {
-      console.error("Error generating report:", e);
-      toast.error(e?.message || "Failed to generate report");
-    } finally {
-      setIsGenerating(false);
-    }
-  }, []);
-
-  // Generate Raw Materials Report
-  const generateRawMaterialsReport = useCallback(async () => {
-    setIsGenerating(true);
-    try {
-      const { data: materials, error } = await supabase
-        .from("raw_materials")
-        .select("*")
-        .order("name");
-
-      if (error) throw error;
-
-      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-
-      let y = await createReportHeader(doc, {
-        title: "Raw Materials Inventory Report",
-        subtitle: "Current stock levels and material availability status",
-        dateRange: format(new Date(), "dd MMM yyyy"),
-        badgeText: "INVENTORY",
-        badgeColor: colors.warning,
-      });
-
-      const totalMaterials = materials?.length || 0;
-      const lowStock = materials?.filter((m) => m.availability_status === "low_stock").length || 0;
-      const outOfStock = materials?.filter((m) => m.availability_status === "out_of_stock").length || 0;
-      const inStock = materials?.filter((m) => m.availability_status === "in_stock").length || 0;
-
-      y = createStatCards(doc, [
-        { label: "Total Materials", value: totalMaterials.toString(), color: colors.brand },
-        { label: "In Stock", value: inStock.toString(), color: colors.success },
-        { label: "Low Stock", value: lowStock.toString(), color: colors.warning },
-        { label: "Out of Stock", value: outOfStock.toString(), color: colors.error },
-      ], y);
-
-      if (materials && materials.length > 0) {
-        const headers = ["Material Name", "Quantity", "Unit", "Min Qty", "Status"];
-        const colWidths = [60, 30, 25, 30, 35];
-        
-        const rows = materials.map((material) => {
-          const status = (material.availability_status || "in_stock")
-            .replace(/_/g, " ")
-            .replace(/\b\w/g, (l: string) => l.toUpperCase());
-          
-          return [
-            material.name.substring(0, 30),
-            material.quantity?.toString() || "0",
-            material.unit || "-",
-            material.min_quantity?.toString() || "-",
-            status,
-          ];
-        });
-
-        y = createDataTable(doc, headers, rows, y, colWidths, {
-          statusColumnIndex: 4,
-        });
-      } else {
-        doc.setFontSize(10);
-        doc.setTextColor(...colors.muted);
-        doc.text("No raw materials found.", 15, y + 10);
-      }
-
-      addReportFooter(doc, 1);
-
-      const blob = doc.output("blob");
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `Raw-Materials-Report-${format(new Date(), "yyyy-MM-dd")}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      toast.success("Raw materials report downloaded!");
-    } catch (e: any) {
-      console.error("Error generating report:", e);
-      toast.error(e?.message || "Failed to generate report");
-    } finally {
-      setIsGenerating(false);
-    }
-  }, []);
-
-  // Generate Product Inventory Report
-  const generateProductInventoryReport = useCallback(async () => {
-    setIsGenerating(true);
-    try {
-      const { data: products, error } = await supabase
-        .from("products")
-        .select("*")
-        .order("name");
-
-      if (error) throw error;
-
-      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-
-      let y = await createReportHeader(doc, {
-        title: "Product Inventory Report",
-        subtitle: "Complete product stock levels and pricing overview",
-        dateRange: format(new Date(), "dd MMM yyyy"),
-        badgeText: "INVENTORY",
-        badgeColor: colors.accent,
-      });
-
-      const totalProducts = products?.length || 0;
-      const lowStock = products?.filter((p) => p.availability_status === "low_stock").length || 0;
-      const outOfStock = products?.filter((p) => p.availability_status === "out_of_stock").length || 0;
-      const totalValue = products?.reduce((sum, p) => sum + (p.price || 0) * (p.stock_quantity || 0), 0) || 0;
-
-      y = createStatCards(doc, [
-        { label: "Total Products", value: totalProducts.toString(), color: colors.brand },
-        { label: "Low Stock", value: lowStock.toString(), color: colors.warning },
-        { label: "Out of Stock", value: outOfStock.toString(), color: colors.error },
-        { label: "Stock Value", value: formatCurrency(totalValue), color: colors.success },
-      ], y);
-
-      if (products && products.length > 0) {
-        const headers = ["Product Name", "Stock", "Price", "Cost", "Status"];
-        const colWidths = [60, 25, 35, 35, 25];
-        
-        const rows = products.map((product) => {
-          const status = (product.availability_status || "in_stock")
-            .replace(/_/g, " ")
-            .replace(/\b\w/g, (l: string) => l.toUpperCase());
-          
-          return [
-            product.name.substring(0, 30),
-            (product.stock_quantity || 0).toString(),
-            formatCurrency(product.price || 0),
-            formatCurrency(product.cost_price || 0),
-            status,
-          ];
-        });
-
-        y = createDataTable(doc, headers, rows, y, colWidths, {
-          valueColumnIndices: [2, 3],
-          statusColumnIndex: 4,
-        });
-      }
-
-      addReportFooter(doc, 1);
-
-      const blob = doc.output("blob");
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `Product-Inventory-Report-${format(new Date(), "yyyy-MM-dd")}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      toast.success("Product inventory report downloaded!");
-    } catch (e: any) {
-      console.error("Error generating report:", e);
-      toast.error(e?.message || "Failed to generate report");
-    } finally {
-      setIsGenerating(false);
-    }
-  }, []);
-
   // Generate GST Report
-  const generateGSTReport = useCallback(async (startDate: Date, endDate: Date) => {
+  const generateGstReport = useCallback(async (startDate: Date, endDate: Date) => {
     setIsGenerating(true);
     try {
       const { data: invoices, error } = await supabase
@@ -830,73 +561,54 @@ export function useReportGenerator() {
       const dateRangeStr = `${format(startDate, "dd MMM")} - ${format(endDate, "dd MMM yyyy")}`;
 
       let y = await createReportHeader(doc, {
-        title: "GST Summary Report",
-        subtitle: `Tax collection breakdown for ${dateRangeStr}`,
+        title: "GST Tax Report",
+        subtitle: `Tax breakdown for final invoices from ${dateRangeStr}`,
         dateRange: dateRangeStr,
         badgeText: "GST REPORT",
-        badgeColor: colors.success,
+        badgeColor: colors.accent,
       });
 
-      const totalCgst = invoices?.reduce((sum, inv) => sum + (inv.cgst_amount || 0), 0) || 0;
-      const totalSgst = invoices?.reduce((sum, inv) => sum + (inv.sgst_amount || 0), 0) || 0;
-      const totalIgst = invoices?.reduce((sum, inv) => sum + (inv.igst_amount || 0), 0) || 0;
+      // Calculate totals
+      const totalCgst = invoices?.reduce((sum, inv) => sum + (Number(inv.cgst_amount) || 0), 0) || 0;
+      const totalSgst = invoices?.reduce((sum, inv) => sum + (Number(inv.sgst_amount) || 0), 0) || 0;
+      const totalIgst = invoices?.reduce((sum, inv) => sum + (Number(inv.igst_amount) || 0), 0) || 0;
       const totalTax = totalCgst + totalSgst + totalIgst;
-      const taxableValue = invoices?.reduce((sum, inv) => sum + (inv.subtotal || 0), 0) || 0;
 
       y = createStatCards(doc, [
-        { label: "Taxable Value", value: formatCurrency(taxableValue), color: colors.brand },
-        { label: "CGST (9%)", value: formatCurrency(totalCgst), color: colors.accent },
-        { label: "SGST (9%)", value: formatCurrency(totalSgst), color: colors.accent },
-        { label: "IGST (18%)", value: formatCurrency(totalIgst), color: colors.warning },
+        { label: "CGST Collected", value: formatCurrency(totalCgst), color: colors.primary },
+        { label: "SGST Collected", value: formatCurrency(totalSgst), color: colors.primary },
+        { label: "IGST Collected", value: formatCurrency(totalIgst), color: colors.warning },
+        { label: "Total GST", value: formatCurrency(totalTax), color: colors.accent },
       ], y);
 
-      // Total tax summary box
-      doc.setFillColor(...colors.accent);
-      doc.roundedRect(15, y, 180, 16, 3, 3, "F");
-
-      doc.setFontSize(10);
-      doc.setTextColor(255, 255, 255);
-      doc.setFont("helvetica", "bold");
-      doc.text("TOTAL TAX COLLECTED", 25, y + 7);
-      doc.setFontSize(14);
-      doc.text(formatCurrency(totalTax), 170, y + 10, { align: "right" });
-
-      y += 24;
-
-      // Invoice breakdown
+      // Invoice list
       if (invoices && invoices.length > 0) {
         doc.setFontSize(10);
-        doc.setTextColor(...colors.brand);
+        doc.setTextColor(...colors.primary);
         doc.setFont("helvetica", "bold");
-        doc.text("Invoice-wise Tax Breakdown", 15, y);
+        doc.text("Invoice Details", 15, y);
         y += 6;
 
-        const headers = ["Invoice #", "Customer", "Taxable", "CGST", "SGST", "IGST", "Total Tax"];
-        const colWidths = [30, 45, 28, 22, 22, 22, 25];
+        const headers = ["Invoice #", "Date", "Subtotal", "CGST", "SGST", "IGST", "Total"];
+        const colWidths = [30, 22, 28, 22, 22, 22, 28];
         
-        const rows = invoices.slice(0, 20).map((inv) => [
+        const rows = invoices.map((inv) => [
           inv.invoice_number,
-          (inv.client_name || "").substring(0, 20),
+          format(new Date(inv.created_at), "dd/MM/yy"),
           formatCurrency(inv.subtotal || 0),
           formatCurrency(inv.cgst_amount || 0),
           formatCurrency(inv.sgst_amount || 0),
           formatCurrency(inv.igst_amount || 0),
-          formatCurrency((inv.cgst_amount || 0) + (inv.sgst_amount || 0) + (inv.igst_amount || 0)),
+          formatCurrency(inv.total_amount || 0),
         ]);
 
         y = createDataTable(doc, headers, rows, y, colWidths, {
           valueColumnIndices: [2, 3, 4, 5, 6],
         });
-
-        if (invoices.length > 20) {
-          doc.setFontSize(8);
-          doc.setTextColor(...colors.muted);
-          doc.text(`... and ${invoices.length - 20} more invoices`, 15, y);
-        }
       } else {
         doc.setFontSize(10);
         doc.setTextColor(...colors.muted);
-        doc.text("No finalized invoices found for this period.", 15, y + 10);
+        doc.text("No final invoices found for this period.", 15, y + 10);
       }
 
       addReportFooter(doc, 1);
@@ -920,13 +632,232 @@ export function useReportGenerator() {
     }
   }, []);
 
+  // Generate Inventory Report
+  const generateProductInventoryReport = useCallback(async () => {
+    setIsGenerating(true);
+    try {
+      const { data: products, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("name", { ascending: true });
+
+      if (error) throw error;
+
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+
+      let y = await createReportHeader(doc, {
+        title: "Product Inventory Report",
+        subtitle: `Current stock levels and availability status`,
+        dateRange: format(new Date(), "dd MMM yyyy"),
+        badgeText: "INVENTORY",
+        badgeColor: colors.accent,
+      });
+
+      // Summary stats
+      const totalProducts = products?.length || 0;
+      const inStock = products?.filter((p) => p.availability_status === "in_stock").length || 0;
+      const lowStock = products?.filter((p) => p.availability_status === "low_stock").length || 0;
+      const outOfStock = products?.filter((p) => p.availability_status === "out_of_stock").length || 0;
+
+      y = createStatCards(doc, [
+        { label: "Total Products", value: totalProducts.toString(), color: colors.primary },
+        { label: "In Stock", value: inStock.toString(), color: colors.success },
+        { label: "Low Stock", value: lowStock.toString(), color: colors.warning },
+        { label: "Out of Stock", value: outOfStock.toString(), color: colors.error },
+      ], y);
+
+      // Products table
+      if (products && products.length > 0) {
+        const headers = ["Product Name", "Stock Qty", "Price", "Cost", "Status"];
+        const colWidths = [70, 28, 30, 30, 32];
+        
+        const rows = products.map((p) => [
+          (p.name || "").substring(0, 35),
+          String(p.stock_quantity || 0),
+          formatCurrency(p.price || 0),
+          formatCurrency(p.cost_price || 0),
+          (p.availability_status || "unknown").replace(/_/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase()),
+        ]);
+
+        y = createDataTable(doc, headers, rows, y, colWidths, {
+          valueColumnIndices: [1, 2, 3],
+          statusColumnIndex: 4,
+        });
+      }
+
+      addReportFooter(doc, 1);
+
+      const blob = doc.output("blob");
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Inventory-Report-${format(new Date(), "yyyy-MM-dd")}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success("Inventory report downloaded!");
+    } catch (e: any) {
+      console.error("Error generating report:", e);
+      toast.error(e?.message || "Failed to generate report");
+    } finally {
+      setIsGenerating(false);
+    }
+  }, []);
+
+  // Generate Raw Materials Report
+  const generateRawMaterialsReport = useCallback(async () => {
+    setIsGenerating(true);
+    try {
+      const { data: materials, error } = await supabase
+        .from("raw_materials")
+        .select("*")
+        .order("name", { ascending: true });
+
+      if (error) throw error;
+
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+
+      let y = await createReportHeader(doc, {
+        title: "Raw Materials Report",
+        subtitle: `Current stock levels and reorder status`,
+        dateRange: format(new Date(), "dd MMM yyyy"),
+        badgeText: "MATERIALS",
+        badgeColor: colors.accent,
+      });
+
+      // Summary stats
+      const totalMaterials = materials?.length || 0;
+      const lowStock = materials?.filter((m) => (m.quantity || 0) <= (m.min_quantity || 10)).length || 0;
+      const totalValue = materials?.reduce((sum, m) => sum + ((m.quantity || 0) * (m.cost_per_unit || 0)), 0) || 0;
+
+      y = createStatCards(doc, [
+        { label: "Total Materials", value: totalMaterials.toString(), color: colors.primary },
+        { label: "Low Stock Items", value: lowStock.toString(), color: colors.warning },
+        { label: "Total Value", value: formatCurrency(totalValue), color: colors.accent },
+      ], y);
+
+      // Materials table
+      if (materials && materials.length > 0) {
+        const headers = ["Material Name", "Quantity", "Unit", "Cost/Unit", "Total Value"];
+        const colWidths = [60, 28, 25, 32, 35];
+        
+        const rows = materials.map((m) => [
+          (m.name || "").substring(0, 30),
+          String(m.quantity || 0),
+          m.unit || "pcs",
+          formatCurrency(m.cost_per_unit || 0),
+          formatCurrency((m.quantity || 0) * (m.cost_per_unit || 0)),
+        ]);
+
+        y = createDataTable(doc, headers, rows, y, colWidths, {
+          valueColumnIndices: [1, 3, 4],
+        });
+      }
+
+      addReportFooter(doc, 1);
+
+      const blob = doc.output("blob");
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Raw-Materials-Report-${format(new Date(), "yyyy-MM-dd")}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success("Raw materials report downloaded!");
+    } catch (e: any) {
+      console.error("Error generating report:", e);
+      toast.error(e?.message || "Failed to generate report");
+    } finally {
+      setIsGenerating(false);
+    }
+  }, []);
+
+  // Generate Customer Report
+  const generateCustomerReport = useCallback(async (customerId?: string) => {
+    setIsGenerating(true);
+    try {
+      let query = supabase.from("profiles").select("*").order("created_at", { ascending: false });
+      
+      if (customerId) {
+        query = query.eq("id", customerId);
+      }
+      
+      const { data: profiles, error } = await query;
+
+      if (error) throw error;
+
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+
+      let y = await createReportHeader(doc, {
+        title: "Customer Database Report",
+        subtitle: `Complete list of registered customers`,
+        dateRange: format(new Date(), "dd MMM yyyy"),
+        badgeText: "CUSTOMERS",
+        badgeColor: colors.accent,
+      });
+
+      // Summary stats
+      const totalCustomers = profiles?.length || 0;
+      const activeCustomers = profiles?.filter((p) => !p.is_blocked).length || 0;
+      const blockedCustomers = profiles?.filter((p) => p.is_blocked).length || 0;
+
+      y = createStatCards(doc, [
+        { label: "Total Customers", value: totalCustomers.toString(), color: colors.primary },
+        { label: "Active", value: activeCustomers.toString(), color: colors.success },
+        { label: "Blocked", value: blockedCustomers.toString(), color: colors.error },
+      ], y);
+
+      // Customers table
+      if (profiles && profiles.length > 0) {
+        const headers = ["Name", "Email", "Phone", "Joined", "Status"];
+        const colWidths = [40, 55, 30, 28, 27];
+        
+        const rows = profiles.map((p) => [
+          (p.full_name || "N/A").substring(0, 20),
+          (p.email || "N/A").substring(0, 28),
+          p.phone_number || "N/A",
+          format(new Date(p.created_at), "dd/MM/yy"),
+          p.is_blocked ? "Blocked" : "Active",
+        ]);
+
+        y = createDataTable(doc, headers, rows, y, colWidths, {
+          statusColumnIndex: 4,
+        });
+      }
+
+      addReportFooter(doc, 1);
+
+      const blob = doc.output("blob");
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Customer-Report-${format(new Date(), "yyyy-MM-dd")}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success("Customer report downloaded!");
+    } catch (e: any) {
+      console.error("Error generating report:", e);
+      toast.error(e?.message || "Failed to generate report");
+    } finally {
+      setIsGenerating(false);
+    }
+  }, []);
+
   return {
     isGenerating,
     generateTodayOrdersReport,
     generateSalesReport,
-    generateCustomerReport,
-    generateRawMaterialsReport,
+    generateGSTReport: generateGstReport,
     generateProductInventoryReport,
-    generateGSTReport,
+    generateRawMaterialsReport,
+    generateCustomerReport,
   };
 }
