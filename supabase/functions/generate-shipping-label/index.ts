@@ -34,19 +34,19 @@ const fetchImageAsBase64 = async (url: string): Promise<string | null> => {
   }
 };
 
-// Enterprise color palette
+// DECOUVERTES Brand Color Palette
 const colors = {
-  brand: [45, 62, 80] as [number, number, number],
-  primary: [30, 41, 59] as [number, number, number],
-  secondary: [71, 85, 105] as [number, number, number],
-  accent: [16, 185, 129] as [number, number, number],
-  muted: [148, 163, 184] as [number, number, number],
-  border: [226, 232, 240] as [number, number, number],
-  light: [248, 250, 252] as [number, number, number],
+  primary: [28, 28, 28] as [number, number, number],        // Deep charcoal/black
+  brand: [35, 35, 35] as [number, number, number],          // Charcoal for headers
+  accent: [212, 175, 55] as [number, number, number],       // Gold/yellow accent
+  secondary: [85, 85, 85] as [number, number, number],      // Dark gray for text
+  muted: [130, 130, 130] as [number, number, number],       // Medium gray for metadata
+  border: [220, 220, 220] as [number, number, number],      // Light gray border
+  light: [248, 248, 248] as [number, number, number],       // Off-white background
   white: [255, 255, 255] as [number, number, number],
-  warning: [245, 158, 11] as [number, number, number],
-  success: [34, 197, 94] as [number, number, number],
-  error: [220, 38, 38] as [number, number, number],
+  success: [34, 139, 34] as [number, number, number],       // Forest green
+  warning: [205, 133, 63] as [number, number, number],      // Peru/bronze
+  error: [178, 34, 34] as [number, number, number],         // Firebrick red
 };
 
 interface ShippingLabelRequest {
@@ -88,13 +88,13 @@ serve(async (req) => {
     const { data: settings } = await supabase.from("invoice_settings").select("*").single();
 
     const company = settings || {
-      business_name: "Decouverts",
+      business_name: "Decouvertes",
       business_address: "Innovation Hub, Tech Park",
       business_city: "Pune",
       business_state: "Maharashtra",
       business_pincode: "411001",
       business_phone: "+91 98765 43210",
-      business_email: "info@decouverts.com",
+      business_email: "info@decouvertes.com",
       business_logo_url: null,
     };
 
@@ -113,7 +113,7 @@ serve(async (req) => {
     
     const qrCodeDataUrl = await qrcode(qrData);
 
-    // Create PDF - Modern courier label format
+    // Create PDF - Professional courier label format
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -126,58 +126,61 @@ serve(async (req) => {
     logoBase64 = await fetchImageAsBase64(storedLogoUrl);
 
     // ==================== HEADER SECTION ====================
-    // Top brand bar
-    doc.setFillColor(...colors.brand);
-    doc.rect(0, 0, pageWidth, 4, "F");
+    // Top brand bar with gold accent
+    doc.setFillColor(...colors.primary);
+    doc.rect(0, 0, pageWidth, 5, "F");
+    doc.setFillColor(...colors.accent);
+    doc.rect(0, 5, pageWidth, 1.5, "F");
 
-    y = 8;
+    y = 10;
 
     // Company logo and branding
     if (logoBase64) {
-      try { doc.addImage(logoBase64, 'PNG', margin, y, 26, 13); } catch {}
+      try { doc.addImage(logoBase64, 'PNG', margin, y, 28, 14); } catch {}
     }
 
     // Company name in CAPITALS
-    doc.setFontSize(16);
-    doc.setTextColor(...colors.brand);
+    doc.setFontSize(18);
+    doc.setTextColor(...colors.primary);
     doc.setFont("helvetica", "bold");
-    doc.text("DECOUVERTS", margin + (logoBase64 ? 30 : 0), y + 7);
+    doc.text("DECOUVERTES", margin + (logoBase64 ? 32 : 0), y + 8);
 
-    doc.setFontSize(7);
-    doc.setTextColor(...colors.secondary);
+    doc.setFontSize(8);
+    doc.setTextColor(...colors.muted);
     doc.setFont("helvetica", "normal");
-    doc.text("Shipping Label", margin + (logoBase64 ? 30 : 0), y + 12);
+    doc.text("Shipping Label", margin + (logoBase64 ? 32 : 0), y + 13);
 
-    // Shipment badge on right
-    const badgeWidth = 55;
+    // Shipment badge on right with gold
+    const badgeWidth = 58;
     const badgeX = pageWidth - margin - badgeWidth;
     
     doc.setFillColor(...colors.accent);
-    doc.roundedRect(badgeX, y, badgeWidth, 16, 2, 2, "F");
+    doc.roundedRect(badgeX, y, badgeWidth, 18, 2, 2, "F");
     
     doc.setFontSize(7);
-    doc.setTextColor(255, 255, 255);
+    doc.setTextColor(...colors.primary);
     doc.setFont("helvetica", "bold");
-    doc.text("SHIPMENT ID", badgeX + badgeWidth / 2, y + 5, { align: "center" });
+    doc.text("SHIPMENT ID", badgeX + badgeWidth / 2, y + 6, { align: "center" });
     
-    doc.setFontSize(9);
-    doc.text(shipmentId, badgeX + badgeWidth / 2, y + 12, { align: "center" });
+    doc.setFontSize(10);
+    doc.text(shipmentId, badgeX + badgeWidth / 2, y + 13, { align: "center" });
 
-    y = 28;
+    y = 32;
 
-    // Separator
-    doc.setDrawColor(...colors.brand);
-    doc.setLineWidth(0.8);
+    // Gold separator
+    doc.setDrawColor(...colors.accent);
+    doc.setLineWidth(1);
     doc.line(margin, y, pageWidth - margin, y);
 
-    y += 5;
+    y += 6;
 
     // ==================== ORDER DETAILS BAR ====================
     doc.setFillColor(...colors.light);
     doc.setDrawColor(...colors.border);
-    doc.roundedRect(margin, y, pageWidth - 2 * margin, 14, 2, 2, "FD");
+    doc.setLineWidth(0.3);
+    doc.roundedRect(margin, y, pageWidth - 2 * margin, 16, 2, 2, "FD");
 
-    const detailsY = y + 4;
+    const detailsY = y + 5;
     const colWidth = (pageWidth - 2 * margin) / 4;
 
     // Order number
@@ -185,45 +188,45 @@ serve(async (req) => {
     doc.setTextColor(...colors.muted);
     doc.setFont("helvetica", "bold");
     doc.text("ORDER NO", margin + 5, detailsY);
-    doc.setFontSize(8);
+    doc.setFontSize(9);
     doc.setTextColor(...colors.primary);
     doc.setFont("helvetica", "bold");
-    doc.text(order.order_number, margin + 5, detailsY + 5);
+    doc.text(order.order_number, margin + 5, detailsY + 6);
 
     // Order date
     doc.setFontSize(6);
     doc.setTextColor(...colors.muted);
     doc.text("DATE", margin + colWidth + 5, detailsY);
-    doc.setFontSize(8);
+    doc.setFontSize(9);
     doc.setTextColor(...colors.primary);
     doc.setFont("helvetica", "normal");
-    doc.text(formatDate(order.created_at), margin + colWidth + 5, detailsY + 5);
+    doc.text(formatDate(order.created_at), margin + colWidth + 5, detailsY + 6);
 
     // Courier
     doc.setFontSize(6);
     doc.setTextColor(...colors.muted);
     doc.setFont("helvetica", "bold");
     doc.text("COURIER", margin + colWidth * 2 + 5, detailsY);
-    doc.setFontSize(8);
+    doc.setFontSize(9);
     doc.setTextColor(...colors.primary);
     doc.setFont("helvetica", "normal");
-    doc.text(order.courier_name || "N/A", margin + colWidth * 2 + 5, detailsY + 5);
+    doc.text(order.courier_name || "N/A", margin + colWidth * 2 + 5, detailsY + 6);
 
     // Tracking ID
     doc.setFontSize(6);
     doc.setTextColor(...colors.muted);
     doc.setFont("helvetica", "bold");
     doc.text("AWB / TRACKING", margin + colWidth * 3 + 5, detailsY);
-    doc.setFontSize(8);
+    doc.setFontSize(9);
     doc.setTextColor(...colors.accent);
     doc.setFont("helvetica", "bold");
-    doc.text(order.tracking_id || "N/A", margin + colWidth * 3 + 5, detailsY + 5);
+    doc.text(order.tracking_id || "N/A", margin + colWidth * 3 + 5, detailsY + 6);
 
-    y += 20;
+    y += 22;
 
     // ==================== ADDRESS BLOCKS ====================
-    const addressWidth = (pageWidth - 2 * margin - 8) / 2;
-    const addressHeight = 50;
+    const addressWidth = (pageWidth - 2 * margin - 10) / 2;
+    const addressHeight = 52;
 
     // FROM ADDRESS
     doc.setFillColor(...colors.light);
@@ -231,19 +234,22 @@ serve(async (req) => {
     doc.setLineWidth(0.5);
     doc.roundedRect(margin, y, addressWidth, addressHeight, 3, 3, "FD");
 
-    // FROM badge
-    doc.setFillColor(...colors.brand);
-    doc.roundedRect(margin + 5, y + 4, 22, 7, 1, 1, "F");
-    doc.setFontSize(7);
+    // FROM header bar
+    doc.setFillColor(...colors.primary);
+    doc.roundedRect(margin, y, addressWidth, 9, 3, 3, "F");
+    doc.setFillColor(...colors.light);
+    doc.rect(margin, y + 6, addressWidth, 3, "F");
+    
+    doc.setFontSize(8);
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.text("FROM", margin + 16, y + 9, { align: "center" });
+    doc.text("FROM", margin + 5, y + 6);
 
     // Sender details
-    doc.setFontSize(10);
+    doc.setFontSize(11);
     doc.setTextColor(...colors.primary);
     doc.setFont("helvetica", "bold");
-    doc.text("DECOUVERTS", margin + 6, y + 18);
+    doc.text("DECOUVERTES", margin + 6, y + 18);
 
     doc.setFontSize(8);
     doc.setTextColor(...colors.secondary);
@@ -253,29 +259,32 @@ serve(async (req) => {
     doc.text(`PIN: ${company.business_pincode}`, margin + 6, y + 36);
     doc.text(`Ph: ${company.business_phone}`, margin + 6, y + 42);
 
-    // TO ADDRESS (highlighted)
-    const toX = margin + addressWidth + 8;
-    doc.setFillColor(240, 253, 244); // Light green background
+    // TO ADDRESS (highlighted with gold)
+    const toX = margin + addressWidth + 10;
+    doc.setFillColor(255, 251, 235); // Light gold background
     doc.setDrawColor(...colors.accent);
     doc.setLineWidth(1.5);
     doc.roundedRect(toX, y, addressWidth, addressHeight, 3, 3, "FD");
 
-    // TO badge
+    // TO header bar with gold
     doc.setFillColor(...colors.accent);
-    doc.roundedRect(toX + 5, y + 4, 16, 7, 1, 1, "F");
-    doc.setFontSize(7);
-    doc.setTextColor(255, 255, 255);
+    doc.roundedRect(toX, y, addressWidth, 9, 3, 3, "F");
+    doc.setFillColor(255, 251, 235);
+    doc.rect(toX, y + 6, addressWidth, 3, "F");
+    
+    doc.setFontSize(8);
+    doc.setTextColor(...colors.primary);
     doc.setFont("helvetica", "bold");
-    doc.text("TO", toX + 13, y + 9, { align: "center" });
+    doc.text("SHIP TO", toX + 5, y + 6);
 
     // Recipient details
-    doc.setFontSize(11);
+    doc.setFontSize(12);
     doc.setTextColor(...colors.primary);
     doc.setFont("helvetica", "bold");
     doc.text((shippingAddress?.full_name || "Customer").toUpperCase(), toX + 6, y + 18);
 
     doc.setFontSize(8);
-    doc.setTextColor(...colors.primary);
+    doc.setTextColor(...colors.secondary);
     doc.setFont("helvetica", "normal");
     
     let addrY = y + 25;
@@ -289,26 +298,26 @@ serve(async (req) => {
     }
     doc.text(`${shippingAddress?.city || ""}, ${shippingAddress?.state || ""}`, toX + 6, addrY);
 
-    // Prominent PIN code
+    // Prominent PIN code with gold background
     addrY += 8;
-    doc.setFillColor(...colors.brand);
-    doc.roundedRect(toX + 6, addrY - 4, 32, 10, 2, 2, "F");
-    doc.setFontSize(10);
+    doc.setFillColor(...colors.primary);
+    doc.roundedRect(toX + 6, addrY - 4, 35, 11, 2, 2, "F");
+    doc.setFontSize(11);
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.text(shippingAddress?.postal_code || "000000", toX + 22, addrY + 3, { align: "center" });
+    doc.text(shippingAddress?.postal_code || "000000", toX + 23.5, addrY + 4, { align: "center" });
 
     // Phone
     doc.setFontSize(8);
     doc.setTextColor(...colors.secondary);
     doc.setFont("helvetica", "normal");
-    doc.text(`Ph: ${shippingAddress?.phone || "N/A"}`, toX + 42, addrY + 3);
+    doc.text(`Ph: ${shippingAddress?.phone || "N/A"}`, toX + 45, addrY + 4);
 
     y += addressHeight + 8;
 
     // ==================== PACKAGE CONTENTS ====================
-    doc.setFontSize(9);
-    doc.setTextColor(...colors.brand);
+    doc.setFontSize(10);
+    doc.setTextColor(...colors.primary);
     doc.setFont("helvetica", "bold");
     doc.text("PACKAGE CONTENTS", margin, y);
 
@@ -319,37 +328,40 @@ serve(async (req) => {
     doc.setDrawColor(...colors.border);
     
     const itemCount = order.order_type === "custom_design" ? 1 : (order.order_items?.length || 0);
-    const tableHeight = Math.min(8 + itemCount * 7, 35);
+    const tableHeight = Math.min(9 + itemCount * 7, 38);
     
     doc.roundedRect(margin, y, pageWidth - 2 * margin, tableHeight, 2, 2, "FD");
 
     // Table header
-    doc.setFillColor(...colors.brand);
-    doc.rect(margin, y, pageWidth - 2 * margin, 7, "F");
+    doc.setFillColor(...colors.primary);
+    doc.rect(margin, y, pageWidth - 2 * margin, 8, "F");
     doc.setFontSize(7);
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.text("ITEM DESCRIPTION", margin + 5, y + 5);
-    doc.text("QTY", pageWidth - margin - 15, y + 5, { align: "center" });
+    doc.text("ITEM DESCRIPTION", margin + 5, y + 5.5);
+    doc.text("QTY", pageWidth - margin - 18, y + 5.5, { align: "center" });
 
-    y += 7;
+    y += 8;
     doc.setTextColor(...colors.primary);
     doc.setFont("helvetica", "normal");
 
     if (order.order_type === "custom_design" && order.design_requests) {
       doc.text(`Custom Print - ${order.design_requests.file_name || "Design"}`, margin + 5, y + 5);
-      doc.text(String(order.design_requests.quantity || 1), pageWidth - margin - 15, y + 5, { align: "center" });
+      doc.setFont("helvetica", "bold");
+      doc.text(String(order.design_requests.quantity || 1), pageWidth - margin - 18, y + 5, { align: "center" });
     } else {
       const maxItems = 4;
       order.order_items?.slice(0, maxItems).forEach((item: any, idx: number) => {
         const name = item.product_name.length > 60 ? item.product_name.substring(0, 57) + "..." : item.product_name;
-        doc.text(name, margin + 5, y + 5 + idx * 6);
-        doc.text(String(item.quantity), pageWidth - margin - 15, y + 5 + idx * 6, { align: "center" });
+        doc.setFont("helvetica", "normal");
+        doc.text(name, margin + 5, y + 5 + idx * 7);
+        doc.setFont("helvetica", "bold");
+        doc.text(String(item.quantity), pageWidth - margin - 18, y + 5 + idx * 7, { align: "center" });
       });
       if (order.order_items?.length > maxItems) {
         doc.setTextColor(...colors.muted);
         doc.setFont("helvetica", "italic");
-        doc.text(`+ ${order.order_items.length - maxItems} more items`, margin + 5, y + 5 + maxItems * 6);
+        doc.text(`+ ${order.order_items.length - maxItems} more items`, margin + 5, y + 5 + maxItems * 7);
       }
     }
 
@@ -359,91 +371,91 @@ serve(async (req) => {
     const qrBoxWidth = pageWidth - 2 * margin;
     doc.setFillColor(...colors.light);
     doc.setDrawColor(...colors.border);
-    doc.roundedRect(margin, y, qrBoxWidth, 45, 3, 3, "FD");
+    doc.roundedRect(margin, y, qrBoxWidth, 48, 3, 3, "FD");
 
     // QR Code
-    const qrSize = 35;
+    const qrSize = 38;
     try {
       doc.addImage(qrCodeDataUrl, 'PNG', margin + 5, y + 5, qrSize, qrSize);
     } catch {}
 
-    // QR border
-    doc.setDrawColor(...colors.border);
-    doc.setLineWidth(0.5);
+    // QR border with gold
+    doc.setDrawColor(...colors.accent);
+    doc.setLineWidth(1);
     doc.rect(margin + 4, y + 4, qrSize + 2, qrSize + 2, "S");
 
     // Verification info
     const infoX = margin + qrSize + 15;
-    doc.setFontSize(10);
-    doc.setTextColor(...colors.brand);
+    doc.setFontSize(11);
+    doc.setTextColor(...colors.primary);
     doc.setFont("helvetica", "bold");
-    doc.text("SCAN TO VERIFY SHIPMENT", infoX, y + 12);
+    doc.text("SCAN TO VERIFY SHIPMENT", infoX, y + 14);
 
-    doc.setFontSize(7);
+    doc.setFontSize(8);
     doc.setTextColor(...colors.secondary);
     doc.setFont("helvetica", "normal");
-    doc.text("Scan this QR code to verify order authenticity", infoX, y + 18);
-    doc.text("and track real-time delivery status.", infoX, y + 23);
+    doc.text("Scan this QR code to verify order authenticity", infoX, y + 21);
+    doc.text("and track real-time delivery status.", infoX, y + 27);
 
     // Dispatch & delivery dates
-    doc.setFontSize(7);
+    doc.setFontSize(8);
     doc.setTextColor(...colors.muted);
     doc.setFont("helvetica", "bold");
-    doc.text("DISPATCHED:", infoX, y + 32);
+    doc.text("DISPATCHED:", infoX, y + 36);
     doc.setTextColor(...colors.primary);
     doc.setFont("helvetica", "normal");
-    doc.text(order.shipped_at ? formatDate(order.shipped_at) : formatDate(new Date().toISOString()), infoX + 25, y + 32);
+    doc.text(order.shipped_at ? formatDate(order.shipped_at) : formatDate(new Date().toISOString()), infoX + 28, y + 36);
 
     if (order.expected_delivery_date) {
       doc.setTextColor(...colors.muted);
       doc.setFont("helvetica", "bold");
-      doc.text("EXPECTED BY:", infoX, y + 38);
+      doc.text("EXPECTED BY:", infoX, y + 43);
       doc.setTextColor(...colors.success);
       doc.setFont("helvetica", "bold");
-      doc.text(formatDate(order.expected_delivery_date), infoX + 25, y + 38);
+      doc.text(formatDate(order.expected_delivery_date), infoX + 28, y + 43);
     }
 
-    y += 52;
+    y += 55;
 
     // ==================== COD NOTICE ====================
     if (order.payment_status !== "paid") {
-      doc.setFillColor(254, 242, 242);
+      doc.setFillColor(255, 245, 238); // Light salmon
       doc.setDrawColor(...colors.error);
-      doc.setLineWidth(1.5);
-      doc.roundedRect(margin, y, pageWidth - 2 * margin, 20, 3, 3, "FD");
+      doc.setLineWidth(2);
+      doc.roundedRect(margin, y, pageWidth - 2 * margin, 22, 3, 3, "FD");
 
       // COD Badge
       doc.setFillColor(...colors.error);
-      doc.roundedRect(margin + 5, y + 4, 12, 12, 2, 2, "F");
-      doc.setFontSize(8);
+      doc.roundedRect(margin + 5, y + 5, 14, 12, 2, 2, "F");
+      doc.setFontSize(10);
       doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
-      doc.text("₹", margin + 11, y + 12, { align: "center" });
+      doc.text("₹", margin + 12, y + 13, { align: "center" });
 
       // COD text
-      doc.setFontSize(11);
+      doc.setFontSize(12);
       doc.setTextColor(...colors.error);
       doc.setFont("helvetica", "bold");
-      doc.text("CASH ON DELIVERY", margin + 22, y + 9);
+      doc.text("CASH ON DELIVERY", margin + 24, y + 10);
       
-      doc.setFontSize(7);
+      doc.setFontSize(8);
       doc.setFont("helvetica", "normal");
-      doc.text("Collect amount before handing over package", margin + 22, y + 14);
+      doc.text("Collect amount before handing over package", margin + 24, y + 16);
 
-      // Amount box
-      doc.setFillColor(...colors.error);
-      doc.roundedRect(pageWidth - margin - 50, y + 4, 45, 12, 2, 2, "F");
-      doc.setFontSize(11);
-      doc.setTextColor(255, 255, 255);
+      // Amount box with gold
+      doc.setFillColor(...colors.accent);
+      doc.roundedRect(pageWidth - margin - 52, y + 5, 47, 12, 2, 2, "F");
+      doc.setFontSize(12);
+      doc.setTextColor(...colors.primary);
       doc.setFont("helvetica", "bold");
-      doc.text(`₹${Number(order.total_amount).toLocaleString()}`, pageWidth - margin - 27.5, y + 12, { align: "center" });
+      doc.text(`₹${Number(order.total_amount).toLocaleString()}`, pageWidth - margin - 28.5, y + 13, { align: "center" });
 
-      y += 26;
+      y += 28;
     }
 
     // ==================== FOOTER ====================
-    doc.setDrawColor(...colors.border);
-    doc.setLineWidth(0.3);
+    doc.setDrawColor(...colors.accent);
+    doc.setLineWidth(0.5);
     doc.line(margin, y, pageWidth - margin, y);
 
     y += 5;
@@ -451,10 +463,10 @@ serve(async (req) => {
     doc.setTextColor(...colors.muted);
     doc.setFont("helvetica", "normal");
     doc.text(`Generated: ${new Date().toLocaleString("en-IN")}`, margin, y);
-    doc.text("DECOUVERTS | www.decouverts.com", pageWidth - margin, y, { align: "right" });
+    doc.text("DECOUVERTES | www.decouvertes.com", pageWidth - margin, y, { align: "right" });
 
     y += 4;
-    doc.text("Handle with care. For verification: decouverts.com/verify-order", pageWidth / 2, y, { align: "center" });
+    doc.text("Handle with care. For verification: decouvertes.com/verify-order", pageWidth / 2, y, { align: "center" });
 
     // Generate and upload PDF
     const pdfArrayBuffer = doc.output("arraybuffer");
