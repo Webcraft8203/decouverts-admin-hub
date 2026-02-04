@@ -43,6 +43,8 @@ interface Product {
   video_url: string | null;
   is_highlighted: boolean;
   gst_percentage: number;
+  sku: string | null;
+  hsn_code: string | null;
 }
 
 interface Category {
@@ -56,7 +58,7 @@ export default function Products() {
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [formData, setFormData] = useState({ name: "", description: "", price: "", cost_price: "", category_id: "", stock_quantity: "", availability_status: "in_stock", is_highlighted: false, video_url: "", gst_percentage: "18" });
+  const [formData, setFormData] = useState({ name: "", description: "", price: "", cost_price: "", category_id: "", stock_quantity: "", availability_status: "in_stock", is_highlighted: false, video_url: "", gst_percentage: "18", hsn_code: "" });
   const [productImages, setProductImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [videoUrlError, setVideoUrlError] = useState("");
@@ -133,7 +135,8 @@ export default function Products() {
       images: productImages.length > 0 ? productImages : null,
       video_url: formData.video_url?.trim() || null,
       is_highlighted: formData.is_highlighted,
-      gst_percentage: parseFloat(formData.gst_percentage) || 18
+      gst_percentage: parseFloat(formData.gst_percentage) || 18,
+      hsn_code: formData.hsn_code?.trim() || null
     };
     
     if (editingProduct) {
@@ -193,7 +196,7 @@ export default function Products() {
   };
 
   const resetForm = () => { 
-    setFormData({ name: "", description: "", price: "", cost_price: "", category_id: "", stock_quantity: "", availability_status: "in_stock", is_highlighted: false, video_url: "", gst_percentage: "18" }); 
+    setFormData({ name: "", description: "", price: "", cost_price: "", category_id: "", stock_quantity: "", availability_status: "in_stock", is_highlighted: false, video_url: "", gst_percentage: "18", hsn_code: "" });
     setEditingProduct(null);
     setProductImages([]);
     setVideoUrlError("");
@@ -211,7 +214,8 @@ export default function Products() {
       availability_status: product.availability_status,
       is_highlighted: product.is_highlighted,
       video_url: product.video_url || "",
-      gst_percentage: String(product.gst_percentage ?? 18)
+      gst_percentage: String(product.gst_percentage ?? 18),
+      hsn_code: product.hsn_code || ""
     });
     setProductImages(product.images || []);
     setVideoUrlError("");
@@ -239,7 +243,18 @@ export default function Products() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div><Label>Stock Quantity</Label><Input type="number" value={formData.stock_quantity} onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })} required /></div>
+                <div>
+                  <Label>HSN Code <span className="text-destructive">*</span></Label>
+                  <Input value={formData.hsn_code} onChange={(e) => setFormData({ ...formData, hsn_code: e.target.value })} placeholder="e.g., 8471" required />
+                  <p className="text-xs text-muted-foreground mt-1">Required for GST invoices</p>
+                </div>
               </div>
+              {editingProduct?.sku && (
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <Label className="text-muted-foreground">SKU (Auto-generated)</Label>
+                  <p className="font-mono text-sm font-medium">{editingProduct.sku}</p>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>GST Percentage (%)</Label>
@@ -397,12 +412,12 @@ export default function Products() {
           <TableHeader>
             <TableRow>
               <TableHead className="w-16">Image</TableHead>
+              <TableHead>SKU</TableHead>
               <TableHead>Name</TableHead>
+              <TableHead>HSN</TableHead>
               <TableHead>Price</TableHead>
-              <TableHead>GST %</TableHead>
               <TableHead>Stock</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-center">Featured</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -422,13 +437,10 @@ export default function Products() {
                     </div>
                   )}
                 </TableCell>
+                <TableCell className="font-mono text-xs text-muted-foreground">{p.sku || "-"}</TableCell>
                 <TableCell className="font-medium">{p.name}</TableCell>
+                <TableCell className="text-xs">{p.hsn_code || "-"}</TableCell>
                 <TableCell>₹{p.price.toLocaleString()}</TableCell>
-                <TableCell>
-                  <span className="px-2 py-1 rounded-full text-xs bg-muted text-muted-foreground">
-                    {p.gst_percentage ?? 18}%
-                  </span>
-                </TableCell>
                 <TableCell>{p.stock_quantity}</TableCell>
                 <TableCell>
                   <span className={`px-2 py-1 rounded-full text-xs ${
