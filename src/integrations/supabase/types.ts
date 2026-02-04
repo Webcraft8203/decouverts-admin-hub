@@ -1871,11 +1871,13 @@ export type Database = {
           created_at: string
           description: string | null
           gst_percentage: number
+          hsn_code: string | null
           id: string
           images: string[] | null
           is_highlighted: boolean
           name: string
           price: number
+          sku: string | null
           stock_quantity: number
           updated_at: string
           video_url: string | null
@@ -1887,11 +1889,13 @@ export type Database = {
           created_at?: string
           description?: string | null
           gst_percentage?: number
+          hsn_code?: string | null
           id?: string
           images?: string[] | null
           is_highlighted?: boolean
           name: string
           price?: number
+          sku?: string | null
           stock_quantity?: number
           updated_at?: string
           video_url?: string | null
@@ -1903,11 +1907,13 @@ export type Database = {
           created_at?: string
           description?: string | null
           gst_percentage?: number
+          hsn_code?: string | null
           id?: string
           images?: string[] | null
           is_highlighted?: boolean
           name?: string
           price?: number
+          sku?: string | null
           stock_quantity?: number
           updated_at?: string
           video_url?: string | null
