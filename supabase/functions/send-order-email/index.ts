@@ -364,7 +364,7 @@ serve(async (req) => {
 
     // Send email via Resend API
     const emailPayload: any = {
-      from: `${companyName} <onboarding@resend.dev>`,
+      from: `${companyName} <store@decouvertes.in>`,
       to: [customerEmail],
       subject: subject,
       html: emailHtml,
