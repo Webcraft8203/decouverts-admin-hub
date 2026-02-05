@@ -53,6 +53,7 @@ interface Product {
   category_id: string | null;
   is_highlighted: boolean;
   categories: { name: string } | null;
+  sku: string | null;
 }
 
 interface Category {
@@ -75,7 +76,7 @@ const Shop = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("*, categories(name)")
+        .select("*, categories(name), sku")
         .gt("stock_quantity", 0)
         .order("created_at", { ascending: false });
 
@@ -145,7 +146,8 @@ const Shop = () => {
     ?.filter((product) => {
       const matchesSearch = 
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description?.toLowerCase().includes(searchQuery.toLowerCase());
+        product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.sku?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
       return matchesSearch && matchesCategory;
     })
@@ -217,6 +219,12 @@ const Shop = () => {
 
       {/* Product Info */}
       <div className="flex flex-col flex-1 p-4">
+        {/* SKU Badge */}
+        {product.sku && (
+          <span className="text-[10px] font-mono text-muted-foreground bg-muted/50 px-2 py-0.5 rounded w-fit mb-1.5">
+            {product.sku}
+          </span>
+        )}
         {product.categories && (
           <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-1">
             {product.categories.name}

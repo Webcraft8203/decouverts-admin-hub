@@ -290,8 +290,13 @@ const ProductDetail = () => {
               {/* Right Column: Information */}
               <div className="flex flex-col h-full pt-2">
                 
-                {/* Category Badge */}
+                {/* SKU & Category Badges */}
                 <div className="mb-6">
+                    {product.sku && (
+                        <Badge variant="outline" className="mr-2 font-mono text-xs px-3 py-1 bg-muted/30 border-muted-foreground/20 text-muted-foreground">
+                            SKU: {product.sku}
+                        </Badge>
+                    )}
                     {(product.categories as any)?.name && (
                         <Badge variant="secondary" className="bg-secondary/50 text-foreground hover:bg-secondary border-border/50 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase transition-colors">
                             {(product.categories as any).name}
@@ -319,6 +324,11 @@ const ProductDetail = () => {
                         <div className="flex items-center gap-1.5 text-rose-600 font-medium bg-rose-50 px-3 py-1 rounded-full border border-rose-100">
                             <Clock className="w-4 h-4" />
                             Out of Stock
+                        </div>
+                    )}
+                    {product.hsn_code && (
+                        <div className="text-xs text-muted-foreground bg-muted/50 px-2.5 py-1 rounded hidden sm:block">
+                            HSN: {product.hsn_code}
                         </div>
                     )}
                 </div>
