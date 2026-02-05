@@ -63,6 +63,8 @@ export interface InvoiceItem {
   sgst_amount?: number;
   igst_amount?: number;
   total?: number;
+  sku?: string;
+  hsn_code?: string;
 }
 
 export interface Invoice {
@@ -108,6 +110,8 @@ function normalizeItem(item: any): InvoiceItem {
     sgst_amount: Number(item.sgst_amount) || 0,
     igst_amount: Number(item.igst_amount) || 0,
     total: Number(item.total) || (Number(item.quantity || 1) * Number(item.price || item.rate || 0)),
+    sku: item.sku || "",
+    hsn_code: item.hsn_code || item.hsn || "8471",
   };
 }
 
