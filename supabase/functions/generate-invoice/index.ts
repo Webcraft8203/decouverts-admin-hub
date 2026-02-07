@@ -7,8 +7,57 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// ==================== UNIFIED DECOUVERTES INVOICE TEMPLATE ====================
+// This template matches the client hook (useUnifiedInvoicePdf.ts) exactly
+// Both admin and user downloads will produce identical professional invoices
+
+const COLORS = {
+  primary: [33, 37, 41] as [number, number, number],
+  accent: [198, 158, 47] as [number, number, number],
+  secondary: [73, 80, 87] as [number, number, number],
+  muted: [134, 142, 150] as [number, number, number],
+  light: [248, 249, 250] as [number, number, number],
+  border: [222, 226, 230] as [number, number, number],
+  white: [255, 255, 255] as [number, number, number],
+  success: [25, 135, 84] as [number, number, number],
+  warning: [255, 193, 7] as [number, number, number],
+  tableHeader: [33, 37, 41] as [number, number, number],
+  tableAlt: [248, 249, 250] as [number, number, number],
+};
+
+const COMPANY = {
+  name: "DECOUVERTES",
+  tagline: "Excellence in Innovation",
+  address: "Innovation Hub, Tech Park",
+  city: "Pune",
+  state: "Maharashtra",
+  pincode: "411001",
+  country: "India",
+  phone: "+91 98765 43210",
+  email: "info@decouvertes.com",
+  gstin: "27XXXXX1234X1ZX",
+  pan: "XXXXX1234X",
+  website: "www.decouvertes.com",
+  terms: [
+    "1. Goods once sold will only be taken back or exchanged as per company policy.",
+    "2. Payment is due within 30 days of invoice date unless otherwise specified.",
+    "3. All disputes are subject to Pune jurisdiction.",
+    "4. Warranty as per product terms and conditions.",
+  ],
+};
+
+const PAGE = {
+  width: 210,
+  height: 297,
+  margin: 15,
+  footerHeight: 18,
+};
+
 const formatCurrency = (amount: number): string => {
-  return `₹${Number(amount).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `₹${Number(amount || 0).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 };
 
 const formatDate = (dateStr: string): string => {
@@ -62,21 +111,6 @@ const fetchImageAsBase64 = async (url: string): Promise<string | null> => {
     console.error("Error fetching logo:", error);
     return null;
   }
-};
-
-// Professional Enterprise Color Palette - DECOUVERTES Branding
-const colors = {
-  primary: [33, 37, 41] as [number, number, number],        // Rich dark gray
-  accent: [198, 158, 47] as [number, number, number],       // Professional gold
-  secondary: [73, 80, 87] as [number, number, number],      // Slate gray for text
-  muted: [134, 142, 150] as [number, number, number],       // Medium gray for metadata
-  light: [248, 249, 250] as [number, number, number],       // Soft off-white
-  border: [222, 226, 230] as [number, number, number],      // Subtle border
-  white: [255, 255, 255] as [number, number, number],
-  success: [25, 135, 84] as [number, number, number],       // Bootstrap green
-  warning: [255, 193, 7] as [number, number, number],       // Amber warning
-  tableHeader: [33, 37, 41] as [number, number, number],    // Dark header
-  tableAlt: [248, 249, 250] as [number, number, number],    // Alternating row
 };
 
 interface InvoiceRequest {
@@ -136,21 +170,22 @@ serve(async (req) => {
     const { data: settings } = await supabase.from("invoice_settings").select("*").single();
 
     const company = settings || {
-      business_name: "Decouvertes",
-      business_address: "Innovation Hub, Tech Park",
-      business_city: "Pune",
-      business_state: "Maharashtra",
-      business_pincode: "411001",
-      business_country: "India",
-      business_phone: "+91 98765 43210",
-      business_email: "info@decouvertes.com",
-      business_gstin: "27XXXXX1234X1ZX",
+      business_name: COMPANY.name,
+      business_address: COMPANY.address,
+      business_city: COMPANY.city,
+      business_state: COMPANY.state,
+      business_pincode: COMPANY.pincode,
+      business_country: COMPANY.country,
+      business_phone: COMPANY.phone,
+      business_email: COMPANY.email,
+      business_gstin: COMPANY.gstin,
+      business_pan: COMPANY.pan,
       business_logo_url: null,
       invoice_prefix: "INV",
       default_gst_rate: 18,
       platform_fee_percentage: 2,
       platform_fee_taxable: false,
-      terms_and_conditions: "1. Goods once sold are non-refundable.\n2. Payment due within 30 days.\n3. Warranty as per product terms.",
+      terms_and_conditions: COMPANY.terms.join("\n"),
     };
 
     const orderSuffix = order.order_number.replace("DP-", "").replace(/-/g, "");
@@ -169,7 +204,7 @@ serve(async (req) => {
 
     const shippingAddress = order.shipping_address as any;
     const buyerState = shippingAddress?.state || "";
-    const sellerState = company.business_state || "Maharashtra";
+    const sellerState = company.business_state || COMPANY.state;
     const isIgst = buyerState.toLowerCase() !== sellerState.toLowerCase();
 
     const { data: profile } = await supabase
@@ -195,6 +230,7 @@ serve(async (req) => {
         totalIgst += Number(gst.igst_amount || 0);
         
         return {
+          sno: index + 1,
           name: item.product_name,
           sku: item.products?.sku || `DEC-PRD-${String(index + 1).padStart(5, '0')}`,
           hsn: item.products?.hsn_code || "8471",
@@ -202,9 +238,6 @@ serve(async (req) => {
           rate: item.product_price,
           taxable_value: item.total_price,
           gst_rate: gst.gst_rate || 18,
-          cgst_rate: gst.cgst_rate || (isIgst ? 0 : 9),
-          sgst_rate: gst.sgst_rate || (isIgst ? 0 : 9),
-          igst_rate: gst.igst_rate || (isIgst ? 18 : 0),
           cgst_amount: gst.cgst_amount || 0,
           sgst_amount: gst.sgst_amount || 0,
           igst_amount: gst.igst_amount || 0,
@@ -226,6 +259,7 @@ serve(async (req) => {
         totalIgst += igstAmount;
         
         return {
+          sno: index + 1,
           name: item.product_name,
           sku: item.products?.sku || `DEC-PRD-${String(index + 1).padStart(5, '0')}`,
           hsn: item.products?.hsn_code || "8471",
@@ -233,9 +267,6 @@ serve(async (req) => {
           rate: item.product_price,
           taxable_value: taxableValue,
           gst_rate: gstRate,
-          cgst_rate: isIgst ? 0 : gstRate / 2,
-          sgst_rate: isIgst ? 0 : gstRate / 2,
-          igst_rate: isIgst ? gstRate : 0,
           cgst_amount: cgstAmount,
           sgst_amount: sgstAmount,
           igst_amount: igstAmount,
@@ -256,7 +287,7 @@ serve(async (req) => {
     const isCod = order.order_type === "cod" || order.payment_id?.startsWith("COD");
     let paymentStatus = "PAID";
     if (isOfflineInvoice) {
-      paymentStatus = "OFFLINE PAYMENT";
+      paymentStatus = "OFFLINE";
     } else if (isCod) {
       if (order.status === "delivered" && order.cod_payment_status === "received") {
         paymentStatus = "COD RECEIVED";
@@ -302,14 +333,16 @@ serve(async (req) => {
       throw new Error("Failed to create invoice");
     }
 
-    // ==================== GENERATE ENTERPRISE PDF ====================
+    // ==================== GENERATE PROFESSIONAL PDF ====================
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 15;
+    const pageWidth = PAGE.width;
+    const pageHeight = PAGE.height;
+    const margin = PAGE.margin;
+    const contentWidth = pageWidth - 2 * margin;
     let y = margin;
     let currentPage = 1;
+    const safeZone = pageHeight - PAGE.footerHeight - 5;
 
     // Fetch logo
     let logoBase64: string | null = null;
@@ -319,38 +352,27 @@ serve(async (req) => {
       logoBase64 = await fetchImageAsBase64(company.business_logo_url);
     }
 
-    // Generate QR code data
-    const qrData = JSON.stringify({
-      inv: invoiceNumber,
-      ord: order.order_number,
-      cust: shippingAddress?.full_name || profile?.full_name || "Customer",
-      amt: order.total_amount,
-      gst: totalCgst + totalSgst + totalIgst,
-      date: invoiceDate,
-    });
-
     // Helper function to add page footer
     const addPageFooter = (pageNum: number, totalPages: number) => {
       const footerY = pageHeight - 12;
       
-      doc.setDrawColor(...colors.border);
+      doc.setDrawColor(...COLORS.border);
       doc.setLineWidth(0.5);
       doc.line(margin, footerY - 6, pageWidth - margin, footerY - 6);
       
       doc.setFontSize(6.5);
-      doc.setTextColor(...colors.muted);
+      doc.setTextColor(...COLORS.muted);
       doc.setFont("helvetica", "normal");
       doc.text("This is a computer-generated document and does not require a signature.", margin, footerY - 2);
       doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - margin, footerY, { align: "right" });
       
       doc.setFontSize(6);
-      doc.text(`Generated: ${new Date().toLocaleString("en-IN")} | www.decouvertes.com`, pageWidth / 2, footerY + 3, { align: "center" });
+      doc.text(`Generated: ${new Date().toLocaleString("en-IN")} | ${COMPANY.website}`, pageWidth / 2, footerY + 3, { align: "center" });
     };
 
     // Helper to check page break
     const checkPageBreak = (neededHeight: number): boolean => {
-      if (y + neededHeight > pageHeight - 25) {
-        addPageFooter(currentPage, 1);
+      if (y + neededHeight > safeZone) {
         doc.addPage();
         currentPage++;
         y = margin + 8;
@@ -360,50 +382,51 @@ serve(async (req) => {
     };
 
     // ==================== HEADER SECTION ====================
-    // Company Logo and Name - Left Side
+    // Company Logo and Name
     if (logoBase64) {
       try { 
         doc.addImage(logoBase64, 'PNG', margin, y, 40, 20); 
       } catch {}
       y += 24;
     } else {
-      // Fallback: Company name as branding
       doc.setFontSize(24);
-      doc.setTextColor(...colors.primary);
+      doc.setTextColor(...COLORS.primary);
       doc.setFont("helvetica", "bold");
-      doc.text("DECOUVERTES", margin, y + 10);
+      doc.text(COMPANY.name, margin, y + 10);
       
       doc.setFontSize(8);
-      doc.setTextColor(...colors.muted);
+      doc.setTextColor(...COLORS.muted);
       doc.setFont("helvetica", "normal");
-      doc.text("Excellence in Innovation", margin, y + 16);
+      doc.text(COMPANY.tagline, margin, y + 16);
       y += 22;
     }
     
     // Company Details Row
     doc.setFontSize(7);
-    doc.setTextColor(...colors.secondary);
+    doc.setTextColor(...COLORS.secondary);
     doc.setFont("helvetica", "normal");
-    doc.text(`${company.business_address}, ${company.business_city}, ${company.business_state} - ${company.business_pincode}`, margin, y);
+    doc.text(`${company.business_address || COMPANY.address}, ${company.business_city || COMPANY.city}, ${company.business_state || COMPANY.state} - ${company.business_pincode || COMPANY.pincode}, ${COMPANY.country}`, margin, y);
     y += 4;
-    doc.text(`Phone: ${company.business_phone} | Email: ${company.business_email} | GSTIN: ${company.business_gstin}`, margin, y);
+    doc.text(`Phone: ${company.business_phone || COMPANY.phone} | Email: ${company.business_email || COMPANY.email}`, margin, y);
+    y += 4;
+    doc.text(`GSTIN: ${company.business_gstin || COMPANY.gstin} | PAN: ${company.business_pan || COMPANY.pan}`, margin, y);
     
     y += 8;
     
     // Gold accent divider
-    doc.setFillColor(...colors.accent);
-    doc.rect(margin, y, pageWidth - 2 * margin, 2, "F");
+    doc.setFillColor(...COLORS.accent);
+    doc.rect(margin, y, contentWidth, 2, "F");
     y += 6;
 
     // Invoice Type Badge - Centered
     let invoiceTypeLabel = "TAX INVOICE";
-    let badgeBgColor = colors.primary;
+    let badgeBgColor = COLORS.primary;
     if (!isFinalInvoice && !isOfflineInvoice) {
       invoiceTypeLabel = "PROFORMA INVOICE";
-      badgeBgColor = colors.secondary;
+      badgeBgColor = COLORS.secondary;
     } else if (isOfflineInvoice) {
       invoiceTypeLabel = "OFFLINE INVOICE";
-      badgeBgColor = colors.muted;
+      badgeBgColor = COLORS.muted;
     }
     
     const badgeWidth = 55;
@@ -411,24 +434,24 @@ serve(async (req) => {
     doc.setFillColor(...badgeBgColor);
     doc.roundedRect(badgeX, y, badgeWidth, 8, 2, 2, "F");
     doc.setFontSize(9);
-    doc.setTextColor(...colors.white);
+    doc.setTextColor(...COLORS.white);
     doc.setFont("helvetica", "bold");
     doc.text(invoiceTypeLabel, pageWidth / 2, y + 5.5, { align: "center" });
     
     y += 14;
 
-    // Invoice Details Row
-    doc.setFillColor(...colors.light);
-    doc.roundedRect(margin, y, pageWidth - 2 * margin, 18, 2, 2, "F");
+    // ==================== INVOICE DETAILS ROW ====================
+    doc.setFillColor(...COLORS.light);
+    doc.roundedRect(margin, y, contentWidth, 18, 2, 2, "F");
     
     const detailY = y + 6;
     const col1 = margin + 8;
-    const col2 = margin + 55;
-    const col3 = margin + 105;
-    const col4 = pageWidth - margin - 50;
+    const col2 = margin + 50;
+    const col3 = margin + 95;
+    const col4 = pageWidth - margin - 45;
     
     doc.setFontSize(7);
-    doc.setTextColor(...colors.muted);
+    doc.setTextColor(...COLORS.muted);
     doc.setFont("helvetica", "normal");
     doc.text("Invoice Number", col1, detailY);
     doc.text("Invoice Date", col2, detailY);
@@ -436,371 +459,407 @@ serve(async (req) => {
     doc.text("Payment Status", col4, detailY);
     
     doc.setFontSize(9);
-    doc.setTextColor(...colors.primary);
+    doc.setTextColor(...COLORS.primary);
     doc.setFont("helvetica", "bold");
     doc.text(invoiceNumber, col1, detailY + 6);
     doc.text(invoiceDate, col2, detailY + 6);
     doc.text(order.order_number, col3, detailY + 6);
     
-    // Payment status badge in the details row
-    let statusColor = colors.success;
+    // Payment status badge
+    let statusColor = COLORS.success;
     if (paymentStatus.includes("AWAITING") || paymentStatus.includes("COD")) {
-      statusColor = colors.warning;
+      statusColor = COLORS.warning;
     } else if (paymentStatus.includes("OFFLINE")) {
-      statusColor = colors.muted;
+      statusColor = COLORS.muted;
     }
     doc.setFillColor(...statusColor);
-    doc.roundedRect(col4 - 2, detailY + 1, 42, 6, 1, 1, "F");
-    doc.setFontSize(7);
+    doc.roundedRect(col4 - 2, detailY + 1, 38, 6, 1, 1, "F");
+    doc.setFontSize(6);
     if (paymentStatus.includes("AWAITING") || paymentStatus.includes("OFFLINE")) {
-      doc.setTextColor(...colors.primary);
+      doc.setTextColor(...COLORS.primary);
     } else {
-      doc.setTextColor(...colors.white);
+      doc.setTextColor(...COLORS.white);
     }
     doc.setFont("helvetica", "bold");
-    doc.text(paymentStatus, col4 + 19, detailY + 5.5, { align: "center" });
+    doc.text(paymentStatus, col4 + 17, detailY + 5, { align: "center" });
 
     y += 24;
 
     // ==================== BILLED BY / BILLED TO SECTION ====================
-    const boxWidth = (pageWidth - 2 * margin - 10) / 2;
+    const boxWidth = (contentWidth - 10) / 2;
     const boxHeight = 42;
 
     // Billed By Box
-    doc.setFillColor(...colors.light);
-    doc.setDrawColor(...colors.border);
+    doc.setFillColor(...COLORS.light);
+    doc.setDrawColor(...COLORS.border);
     doc.setLineWidth(0.3);
     doc.roundedRect(margin, y, boxWidth, boxHeight, 2, 2, "FD");
 
     // Header bar
-    doc.setFillColor(...colors.accent);
-    doc.rect(margin, y, boxWidth, 7, "F");
+    doc.setFillColor(...COLORS.primary);
+    doc.roundedRect(margin, y, boxWidth, 8, 2, 2, "F");
+    doc.rect(margin, y + 4, boxWidth, 4, "F");
     
-    doc.setFontSize(7);
-    doc.setTextColor(...colors.primary);
+    doc.setFontSize(8);
+    doc.setTextColor(...COLORS.white);
     doc.setFont("helvetica", "bold");
-    doc.text("BILLED BY (Seller)", margin + 4, y + 5);
+    doc.text("BILLED BY", margin + 4, y + 5.5);
 
-    // Seller details
-    let sellerY = y + 13;
-    doc.setFontSize(11);
-    doc.setTextColor(...colors.primary);
+    let fromY = y + 13;
+    doc.setFontSize(9);
+    doc.setTextColor(...COLORS.primary);
     doc.setFont("helvetica", "bold");
-    doc.text("DECOUVERTES", margin + 4, sellerY);
-
-    sellerY += 5;
+    doc.text(COMPANY.name, margin + 4, fromY);
+    
+    fromY += 5;
     doc.setFontSize(7);
-    doc.setTextColor(...colors.secondary);
+    doc.setTextColor(...COLORS.secondary);
     doc.setFont("helvetica", "normal");
-    doc.text(company.business_address, margin + 4, sellerY);
-    sellerY += 4;
-    doc.text(`${company.business_city}, ${company.business_state} - ${company.business_pincode}`, margin + 4, sellerY);
-    
-    sellerY += 6;
-    doc.setTextColor(...colors.muted);
-    doc.setFont("helvetica", "normal");
-    doc.text("GSTIN:", margin + 4, sellerY);
-    doc.setTextColor(...colors.primary);
+    doc.text(company.business_address || COMPANY.address, margin + 4, fromY);
+    fromY += 4;
+    doc.text(`${company.business_city || COMPANY.city}, ${company.business_state || COMPANY.state} - ${company.business_pincode || COMPANY.pincode}`, margin + 4, fromY);
+    fromY += 4;
+    doc.text(`Phone: ${company.business_phone || COMPANY.phone}`, margin + 4, fromY);
+    fromY += 4;
+    doc.text(`Email: ${company.business_email || COMPANY.email}`, margin + 4, fromY);
+    fromY += 5;
+    doc.setTextColor(...COLORS.accent);
     doc.setFont("helvetica", "bold");
-    doc.text(company.business_gstin, margin + 18, sellerY);
-    
-    sellerY += 4;
-    doc.setTextColor(...colors.muted);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Phone: ${company.business_phone}`, margin + 4, sellerY);
+    doc.text(`GSTIN: ${company.business_gstin || COMPANY.gstin}`, margin + 4, fromY);
+    fromY += 4;
+    doc.text(`PAN: ${company.business_pan || COMPANY.pan}`, margin + 4, fromY);
 
     // Billed To Box
-    const billedToX = margin + boxWidth + 10;
-    doc.setFillColor(...colors.light);
-    doc.setDrawColor(...colors.border);
-    doc.roundedRect(billedToX, y, boxWidth, boxHeight, 2, 2, "FD");
+    const toX = margin + boxWidth + 10;
+    doc.setFillColor(...COLORS.light);
+    doc.setDrawColor(...COLORS.border);
+    doc.roundedRect(toX, y, boxWidth, boxHeight, 2, 2, "FD");
 
     // Header bar
-    doc.setFillColor(...colors.primary);
-    doc.rect(billedToX, y, boxWidth, 7, "F");
+    doc.setFillColor(...COLORS.accent);
+    doc.roundedRect(toX, y, boxWidth, 8, 2, 2, "F");
+    doc.rect(toX, y + 4, boxWidth, 4, "F");
     
-    doc.setFontSize(7);
-    doc.setTextColor(...colors.white);
+    doc.setFontSize(8);
+    doc.setTextColor(...COLORS.primary);
     doc.setFont("helvetica", "bold");
-    doc.text("BILLED TO (Buyer)", billedToX + 4, y + 5);
+    doc.text("BILLED TO", toX + 4, y + 5.5);
 
-    // Customer details
+    let toY = y + 13;
     const buyerName = shippingAddress?.full_name || profile?.full_name || "Customer";
-    let buyerY = y + 13;
-    doc.setFontSize(11);
-    doc.setTextColor(...colors.primary);
+    doc.setFontSize(9);
+    doc.setTextColor(...COLORS.primary);
     doc.setFont("helvetica", "bold");
-    doc.text(buyerName.substring(0, 30), billedToX + 4, buyerY);
+    const truncatedName = buyerName.length > 30 ? buyerName.substring(0, 30) + "..." : buyerName;
+    doc.text(truncatedName.toUpperCase(), toX + 4, toY);
 
-    buyerY += 5;
+    toY += 5;
     doc.setFontSize(7);
-    doc.setTextColor(...colors.secondary);
+    doc.setTextColor(...COLORS.secondary);
     doc.setFont("helvetica", "normal");
     
     if (shippingAddress) {
       if (shippingAddress.address_line1) {
-        doc.text(shippingAddress.address_line1.substring(0, 45), billedToX + 4, buyerY);
-        buyerY += 4;
+        const addr = shippingAddress.address_line1.length > 40 
+          ? shippingAddress.address_line1.substring(0, 40) + "..."
+          : shippingAddress.address_line1;
+        doc.text(addr, toX + 4, toY);
+        toY += 4;
       }
-      doc.text(`${shippingAddress.city || ""}, ${shippingAddress.state || ""} - ${shippingAddress.postal_code || ""}`, billedToX + 4, buyerY);
-    }
-    
-    buyerY += 6;
-    if (order.buyer_gstin) {
-      doc.setTextColor(...colors.muted);
-      doc.text("GSTIN:", billedToX + 4, buyerY);
-      doc.setTextColor(...colors.primary);
-      doc.setFont("helvetica", "bold");
-      doc.text(order.buyer_gstin, billedToX + 18, buyerY);
+      doc.text(`${shippingAddress.city || ""}, ${shippingAddress.state || ""} - ${shippingAddress.postal_code || ""}`, toX + 4, toY);
+      toY += 4;
     }
     
     if (shippingAddress?.phone) {
-      buyerY += 4;
-      doc.setTextColor(...colors.muted);
-      doc.setFont("helvetica", "normal");
-      doc.text(`Phone: ${shippingAddress.phone}`, billedToX + 4, buyerY);
+      doc.text(`Phone: ${shippingAddress.phone}`, toX + 4, toY);
+      toY += 4;
+    }
+    
+    if (order.buyer_gstin) {
+      doc.setTextColor(...COLORS.accent);
+      doc.setFont("helvetica", "bold");
+      doc.text(`GSTIN: ${order.buyer_gstin}`, toX + 4, y + boxHeight - 5);
     }
 
     y += boxHeight + 8;
 
     // ==================== ITEMS TABLE ====================
-    const tableWidth = pageWidth - 2 * margin;
-    
-    // Table header
-    doc.setFillColor(...colors.tableHeader);
-    doc.rect(margin, y, tableWidth, 9, "F");
-    
-    doc.setFontSize(6);
-    doc.setTextColor(...colors.white);
+    const tableX = margin;
+    const tableW = contentWidth;
+    const rowHeight = 8;
+    const headerHeight = 9;
+
+    // Column widths - properly spaced for professional look
+    const colWidths = {
+      sno: 10,
+      sku: 26,
+      desc: 42,
+      hsn: 18,
+      qty: 14,
+      rate: 22,
+      taxable: 22,
+      tax: 14,
+      total: 22,
+    };
+
+    // Table Header
+    doc.setFillColor(...COLORS.tableHeader);
+    doc.rect(tableX, y, tableW, headerHeight, "F");
+
+    doc.setFontSize(6.5);
+    doc.setTextColor(...COLORS.white);
     doc.setFont("helvetica", "bold");
 
-    // Column positions for IGST vs CGST/SGST
-    let cols: any;
-    if (isIgst) {
-      cols = {
-        sno: margin + 4,
-        sku: margin + 12,
-        desc: margin + 38,
-        hsn: margin + 82,
-        qty: margin + 98,
-        rate: margin + 112,
-        taxable: margin + 132,
-        igst: margin + 154,
-        amount: pageWidth - margin - 4
-      };
-      doc.text("#", cols.sno, y + 6);
-      doc.text("SKU", cols.sku, y + 6);
-      doc.text("DESCRIPTION", cols.desc, y + 6);
-      doc.text("HSN", cols.hsn, y + 6);
-      doc.text("QTY", cols.qty, y + 6);
-      doc.text("RATE", cols.rate, y + 6);
-      doc.text("TAXABLE", cols.taxable, y + 6);
-      doc.text("IGST", cols.igst, y + 6);
-      doc.text("AMOUNT", cols.amount, y + 6, { align: "right" });
-    } else {
-      cols = {
-        sno: margin + 4,
-        sku: margin + 12,
-        desc: margin + 36,
-        hsn: margin + 72,
-        qty: margin + 86,
-        rate: margin + 98,
-        taxable: margin + 116,
-        cgst: margin + 136,
-        sgst: margin + 154,
-        amount: pageWidth - margin - 4
-      };
-      doc.text("#", cols.sno, y + 6);
-      doc.text("SKU", cols.sku, y + 6);
-      doc.text("DESCRIPTION", cols.desc, y + 6);
-      doc.text("HSN", cols.hsn, y + 6);
-      doc.text("QTY", cols.qty, y + 6);
-      doc.text("RATE", cols.rate, y + 6);
-      doc.text("TAXABLE", cols.taxable, y + 6);
-      doc.text("CGST", cols.cgst, y + 6);
-      doc.text("SGST", cols.sgst, y + 6);
-      doc.text("AMOUNT", cols.amount, y + 6, { align: "right" });
-    }
+    let colX = tableX + 2;
+    doc.text("S.No", colX, y + 6);
+    colX += colWidths.sno;
+    doc.text("SKU Code", colX, y + 6);
+    colX += colWidths.sku;
+    doc.text("Description", colX, y + 6);
+    colX += colWidths.desc;
+    doc.text("HSN", colX, y + 6);
+    colX += colWidths.hsn;
+    doc.text("Qty", colX + 4, y + 6);
+    colX += colWidths.qty;
+    doc.text("Rate", colX + colWidths.rate - 4, y + 6, { align: "right" });
+    colX += colWidths.rate;
+    doc.text("Taxable", colX + colWidths.taxable - 4, y + 6, { align: "right" });
+    colX += colWidths.taxable;
+    doc.text(isIgst ? "IGST" : "GST", colX + 2, y + 6);
+    colX += colWidths.tax;
+    doc.text("Total", colX + colWidths.total - 4, y + 6, { align: "right" });
 
-    y += 9;
+    y += headerHeight;
 
-    // Table rows
+    // Table Rows
     items.forEach((item: any, idx: number) => {
-      checkPageBreak(12);
-      
-      const rowH = 10;
-      
+      checkPageBreak(rowHeight + 2);
+
       // Alternating row background
-      if (idx % 2 === 0) {
-        doc.setFillColor(255, 255, 255);
-      } else {
-        doc.setFillColor(...colors.tableAlt);
-      }
-      doc.rect(margin, y, tableWidth, rowH, "F");
+      doc.setFillColor(...(idx % 2 === 0 ? COLORS.white : COLORS.tableAlt));
+      doc.rect(tableX, y, tableW, rowHeight, "F");
 
-      // Row bottom border
-      doc.setDrawColor(...colors.border);
+      // Row border
+      doc.setDrawColor(...COLORS.border);
       doc.setLineWidth(0.1);
-      doc.line(margin, y + rowH, pageWidth - margin, y + rowH);
+      doc.line(tableX, y + rowHeight, tableX + tableW, y + rowHeight);
 
+      const textY = y + 5.5;
       doc.setFontSize(6.5);
+      doc.setTextColor(...COLORS.secondary);
       doc.setFont("helvetica", "normal");
 
+      colX = tableX + 2;
+      
       // S.No
-      doc.setTextColor(...colors.muted);
-      doc.text(String(idx + 1), cols.sno, y + 6.5);
+      doc.text(String(item.sno), colX + 3, textY);
+      colX += colWidths.sno;
       
       // SKU
-      doc.setTextColor(...colors.accent);
+      doc.setTextColor(...COLORS.muted);
+      const truncatedSku = item.sku.length > 14 ? item.sku.substring(0, 14) + "..." : item.sku;
+      doc.text(truncatedSku, colX, textY);
+      colX += colWidths.sku;
+      
+      // Description
+      doc.setTextColor(...COLORS.primary);
       doc.setFont("helvetica", "bold");
-      doc.text((item.sku || "").substring(0, 14), cols.sku, y + 6.5);
-
-      // Product name
-      const name = (item.name || "").substring(0, 22);
-      doc.setTextColor(...colors.primary);
-      doc.text(name, cols.desc, y + 6.5);
-
+      const truncatedDesc = item.name.length > 24 ? item.name.substring(0, 24) + "..." : item.name;
+      doc.text(truncatedDesc, colX, textY);
+      colX += colWidths.desc;
+      
+      // HSN
       doc.setFont("helvetica", "normal");
-      doc.setTextColor(...colors.secondary);
+      doc.setTextColor(...COLORS.secondary);
+      doc.text(item.hsn, colX, textY);
+      colX += colWidths.hsn;
+      
+      // Qty
+      doc.text(String(item.quantity), colX + 6, textY, { align: "center" });
+      colX += colWidths.qty;
+      
+      // Rate
+      doc.text(formatCurrency(item.rate), colX + colWidths.rate - 4, textY, { align: "right" });
+      colX += colWidths.rate;
+      
+      // Taxable
+      doc.text(formatCurrency(item.taxable_value), colX + colWidths.taxable - 4, textY, { align: "right" });
+      colX += colWidths.taxable;
+      
+      // Tax %
+      doc.setTextColor(...COLORS.accent);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${item.gst_rate}%`, colX + 6, textY, { align: "center" });
+      colX += colWidths.tax;
+      
+      // Total
+      doc.setTextColor(...COLORS.primary);
+      doc.text(formatCurrency(item.total), colX + colWidths.total - 4, textY, { align: "right" });
 
-      if (isIgst) {
-        doc.text(item.hsn || "8471", cols.hsn, y + 6.5);
-        doc.text(String(item.quantity), cols.qty, y + 6.5);
-        doc.text(formatCurrency(item.rate), cols.rate, y + 6.5);
-        doc.text(formatCurrency(item.taxable_value), cols.taxable, y + 6.5);
-        doc.setTextColor(...colors.muted);
-        doc.text(formatCurrency(item.igst_amount), cols.igst, y + 6.5);
-        doc.setTextColor(...colors.primary);
-        doc.setFont("helvetica", "bold");
-        doc.text(formatCurrency(item.total), cols.amount, y + 6.5, { align: "right" });
-      } else {
-        doc.text(item.hsn || "8471", cols.hsn, y + 6.5);
-        doc.text(String(item.quantity), cols.qty, y + 6.5);
-        doc.text(formatCurrency(item.rate), cols.rate, y + 6.5);
-        doc.text(formatCurrency(item.taxable_value), cols.taxable, y + 6.5);
-        doc.setTextColor(...colors.muted);
-        doc.text(formatCurrency(item.cgst_amount), cols.cgst, y + 6.5);
-        doc.text(formatCurrency(item.sgst_amount), cols.sgst, y + 6.5);
-        doc.setTextColor(...colors.primary);
-        doc.setFont("helvetica", "bold");
-        doc.text(formatCurrency(item.total), cols.amount, y + 6.5, { align: "right" });
-      }
-
-      y += rowH;
+      y += rowHeight;
     });
 
+    // Table bottom border
+    doc.setDrawColor(...COLORS.primary);
+    doc.setLineWidth(0.5);
+    doc.line(tableX, y, tableX + tableW, y);
+
     y += 10;
-    checkPageBreak(75);
+    checkPageBreak(65);
 
-    // ==================== TOTALS SECTION ====================
-    const totalsWidth = 75;
-    const totalsX = pageWidth - margin - totalsWidth;
+    // ==================== AMOUNT IN WORDS ====================
+    doc.setFillColor(...COLORS.light);
+    doc.roundedRect(margin, y, contentWidth, 12, 2, 2, "F");
     
-    doc.setFillColor(...colors.light);
-    doc.setDrawColor(...colors.border);
-    doc.roundedRect(totalsX, y, totalsWidth, 55, 2, 2, "FD");
+    doc.setFontSize(7);
+    doc.setTextColor(...COLORS.muted);
+    doc.setFont("helvetica", "normal");
+    doc.text("Amount in Words:", margin + 4, y + 5);
+    
+    doc.setFontSize(8);
+    doc.setTextColor(...COLORS.primary);
+    doc.setFont("helvetica", "bold");
+    doc.text(numberToWords(order.total_amount), margin + 4, y + 9.5);
 
-    let totalsY = y + 8;
-    const labelX = totalsX + 5;
-    const valueX = totalsX + totalsWidth - 5;
+    y += 16;
 
-    doc.setFontSize(7.5);
-    doc.setTextColor(...colors.secondary);
+    // ==================== SUMMARY SECTION ====================
+    const summaryWidth = 80;
+    const gstBoxWidth = contentWidth - summaryWidth - 10;
+    const summaryHeight = isIgst ? 50 : 55;
+
+    // GST Summary Box (Left)
+    doc.setFillColor(...COLORS.light);
+    doc.setDrawColor(...COLORS.border);
+    doc.setLineWidth(0.2);
+    doc.roundedRect(margin, y, gstBoxWidth, summaryHeight, 2, 2, "FD");
+
+    doc.setFontSize(8);
+    doc.setTextColor(...COLORS.primary);
+    doc.setFont("helvetica", "bold");
+    doc.text("TAX SUMMARY", margin + 4, y + 8);
+
+    let gstY = y + 14;
+    doc.setFontSize(7);
+    doc.setTextColor(...COLORS.muted);
     doc.setFont("helvetica", "normal");
     
-    doc.text("Sub Total", labelX, totalsY);
-    doc.setTextColor(...colors.primary);
+    doc.text("Supply Type:", margin + 4, gstY);
+    doc.setTextColor(...COLORS.primary);
     doc.setFont("helvetica", "bold");
-    doc.text(formatCurrency(order.subtotal), valueX, totalsY, { align: "right" });
-    totalsY += 7;
+    doc.text(isIgst ? "Inter-State" : "Intra-State", margin + 32, gstY);
 
-    if (order.discount_amount && order.discount_amount > 0) {
-      doc.setTextColor(...colors.success);
+    gstY += 5;
+    doc.setTextColor(...COLORS.muted);
+    doc.setFont("helvetica", "normal");
+    doc.text("Place of Supply:", margin + 4, gstY);
+    doc.setTextColor(...COLORS.primary);
+    doc.text(buyerState || sellerState, margin + 32, gstY);
+
+    gstY += 7;
+    doc.setDrawColor(...COLORS.border);
+    doc.setLineWidth(0.2);
+    doc.line(margin + 4, gstY, margin + gstBoxWidth - 4, gstY);
+
+    gstY += 6;
+    if (isIgst) {
+      doc.setTextColor(...COLORS.secondary);
       doc.setFont("helvetica", "normal");
-      doc.text("Discount", labelX, totalsY);
-      doc.text(`- ${formatCurrency(order.discount_amount)}`, valueX, totalsY, { align: "right" });
-      totalsY += 7;
+      doc.text("IGST:", margin + 4, gstY);
+      doc.text(formatCurrency(totalIgst), margin + gstBoxWidth - 4, gstY, { align: "right" });
+    } else {
+      doc.setTextColor(...COLORS.secondary);
+      doc.text("CGST:", margin + 4, gstY);
+      doc.text(formatCurrency(totalCgst), margin + gstBoxWidth - 4, gstY, { align: "right" });
+      gstY += 5;
+      doc.text("SGST:", margin + 4, gstY);
+      doc.text(formatCurrency(totalSgst), margin + gstBoxWidth - 4, gstY, { align: "right" });
     }
 
-    doc.setTextColor(...colors.secondary);
+    gstY += 7;
+    doc.setDrawColor(...COLORS.accent);
+    doc.setLineWidth(0.5);
+    doc.line(margin + 4, gstY, margin + gstBoxWidth - 4, gstY);
+    
+    gstY += 5;
+    doc.setTextColor(...COLORS.primary);
+    doc.setFont("helvetica", "bold");
+    doc.text("Total Tax:", margin + 4, gstY);
+    doc.setTextColor(...COLORS.accent);
+    doc.text(formatCurrency(totalCgst + totalSgst + totalIgst), margin + gstBoxWidth - 4, gstY, { align: "right" });
+
+    // Totals Box (Right)
+    const totalsX = pageWidth - margin - summaryWidth;
+    doc.setFillColor(...COLORS.primary);
+    doc.roundedRect(totalsX, y, summaryWidth, summaryHeight, 2, 2, "F");
+
+    let totY = y + 10;
+    const labelX = totalsX + 6;
+    const valueX = totalsX + summaryWidth - 6;
+
+    doc.setFontSize(7.5);
+    doc.setTextColor(...COLORS.white);
     doc.setFont("helvetica", "normal");
+
+    doc.text("Subtotal:", labelX, totY);
+    doc.text(formatCurrency(order.subtotal), valueX, totY, { align: "right" });
+    
+    totY += 6;
     if (isIgst) {
-      doc.text("IGST", labelX, totalsY);
-      doc.setTextColor(...colors.primary);
-      doc.text(formatCurrency(totalIgst), valueX, totalsY, { align: "right" });
-      totalsY += 7;
+      doc.text("IGST:", labelX, totY);
+      doc.text(formatCurrency(totalIgst), valueX, totY, { align: "right" });
     } else {
-      doc.text("CGST", labelX, totalsY);
-      doc.setTextColor(...colors.primary);
-      doc.text(formatCurrency(totalCgst), valueX, totalsY, { align: "right" });
-      totalsY += 6;
-      doc.setTextColor(...colors.secondary);
-      doc.text("SGST", labelX, totalsY);
-      doc.setTextColor(...colors.primary);
-      doc.text(formatCurrency(totalSgst), valueX, totalsY, { align: "right" });
-      totalsY += 7;
+      doc.text("CGST:", labelX, totY);
+      doc.text(formatCurrency(totalCgst), valueX, totY, { align: "right" });
+      totY += 5;
+      doc.text("SGST:", labelX, totY);
+      doc.text(formatCurrency(totalSgst), valueX, totY, { align: "right" });
     }
 
     if (order.shipping_amount > 0) {
-      doc.setTextColor(...colors.secondary);
-      doc.setFont("helvetica", "normal");
-      doc.text("Shipping", labelX, totalsY);
-      doc.setTextColor(...colors.primary);
-      doc.text(formatCurrency(order.shipping_amount), valueX, totalsY, { align: "right" });
-      totalsY += 7;
+      totY += 5;
+      doc.text("Shipping:", labelX, totY);
+      doc.text(formatCurrency(order.shipping_amount), valueX, totY, { align: "right" });
     }
 
-    // Grand Total with accent background
-    doc.setFillColor(...colors.accent);
-    doc.roundedRect(totalsX + 3, totalsY - 1, totalsWidth - 6, 11, 1, 1, "F");
-    
+    totY += 10;
+
+    // Grand Total highlight
+    doc.setFillColor(...COLORS.accent);
+    doc.roundedRect(totalsX + 4, totY - 3, summaryWidth - 8, 14, 2, 2, "F");
+
     doc.setFontSize(9);
-    doc.setTextColor(...colors.primary);
+    doc.setTextColor(...COLORS.primary);
     doc.setFont("helvetica", "bold");
-    doc.text("GRAND TOTAL", labelX + 2, totalsY + 6);
-    doc.text(formatCurrency(order.total_amount), valueX - 2, totalsY + 6, { align: "right" });
+    doc.text("GRAND TOTAL", labelX + 2, totY + 5);
+    doc.setFontSize(11);
+    doc.text(formatCurrency(order.total_amount), valueX - 2, totY + 5, { align: "right" });
 
-    // Amount in Words - Left side
-    const wordsBoxWidth = totalsX - margin - 10;
-    doc.setFillColor(...colors.light);
-    doc.setDrawColor(...colors.border);
-    doc.roundedRect(margin, y, wordsBoxWidth, 25, 2, 2, "FD");
+    y += summaryHeight + 10;
 
-    doc.setFontSize(7);
-    doc.setTextColor(...colors.accent);
-    doc.setFont("helvetica", "bold");
-    doc.text("Amount in Words", margin + 5, y + 8);
-    
-    doc.setFontSize(8);
-    doc.setTextColor(...colors.primary);
-    doc.setFont("helvetica", "normal");
-    const amountWords = numberToWords(order.total_amount);
-    const wrappedWords = doc.splitTextToSize(amountWords, wordsBoxWidth - 10);
-    doc.text(wrappedWords, margin + 5, y + 15);
+    // ==================== TERMS SECTION ====================
+    if (y + 25 < safeZone) {
+      doc.setFontSize(8);
+      doc.setTextColor(...COLORS.primary);
+      doc.setFont("helvetica", "bold");
+      doc.text("Terms & Conditions", margin, y);
+      
+      y += 5;
+      doc.setFontSize(6);
+      doc.setTextColor(...COLORS.muted);
+      doc.setFont("helvetica", "normal");
+      COMPANY.terms.forEach((term) => {
+        doc.text(term, margin, y);
+        y += 3.5;
+      });
+    }
 
-    y += 60;
-
-    // ==================== TERMS & CONDITIONS ====================
-    checkPageBreak(25);
-    
-    doc.setFontSize(8);
-    doc.setTextColor(...colors.primary);
-    doc.setFont("helvetica", "bold");
-    doc.text("Terms and Conditions", margin, y);
-    
-    y += 4;
-    doc.setFontSize(6.5);
-    doc.setTextColor(...colors.muted);
-    doc.setFont("helvetica", "normal");
-    
-    const terms = company.terms_and_conditions.split("\n");
-    terms.slice(0, 4).forEach((term: string, idx: number) => {
-      doc.text(`${idx + 1}. ${term.replace(/^\d+\.\s*/, '')}`, margin, y);
-      y += 3.2;
-    });
-
-    // Add footer
-    addPageFooter(currentPage, currentPage);
+    // Add footers to all pages
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      addPageFooter(i, pageCount);
+    }
 
     // Generate and upload PDF
     const pdfArrayBuffer = doc.output("arraybuffer");
