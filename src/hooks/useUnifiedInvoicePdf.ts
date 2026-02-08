@@ -10,6 +10,7 @@ import { toast } from "sonner";
 const COLORS = {
   primary: [33, 37, 41] as [number, number, number],
   accent: [198, 158, 47] as [number, number, number],
+  orange: [230, 126, 34] as [number, number, number],
   secondary: [73, 80, 87] as [number, number, number],
   muted: [134, 142, 150] as [number, number, number],
   light: [248, 249, 250] as [number, number, number],
@@ -23,16 +24,16 @@ const COLORS = {
 
 const COMPANY = {
   name: "DECOUVERTES",
-  tagline: "Excellence in Innovation",
-  address: "Innovation Hub, Tech Park",
+  tagline: "Discovering Future Technologies",
+  address: "Megapolis Springs, Phase 3, Hinjawadi Rajiv Gandhi Infotech Park",
   city: "Pune",
   state: "Maharashtra",
-  pincode: "411001",
+  pincode: "411057",
   country: "India",
-  phone: "+91 98765 43210",
-  email: "info@decouvertes.com",
-  gstin: "27XXXXX1234X1ZX",
-  pan: "XXXXX1234X",
+  phone: "+91 9561103435",
+  email: "hello@decouvertes.com",
+  gstin: "27AAKCD1492N1Z4",
+  pan: "AAKCD1492N",
   website: "www.decouvertes.com",
   terms: [
     "1. Goods once sold will only be taken back or exchanged as per company policy.",
@@ -162,8 +163,8 @@ export interface Invoice {
 
 interface NormalizedItem {
   sno: number;
+  name: string;
   sku: string;
-  description: string;
   hsn: string;
   qty: number;
   rate: number;
@@ -183,8 +184,8 @@ function normalizeItem(item: InvoiceItem, index: number): NormalizedItem {
   
   return {
     sno: index + 1,
+    name: item.name || item.description || item.product_name || "Item",
     sku: item.sku || `DEC-PRD-${String(index + 1).padStart(5, '0')}`,
-    description: item.description || item.name || item.product_name || "Item",
     hsn: item.hsn_code || item.hsn || "8471",
     qty,
     rate,
@@ -227,17 +228,6 @@ export function useUnifiedInvoicePdf() {
     const logoBase64 = await fetchLogoAsBase64();
     const safeZone = pageHeight - PAGE.footerHeight - 5;
 
-    // Determine payment status
-    const isCod = invoice.order?.order_type === "cod" || invoice.order?.payment_id?.startsWith("COD");
-    let paymentStatus = "PAID";
-    if (isCod) {
-      if (invoice.order?.status === "delivered") {
-        paymentStatus = "COD RECEIVED";
-      } else {
-        paymentStatus = "COD - AWAITING";
-      }
-    }
-
     // ========== HELPER FUNCTIONS ==========
     const addFooter = (pageNum: number, total: number) => {
       const footerY = pageHeight - 12;
@@ -267,23 +257,37 @@ export function useUnifiedInvoicePdf() {
     };
 
     // ==================== HEADER SECTION ====================
-    // Company Logo and Name
+    // Logo on left, Company name + tagline on right of logo
     if (logoBase64) {
       try {
-        doc.addImage(logoBase64, "PNG", margin, y, 40, 20);
+        doc.addImage(logoBase64, "PNG", margin, y, 28, 14);
       } catch {}
-      y += 24;
-    } else {
-      doc.setFontSize(24);
+      
+      // Company name in bold
+      doc.setFontSize(18);
       doc.setTextColor(...COLORS.primary);
       doc.setFont("helvetica", "bold");
-      doc.text(COMPANY.name, margin, y + 10);
+      doc.text(COMPANY.name, margin + 32, y + 7);
       
-      doc.setFontSize(8);
-      doc.setTextColor(...COLORS.muted);
-      doc.setFont("helvetica", "normal");
-      doc.text(COMPANY.tagline, margin, y + 16);
-      y += 22;
+      // Tagline in orange
+      doc.setFontSize(9);
+      doc.setTextColor(...COLORS.orange);
+      doc.setFont("helvetica", "italic");
+      doc.text(COMPANY.tagline, margin + 32, y + 12);
+      
+      y += 18;
+    } else {
+      // Fallback: Text-based header
+      doc.setFontSize(22);
+      doc.setTextColor(...COLORS.primary);
+      doc.setFont("helvetica", "bold");
+      doc.text(COMPANY.name, margin, y + 8);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(...COLORS.orange);
+      doc.setFont("helvetica", "italic");
+      doc.text(COMPANY.tagline, margin, y + 14);
+      y += 18;
     }
 
     // Company Details Row
@@ -318,15 +322,15 @@ export function useUnifiedInvoicePdf() {
     
     y += 14;
 
-    // ==================== INVOICE DETAILS ROW ====================
+    // ==================== INVOICE DETAILS ROW (3 columns, no payment status) ====================
     doc.setFillColor(...COLORS.light);
-    doc.roundedRect(margin, y, contentWidth, 18, 2, 2, "F");
+    doc.roundedRect(margin, y, contentWidth, 16, 2, 2, "F");
     
-    const detailY = y + 6;
+    const detailY = y + 5;
+    const colSpacing = contentWidth / 3;
     const col1 = margin + 8;
-    const col2 = margin + 50;
-    const col3 = margin + 95;
-    const col4 = pageWidth - margin - 45;
+    const col2 = margin + colSpacing + 8;
+    const col3 = margin + colSpacing * 2 + 8;
     
     doc.setFontSize(7);
     doc.setTextColor(...COLORS.muted);
@@ -334,7 +338,6 @@ export function useUnifiedInvoicePdf() {
     doc.text("Invoice Number", col1, detailY);
     doc.text("Invoice Date", col2, detailY);
     doc.text("Order Number", col3, detailY);
-    doc.text("Payment Status", col4, detailY);
     
     doc.setFontSize(9);
     doc.setTextColor(...COLORS.primary);
@@ -342,19 +345,8 @@ export function useUnifiedInvoicePdf() {
     doc.text(invoice.invoice_number, col1, detailY + 6);
     doc.text(formatDate(invoice.created_at), col2, detailY + 6);
     doc.text(invoice.order?.order_number || "N/A", col3, detailY + 6);
-    
-    // Payment status badge
-    const statusColor = paymentStatus.includes("AWAITING") || paymentStatus.includes("COD") 
-      ? COLORS.warning 
-      : COLORS.success;
-    doc.setFillColor(...statusColor);
-    doc.roundedRect(col4 - 2, detailY + 1, 38, 6, 1, 1, "F");
-    doc.setFontSize(6);
-    doc.setTextColor(...(paymentStatus.includes("AWAITING") ? COLORS.primary : COLORS.white));
-    doc.setFont("helvetica", "bold");
-    doc.text(paymentStatus, col4 + 17, detailY + 5, { align: "center" });
 
-    y += 24;
+    y += 22;
 
     // ==================== BILLED BY / BILLED TO SECTION ====================
     const boxWidth = (contentWidth - 10) / 2;
@@ -385,7 +377,7 @@ export function useUnifiedInvoicePdf() {
     doc.setFontSize(7);
     doc.setTextColor(...COLORS.secondary);
     doc.setFont("helvetica", "normal");
-    doc.text(COMPANY.address, margin + 4, fromY);
+    doc.text(COMPANY.address, margin + 4, fromY, { maxWidth: boxWidth - 8 });
     fromY += 4;
     doc.text(`${COMPANY.city}, ${COMPANY.state} - ${COMPANY.pincode}`, margin + 4, fromY);
     fromY += 4;
@@ -451,20 +443,19 @@ export function useUnifiedInvoicePdf() {
     // ==================== ITEMS TABLE ====================
     const tableX = margin;
     const tableW = contentWidth;
-    const rowHeight = 8;
+    const rowHeight = 12; // Increased for 2-line item rows
     const headerHeight = 9;
 
-    // Column widths - properly spaced for professional look
+    // Column widths - Item Name + SKU combined, no separate description
     const colWidths = {
       sno: 10,
-      sku: 26,
-      desc: 42,
-      hsn: 18,
+      item: 55,      // Combined Item Name + SKU column
+      hsn: 20,
       qty: 14,
-      rate: 22,
-      taxable: 22,
-      tax: 14,
-      total: 22,
+      rate: 24,
+      taxable: 24,
+      tax: 16,
+      total: 27,
     };
 
     // Table Header
@@ -478,21 +469,19 @@ export function useUnifiedInvoicePdf() {
     let colX = tableX + 2;
     doc.text("S.No", colX, y + 6);
     colX += colWidths.sno;
-    doc.text("SKU Code", colX, y + 6);
-    colX += colWidths.sku;
-    doc.text("Description", colX, y + 6);
-    colX += colWidths.desc;
+    doc.text("Item Description", colX, y + 6);
+    colX += colWidths.item;
     doc.text("HSN", colX, y + 6);
     colX += colWidths.hsn;
     doc.text("Qty", colX + 4, y + 6);
     colX += colWidths.qty;
-    doc.text("Rate", colX + colWidths.rate - 4, y + 6, { align: "right" });
+    doc.text("Rate", colX + colWidths.rate - 2, y + 6, { align: "right" });
     colX += colWidths.rate;
-    doc.text("Taxable", colX + colWidths.taxable - 4, y + 6, { align: "right" });
+    doc.text("Taxable", colX + colWidths.taxable - 2, y + 6, { align: "right" });
     colX += colWidths.taxable;
     doc.text(isIgst ? "IGST" : "GST", colX + 2, y + 6);
     colX += colWidths.tax;
-    doc.text("Total", colX + colWidths.total - 4, y + 6, { align: "right" });
+    doc.text("Total", colX + colWidths.total - 2, y + 6, { align: "right" });
 
     y += headerHeight;
 
@@ -509,57 +498,58 @@ export function useUnifiedInvoicePdf() {
       doc.setLineWidth(0.1);
       doc.line(tableX, y + rowHeight, tableX + tableW, y + rowHeight);
 
-      const textY = y + 5.5;
+      const textY1 = y + 5; // First line (Item name)
+      const textY2 = y + 9.5; // Second line (SKU)
+      
       doc.setFontSize(6.5);
-      doc.setTextColor(...COLORS.secondary);
-      doc.setFont("helvetica", "normal");
 
       colX = tableX + 2;
       
-      // S.No
-      doc.text(String(item.sno), colX + 3, textY);
+      // S.No - centered vertically
+      doc.setTextColor(...COLORS.secondary);
+      doc.setFont("helvetica", "normal");
+      doc.text(String(item.sno), colX + 3, y + 7);
       colX += colWidths.sno;
       
-      // SKU
-      doc.setTextColor(...COLORS.muted);
-      const truncatedSku = item.sku.length > 14 ? item.sku.substring(0, 14) + "..." : item.sku;
-      doc.text(truncatedSku, colX, textY);
-      colX += colWidths.sku;
-      
-      // Description
+      // Item Name (line 1) + SKU (line 2)
       doc.setTextColor(...COLORS.primary);
       doc.setFont("helvetica", "bold");
-      const truncatedDesc = item.description.length > 24 ? item.description.substring(0, 24) + "..." : item.description;
-      doc.text(truncatedDesc, colX, textY);
-      colX += colWidths.desc;
+      const truncatedName2 = item.name.length > 35 ? item.name.substring(0, 35) + "..." : item.name;
+      doc.text(truncatedName2, colX, textY1);
+      
+      doc.setTextColor(...COLORS.muted);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6);
+      doc.text(`SKU: ${item.sku}`, colX, textY2);
+      doc.setFontSize(6.5);
+      colX += colWidths.item;
       
       // HSN
-      doc.setFont("helvetica", "normal");
       doc.setTextColor(...COLORS.secondary);
-      doc.text(item.hsn, colX, textY);
+      doc.text(item.hsn, colX, y + 7);
       colX += colWidths.hsn;
       
       // Qty
-      doc.text(String(item.qty), colX + 6, textY, { align: "center" });
+      doc.text(String(item.qty), colX + 6, y + 7, { align: "center" });
       colX += colWidths.qty;
       
-      // Rate
-      doc.text(formatCurrency(item.rate), colX + colWidths.rate - 4, textY, { align: "right" });
+      // Rate - right aligned
+      doc.text(formatCurrency(item.rate), colX + colWidths.rate - 2, y + 7, { align: "right" });
       colX += colWidths.rate;
       
-      // Taxable
-      doc.text(formatCurrency(item.taxableValue), colX + colWidths.taxable - 4, textY, { align: "right" });
+      // Taxable - right aligned
+      doc.text(formatCurrency(item.taxableValue), colX + colWidths.taxable - 2, y + 7, { align: "right" });
       colX += colWidths.taxable;
       
       // Tax %
       doc.setTextColor(...COLORS.accent);
       doc.setFont("helvetica", "bold");
-      doc.text(`${item.gstRate}%`, colX + 6, textY, { align: "center" });
+      doc.text(`${item.gstRate}%`, colX + 6, y + 7, { align: "center" });
       colX += colWidths.tax;
       
-      // Total
+      // Total - right aligned
       doc.setTextColor(...COLORS.primary);
-      doc.text(formatCurrency(item.total), colX + colWidths.total - 4, textY, { align: "right" });
+      doc.text(formatCurrency(item.total), colX + colWidths.total - 2, y + 7, { align: "right" });
 
       y += rowHeight;
     });
