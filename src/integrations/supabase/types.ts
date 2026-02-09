@@ -1878,6 +1878,7 @@ export type Database = {
           name: string
           price: number
           sku: string | null
+          slug: string | null
           stock_quantity: number
           updated_at: string
           video_url: string | null
@@ -1896,6 +1897,7 @@ export type Database = {
           name: string
           price?: number
           sku?: string | null
+          slug?: string | null
           stock_quantity?: number
           updated_at?: string
           video_url?: string | null
@@ -1914,6 +1916,7 @@ export type Database = {
           name?: string
           price?: number
           sku?: string | null
+          slug?: string | null
           stock_quantity?: number
           updated_at?: string
           video_url?: string | null

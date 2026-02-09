@@ -54,6 +54,7 @@ interface Product {
   is_highlighted: boolean;
   categories: { name: string } | null;
   sku: string | null;
+  slug: string | null;
 }
 
 interface Category {
@@ -76,7 +77,7 @@ const Shop = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("*, categories(name), sku")
+        .select("*, categories(name), sku, slug")
         .gt("stock_quantity", 0)
         .order("created_at", { ascending: false });
 
@@ -169,7 +170,7 @@ const Shop = () => {
   // Product Card Component - Shopify Style
   const ProductCard = ({ product }: { product: Product }) => (
     <div
-      onClick={() => navigate(`/product/${product.id}`)}
+      onClick={() => navigate(`/product/${product.slug || product.id}`)}
       className="group flex flex-col h-full bg-card border border-border/40 rounded-xl overflow-hidden hover:shadow-md transition-all duration-300 cursor-pointer"
     >
       {/* Image Container */}
@@ -178,14 +179,16 @@ const Shop = () => {
           <>
             <img
               src={product.images[0]}
-              alt={product.name}
+              alt={`${product.name} - ${product.categories?.name || "Product"} by DECOUVERTES`}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              loading="lazy"
             />
             {product.images[1] && (
               <img
                 src={product.images[1]}
-                alt={product.name}
+                alt={`${product.name} alternate view - DECOUVERTES`}
                 className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                loading="lazy"
               />
             )}
           </>
