@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useProductSEO } from "@/hooks/useProductSEO";
 import { supabase } from "@/integrations/supabase/client";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { PublicFooter } from "@/components/PublicFooter";
@@ -55,20 +56,38 @@ const ProductDetail = () => {
   const [isReviewsOpen, setIsReviewsOpen] = useState(true);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
+  // Support both UUID and slug-based URLs
+  const isUUID = id ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) : false;
+
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("products")
-        .select("*, categories(name)")
-        .eq("id", id)
-        .maybeSingle();
-
+        .select("*, categories(name)");
+      
+      if (isUUID) {
+        query = query.eq("id", id!);
+      } else {
+        query = query.eq("slug", id!);
+      }
+      
+      const { data, error } = await query.maybeSingle();
       if (error) throw error;
       return data;
     },
     enabled: !!id,
   });
+
+  // Redirect UUID URLs to slug URLs for SEO
+  useEffect(() => {
+    if (product && isUUID && product.slug) {
+      navigate(`/product/${product.slug}`, { replace: true });
+    }
+  }, [product, isUUID, navigate]);
+
+  // SEO: dynamic meta tags and JSON-LD structured data
+  useProductSEO(product);
 
   const { data: reviews } = useQuery({
     queryKey: ["product-reviews", id],
@@ -159,7 +178,7 @@ const ProductDetail = () => {
     navigate(`/checkout/${product?.id}`);
   };
 
-  const productUrl = `${window.location.origin}/product/${id}`;
+  const productUrl = `${window.location.origin}/product/${product?.slug || id}`;
 
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(productUrl);

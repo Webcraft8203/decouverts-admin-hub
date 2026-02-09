@@ -12,3 +12,5 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+Sitemap: https://admin-craft-engine.lovable.app/sitemap.xml
