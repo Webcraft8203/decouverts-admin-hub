@@ -26,20 +26,13 @@ import {
   Check,
   Clock,
   User,
-  Share2,
-  Copy,
-  Facebook,
-  Twitter,
-  MessageSquare,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Shield,
+  Truck,
+  MessageSquare,
+  Zap
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -181,43 +174,6 @@ const ProductDetail = () => {
 
   const productUrl = `${window.location.origin}/product/${product?.slug || id}`;
 
-  const handleCopyLink = async () => {
-    await navigator.clipboard.writeText(productUrl);
-    toast.success("Link copied to clipboard!");
-  };
-
-  const handleNativeShare = async () => {
-    if (navigator.share && product) {
-      try {
-        await navigator.share({
-          title: product.name,
-          text: product.description || `Check out ${product.name}`,
-          url: productUrl,
-        });
-      } catch (err) {
-        if ((err as Error).name !== 'AbortError') {
-          handleCopyLink();
-        }
-      }
-    } else {
-      handleCopyLink();
-    }
-  };
-
-  const handleShareFacebook = () => {
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(productUrl)}`, '_blank');
-  };
-
-  const handleShareTwitter = () => {
-    const text = product ? `Check out ${product.name}` : 'Check out this product';
-    window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(productUrl)}&text=${encodeURIComponent(text)}`, '_blank');
-  };
-
-  const handleShareWhatsApp = () => {
-    const text = product ? `Check out ${product.name}: ${productUrl}` : productUrl;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-  };
-
   const averageRating = reviews?.length
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
     : 0;
@@ -226,19 +182,19 @@ const ProductDetail = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-slate-50">
+      <div className="min-h-screen flex flex-col bg-background">
         <PublicNavbar />
         <main className="flex-1 pt-24 pb-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                <Skeleton className="aspect-square rounded-2xl" />
-                <div className="space-y-6">
-                  <Skeleton className="h-12 w-3/4" />
-                  <Skeleton className="h-6 w-1/2" />
-                  <Skeleton className="h-24 w-full" />
-                  <Skeleton className="h-12 w-1/3" />
-                </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
+              <Skeleton className="aspect-square rounded-3xl" />
+              <div className="space-y-6 pt-4">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-12 w-3/4" />
+                <Skeleton className="h-8 w-1/3" />
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-14 w-full rounded-xl" />
+                <Skeleton className="h-14 w-full rounded-xl" />
               </div>
             </div>
           </div>
@@ -250,16 +206,16 @@ const ProductDetail = () => {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex flex-col bg-slate-50">
+      <div className="min-h-screen flex flex-col bg-background">
         <PublicNavbar />
         <main className="flex-1 pt-24 pb-16 flex items-center justify-center">
           <div className="text-center">
-            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Package className="w-10 h-10 text-slate-400" />
+            <div className="w-24 h-24 bg-secondary/50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <Package className="w-12 h-12 text-muted-foreground/30" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 mb-2">Product Not Found</h1>
-            <p className="text-slate-500 mb-6">The product you are looking for does not exist or has been removed.</p>
-            <Button onClick={() => navigate("/shop")} variant="outline">
+            <h1 className="text-2xl font-bold text-foreground mb-2">Product Not Found</h1>
+            <p className="text-muted-foreground mb-6">The product you are looking for does not exist or has been removed.</p>
+            <Button onClick={() => navigate("/shop")} variant="outline" className="rounded-xl">
               <ArrowLeft className="w-4 h-4 mr-2" /> Back to Shop
             </Button>
           </div>
@@ -276,394 +232,435 @@ const ProductDetail = () => {
       <PublicNavbar />
 
       <motion.main 
-        className="flex-1 pt-24 pb-24 lg:pb-16"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        className="flex-1 pt-20 pb-24 lg:pb-16"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4 }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Breadcrumb / Back Navigation */}
-          <nav className="flex items-center mb-8">
-             <button
-                onClick={() => navigate("/shop")}
-                className="group flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-orange-600 transition-colors"
-             >
-                <div className="p-1.5 rounded-full bg-white border border-slate-200 group-hover:border-orange-600 transition-colors shadow-sm">
-                    <ArrowLeft className="w-4 h-4" />
-                </div>
-                Back to Catalog
-             </button>
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-8 pt-4">
+            <button onClick={() => navigate("/")} className="hover:text-foreground transition-colors">Home</button>
+            <span>/</span>
+            <button onClick={() => navigate("/shop")} className="hover:text-foreground transition-colors">Shop</button>
+            {(product.categories as any)?.name && (
+              <>
+                <span>/</span>
+                <span className="text-muted-foreground">{(product.categories as any).name}</span>
+              </>
+            )}
+            <span>/</span>
+            <span className="text-foreground font-medium truncate max-w-[200px]">{product.name}</span>
           </nav>
 
           {/* Product Hero Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-24 items-start mb-12 md:mb-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-20 items-start mb-16 md:mb-24">
               
-              {/* Left Column: Gallery */}
-              <div className="lg:sticky lg:top-24 z-10">
-                <ProductMediaGallery 
-                  images={product.images}
-                  videoUrl={product.video_url}
-                  productName={product.name}
-                />
+            {/* Left Column: Gallery */}
+            <motion.div 
+              className="lg:sticky lg:top-24 z-10"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <ProductMediaGallery 
+                images={product.images}
+                videoUrl={product.video_url}
+                productName={product.name}
+              />
+            </motion.div>
+
+            {/* Right Column: Information */}
+            <motion.div 
+              className="flex flex-col h-full"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              {/* Brand & Category */}
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-primary font-bold text-xs uppercase tracking-[0.2em]">DECOUVERTES</span>
+                {(product.categories as any)?.name && (
+                  <>
+                    <span className="text-muted-foreground/30">•</span>
+                    <Badge variant="secondary" className="bg-secondary/50 text-muted-foreground border-0 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide uppercase">
+                      {(product.categories as any).name}
+                    </Badge>
+                  </>
+                )}
               </div>
 
-              {/* Right Column: Information */}
-              <div className="flex flex-col h-full pt-2">
-                
-                {/* SKU & Category Badges */}
-                <div className="mb-6">
-                    {product.sku && (
-                        <Badge variant="outline" className="mr-2 font-mono text-xs px-3 py-1 bg-muted/30 border-muted-foreground/20 text-muted-foreground">
-                            SKU: {product.sku}
-                        </Badge>
-                    )}
-                    {(product.categories as any)?.name && (
-                        <Badge variant="secondary" className="bg-secondary/50 text-foreground hover:bg-secondary border-border/50 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase transition-colors">
-                            {(product.categories as any).name}
-                        </Badge>
-                    )}
+              {/* Title */}
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground leading-[1.15] tracking-tight mb-4">
+                {product.name}
+              </h1>
+
+              {/* Rating Summary */}
+              {approvedReviews.length > 0 && (
+                <div className="flex items-center gap-2 mb-6">
+                  <div className="flex gap-0.5">
+                    {[1,2,3,4,5].map(s => (
+                      <Star key={s} className={`w-4 h-4 ${s <= Math.round(averageRating) ? "text-amber-400 fill-amber-400" : "text-muted-foreground/20"}`} />
+                    ))}
+                  </div>
+                  <span className="text-sm font-medium text-foreground">{averageRating.toFixed(1)}</span>
+                  <span className="text-sm text-muted-foreground">({approvedReviews.length} review{approvedReviews.length > 1 ? 's' : ''})</span>
                 </div>
+              )}
 
-                {/* Title */}
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground leading-[1.1] tracking-tight mb-6">
-                    {product.name}
-                </h1>
-
-                {/* Price & Stock */}
-                <div className="flex items-center flex-wrap gap-6 mb-8">
-                    <span className="text-4xl font-bold text-foreground">
-                        ₹{product.price.toLocaleString()}
-                    </span>
-                    <div className="h-8 w-px bg-border hidden sm:block"></div>
-                    {product.stock_quantity > 0 ? (
-                        <div className="flex items-center gap-1.5 text-emerald-600 font-medium bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                            In Stock
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-1.5 text-rose-600 font-medium bg-rose-50 px-3 py-1 rounded-full border border-rose-100">
-                            <Clock className="w-4 h-4" />
-                            Out of Stock
-                        </div>
-                    )}
-                    {product.hsn_code && (
-                        <div className="text-xs text-muted-foreground bg-muted/50 px-2.5 py-1 rounded hidden sm:block">
-                            HSN: {product.hsn_code}
-                        </div>
-                    )}
-                </div>
-
-                {/* Short Description */}
-                {product.description && (
-                    <div className="mb-10">
-                      <motion.div
-                        initial={false}
-                        animate={{ 
-                          height: isLongDescription && !isDescriptionExpanded ? "7.4rem" : "auto"
-                        }}
-                        transition={{ duration: 0.3 }}
-                        className={cn("text-lg text-muted-foreground leading-relaxed overflow-hidden relative")}
-                        style={{
-                           maskImage: isLongDescription && !isDescriptionExpanded 
-                             ? "linear-gradient(to bottom, black 60%, transparent 100%)" 
-                             : "none",
-                           WebkitMaskImage: isLongDescription && !isDescriptionExpanded 
-                             ? "linear-gradient(to bottom, black 60%, transparent 100%)" 
-                             : "none"
-                        }}
-                      >
-                        {product.description}
-                      </motion.div>
-                      {isLongDescription && (
-                        <button
-                          onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                          className="mt-2 text-sm font-semibold text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 focus:outline-none group"
-                        >
-                          {isDescriptionExpanded ? (
-                            <>See less <ChevronUp className="w-4 h-4 transition-transform group-hover:-translate-y-0.5" /></>
-                          ) : (
-                            <>See more <ChevronDown className="w-4 h-4 transition-transform group-hover:translate-y-0.5" /></>
-                          )}
-                        </button>
-                      )}
-                    </div>
+              {/* Price & Stock */}
+              <div className="flex items-center flex-wrap gap-4 mb-6">
+                <span className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
+                  ₹{product.price.toLocaleString()}
+                </span>
+                {product.stock_quantity > 0 ? (
+                  <div className="flex items-center gap-1.5 text-emerald-600 text-sm font-medium bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                    In Stock
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 text-destructive text-sm font-medium bg-destructive/5 px-3 py-1.5 rounded-full border border-destructive/10">
+                    <Clock className="w-3.5 h-3.5" />
+                    Out of Stock
+                  </div>
                 )}
+              </div>
 
-                {/* Divider */}
-                <div className="h-px w-full bg-border/60 mb-10"></div>
+              {/* Meta info */}
+              <div className="flex items-center gap-3 mb-6 flex-wrap">
+                {product.sku && (
+                  <span className="text-[11px] font-mono text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-lg">
+                    SKU: {product.sku}
+                  </span>
+                )}
+                {product.hsn_code && (
+                  <span className="text-[11px] font-mono text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-lg">
+                    HSN: {product.hsn_code}
+                  </span>
+                )}
+              </div>
 
-                {/* Actions Area */}
-                <div className="space-y-6">
-                    <div className="flex flex-col sm:flex-row gap-4">
-                        {/* Quantity */}
-                        {product.stock_quantity > 0 && (
-                            <div className="flex items-center border border-border rounded-xl h-14 w-full sm:w-40 bg-background shadow-sm hover:border-primary/50 transition-colors">
-                                <button 
-                                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                    disabled={quantity <= 1}
-                                    className="w-12 h-full flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
-                                >
-                                    <Minus className="w-5 h-5" />
-                                </button>
-                                <div className="flex-1 text-center font-bold text-lg text-foreground">
-                                    {quantity}
-                                </div>
-                                <button 
-                                    onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))}
-                                    disabled={quantity >= product.stock_quantity}
-                                    className="w-12 h-full flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
-                                >
-                                    <Plus className="w-5 h-5" />
-                                </button>
-                            </div>
-                        )}
-
-                        {/* Buy Now */}
-                        <Button
-                            onClick={handleBuyNow}
-                            size="lg"
-                            disabled={product.stock_quantity === 0}
-                            className="flex-1 h-14 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg shadow-lg shadow-primary/20 rounded-xl transition-all hover:-translate-y-0.5 active:translate-y-0"
-                        >
-                            Buy Now
-                        </Button>
-                    </div>
-
-                    {/* Add to Cart */}
-                    <Button
-                        onClick={handleAddToCart}
-                        variant="outline"
-                        size="lg"
-                        disabled={product.stock_quantity === 0 || addToCartMutation.isPending}
-                        className="w-full h-14 border-2 border-border text-foreground hover:border-primary hover:text-primary hover:bg-primary/5 font-semibold text-lg rounded-xl transition-all"
+              {/* Description */}
+              {product.description && (
+                <div className="mb-8">
+                  <motion.div
+                    initial={false}
+                    animate={{ height: isLongDescription && !isDescriptionExpanded ? "6rem" : "auto" }}
+                    transition={{ duration: 0.3 }}
+                    className="text-base text-muted-foreground leading-relaxed overflow-hidden relative"
+                    style={{
+                      maskImage: isLongDescription && !isDescriptionExpanded 
+                        ? "linear-gradient(to bottom, black 50%, transparent 100%)" 
+                        : "none",
+                      WebkitMaskImage: isLongDescription && !isDescriptionExpanded 
+                        ? "linear-gradient(to bottom, black 50%, transparent 100%)" 
+                        : "none"
+                    }}
+                  >
+                    {product.description}
+                  </motion.div>
+                  {isLongDescription && (
+                    <button
+                      onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                      className="mt-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
                     >
-                        <ShoppingCart className="w-5 h-5 mr-2" />
-                        Add to Cart
-                    </Button>
+                      {isDescriptionExpanded ? (
+                        <>Read less <ChevronUp className="w-4 h-4" /></>
+                      ) : (
+                        <>Read more <ChevronDown className="w-4 h-4" /></>
+                      )}
+                    </button>
+                  )}
                 </div>
+              )}
+
+              {/* Divider */}
+              <div className="h-px w-full bg-border/50 mb-8"></div>
+
+              {/* Actions Area */}
+              <div className="space-y-4">
+                {/* Quantity & Buy Now Row */}
+                <div className="flex flex-col sm:flex-row gap-3">
+                  {product.stock_quantity > 0 && (
+                    <div className="flex items-center border border-border rounded-xl h-13 w-full sm:w-36 bg-card overflow-hidden">
+                      <button 
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        disabled={quantity <= 1}
+                        className="w-11 h-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary disabled:opacity-30 transition-colors"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <div className="flex-1 text-center font-bold text-lg text-foreground tabular-nums">
+                        {quantity}
+                      </div>
+                      <button 
+                        onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))}
+                        disabled={quantity >= product.stock_quantity}
+                        className="w-11 h-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary disabled:opacity-30 transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+
+                  <Button
+                    onClick={handleBuyNow}
+                    size="lg"
+                    disabled={product.stock_quantity === 0}
+                    className="flex-1 h-13 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-base shadow-lg shadow-primary/20 rounded-xl transition-all hover:-translate-y-0.5 active:translate-y-0"
+                  >
+                    <Zap className="w-4 h-4 mr-2" />
+                    Buy Now
+                  </Button>
+                </div>
+
+                {/* Add to Cart */}
+                <Button
+                  onClick={handleAddToCart}
+                  variant="outline"
+                  size="lg"
+                  disabled={product.stock_quantity === 0 || addToCartMutation.isPending}
+                  className="w-full h-13 border-2 border-foreground/15 text-foreground hover:border-primary hover:text-primary hover:bg-primary/5 font-semibold text-base rounded-xl transition-all"
+                >
+                  <ShoppingCart className="w-5 h-5 mr-2" />
+                  Add to Cart
+                </Button>
 
                 {/* Share & Wishlist Row */}
-                <div className="flex items-center gap-3 mt-4">
-                    <ShareMenu
-                      url={productUrl}
-                      title={product.name}
-                      description={product.description || undefined}
-                      label="Share"
-                      triggerClassName="flex items-center gap-2 px-4 py-2.5 border border-border rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors bg-background"
-                      iconClassName="w-4 h-4"
-                    />
-                    <div className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-xl hover:border-primary/50 transition-colors bg-background">
-                      <WishlistButton productId={product.id} />
-                    </div>
+                <div className="flex items-center gap-2">
+                  <ShareMenu
+                    url={productUrl}
+                    title={product.name}
+                    description={product.description || undefined}
+                    label="Share"
+                    triggerClassName="flex items-center gap-2 px-4 py-2.5 border border-border/50 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-primary/5 transition-all bg-card"
+                    iconClassName="w-4 h-4"
+                  />
+                  <div className="flex items-center gap-2 px-4 py-2.5 border border-border/50 rounded-xl hover:border-primary/30 hover:bg-primary/5 transition-all bg-card">
+                    <WishlistButton productId={product.id} />
+                  </div>
                 </div>
-
-                {/* Trust Badges */}
-                <div className="mt-10 pt-8 border-t border-border/60 grid grid-cols-2 gap-6">
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="p-2.5 bg-secondary rounded-full"><Check className="w-5 h-5 text-foreground" /></div>
-                        <span className="font-medium">Official Warranty</span>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="p-2.5 bg-secondary rounded-full"><Package className="w-5 h-5 text-foreground" /></div>
-                        <span className="font-medium">Secure Shipping</span>
-                    </div>
-                </div>
-
               </div>
+
+              {/* Trust Badges */}
+              <div className="mt-8 pt-6 border-t border-border/40">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="flex flex-col items-center text-center gap-2">
+                    <div className="p-2.5 bg-secondary/50 rounded-xl">
+                      <Shield className="w-5 h-5 text-foreground" />
+                    </div>
+                    <span className="text-xs font-medium text-muted-foreground leading-tight">Official Warranty</span>
+                  </div>
+                  <div className="flex flex-col items-center text-center gap-2">
+                    <div className="p-2.5 bg-secondary/50 rounded-xl">
+                      <Truck className="w-5 h-5 text-foreground" />
+                    </div>
+                    <span className="text-xs font-medium text-muted-foreground leading-tight">Fast Shipping</span>
+                  </div>
+                  <div className="flex flex-col items-center text-center gap-2">
+                    <div className="p-2.5 bg-secondary/50 rounded-xl">
+                      <Check className="w-5 h-5 text-foreground" />
+                    </div>
+                    <span className="text-xs font-medium text-muted-foreground leading-tight">Quality Assured</span>
+                  </div>
+                </div>
+              </div>
+
+            </motion.div>
           </div>
 
           {/* Product Specifications */}
           {id && <ProductSpecifications productId={id} />}
 
           {/* Reviews Section */}
-          <section id="reviews" className="mt-12 lg:mt-20 border-t border-slate-200 pt-8 lg:pt-12">
+          <section id="reviews" className="mt-12 lg:mt-20 border-t border-border/50 pt-8 lg:pt-12">
             <div 
-                className="flex items-center justify-between mb-8 cursor-pointer group"
-                onClick={() => setIsReviewsOpen(!isReviewsOpen)}
+              className="flex items-center justify-between mb-8 cursor-pointer group"
+              onClick={() => setIsReviewsOpen(!isReviewsOpen)}
             >
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-orange-50 rounded-lg group-hover:bg-orange-100 transition-colors">
-                    <Star className="w-6 h-6 text-orange-600 fill-orange-600" />
-                  </div>
-                  <h2 className="text-xl lg:text-2xl font-bold text-slate-900">Customer Reviews</h2>
-                  {approvedReviews.length > 0 && (
-                    <Badge variant="secondary" className="bg-slate-100 text-slate-600">{approvedReviews.length}</Badge>
-                  )}
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-xl group-hover:bg-primary/15 transition-colors">
+                  <Star className="w-5 h-5 text-primary fill-primary" />
                 </div>
-                <div className="p-2 rounded-full hover:bg-slate-100 transition-colors">
-                    {isReviewsOpen ? <ChevronUp className="w-5 h-5 text-slate-500" /> : <ChevronDown className="w-5 h-5 text-slate-500" />}
-                </div>
+                <h2 className="text-xl lg:text-2xl font-bold text-foreground">Customer Reviews</h2>
+                {approvedReviews.length > 0 && (
+                  <Badge variant="secondary" className="bg-secondary text-muted-foreground rounded-full">{approvedReviews.length}</Badge>
+                )}
+              </div>
+              <div className="p-2 rounded-xl hover:bg-secondary transition-colors">
+                {isReviewsOpen ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
+              </div>
             </div>
 
             <AnimatePresence>
-                {isReviewsOpen && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="overflow-hidden"
-                    >
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pb-4">
-              {/* Write Review Column */}
-              <div className="lg:col-span-4">
-                <Card className="border-slate-200 shadow-sm sticky top-24 overflow-hidden">
-                              <div className="h-1.5 bg-orange-600" />
-                  <CardContent className="p-6 sm:p-8">
-                    <h3 className="font-bold text-xl text-slate-900 mb-2">Write a Review</h3>
-                    <p className="text-sm text-slate-500 mb-8 leading-relaxed">
-                      Share your experience with this product to help other professionals make informed decisions.
-                    </p>
-                    
-                    {user ? (
-                      <div className="space-y-6">
-                        <div>
-                          <label className="text-sm font-semibold text-slate-700 mb-3 block">
-                            Rate this product
-                          </label>
-                          <div className="flex gap-2">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <motion.button
-                                key={star}
-                                type="button"
-                                onClick={() => setRating(star)}
-                                onMouseEnter={() => setHoveredRating(star)}
-                                onMouseLeave={() => setHoveredRating(0)}
-                                whileHover={{ scale: 1.15 }}
-                                whileTap={{ scale: 0.9 }}
-                                className="focus:outline-none transition-colors"
-                              >
-                                <Star
-                                  className={`w-8 h-8 ${
-                                    star <= (hoveredRating || rating)
-                                      ? "text-amber-400 fill-amber-400 drop-shadow-sm"
-                                      : "text-slate-200 fill-slate-50"
-                                  }`}
-                                />
-                              </motion.button>
-                            ))}
-                          </div>
-                          <div className="h-6 mt-1">
-                             <AnimatePresence mode="wait">
-                                {(hoveredRating || rating) > 0 && (
-                                   <motion.span 
-                                     key={hoveredRating || rating}
-                                     initial={{ opacity: 0, y: -5 }}
-                                     animate={{ opacity: 1, y: 0 }}
-                                     exit={{ opacity: 0, y: 5 }}
-                                                 className="text-sm font-medium text-orange-600"
-                                   >
-                                      {["Poor", "Fair", "Good", "Very Good", "Excellent"][(hoveredRating || rating) - 1]}
-                                   </motion.span>
-                                )}
-                             </AnimatePresence>
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <label className="text-sm font-semibold text-slate-700 mb-3 block">
-                            Your Review
-                          </label>
-                          <Textarea
-                            placeholder="What did you like or dislike? How was the quality?"
-                            value={reviewText}
-                            onChange={(e) => setReviewText(e.target.value)}
-                            rows={5}
-                                        className="resize-none border-slate-200 focus:border-orange-600 focus:ring-orange-600/20 bg-slate-50/50 text-base"
-                          />
-                        </div>
-                        
-                        <Button
-                          onClick={() => submitReviewMutation.mutate()}
-                          disabled={submitReviewMutation.isPending}
-                          className="w-full bg-slate-900 hover:bg-slate-800 text-white h-12 text-base font-medium shadow-lg shadow-slate-900/10"
-                        >
-                          {submitReviewMutation.isPending ? "Submitting..." : "Submit Review"}
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                        <User className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                        <p className="text-slate-600 font-medium mb-4">
-                          Please login to write a review
-                        </p>
-                                    <Button onClick={() => navigate("/login")} variant="outline" className="w-full border-slate-300 hover:border-orange-600 hover:text-orange-600">
-                          Login Now
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Reviews List Column */}
-              <div className="lg:col-span-8 space-y-6">
-                {approvedReviews.length > 0 ? (
-                  approvedReviews.map((review) => (
-                    <motion.div 
-                      key={review.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                    >
-                      <Card className="border-slate-100 shadow-sm hover:shadow-md transition-all duration-300">
+              {isReviewsOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 pb-4">
+                    {/* Write Review Column */}
+                    <div className="lg:col-span-4">
+                      <Card className="border-border/30 shadow-sm sticky top-24 overflow-hidden rounded-2xl">
+                        <div className="h-1 bg-gradient-to-r from-primary to-accent" />
                         <CardContent className="p-6 sm:p-8">
-                          <div className="flex items-start gap-4 sm:gap-6">
-                            <Avatar className="w-12 h-12 border border-slate-100 shadow-sm">
-                              <AvatarFallback className="bg-slate-100 text-slate-600 font-bold text-lg">
-                                <User className="w-6 h-6" />
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
-                                <div className="flex items-center gap-2">
-                                  <div className="flex gap-0.5">
-                                    {[1, 2, 3, 4, 5].map((star) => (
+                          <h3 className="font-bold text-lg text-foreground mb-1">Write a Review</h3>
+                          <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                            Share your experience with this product.
+                          </p>
+                          
+                          {user ? (
+                            <div className="space-y-5">
+                              <div>
+                                <label className="text-sm font-semibold text-foreground mb-3 block">
+                                  Rate this product
+                                </label>
+                                <div className="flex gap-1.5">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <motion.button
+                                      key={star}
+                                      type="button"
+                                      onClick={() => setRating(star)}
+                                      onMouseEnter={() => setHoveredRating(star)}
+                                      onMouseLeave={() => setHoveredRating(0)}
+                                      whileHover={{ scale: 1.15 }}
+                                      whileTap={{ scale: 0.9 }}
+                                      className="focus:outline-none transition-colors"
+                                    >
                                       <Star
-                                        key={star}
-                                        className={`w-4 h-4 ${
-                                          star <= review.rating
-                                            ? "text-amber-400 fill-amber-400"
-                                            : "text-slate-200"
+                                        className={`w-7 h-7 ${
+                                          star <= (hoveredRating || rating)
+                                            ? "text-amber-400 fill-amber-400 drop-shadow-sm"
+                                            : "text-muted-foreground/15 fill-muted-foreground/5"
                                         }`}
                                       />
-                                    ))}
-                                  </div>
-                                  <span className="text-sm font-semibold text-slate-900 ml-2">
-                                    {["Poor", "Fair", "Good", "Very Good", "Excellent"][review.rating - 1]}
-                                  </span>
+                                    </motion.button>
+                                  ))}
                                 </div>
-                                <span className="text-xs text-slate-400 font-medium">
-                                  {new Date(review.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
-                                </span>
+                                <div className="h-5 mt-1">
+                                  <AnimatePresence mode="wait">
+                                    {(hoveredRating || rating) > 0 && (
+                                      <motion.span 
+                                        key={hoveredRating || rating}
+                                        initial={{ opacity: 0, y: -5 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 5 }}
+                                        className="text-xs font-semibold text-primary"
+                                      >
+                                        {["Poor", "Fair", "Good", "Very Good", "Excellent"][(hoveredRating || rating) - 1]}
+                                      </motion.span>
+                                    )}
+                                  </AnimatePresence>
+                                </div>
                               </div>
                               
-                              {review.review_text ? (
-                                <p className="text-slate-600 leading-relaxed text-base">{review.review_text}</p>
-                              ) : (
-                                <p className="text-slate-400 italic text-sm">No written review</p>
-                              )}
+                              <div>
+                                <label className="text-sm font-semibold text-foreground mb-2 block">
+                                  Your Review
+                                </label>
+                                <Textarea
+                                  placeholder="What did you like or dislike?"
+                                  value={reviewText}
+                                  onChange={(e) => setReviewText(e.target.value)}
+                                  rows={4}
+                                  className="resize-none border-border/50 focus:border-primary bg-secondary/30 text-sm rounded-xl"
+                                />
+                              </div>
+                              
+                              <Button
+                                onClick={() => submitReviewMutation.mutate()}
+                                disabled={submitReviewMutation.isPending}
+                                className="w-full bg-foreground hover:bg-foreground/90 text-background h-11 text-sm font-semibold rounded-xl shadow-sm"
+                              >
+                                {submitReviewMutation.isPending ? "Submitting..." : "Submit Review"}
+                              </Button>
                             </div>
-                          </div>
+                          ) : (
+                            <div className="text-center py-8 bg-secondary/30 rounded-2xl border border-dashed border-border/50">
+                              <User className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
+                              <p className="text-muted-foreground font-medium mb-4 text-sm">
+                                Login to write a review
+                              </p>
+                              <Button onClick={() => navigate("/login")} variant="outline" className="border-border/50 hover:border-primary hover:text-primary rounded-xl text-sm">
+                                Login Now
+                              </Button>
+                            </div>
+                          )}
                         </CardContent>
                       </Card>
-                    </motion.div>
-                  ))
-                ) : (
-                  <div className="bg-white rounded-3xl border border-slate-200 p-16 text-center shadow-sm">
-                    <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-slate-100">
-                      <MessageSquare className="w-10 h-10 text-slate-300" />
                     </div>
-                    <h3 className="text-xl font-bold text-slate-900 mb-3">No reviews yet</h3>
-                    <p className="text-slate-500 max-w-md mx-auto leading-relaxed">
-                      Be the first to share your experience with this product. Your feedback is valuable to us and helps other professionals.
-                    </p>
-                  </div>
-                )}
-              </div>
+
+                    {/* Reviews List Column */}
+                    <div className="lg:col-span-8 space-y-4">
+                      {approvedReviews.length > 0 ? (
+                        approvedReviews.map((review) => (
+                          <motion.div 
+                            key={review.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                          >
+                            <Card className="border-border/20 shadow-sm hover:shadow-md transition-shadow duration-300 rounded-2xl">
+                              <CardContent className="p-5 sm:p-6">
+                                <div className="flex items-start gap-4">
+                                  <Avatar className="w-10 h-10 border border-border/30 shadow-sm flex-shrink-0">
+                                    <AvatarFallback className="bg-secondary text-muted-foreground font-bold text-sm">
+                                      <User className="w-4 h-4" />
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-1">
+                                      <div className="flex items-center gap-2">
+                                        <div className="flex gap-0.5">
+                                          {[1, 2, 3, 4, 5].map((star) => (
+                                            <Star
+                                              key={star}
+                                              className={`w-3.5 h-3.5 ${
+                                                star <= review.rating
+                                                  ? "text-amber-400 fill-amber-400"
+                                                  : "text-muted-foreground/15"
+                                              }`}
+                                            />
+                                          ))}
+                                        </div>
+                                        <span className="text-xs font-semibold text-foreground">
+                                          {["Poor", "Fair", "Good", "Very Good", "Excellent"][review.rating - 1]}
+                                        </span>
+                                      </div>
+                                      <span className="text-[11px] text-muted-foreground">
+                                        {new Date(review.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                                      </span>
+                                    </div>
+                                    
+                                    {review.review_text ? (
+                                      <p className="text-muted-foreground leading-relaxed text-sm">{review.review_text}</p>
+                                    ) : (
+                                      <p className="text-muted-foreground/50 italic text-xs">No written review</p>
+                                    )}
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </motion.div>
+                        ))
+                      ) : (
+                        <div className="bg-card rounded-3xl border border-border/20 p-12 sm:p-16 text-center">
+                          <div className="w-16 h-16 bg-secondary/50 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                            <MessageSquare className="w-8 h-8 text-muted-foreground/20" />
+                          </div>
+                          <h3 className="text-lg font-bold text-foreground mb-2">No reviews yet</h3>
+                          <p className="text-muted-foreground max-w-sm mx-auto leading-relaxed text-sm">
+                            Be the first to share your experience with this product.
+                          </p>
                         </div>
-                    </motion.div>
-                )}
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
             </AnimatePresence>
           </section>
 
@@ -673,21 +670,23 @@ const ProductDetail = () => {
       </motion.main>
 
       {/* Mobile Sticky Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-border lg:hidden z-50 shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)] safe-area-bottom">
-        <div className="flex gap-3">
+      <div className="fixed bottom-0 left-0 right-0 p-3 bg-card/95 backdrop-blur-xl border-t border-border/30 lg:hidden z-50 shadow-[0_-8px_30px_-10px_rgba(0,0,0,0.1)]">
+        <div className="flex gap-2.5 max-w-lg mx-auto">
           <Button 
             variant="outline" 
-            className="flex-1 h-12 border-border text-foreground font-semibold text-base hover:bg-secondary" 
+            className="flex-1 h-12 border-border/50 text-foreground font-semibold text-sm hover:bg-secondary rounded-xl" 
             onClick={handleAddToCart}
             disabled={product.stock_quantity === 0 || addToCartMutation.isPending}
           >
-            Add to Cart
+            <ShoppingCart className="w-4 h-4 mr-1.5" />
+            Cart
           </Button>
           <Button 
-            className="flex-1 h-12 bg-primary text-primary-foreground font-bold shadow-md text-base hover:bg-primary/90" 
+            className="flex-1 h-12 bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20 text-sm hover:bg-primary/90 rounded-xl" 
             onClick={handleBuyNow}
             disabled={product.stock_quantity === 0}
           >
+            <Zap className="w-4 h-4 mr-1.5" />
             Buy Now
           </Button>
         </div>
