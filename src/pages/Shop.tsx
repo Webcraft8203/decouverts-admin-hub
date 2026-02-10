@@ -21,7 +21,8 @@ import {
   LayoutGrid,
   SlidersHorizontal,
   X,
-  Check
+  Check,
+  Share2
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
@@ -212,11 +213,27 @@ const Shop = () => {
           )}
         </div>
 
-        {/* Wishlist */}
-        <div className="absolute top-3 right-3 z-10">
+        {/* Share & Wishlist */}
+        <div className="absolute top-3 right-3 z-10 flex flex-col gap-1.5">
           <div className="bg-background/80 backdrop-blur-sm rounded-full p-1.5 shadow-sm transition-opacity hover:bg-background">
             <WishlistButton productId={product.id} size="sm" />
           </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const url = `${window.location.origin}/product/${product.slug || product.id}`;
+              if (navigator.share) {
+                navigator.share({ title: product.name, text: product.description || `Check out ${product.name}`, url });
+              } else {
+                navigator.clipboard.writeText(url);
+                toast.success("Product link copied!");
+              }
+            }}
+            className="bg-background/80 backdrop-blur-sm rounded-full p-1.5 shadow-sm transition-opacity hover:bg-background"
+            title="Share product"
+          >
+            <Share2 className="w-4 h-4 text-muted-foreground" />
+          </button>
         </div>
       </div>
 
