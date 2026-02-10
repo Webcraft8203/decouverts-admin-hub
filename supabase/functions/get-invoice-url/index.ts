@@ -38,7 +38,7 @@ serve(async (req) => {
     const user = userData.user;
 
     const body = await req.json();
-    const { orderId, invoiceId } = body;
+    const { orderId, invoiceId, invoiceType } = body;
     
     if (!orderId && !invoiceId) {
       throw new Error("Order ID or Invoice ID is required");
@@ -70,17 +70,28 @@ serve(async (req) => {
         orderUserId = order?.user_id || null;
       }
     } else if (orderId) {
-      // Fetch by order ID (legacy support)
+      // Fetch by order ID - use invoiceType to pick the correct URL
       const { data: order, error: orderError } = await supabase
         .from("orders")
-        .select("id, user_id, invoice_url")
+        .select("id, user_id, invoice_url, proforma_invoice_url, final_invoice_url")
         .eq("id", orderId)
         .single();
 
       if (orderError || !order) throw new Error("Order not found");
-      if (!order.invoice_url) throw new Error("Invoice not generated yet");
 
-      invoicePath = order.invoice_url;
+      // Pick the correct invoice URL based on type
+      if (invoiceType === "final") {
+        invoicePath = order.final_invoice_url;
+        if (!invoicePath) throw new Error("Final tax invoice not generated yet");
+      } else if (invoiceType === "proforma") {
+        invoicePath = order.proforma_invoice_url || order.invoice_url;
+        if (!invoicePath) throw new Error("Proforma invoice not generated yet");
+      } else {
+        // Default fallback: prefer final if available, else proforma
+        invoicePath = order.final_invoice_url || order.proforma_invoice_url || order.invoice_url;
+        if (!invoicePath) throw new Error("Invoice not generated yet");
+      }
+
       orderUserId = order.user_id;
     }
 
