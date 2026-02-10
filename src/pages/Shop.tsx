@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WishlistButton } from "@/components/WishlistButton";
+import { ShareMenu } from "@/components/ShareMenu";
 import { ShopHeroSlider } from "@/components/shop/ShopHeroSlider";
 import { 
   ShoppingCart, 
@@ -21,8 +22,7 @@ import {
   LayoutGrid,
   SlidersHorizontal,
   X,
-  Check,
-  Share2
+  Check
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
@@ -218,22 +218,11 @@ const Shop = () => {
           <div className="bg-background/80 backdrop-blur-sm rounded-full p-1.5 shadow-sm transition-opacity hover:bg-background">
             <WishlistButton productId={product.id} size="sm" />
           </div>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              const url = `${window.location.origin}/product/${product.slug || product.id}`;
-              if (navigator.share) {
-                navigator.share({ title: product.name, text: product.description || `Check out ${product.name}`, url });
-              } else {
-                navigator.clipboard.writeText(url);
-                toast.success("Product link copied!");
-              }
-            }}
-            className="bg-background/80 backdrop-blur-sm rounded-full p-1.5 shadow-sm transition-opacity hover:bg-background"
-            title="Share product"
-          >
-            <Share2 className="w-4 h-4 text-muted-foreground" />
-          </button>
+          <ShareMenu
+            url={`${window.location.origin}/product/${product.slug || product.id}`}
+            title={product.name}
+            description={product.description || undefined}
+          />
         </div>
       </div>
 
