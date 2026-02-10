@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { WishlistButton } from "@/components/WishlistButton";
+import { ShareMenu } from "@/components/ShareMenu";
 import {
   ShoppingCart,
   Package,
@@ -439,6 +440,21 @@ const ProductDetail = () => {
                         <ShoppingCart className="w-5 h-5 mr-2" />
                         Add to Cart
                     </Button>
+                </div>
+
+                {/* Share & Wishlist Row */}
+                <div className="flex items-center gap-3 mt-4">
+                    <ShareMenu
+                      url={productUrl}
+                      title={product.name}
+                      description={product.description || undefined}
+                      label="Share"
+                      triggerClassName="flex items-center gap-2 px-4 py-2.5 border border-border rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors bg-background"
+                      iconClassName="w-4 h-4"
+                    />
+                    <div className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-xl hover:border-primary/50 transition-colors bg-background">
+                      <WishlistButton productId={product.id} />
+                    </div>
                 </div>
 
                 {/* Trust Badges */}
