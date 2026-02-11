@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { usePageSEO } from "@/hooks/usePageSEO";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { PublicFooter } from "@/components/PublicFooter";
 import { 
@@ -48,6 +49,12 @@ const Counter = ({ from, to, suffix = "" }: { from: number; to: number; suffix?:
 };
 
 const About = () => {
+  usePageSEO({
+    title: "About DECOUVERTES | Indigenous R&D Technology Company India",
+    description: "Learn about DECOUVERTES – India's R&D-driven technology company. Indigenous engineering, 3D printing, drone systems & manufacturing. Made in India.",
+    path: "/about",
+  });
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans selection:bg-orange-100 selection:text-orange-900">
       <PublicNavbar />

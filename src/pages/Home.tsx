@@ -13,8 +13,15 @@ import { HomepageGallery } from "@/components/home/HomepageGallery";
 import { ContactSection } from "@/components/home/ContactSection";
 import { OurCustomers } from "@/components/home/OurCustomers";
 import { OurPartners } from "@/components/home/OurPartners";
+import { OrganizationSchema } from "@/components/SEOSchemas";
+import { usePageSEO } from "@/hooks/usePageSEO";
 
 const Home = () => {
+  usePageSEO({
+    title: "DECOUVERTES | Engineering, 3D Printing & Industrial Products India",
+    description: "India's indigenous R&D technology company. Shop industrial 3D printers, drone systems, engineering services & premium products. Made in India.",
+    path: "/",
+  });
   const location = useLocation();
 
   // Handle scroll navigation from other pages
@@ -46,6 +53,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <OrganizationSchema />
       <PublicNavbar />
       <NotificationMarquee />
 
