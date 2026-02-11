@@ -71,19 +71,41 @@ const numberToWords = (num: number): string => {
 };
 
 const fetchLogoAsBase64 = async (): Promise<string | null> => {
-  try {
-    const logoUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/customer-partner-images/email-logo.png`;
-    const response = await fetch(logoUrl);
-    if (!response.ok) return null;
-    const blob = await response.blob();
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return null;
+  const urls = [
+    `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/customer-partner-images/email-logo.png`,
+  ];
+  for (const logoUrl of urls) {
+    try {
+      const response = await fetch(logoUrl);
+      if (!response.ok) continue;
+      const blob = await response.blob();
+      if (blob.size < 100) continue;
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(blob);
+      });
+    } catch {
+      continue;
+    }
   }
+  // Fallback: try to load from local assets
+  try {
+    const response = await fetch('/logo.png');
+    if (response.ok) {
+      const blob = await response.blob();
+      if (blob.size > 100) {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = () => resolve(null);
+          reader.readAsDataURL(blob);
+        });
+      }
+    }
+  } catch { /* ignore */ }
+  return null;
 };
 
 export interface InvoiceItem {
@@ -188,6 +210,7 @@ function renderInvoicePdf(
   totalIgst: number,
   logoBase64: string | null,
 ) {
+  const isManual = !invoice.order_id;
   const { width: pw, height: ph, margin: M } = PAGE;
   const CW = pw - 2 * M; // content width = 182
   const safeZone = ph - PAGE.footerHeight - 4;
@@ -268,13 +291,15 @@ function renderInvoicePdf(
   doc.setLineWidth(0.2);
   doc.rect(M, y, CW, 14, "S");
 
-  const metaColW = CW / 4;
-  const metaPairs = [
+  const metaPairs: [string, string][] = [
     ["Invoice No.", invoice.invoice_number],
     ["Date", fmtDate(invoice.created_at)],
     ["Order No.", invoice.order?.order_number || "N/A"],
-    ["Delivery Date", invoice.delivery_date ? fmtDate(invoice.delivery_date) : (isFinal ? "—" : "Pending")],
   ];
+  if (!isManual) {
+    metaPairs.push(["Delivery Date", invoice.delivery_date ? fmtDate(invoice.delivery_date) : (isFinal ? "—" : "Pending")]);
+  }
+  const metaColW = CW / metaPairs.length;
   metaPairs.forEach(([label, value], i) => {
     const x = M + metaColW * i + 5;
     doc.setFontSize(6);
@@ -285,7 +310,6 @@ function renderInvoicePdf(
     doc.setTextColor(...COLORS.primary);
     doc.setFont("helvetica", "bold");
     doc.text(value, x, y + 10.5);
-    // Vertical separator
     if (i > 0) {
       doc.setDrawColor(...COLORS.border);
       doc.line(M + metaColW * i, y + 2, M + metaColW * i, y + 12);
@@ -362,22 +386,14 @@ function renderInvoicePdf(
   y += boxH + 6;
 
   // ==================== 4. ITEMS TABLE ====================
-  // Column layout – total = CW (182)
-  const cols = {
-    sno:    8,
-    item:   42, // Name + SKU
-    hsn:    14,
-    qty:    10,
-    rate:   22,
-    taxable:22,
-    gstPct: 12,
-    gstAmt: 24,
-    total:  28,
-  };
+  // Column layout – total = CW (182). For manual invoices, remove HSN & SKU, widen other cols.
+  const cols = isManual
+    ? { sno: 8, item: 56, hsn: 0, qty: 12, rate: 26, taxable: 26, gstPct: 12, gstAmt: 16, total: 26 }
+    : { sno: 8, item: 42, hsn: 14, qty: 10, rate: 22, taxable: 22, gstPct: 12, gstAmt: 24, total: 28 };
   const tableX = M;
   const tableW = CW;
   const hdrH = 8;
-  const rowH = 11;
+  const rowH = isManual ? 8 : 11;
 
   // Header
   doc.setFillColor(...COLORS.tableHeader);
@@ -389,6 +405,7 @@ function renderInvoicePdf(
   let cx = tableX;
   const hdrY = y + 5.5;
   const hdr = (label: string, w: number, align: "left" | "right" | "center" = "left") => {
+    if (w === 0) return;
     if (align === "right") doc.text(label, cx + w - 2, hdrY, { align: "right" });
     else if (align === "center") doc.text(label, cx + w / 2, hdrY, { align: "center" });
     else doc.text(label, cx + 2, hdrY);
@@ -396,7 +413,7 @@ function renderInvoicePdf(
   };
   hdr("#", cols.sno, "center");
   hdr("Item Description", cols.item);
-  hdr("HSN", cols.hsn, "center");
+  if (!isManual) hdr("HSN", cols.hsn, "center");
   hdr("Qty", cols.qty, "center");
   hdr("Rate (₹)", cols.rate, "right");
   hdr("Taxable (₹)", cols.taxable, "right");
@@ -416,64 +433,69 @@ function renderInvoicePdf(
     doc.line(tableX, y + rowH, tableX + tableW, y + rowH);
 
     cx = tableX;
-    const ty1 = y + 4.5;
+    const ty1 = isManual ? y + 5 : y + 4.5;
     const ty2 = y + 8.5;
 
     // S.No
     doc.setFontSize(6);
     doc.setTextColor(...COLORS.secondary);
     doc.setFont("helvetica", "normal");
-    doc.text(String(item.sno), cx + cols.sno / 2, y + 6, { align: "center" });
+    doc.text(String(item.sno), cx + cols.sno / 2, ty1, { align: "center" });
     cx += cols.sno;
 
-    // Item name + SKU
+    // Item name (+ SKU only for order invoices)
     doc.setTextColor(...COLORS.primary);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(6.5);
-    const itemName = item.name.length > 28 ? item.name.substring(0, 28) + "…" : item.name;
+    const maxNameLen = isManual ? 38 : 28;
+    const itemName = item.name.length > maxNameLen ? item.name.substring(0, maxNameLen) + "…" : item.name;
     doc.text(itemName, cx + 2, ty1);
-    doc.setFontSize(5.5);
-    doc.setTextColor(...COLORS.muted);
-    doc.setFont("helvetica", "normal");
-    doc.text(`SKU: ${item.sku}`, cx + 2, ty2);
+    if (!isManual) {
+      doc.setFontSize(5.5);
+      doc.setTextColor(...COLORS.muted);
+      doc.setFont("helvetica", "normal");
+      doc.text(`SKU: ${item.sku}`, cx + 2, ty2);
+    }
     cx += cols.item;
 
     doc.setFontSize(6);
     doc.setTextColor(...COLORS.secondary);
     doc.setFont("helvetica", "normal");
 
-    // HSN
-    doc.text(item.hsn, cx + cols.hsn / 2, y + 6, { align: "center" });
-    cx += cols.hsn;
+    // HSN (only for order invoices)
+    if (!isManual) {
+      doc.text(item.hsn, cx + cols.hsn / 2, ty1, { align: "center" });
+      cx += cols.hsn;
+    }
 
     // Qty
-    doc.text(String(item.qty), cx + cols.qty / 2, y + 6, { align: "center" });
+    doc.text(String(item.qty), cx + cols.qty / 2, ty1, { align: "center" });
     cx += cols.qty;
 
     // Rate
-    doc.text(fmt(item.rate), cx + cols.rate - 2, y + 6, { align: "right" });
+    doc.text(fmt(item.rate), cx + cols.rate - 2, ty1, { align: "right" });
     cx += cols.rate;
 
     // Taxable
-    doc.text(fmt(item.taxableValue), cx + cols.taxable - 2, y + 6, { align: "right" });
+    doc.text(fmt(item.taxableValue), cx + cols.taxable - 2, ty1, { align: "right" });
     cx += cols.taxable;
 
     // GST %
     doc.setTextColor(...COLORS.accent);
     doc.setFont("helvetica", "bold");
-    doc.text(`${item.gstRate}%`, cx + cols.gstPct / 2, y + 6, { align: "center" });
+    doc.text(`${item.gstRate}%`, cx + cols.gstPct / 2, ty1, { align: "center" });
     cx += cols.gstPct;
 
     // GST Amount
     doc.setTextColor(...COLORS.secondary);
     doc.setFont("helvetica", "normal");
-    doc.text(fmt(item.gstAmount), cx + cols.gstAmt - 2, y + 6, { align: "right" });
+    doc.text(fmt(item.gstAmount), cx + cols.gstAmt - 2, ty1, { align: "right" });
     cx += cols.gstAmt;
 
     // Total
     doc.setTextColor(...COLORS.primary);
     doc.setFont("helvetica", "bold");
-    doc.text(fmt(item.total), cx + cols.total - 2, y + 6, { align: "right" });
+    doc.text(fmt(item.total), cx + cols.total - 2, ty1, { align: "right" });
 
     y += rowH;
   });
