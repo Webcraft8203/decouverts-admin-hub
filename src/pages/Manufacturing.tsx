@@ -1,4 +1,5 @@
 import { PublicNavbar } from "@/components/PublicNavbar";
+import { usePageSEO } from "@/hooks/usePageSEO";
 import { PublicFooter } from "@/components/PublicFooter";
 import { Factory, Printer, Plane, ArrowRight, ShieldCheck, Cpu, Scale, Award, Settings, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,12 @@ import { useNavigate } from "react-router-dom";
 
 const Manufacturing = () => {
   const navigate = useNavigate();
+
+  usePageSEO({
+    title: "Industrial 3D Printers & Drone Systems Manufacturing | DECOUVERTES",
+    description: "DFT Series industrial 3D printers & custom drone systems. Indigenous manufacturing excellence by DECOUVERTES India. Configurable & production-ready.",
+    path: "/manufacturing",
+  });
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#F7F9FC] to-[#EEF2F7] font-sans text-slate-900 selection:bg-orange-100 selection:text-orange-900">

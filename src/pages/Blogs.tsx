@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { usePageSEO } from "@/hooks/usePageSEO";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PublicNavbar } from "@/components/PublicNavbar";
@@ -19,6 +20,12 @@ export default function Blogs() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<ContentType>("all");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+
+  usePageSEO({
+    title: "Blogs & News | DECOUVERTES – Tech Insights & Updates",
+    description: "Read the latest blogs, news & insights on 3D printing, drone technology, engineering innovation & industry trends from DECOUVERTES.",
+    path: "/blogs",
+  });
 
   // Scroll to top on mount
   useEffect(() => {

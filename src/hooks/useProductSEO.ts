@@ -12,6 +12,8 @@ interface ProductSEOData {
   categories?: { name: string } | null;
 }
 
+const SITE_URL = "https://admin-craft-engine.lovable.app";
+
 export const useProductSEO = (product: ProductSEOData | null | undefined) => {
   useEffect(() => {
     if (!product) return;
@@ -20,14 +22,12 @@ export const useProductSEO = (product: ProductSEOData | null | undefined) => {
     const category = (product.categories as any)?.name || "";
     const title = `${product.name} | ${category ? category + " | " : ""}${brandName}`.slice(0, 60);
     const description = (
-      product.description?.slice(0, 150) ||
-      `Buy ${product.name} from ${brandName}. Premium quality ${category || "product"} at ₹${product.price.toLocaleString("en-IN")}.`
+      product.description?.replace(/<[^>]*>/g, "").slice(0, 150) ||
+      `Buy ${product.name} from ${brandName}. Premium quality ${category || "product"} at ₹${product.price.toLocaleString("en-IN")}. Free shipping in India.`
     ).slice(0, 160);
 
-    // Set title
     document.title = title;
 
-    // Set/update meta tags
     const setMeta = (name: string, content: string, isProperty = false) => {
       const attr = isProperty ? "property" : "name";
       let el = document.querySelector(`meta[${attr}="${name}"]`);
@@ -40,10 +40,11 @@ export const useProductSEO = (product: ProductSEOData | null | undefined) => {
     };
 
     setMeta("description", description);
-    setMeta("robots", "index, follow");
+    setMeta("robots", "index, follow, max-image-preview:large");
+
+    const productUrl = `${SITE_URL}/product/${product.slug || ""}`;
 
     // Open Graph
-    const productUrl = `${window.location.origin}/product/${product.slug || ""}`;
     setMeta("og:title", title, true);
     setMeta("og:description", description, true);
     setMeta("og:type", "product", true);
@@ -52,6 +53,14 @@ export const useProductSEO = (product: ProductSEOData | null | undefined) => {
       setMeta("og:image", product.images[0], true);
     }
     setMeta("og:site_name", brandName, true);
+    setMeta("og:locale", "en_IN", true);
+
+    // Product-specific OG tags
+    setMeta("product:price:amount", String(product.price), true);
+    setMeta("product:price:currency", "INR", true);
+    setMeta("product:availability", product.stock_quantity > 0 ? "instock" : "oos", true);
+    if (product.sku) setMeta("product:retailer_item_id", product.sku, true);
+    setMeta("product:brand", brandName, true);
 
     // Twitter
     setMeta("twitter:card", "summary_large_image");
@@ -60,6 +69,10 @@ export const useProductSEO = (product: ProductSEOData | null | undefined) => {
     if (product.images?.[0]) {
       setMeta("twitter:image", product.images[0]);
     }
+    setMeta("twitter:label1", "Price");
+    setMeta("twitter:data1", `₹${product.price.toLocaleString("en-IN")}`);
+    setMeta("twitter:label2", "Availability");
+    setMeta("twitter:data2", product.stock_quantity > 0 ? "In Stock" : "Out of Stock");
 
     // Canonical URL
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
@@ -70,7 +83,7 @@ export const useProductSEO = (product: ProductSEOData | null | undefined) => {
     }
     canonical.setAttribute("href", productUrl);
 
-    // JSON-LD Product structured data
+    // JSON-LD Product structured data (Google Rich Snippets)
     const availability =
       product.stock_quantity > 0
         ? "https://schema.org/InStock"
@@ -80,7 +93,7 @@ export const useProductSEO = (product: ProductSEOData | null | undefined) => {
       "@context": "https://schema.org",
       "@type": "Product",
       name: product.name,
-      description: product.description || `${product.name} by ${brandName}`,
+      description: product.description?.replace(/<[^>]*>/g, "") || `${product.name} by ${brandName}`,
       brand: {
         "@type": "Brand",
         name: brandName,
@@ -91,9 +104,17 @@ export const useProductSEO = (product: ProductSEOData | null | undefined) => {
         priceCurrency: "INR",
         price: product.price,
         availability,
+        itemCondition: "https://schema.org/NewCondition",
         seller: {
           "@type": "Organization",
           name: brandName,
+        },
+        shippingDetails: {
+          "@type": "OfferShippingDetails",
+          shippingDestination: {
+            "@type": "DefinedRegion",
+            addressCountry: "IN",
+          },
         },
       },
     };
@@ -103,23 +124,39 @@ export const useProductSEO = (product: ProductSEOData | null | undefined) => {
     if (product.images?.[0]) jsonLd.image = product.images;
     if (category) jsonLd.category = category;
 
+    // BreadcrumbList for product page
+    const breadcrumbLd = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+        { "@type": "ListItem", position: 2, name: "Shop", item: `${SITE_URL}/shop` },
+        ...(category
+          ? [{ "@type": "ListItem", position: 3, name: category, item: `${SITE_URL}/shop` }]
+          : []),
+        {
+          "@type": "ListItem",
+          position: category ? 4 : 3,
+          name: product.name,
+          item: productUrl,
+        },
+      ],
+    };
+
     // Remove old JSON-LD
-    const oldScript = document.getElementById("product-jsonld");
-    if (oldScript) oldScript.remove();
+    document.getElementById("product-jsonld")?.remove();
 
     const script = document.createElement("script");
     script.id = "product-jsonld";
     script.type = "application/ld+json";
-    script.textContent = JSON.stringify(jsonLd);
+    script.textContent = JSON.stringify([jsonLd, breadcrumbLd]);
     document.head.appendChild(script);
 
     // Cleanup on unmount
     return () => {
-      document.title = "DECOUVERTES - Discovering Future Technologies | Premium 3D Printers & Engineering Products";
-      const jsonldScript = document.getElementById("product-jsonld");
-      if (jsonldScript) jsonldScript.remove();
-      const canonicalEl = document.querySelector('link[rel="canonical"]');
-      if (canonicalEl) canonicalEl.remove();
+      document.title = "DECOUVERTES | Engineering, 3D Printing & Industrial Products India";
+      document.getElementById("product-jsonld")?.remove();
+      document.querySelector('link[rel="canonical"]')?.remove();
     };
   }, [product]);
 };

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { usePageSEO } from "@/hooks/usePageSEO";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PublicNavbar } from "@/components/PublicNavbar";
@@ -72,6 +73,12 @@ const Shop = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  usePageSEO({
+    title: "Shop Premium 3D Printers & Industrial Products | DECOUVERTES",
+    description: "Browse DECOUVERTES collection of industrial 3D printers, engineering tools & premium products. Best prices in India with free shipping.",
+    path: "/shop",
+  });
 
   const { data: products, isLoading: productsLoading } = useQuery({
     queryKey: ["public-products"],

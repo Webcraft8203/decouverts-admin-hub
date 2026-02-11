@@ -1,4 +1,5 @@
 import { PublicNavbar } from "@/components/PublicNavbar";
+import { usePageSEO } from "@/hooks/usePageSEO";
 import { PublicFooter } from "@/components/PublicFooter";
 import { 
   Cog, 
@@ -22,6 +23,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Engineering = () => {
   const navigate = useNavigate();
+
+  usePageSEO({
+    title: "Engineering & Manufacturing Design Services | DECOUVERTES",
+    description: "CAD design, plastic & metal product engineering, FEA validation & prototyping. Expert mechanical engineering NPD services by DECOUVERTES India.",
+    path: "/engineering",
+  });
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans">

@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { usePageSEO } from "@/hooks/usePageSEO";
+import { ArticleSchema, BreadcrumbSchema } from "@/components/SEOSchemas";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { PublicFooter } from "@/components/PublicFooter";
 import { Badge } from "@/components/ui/badge";
@@ -163,9 +165,36 @@ export default function BlogDetail() {
     );
   }
 
+  const blogUrl = `/blogs/${slug}`;
+
+  usePageSEO({
+    title: `${post.meta_title || post.title} | DECOUVERTES`.slice(0, 60),
+    description: (post.meta_description || post.excerpt || post.title).slice(0, 160),
+    path: blogUrl,
+    type: "article",
+    image: post.feature_image || undefined,
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <PublicNavbar />
+
+      <ArticleSchema
+        title={post.title}
+        description={post.meta_description || post.excerpt || post.title}
+        image={post.feature_image || undefined}
+        datePublished={post.publish_date || post.created_at}
+        dateModified={post.updated_at}
+        author={post.author_name}
+        url={blogUrl}
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: "/" },
+          { name: "Blogs", url: "/blogs" },
+          { name: post.title, url: blogUrl },
+        ]}
+      />
 
       {/* Reading Progress Bar */}
       <div className="fixed top-0 left-0 right-0 z-[60] h-1 bg-muted">
