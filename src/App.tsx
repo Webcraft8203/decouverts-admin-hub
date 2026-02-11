@@ -10,6 +10,7 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import { AdminLayout } from "@/components/AdminLayout";
 import { PermissionProtectedRoute } from "@/components/admin/PermissionProtectedRoute";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Engineering from "./pages/Engineering";
@@ -167,6 +168,7 @@ const App = () => (
       </AuthProvider>
     </QueryClientProvider>
     <Analytics />
+    <SpeedInsights />
   </ErrorBoundary>
 );
 
