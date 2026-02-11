@@ -470,7 +470,7 @@ const ProductDetail = () => {
           </div>
 
           {/* Product Specifications */}
-          {id && <ProductSpecifications productId={id} />}
+          {product?.id && <ProductSpecifications productId={product.id} />}
 
           {/* Reviews Section */}
           <section id="reviews" className="mt-12 lg:mt-20 border-t border-border/50 pt-8 lg:pt-12">
