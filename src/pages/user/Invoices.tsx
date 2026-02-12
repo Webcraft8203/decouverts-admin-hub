@@ -59,7 +59,7 @@ const UserInvoices = () => {
           status, payment_status, payment_id, delivered_at
         `)
         .eq("user_id", user!.id)
-        .eq("payment_status", "paid")
+        .in("payment_status", ["paid", "cod_pending", "cod_collected", "cod_settled"])
         .order("created_at", { ascending: false });
 
       if (error) throw error;
