@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { usePageSEO } from "@/hooks/usePageSEO";
+import { BreadcrumbSchema } from "@/components/SEOSchemas";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PublicNavbar } from "@/components/PublicNavbar";
@@ -74,12 +75,6 @@ const Shop = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  usePageSEO({
-    title: "Shop Premium 3D Printers & Industrial Products | DECOUVERTES",
-    description: "Browse DECOUVERTES collection of industrial 3D printers, engineering tools & premium products. Best prices in India with free shipping.",
-    path: "/shop",
-  });
-
   const { data: products, isLoading: productsLoading } = useQuery({
     queryKey: ["public-products"],
     queryFn: async () => {
@@ -106,6 +101,67 @@ const Shop = () => {
       return data as Category[];
     },
   });
+
+  // Filter and sort products
+  const filteredProducts = products
+    ?.filter((product) => {
+      const matchesSearch = 
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.sku?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
+      return matchesSearch && matchesCategory;
+    })
+    ?.sort((a, b) => {
+      switch (sortBy) {
+        case "price-low":
+          return a.price - b.price;
+        case "price-high":
+          return b.price - a.price;
+        case "name":
+          return a.name.localeCompare(b.name);
+        default:
+          return 0;
+      }
+    });
+
+  const selectedCategoryName = selectedCategory 
+    ? categories?.find(c => c.id === selectedCategory)?.name 
+    : null;
+
+  usePageSEO({
+    title: selectedCategoryName
+      ? `${selectedCategoryName} | Buy Online India | DECOUVERTES`
+      : "Shop Premium 3D Printers & Industrial Products | DECOUVERTES",
+    description: selectedCategoryName
+      ? `Shop ${selectedCategoryName} from DECOUVERTES. Premium quality engineering & industrial products at best prices in India. Free shipping available.`
+      : "Browse DECOUVERTES collection of industrial 3D printers, engineering tools & premium products. Best prices in India with free shipping.",
+    path: "/shop",
+  });
+
+  // Inject ItemList JSON-LD for product listings
+  useEffect(() => {
+    if (!filteredProducts?.length) return;
+    const itemListLd = {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: selectedCategoryName ? `${selectedCategoryName} Products` : "All Products",
+      numberOfItems: filteredProducts.length,
+      itemListElement: filteredProducts.slice(0, 30).map((p, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        url: `https://admin-craft-engine.lovable.app/product/${p.slug || p.id}`,
+        name: p.name,
+        image: p.images?.[0],
+      })),
+    };
+    const script = document.createElement("script");
+    script.id = "shop-itemlist-jsonld";
+    script.type = "application/ld+json";
+    script.textContent = JSON.stringify(itemListLd);
+    document.head.appendChild(script);
+    return () => { document.getElementById("shop-itemlist-jsonld")?.remove(); };
+  }, [filteredProducts, selectedCategoryName]);
 
   const addToCartMutation = useMutation({
     mutationFn: async (productId: string) => {
@@ -149,29 +205,6 @@ const Shop = () => {
     }
     addToCartMutation.mutate(productId);
   };
-
-  // Filter and sort products
-  const filteredProducts = products
-    ?.filter((product) => {
-      const matchesSearch = 
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.sku?.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
-      return matchesSearch && matchesCategory;
-    })
-    ?.sort((a, b) => {
-      switch (sortBy) {
-        case "price-low":
-          return a.price - b.price;
-        case "price-high":
-          return b.price - a.price;
-        case "name":
-          return a.name.localeCompare(b.name);
-        default:
-          return 0;
-      }
-    });
 
   const featuredProducts = products?.filter((p) => p.is_highlighted) || [];
 
@@ -335,6 +368,11 @@ const Shop = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "/" },
+        { name: "Shop", url: "/shop" },
+        ...(selectedCategoryName ? [{ name: selectedCategoryName, url: "/shop" }] : []),
+      ]} />
       <PublicNavbar />
 
       <main className="flex-1 pt-16">

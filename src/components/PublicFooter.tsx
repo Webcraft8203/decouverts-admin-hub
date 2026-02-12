@@ -13,11 +13,13 @@ import { HelpCenterDialog, FAQDialog, CopyrightDialog, MadeInIndiaDialog, Career
 import { cn } from "@/lib/utils";
 
 const quickLinks = [
-  { label: "Configure 3D Printer", href: "/printer-configuration" },
-  { label: "Request Custom Quote", href: "#contact-section" },
+  { label: "Shop Products", href: "/shop" },
   { label: "Engineering Services", href: "/engineering" },
   { label: "Industrial Solutions", href: "/manufacturing" },
-  { label: "Shop Products", href: "/shop" },
+  { label: "Blogs & News", href: "/blogs" },
+  { label: "About Us", href: "/about" },
+  { label: "Configure 3D Printer", href: "/printer-configuration" },
+  { label: "Request Custom Quote", href: "#contact-section" },
   { label: "Careers", action: "careers", href: "#" },
 ];
 

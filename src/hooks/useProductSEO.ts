@@ -12,9 +12,14 @@ interface ProductSEOData {
   categories?: { name: string } | null;
 }
 
+interface ReviewData {
+  ratingValue: number;
+  reviewCount: number;
+}
+
 const SITE_URL = "https://admin-craft-engine.lovable.app";
 
-export const useProductSEO = (product: ProductSEOData | null | undefined) => {
+export const useProductSEO = (product: ProductSEOData | null | undefined, reviews?: ReviewData) => {
   useEffect(() => {
     if (!product) return;
 
@@ -123,6 +128,15 @@ export const useProductSEO = (product: ProductSEOData | null | undefined) => {
     if (product.hsn_code) jsonLd.mpn = product.hsn_code;
     if (product.images?.[0]) jsonLd.image = product.images;
     if (category) jsonLd.category = category;
+    if (reviews && reviews.reviewCount > 0) {
+      jsonLd.aggregateRating = {
+        "@type": "AggregateRating",
+        ratingValue: reviews.ratingValue.toFixed(1),
+        reviewCount: reviews.reviewCount,
+        bestRating: "5",
+        worstRating: "1",
+      };
+    }
 
     // BreadcrumbList for product page
     const breadcrumbLd = {
@@ -158,5 +172,5 @@ export const useProductSEO = (product: ProductSEOData | null | undefined) => {
       document.getElementById("product-jsonld")?.remove();
       document.querySelector('link[rel="canonical"]')?.remove();
     };
-  }, [product]);
+  }, [product, reviews]);
 };
