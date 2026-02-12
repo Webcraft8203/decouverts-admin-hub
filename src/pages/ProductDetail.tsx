@@ -80,9 +80,6 @@ const ProductDetail = () => {
     }
   }, [product, isUUID, navigate]);
 
-  // SEO: dynamic meta tags and JSON-LD structured data
-  useProductSEO(product);
-
   const { data: reviews } = useQuery({
     queryKey: ["product-reviews", id],
     queryFn: async () => {
@@ -97,6 +94,18 @@ const ProductDetail = () => {
     },
     enabled: !!id,
   });
+
+  // Compute review stats for SEO
+  const approvedReviewsForSEO = reviews?.filter((r: any) => r.is_approved) || [];
+  const avgRating = approvedReviewsForSEO.length
+    ? approvedReviewsForSEO.reduce((sum: number, r: any) => sum + r.rating, 0) / approvedReviewsForSEO.length
+    : 0;
+
+  // SEO: dynamic meta tags and JSON-LD structured data
+  useProductSEO(product, approvedReviewsForSEO.length > 0 ? {
+    ratingValue: avgRating,
+    reviewCount: approvedReviewsForSEO.length,
+  } : undefined);
 
   const addToCartMutation = useMutation({
     mutationFn: async () => {
