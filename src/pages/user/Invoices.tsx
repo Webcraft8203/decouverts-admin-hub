@@ -56,10 +56,11 @@ const UserInvoices = () => {
         .select(`
           id, order_number, total_amount, created_at, 
           invoice_url, proforma_invoice_url, final_invoice_url, 
-          status, payment_status, payment_id, delivered_at
+          status, payment_status, payment_id, delivered_at,
+          order_type, cod_payment_status
         `)
         .eq("user_id", user!.id)
-        .in("payment_status", ["paid", "cod_pending", "cod_collected", "cod_settled"])
+        .not("status", "eq", "cancelled")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
