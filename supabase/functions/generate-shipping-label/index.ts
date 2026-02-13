@@ -74,21 +74,58 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    console.log("Supabase env vars available:", { hasUrl: !!supabaseUrl, hasKey: !!supabaseServiceKey });
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Server configuration error" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      );
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { orderId } = await req.json();
-    if (!orderId) throw new Error("Order ID is required");
+    const payload = await req.json();
+    console.log("Incoming payload:", JSON.stringify(payload));
 
-    // Fetch order with items
+    const orderId = payload?.orderId;
+    console.log("Processing orderId:", orderId);
+
+    if (!orderId) {
+      console.error("orderId is missing from payload.");
+      return new Response(
+        JSON.stringify({ success: false, error: "ORDER_NOT_FOUND", message: "Order ID is required" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
+      );
+    }
+
+    // Fetch order with items using service role client (bypasses RLS)
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .select("*, order_items(*, products(name, images, sku, weight)), design_requests(file_url, file_name, size, quantity)")
       .eq("id", orderId)
-      .single();
+      .maybeSingle();
 
-    if (orderError || !order) throw new Error("Order not found");
+    console.log("Supabase query result:", { hasOrder: !!order, error: orderError?.message || null, errorCode: orderError?.code || null });
+
+    if (orderError) {
+      console.error("Supabase query error:", orderError);
+      return new Response(
+        JSON.stringify({ success: false, error: "QUERY_FAILED", message: orderError.message }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      );
+    }
+
+    if (!order) {
+      console.error(`Order with ID ${orderId} not found.`);
+      return new Response(
+        JSON.stringify({ success: false, error: "ORDER_NOT_FOUND", message: "Order not found" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
+      );
+    }
     if (!order.courier_name || !order.tracking_id) {
       throw new Error("Shipping details not available. Please add courier and tracking information first.");
     }
