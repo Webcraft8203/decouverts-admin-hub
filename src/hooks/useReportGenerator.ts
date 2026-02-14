@@ -4,31 +4,37 @@ import { jsPDF } from "jspdf";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
-// DECOUVERTES Brand Color Palette
+// Unified DECOUVERTES Brand Palette — matches invoice template exactly
 const colors = {
-  primary: [28, 28, 28] as [number, number, number],        // Deep charcoal/black
-  brand: [35, 35, 35] as [number, number, number],          // Charcoal for headers
-  accent: [212, 175, 55] as [number, number, number],       // Gold/yellow accent
-  secondary: [85, 85, 85] as [number, number, number],      // Dark gray for text
-  muted: [130, 130, 130] as [number, number, number],       // Medium gray for metadata
-  border: [220, 220, 220] as [number, number, number],      // Light gray border
-  light: [248, 248, 248] as [number, number, number],       // Off-white background
+  primary: [28, 28, 28] as [number, number, number],        // Charcoal
+  accent: [212, 175, 55] as [number, number, number],        // Brand Gold
+  orange: [230, 126, 34] as [number, number, number],        // Tagline orange
+  secondary: [68, 68, 68] as [number, number, number],
+  muted: [130, 130, 130] as [number, number, number],
+  light: [245, 245, 245] as [number, number, number],
+  border: [218, 218, 218] as [number, number, number],
   white: [255, 255, 255] as [number, number, number],
-  success: [34, 139, 34] as [number, number, number],       // Forest green
-  warning: [205, 133, 63] as [number, number, number],      // Peru/bronze
-  error: [178, 34, 34] as [number, number, number],         // Firebrick
+  tableHeader: [28, 28, 28] as [number, number, number],
+  tableAlt: [250, 250, 250] as [number, number, number],
+  darkBox: [38, 38, 38] as [number, number, number],
+  success: [34, 139, 34] as [number, number, number],
+  warning: [205, 133, 63] as [number, number, number],
+  error: [178, 34, 34] as [number, number, number],
 };
 
-const COMPANY_SETTINGS = {
-  business_name: "DECOUVERTES",
-  business_address: "Innovation Hub, Tech Park",
-  business_city: "Pune",
-  business_state: "Maharashtra",
-  business_pincode: "411001",
-  business_country: "India",
-  business_phone: "+91 98765 43210",
-  business_email: "info@decouvertes.com",
-  business_gstin: "27XXXXX1234X1ZX",
+const COMPANY = {
+  name: "DECOUVERTES",
+  tagline: "Discovering Future Technologies",
+  address: "Megapolis Springs, Phase 3, Hinjawadi Rajiv Gandhi Infotech Park",
+  city: "Pune",
+  state: "Maharashtra",
+  pincode: "411057",
+  country: "India",
+  phone: "+91 9561103435",
+  email: "hello@decouvertes.com",
+  gstin: "27AAKCD1492N1Z4",
+  pan: "AAKCD1492N",
+  website: "www.decouvertes.com",
 };
 
 const formatCurrency = (amount: number): string => {
@@ -62,51 +68,45 @@ interface ReportConfig {
 export function useReportGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Create standard enterprise report header
+  // Create standard enterprise report header — matches invoice template
   const createReportHeader = async (
     doc: jsPDF,
     config: ReportConfig
   ): Promise<number> => {
     const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 15;
-    let y = 5;
-
-    // Top accent bar with gold
-    doc.setFillColor(...colors.primary);
-    doc.rect(0, 0, pageWidth, 4, "F");
-    doc.setFillColor(...colors.accent);
-    doc.rect(0, 4, pageWidth, 1, "F");
-
-    y = 10;
+    const margin = 14;
+    const CW = pageWidth - 2 * margin;
+    let y = margin;
 
     // Logo
     const logoBase64 = await fetchLogoAsBase64();
     if (logoBase64) {
       try {
-        doc.addImage(logoBase64, "PNG", margin, y, 30, 15);
+        doc.addImage(logoBase64, "PNG", margin, y, 24, 12);
       } catch (e) {
         console.error("Failed to add logo:", e);
       }
     }
 
-    // Company name in CAPITALS
-    const companyNameX = margin + (logoBase64 ? 34 : 0);
-    doc.setFontSize(22);
+    // Company name
+    const logoTextX = logoBase64 ? margin + 28 : margin;
+    doc.setFontSize(20);
     doc.setTextColor(...colors.primary);
     doc.setFont("helvetica", "bold");
-    doc.text("DECOUVERTES", companyNameX, y + 9);
+    doc.text(COMPANY.name, logoTextX, y + 8);
 
+    // Tagline
     doc.setFontSize(8);
-    doc.setTextColor(...colors.muted);
-    doc.setFont("helvetica", "normal");
-    doc.text("Business Intelligence Report", companyNameX, y + 14);
+    doc.setTextColor(...colors.orange);
+    doc.setFont("helvetica", "italic");
+    doc.text(COMPANY.tagline, logoTextX, y + 13);
 
-    // Report badge on right with gold accent
-    const badgeWidth = 58;
-    const badgeX = pageWidth - margin - badgeWidth;
+    // Report badge — top right
+    const headerRight = pageWidth - margin;
     const badgeColor = config.badgeColor || colors.accent;
-
     doc.setFillColor(...badgeColor);
+    const badgeWidth = 58;
+    const badgeX = headerRight - badgeWidth;
     doc.roundedRect(badgeX, y, badgeWidth, 18, 2, 2, "F");
 
     doc.setFontSize(8);
@@ -118,30 +118,21 @@ export function useReportGenerator() {
     doc.setFont("helvetica", "normal");
     doc.text(config.dateRange, badgeX + badgeWidth / 2, y + 13, { align: "center" });
 
-    y = 32;
+    y += 17;
 
-    // Gold separator
-    doc.setDrawColor(...colors.accent);
-    doc.setLineWidth(1);
-    doc.line(margin, y, pageWidth - margin, y);
-
-    y += 5;
-
-    // Company address bar
-    doc.setFillColor(...colors.light);
-    doc.roundedRect(margin, y, pageWidth - 2 * margin, 10, 2, 2, "F");
-
-    doc.setFontSize(7);
+    // Company details line
+    doc.setFontSize(6.5);
     doc.setTextColor(...colors.secondary);
     doc.setFont("helvetica", "normal");
-    doc.text(
-      `${COMPANY_SETTINGS.business_address}, ${COMPANY_SETTINGS.business_city}, ${COMPANY_SETTINGS.business_state} - ${COMPANY_SETTINGS.business_pincode} | GSTIN: ${COMPANY_SETTINGS.business_gstin}`,
-      pageWidth / 2,
-      y + 6,
-      { align: "center" }
-    );
+    doc.text(`${COMPANY.address}, ${COMPANY.city}, ${COMPANY.state} - ${COMPANY.pincode}`, margin, y);
+    y += 3.5;
+    doc.text(`Phone: ${COMPANY.phone}  |  Email: ${COMPANY.email}  |  GSTIN: ${COMPANY.gstin}  |  PAN: ${COMPANY.pan}`, margin, y);
+    y += 5;
 
-    y += 14;
+    // Gold divider
+    doc.setFillColor(...colors.accent);
+    doc.rect(margin, y, CW, 1.5, "F");
+    y += 5;
 
     // Report title section
     doc.setFontSize(14);
@@ -161,28 +152,26 @@ export function useReportGenerator() {
     return y;
   };
 
-  // Add standard footer with page number
+  // Add standard footer — matches invoice template
   const addReportFooter = (doc: jsPDF, pageNum: number, totalPages?: number) => {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 15;
-    const footerY = pageHeight - 12;
+    const margin = 14;
+    const fy = pageHeight - 10;
 
-    doc.setDrawColor(...colors.accent);
-    doc.setLineWidth(0.5);
-    doc.line(margin, footerY - 5, pageWidth - margin, footerY - 5);
-
-    doc.setFontSize(7);
-    doc.setTextColor(...colors.muted);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Generated on: ${format(new Date(), "dd MMM yyyy, hh:mm a")}`, margin, footerY);
-    
-    const pageText = totalPages ? `Page ${pageNum} of ${totalPages}` : `Page ${pageNum}`;
-    doc.text(pageText, pageWidth - margin, footerY, { align: "right" });
+    doc.setDrawColor(...colors.border);
+    doc.setLineWidth(0.4);
+    doc.line(margin, fy - 5, pageWidth - margin, fy - 5);
 
     doc.setFontSize(6);
-    doc.setTextColor(...colors.secondary);
-    doc.text("DECOUVERTES - Confidential Business Report", pageWidth / 2, footerY + 4, { align: "center" });
+    doc.setTextColor(...colors.muted);
+    doc.setFont("helvetica", "normal");
+    doc.text("This is a computer-generated document and does not require a signature.", margin, fy - 1);
+
+    const pageText = totalPages ? `Page ${pageNum} of ${totalPages}` : `Page ${pageNum}`;
+    doc.text(pageText, pageWidth - margin, fy - 1, { align: "right" });
+
+    doc.text(`Generated: ${new Date().toLocaleString("en-IN")} | ${COMPANY.website}`, pageWidth / 2, fy + 3, { align: "center" });
   };
 
   // Create summary stat cards with gold accents
@@ -225,7 +214,7 @@ export function useReportGenerator() {
     return y + cardHeight + 8;
   };
 
-  // Create data table with pagination support
+  // Create data table — matches invoice template table style
   const createDataTable = (
     doc: jsPDF,
     headers: string[],
@@ -239,29 +228,31 @@ export function useReportGenerator() {
   ): number => {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 15;
+    const margin = 14;
     const tableWidth = pageWidth - 2 * margin;
+    const hdrH = 8;
+    const rowH = 7;
 
-    // Table header with charcoal background
-    doc.setFillColor(...colors.primary);
-    doc.rect(margin, y, tableWidth, 9, "F");
+    // Table header — charcoal background (matches invoice)
+    doc.setFillColor(...colors.tableHeader);
+    doc.rect(margin, y, tableWidth, hdrH, "F");
 
-    doc.setFontSize(7);
+    doc.setFontSize(6);
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
 
-    let x = margin + 4;
+    let x = margin + 3;
     headers.forEach((h, i) => {
       const align = options?.valueColumnIndices?.includes(i) ? "right" : "left";
       if (align === "right") {
-        doc.text(h, x + colWidths[i] - 4, y + 6, { align: "right" });
+        doc.text(h, x + colWidths[i] - 2, y + 5.5, { align: "right" });
       } else {
-        doc.text(h, x, y + 6);
+        doc.text(h, x, y + 5.5);
       }
       x += colWidths[i];
     });
 
-    y += 9;
+    y += hdrH;
 
     // Table rows
     rows.forEach((row, rowIndex) => {
@@ -272,44 +263,38 @@ export function useReportGenerator() {
         y = 20;
         
         // Re-add header on new page
-        doc.setFillColor(...colors.primary);
-        doc.rect(margin, y, tableWidth, 9, "F");
-        doc.setFontSize(7);
+        doc.setFillColor(...colors.tableHeader);
+        doc.rect(margin, y, tableWidth, hdrH, "F");
+        doc.setFontSize(6);
         doc.setTextColor(255, 255, 255);
         doc.setFont("helvetica", "bold");
         
-        x = margin + 4;
+        x = margin + 3;
         headers.forEach((h, i) => {
           const align = options?.valueColumnIndices?.includes(i) ? "right" : "left";
           if (align === "right") {
-            doc.text(h, x + colWidths[i] - 4, y + 6, { align: "right" });
+            doc.text(h, x + colWidths[i] - 2, y + 5.5, { align: "right" });
           } else {
-            doc.text(h, x, y + 6);
+            doc.text(h, x, y + 5.5);
           }
           x += colWidths[i];
         });
-        y += 9;
+        y += hdrH;
       }
 
-      const rowH = 7;
-
-      // Alternate row background
-      if (rowIndex % 2 === 0) {
-        doc.setFillColor(252, 252, 252);
-      } else {
-        doc.setFillColor(255, 255, 255);
-      }
+      // Alternate row background (matches invoice)
+      doc.setFillColor(...(rowIndex % 2 === 0 ? colors.white : colors.tableAlt));
       doc.rect(margin, y, tableWidth, rowH, "F");
 
       // Row border
       doc.setDrawColor(...colors.border);
-      doc.setLineWidth(0.1);
+      doc.setLineWidth(0.08);
       doc.line(margin, y + rowH, pageWidth - margin, y + rowH);
 
-      doc.setFontSize(7);
+      doc.setFontSize(6.5);
       doc.setFont("helvetica", "normal");
 
-      x = margin + 4;
+      x = margin + 3;
       row.forEach((cell, cellIndex) => {
         // Handle status column coloring
         if (cellIndex === options?.statusColumnIndex) {
@@ -331,7 +316,7 @@ export function useReportGenerator() {
 
         const align = options?.valueColumnIndices?.includes(cellIndex) ? "right" : "left";
         if (align === "right") {
-          doc.text(cell, x + colWidths[cellIndex] - 4, y + 5, { align: "right" });
+          doc.text(cell, x + colWidths[cellIndex] - 2, y + 5, { align: "right" });
         } else {
           doc.text(cell.substring(0, 38), x, y + 5);
         }
@@ -340,6 +325,11 @@ export function useReportGenerator() {
 
       y += rowH;
     });
+
+    // Table bottom line (matches invoice)
+    doc.setDrawColor(...colors.primary);
+    doc.setLineWidth(0.5);
+    doc.line(margin, y, pageWidth - margin, y);
 
     return y + 5;
   };

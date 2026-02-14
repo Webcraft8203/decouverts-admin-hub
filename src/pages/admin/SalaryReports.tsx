@@ -152,52 +152,73 @@ export default function SalaryReports() {
   });
 
   const downloadReport = async () => {
-    const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 15;
-    let y = 12;
+    const pw = doc.internal.pageSize.getWidth();
+    const ph = doc.internal.pageSize.getHeight();
+    const M = 14;
+    const CW = pw - 2 * M;
+    let y = M;
 
-    // Colors
-    const primaryColor: [number, number, number] = [234, 171, 28]; // Brand gold #EAAB1C
-    const textDark: [number, number, number] = [33, 33, 33];
-    const textGray: [number, number, number] = [102, 102, 102];
-    const successColor: [number, number, number] = [76, 175, 80];
-    const borderColor: [number, number, number] = [220, 220, 220];
-
-    // Company settings
-    const companySettings = {
-      business_name: "Decouverts",
-      business_address: "Innovation Hub, Tech Park",
-      business_city: "Pune",
-      business_state: "Maharashtra",
-      business_pincode: "411001",
-      business_phone: "+91 98765 43210",
-      business_email: "info@decouverts.com",
-      business_gstin: "27XXXXX1234X1ZX",
+    // ---- COLORS (matches invoice template) ----
+    const C = {
+      primary: [28, 28, 28] as [number, number, number],
+      accent: [212, 175, 55] as [number, number, number],
+      orange: [230, 126, 34] as [number, number, number],
+      secondary: [68, 68, 68] as [number, number, number],
+      muted: [130, 130, 130] as [number, number, number],
+      light: [245, 245, 245] as [number, number, number],
+      border: [218, 218, 218] as [number, number, number],
+      white: [255, 255, 255] as [number, number, number],
+      tableHeader: [28, 28, 28] as [number, number, number],
+      tableAlt: [250, 250, 250] as [number, number, number],
     };
 
-    // Header background
-    doc.setFillColor(250, 250, 250);
-    doc.rect(0, 0, pageWidth, 45, "F");
+    const COMPANY = {
+      name: "DECOUVERTES",
+      tagline: "Discovering Future Technologies",
+      address: "Megapolis Springs, Phase 3, Hinjawadi Rajiv Gandhi Infotech Park",
+      city: "Pune",
+      state: "Maharashtra",
+      pincode: "411057",
+      phone: "+91 9561103435",
+      email: "hello@decouvertes.com",
+      gstin: "27AAKCD1492N1Z4",
+      pan: "AAKCD1492N",
+      website: "www.decouvertes.com",
+    };
 
-    // Try to load logo
+    // ---- FOOTER helper ----
+    const addFooter = (pageNum: number, total: number) => {
+      const fy = ph - 10;
+      doc.setDrawColor(...C.border);
+      doc.setLineWidth(0.4);
+      doc.line(M, fy - 5, pw - M, fy - 5);
+      doc.setFontSize(6);
+      doc.setTextColor(...C.muted);
+      doc.setFont("helvetica", "normal");
+      doc.text("This is a computer-generated document and does not require a signature.", M, fy - 1);
+      doc.text(`Page ${pageNum} of ${total}`, pw - M, fy - 1, { align: "right" });
+      doc.text(`Generated: ${new Date().toLocaleString("en-IN")} | ${COMPANY.website}`, pw / 2, fy + 3, { align: "center" });
+    };
+
+    const safeZone = ph - 16 - 4;
+    const checkBreak = (h: number) => {
+      if (y + h > safeZone) { doc.addPage(); y = M + 6; return true; }
+      return false;
+    };
+
+    // ==================== 1. HEADER (matches invoice) ====================
+    let logoBase64: string | null = null;
     try {
       const logoUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/customer-partner-images/email-logo.png`;
       const response = await fetch(logoUrl);
       if (response.ok) {
         const blob = await response.blob();
-        const reader = new FileReader();
-        await new Promise((resolve) => {
-          reader.onload = () => {
-            try {
-              const logoBase64 = reader.result as string;
-              doc.addImage(logoBase64, 'PNG', margin, y, 35, 18);
-            } catch (e) {
-              console.error("Failed to add logo:", e);
-            }
-            resolve(true);
-          };
+        logoBase64 = await new Promise<string | null>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => resolve(null);
           reader.readAsDataURL(blob);
         });
       }
@@ -205,150 +226,247 @@ export default function SalaryReports() {
       console.error("Logo fetch error:", e);
     }
 
-    // Report Badge - Top Right
-    const badgeWidth = 55;
-    const badgeHeight = 18;
-    const badgeX = pageWidth - margin - badgeWidth;
-    const badgeY = y;
-    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.roundedRect(badgeX, badgeY, badgeWidth, badgeHeight, 3, 3, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(11);
+    if (logoBase64) {
+      try { doc.addImage(logoBase64, "PNG", M, y, 24, 12); } catch { /* ignore */ }
+    }
+
+    const logoTextX = logoBase64 ? M + 28 : M;
+    doc.setFontSize(20);
+    doc.setTextColor(...C.primary);
     doc.setFont("helvetica", "bold");
-    doc.text("SALARY REPORT", badgeX + badgeWidth / 2, badgeY + 8, { align: "center" });
+    doc.text(COMPANY.name, logoTextX, y + 8);
+
+    doc.setFontSize(8);
+    doc.setTextColor(...C.orange);
+    doc.setFont("helvetica", "italic");
+    doc.text(COMPANY.tagline, logoTextX, y + 13);
+
+    // Report badge — top right
+    const badgeWidth = 58;
+    const badgeX = pw - M - badgeWidth;
+    doc.setFillColor(...C.accent);
+    doc.roundedRect(badgeX, y, badgeWidth, 18, 2, 2, "F");
+    doc.setFontSize(8);
+    doc.setTextColor(...C.primary);
+    doc.setFont("helvetica", "bold");
+    doc.text("SALARY REPORT", badgeX + badgeWidth / 2, y + 7, { align: "center" });
     doc.setFontSize(7);
     doc.setFont("helvetica", "normal");
-    doc.text(`${selectedMonth} ${selectedYear}`, badgeX + badgeWidth / 2, badgeY + 14, { align: "center" });
+    doc.text(`${selectedMonth} ${selectedYear}`, badgeX + badgeWidth / 2, y + 13, { align: "center" });
 
-    // Company Name
-    const companyNameY = y + 22;
-    doc.setFontSize(18);
-    doc.setTextColor(...primaryColor);
-    doc.setFont("helvetica", "bold");
-    doc.text(companySettings.business_name, margin, companyNameY);
+    y += 17;
 
-    // Tagline
-    doc.setFontSize(8);
-    doc.setTextColor(...textGray);
-    doc.setFont("helvetica", "italic");
-    doc.text("Discovering Future Technologies", margin, companyNameY + 5);
-
-    y = 50;
-
-    // Company details row
-    doc.setFontSize(8);
-    doc.setTextColor(...textGray);
+    // Company details
+    doc.setFontSize(6.5);
+    doc.setTextColor(...C.secondary);
     doc.setFont("helvetica", "normal");
-    doc.text(`${companySettings.business_address}, ${companySettings.business_city}, ${companySettings.business_state} - ${companySettings.business_pincode}`, margin, y);
-    y += 4;
-    doc.text(`Phone: ${companySettings.business_phone} | Email: ${companySettings.business_email} | GSTIN: ${companySettings.business_gstin}`, margin, y);
-    y += 4;
+    doc.text(`${COMPANY.address}, ${COMPANY.city}, ${COMPANY.state} - ${COMPANY.pincode}`, M, y);
+    y += 3.5;
+    doc.text(`Phone: ${COMPANY.phone}  |  Email: ${COMPANY.email}  |  GSTIN: ${COMPANY.gstin}  |  PAN: ${COMPANY.pan}`, M, y);
+    y += 5;
 
-    // Generated date - right
-    doc.text(`Generated: ${format(new Date(), "dd MMM yyyy, HH:mm")}`, pageWidth - margin, y, { align: "right" });
+    // Gold divider
+    doc.setFillColor(...C.accent);
+    doc.rect(M, y, CW, 1.5, "F");
+    y += 5;
 
-    y += 8;
-
-    // Separator
-    doc.setDrawColor(...primaryColor);
-    doc.setLineWidth(0.8);
-    doc.line(margin, y, pageWidth - margin, y);
-
+    // ==================== 2. TITLE ====================
+    doc.setFontSize(14);
+    doc.setTextColor(...C.primary);
+    doc.setFont("helvetica", "bold");
+    doc.text("Salary Report", M, y);
+    y += 5;
+    doc.setFontSize(8);
+    doc.setTextColor(...C.muted);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Employee salary data and payment status for ${selectedMonth} ${selectedYear}`, M, y);
     y += 10;
 
-    // Summary Section
-    doc.setFillColor(248, 248, 248);
-    doc.rect(margin, y, pageWidth - 2 * margin, 6, "F");
-    doc.setFontSize(10);
-    doc.setTextColor(...primaryColor);
-    doc.setFont("helvetica", "bold");
-    doc.text("SUMMARY", margin + 3, y + 4);
-
-    y += 12;
-
-    const colWidth = (pageWidth - 2 * margin) / 4;
-    const summaryItems = [
-      { label: "Total Employees", value: String(stats.totalEmployees) },
-      { label: "Monthly Budget", value: formatCurrency(stats.totalMonthlySalary) },
-      { label: "Total Paid", value: formatCurrency(stats.totalPaid) },
-      { label: "Total Pending", value: formatCurrency(stats.totalPending) },
+    // ==================== 3. SUMMARY STAT CARDS ====================
+    const cardStats = [
+      { label: "EMPLOYEES", value: String(stats.totalEmployees) },
+      { label: "MONTHLY BUDGET", value: formatCurrency(stats.totalMonthlySalary) },
+      { label: "TOTAL PAID", value: formatCurrency(stats.totalPaid) },
+      { label: "PENDING", value: formatCurrency(stats.totalPending) },
     ];
+    const cardW = (CW - 15) / 4;
+    const cardH = 24;
+    cardStats.forEach((stat, i) => {
+      const x = M + i * (cardW + 5);
+      doc.setFillColor(...C.light);
+      doc.setDrawColor(...C.border);
+      doc.setLineWidth(0.3);
+      doc.roundedRect(x, y, cardW, cardH, 3, 3, "FD");
+      // Gold top accent
+      doc.setFillColor(...C.accent);
+      doc.roundedRect(x, y, cardW, 3, 3, 3, "F");
+      doc.setFillColor(...C.light);
+      doc.rect(x, y + 2, cardW, 2, "F");
 
-    doc.setFontSize(8);
-    summaryItems.forEach((item, i) => {
-      const x = margin + i * colWidth;
-      doc.setTextColor(...textGray);
+      doc.setFontSize(6);
+      doc.setTextColor(...C.muted);
       doc.setFont("helvetica", "normal");
-      doc.text(item.label, x, y);
-      doc.setTextColor(...textDark);
+      doc.text(stat.label, x + cardW / 2, y + 11, { align: "center" });
+      doc.setFontSize(10);
+      doc.setTextColor(...C.primary);
       doc.setFont("helvetica", "bold");
-      doc.text(item.value, x, y + 5);
+      doc.text(stat.value, x + cardW / 2, y + 20, { align: "center" });
     });
+    y += cardH + 8;
 
-    y += 18;
-
-    // Employee Salaries Table
-    doc.setFillColor(248, 248, 248);
-    doc.rect(margin, y, pageWidth - 2 * margin, 6, "F");
+    // ==================== 4. EMPLOYEE SALARIES TABLE ====================
     doc.setFontSize(10);
-    doc.setTextColor(...primaryColor);
+    doc.setTextColor(...C.primary);
     doc.setFont("helvetica", "bold");
-    doc.text("EMPLOYEE SALARIES", margin + 3, y + 4);
+    doc.text("Employee Salary Structure", M, y);
+    y += 6;
 
-    y += 10;
+    const tableHeaders = ["Employee", "Department", "Designation", "Salary", "Type"];
+    const colWidths = [50, 35, 35, 30, 32];
+    const hdrH = 8;
+    const rowH = 7;
 
-    // Table Header
-    const tableColWidths = [55, 40, 40, 30];
-    const tableHeaders = ["Employee", "Department", "Salary", "Type"];
-    
-    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.rect(margin, y, pageWidth - 2 * margin, 8, "F");
+    // Header
+    doc.setFillColor(...C.tableHeader);
+    doc.rect(M, y, CW, hdrH, "F");
+    doc.setFontSize(6);
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(8);
     doc.setFont("helvetica", "bold");
-    
-    let xPos = margin + 3;
-    tableHeaders.forEach((header, i) => {
-      doc.text(header, xPos, y + 5.5);
-      xPos += tableColWidths[i];
+    let cx = M + 3;
+    tableHeaders.forEach((h, i) => {
+      const align = i === 3 ? "right" : "left";
+      if (align === "right") {
+        doc.text(h, cx + colWidths[i] - 2, y + 5.5, { align: "right" });
+      } else {
+        doc.text(h, cx, y + 5.5);
+      }
+      cx += colWidths[i];
+    });
+    y += hdrH;
+
+    // Rows
+    salaries.forEach((sal, idx) => {
+      checkBreak(rowH + 1);
+      doc.setFillColor(...(idx % 2 === 0 ? C.white : C.tableAlt));
+      doc.rect(M, y, CW, rowH, "F");
+      doc.setDrawColor(...C.border);
+      doc.setLineWidth(0.08);
+      doc.line(M, y + rowH, M + CW, y + rowH);
+
+      doc.setFontSize(6.5);
+      cx = M + 3;
+      // Employee name
+      doc.setTextColor(...C.primary);
+      doc.setFont("helvetica", "bold");
+      doc.text((sal.employee?.employee_name || "N/A").substring(0, 25), cx, y + 5);
+      cx += colWidths[0];
+      // Department
+      doc.setTextColor(...C.secondary);
+      doc.setFont("helvetica", "normal");
+      doc.text((sal.employee?.department || "-").substring(0, 18), cx, y + 5);
+      cx += colWidths[1];
+      // Designation
+      doc.text((sal.employee?.designation || "-").substring(0, 18), cx, y + 5);
+      cx += colWidths[2];
+      // Salary (right-aligned)
+      doc.setTextColor(...C.primary);
+      doc.setFont("helvetica", "bold");
+      doc.text(formatCurrency(sal.salary_amount), cx + colWidths[3] - 2, y + 5, { align: "right" });
+      cx += colWidths[3];
+      // Type
+      doc.setTextColor(...C.accent);
+      doc.setFont("helvetica", "bold");
+      doc.text(sal.salary_type || "Monthly", cx, y + 5);
+
+      y += rowH;
     });
 
+    // Table bottom line
+    doc.setDrawColor(...C.primary);
+    doc.setLineWidth(0.5);
+    doc.line(M, y, M + CW, y);
     y += 10;
 
-    // Table Rows
-    doc.setFont("helvetica", "normal");
-    salaries.forEach((sal, index) => {
-      if (y > 270) {
-        doc.addPage();
-        y = 20;
-      }
-      
-      // Alternating row background
-      if (index % 2 === 0) {
-        doc.setFillColor(250, 250, 250);
-        doc.rect(margin, y - 2, pageWidth - 2 * margin, 7, "F");
-      }
-      
-      doc.setTextColor(...textDark);
-      xPos = margin + 3;
-      doc.text((sal.employee?.employee_name || "N/A").substring(0, 25), xPos, y + 3);
-      xPos += tableColWidths[0];
-      doc.text((sal.employee?.department || "-").substring(0, 18), xPos, y + 3);
-      xPos += tableColWidths[1];
-      doc.text(formatCurrency(sal.salary_amount), xPos, y + 3);
-      xPos += tableColWidths[2];
-      doc.text(sal.salary_type || "Monthly", xPos, y + 3);
-      
-      y += 7;
-    });
+    // ==================== 5. PAYMENT HISTORY TABLE ====================
+    if (filteredPayments.length > 0) {
+      checkBreak(30);
+      doc.setFontSize(10);
+      doc.setTextColor(...C.primary);
+      doc.setFont("helvetica", "bold");
+      doc.text(`Payment History — ${selectedMonth} ${selectedYear}`, M, y);
+      y += 6;
 
-    // Footer
-    doc.setDrawColor(...borderColor);
-    doc.line(margin, 280, pageWidth - margin, 280);
-    doc.setFontSize(8);
-    doc.setTextColor(...textGray);
-    doc.text(`${companySettings.business_name} | ${companySettings.business_phone} | ${companySettings.business_email}`, pageWidth / 2, 286, { align: "center" });
-    
+      const payHeaders = ["Employee", "Department", "Amount", "Status", "Payment Date", "Method"];
+      const payColWidths = [40, 30, 28, 22, 30, 32];
+
+      doc.setFillColor(...C.tableHeader);
+      doc.rect(M, y, CW, hdrH, "F");
+      doc.setFontSize(6);
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      cx = M + 3;
+      payHeaders.forEach((h, i) => {
+        const align = i === 2 ? "right" : "left";
+        if (align === "right") {
+          doc.text(h, cx + payColWidths[i] - 2, y + 5.5, { align: "right" });
+        } else {
+          doc.text(h, cx, y + 5.5);
+        }
+        cx += payColWidths[i];
+      });
+      y += hdrH;
+
+      filteredPayments.forEach((pay, idx) => {
+        checkBreak(rowH + 1);
+        doc.setFillColor(...(idx % 2 === 0 ? C.white : C.tableAlt));
+        doc.rect(M, y, CW, rowH, "F");
+        doc.setDrawColor(...C.border);
+        doc.setLineWidth(0.08);
+        doc.line(M, y + rowH, M + CW, y + rowH);
+
+        doc.setFontSize(6.5);
+        cx = M + 3;
+        doc.setTextColor(...C.primary);
+        doc.setFont("helvetica", "bold");
+        doc.text((pay.employee?.employee_name || "Unknown").substring(0, 20), cx, y + 5);
+        cx += payColWidths[0];
+        doc.setTextColor(...C.secondary);
+        doc.setFont("helvetica", "normal");
+        doc.text((pay.employee?.department || "-").substring(0, 15), cx, y + 5);
+        cx += payColWidths[1];
+        doc.setTextColor(...C.primary);
+        doc.setFont("helvetica", "bold");
+        doc.text(formatCurrency(pay.amount), cx + payColWidths[2] - 2, y + 5, { align: "right" });
+        cx += payColWidths[2];
+        // Status with color
+        const statusColor = pay.status === "paid" ? [34, 139, 34] as [number, number, number]
+          : pay.status === "on_hold" ? [178, 34, 34] as [number, number, number]
+          : [205, 133, 63] as [number, number, number];
+        doc.setTextColor(...statusColor);
+        doc.setFont("helvetica", "bold");
+        doc.text(pay.status === "on_hold" ? "On Hold" : pay.status.charAt(0).toUpperCase() + pay.status.slice(1), cx, y + 5);
+        cx += payColWidths[3];
+        doc.setTextColor(...C.secondary);
+        doc.setFont("helvetica", "normal");
+        doc.text(pay.payment_date ? format(new Date(pay.payment_date), "MMM d, yyyy") : "-", cx, y + 5);
+        cx += payColWidths[4];
+        doc.text(pay.payment_method || "-", cx, y + 5);
+
+        y += rowH;
+      });
+
+      doc.setDrawColor(...C.primary);
+      doc.setLineWidth(0.5);
+      doc.line(M, y, M + CW, y);
+    }
+
+    // ==================== FOOTERS ====================
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      addFooter(i, pageCount);
+    }
+
     doc.save(`Salary_Report_${selectedMonth}_${selectedYear}.pdf`);
   };
 
