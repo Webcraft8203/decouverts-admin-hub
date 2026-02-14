@@ -105,7 +105,7 @@ serve(async (req) => {
     // Fetch order with items using service role client (bypasses RLS)
     const { data: order, error: orderError } = await supabase
       .from("orders")
-      .select("*, order_items(*, products(name, images, sku, weight)), design_requests(file_url, file_name, size, quantity)")
+      .select("*, order_items(*, products(name, images, sku)), design_requests(file_url, file_name, size, quantity)")
       .eq("id", orderId)
       .maybeSingle();
 
