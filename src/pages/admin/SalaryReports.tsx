@@ -322,7 +322,7 @@ export default function SalaryReports() {
     y += 6;
 
     const tableHeaders = ["Employee", "Department", "Designation", "Salary", "Type"];
-    const colWidths = [50, 35, 35, 30, 32];
+    const colWidths = [50, 36, 36, 30, 30];
     const hdrH = 8;
     const rowH = 7;
 
@@ -397,7 +397,7 @@ export default function SalaryReports() {
       y += 6;
 
       const payHeaders = ["Employee", "Department", "Amount", "Status", "Payment Date", "Method"];
-      const payColWidths = [40, 30, 28, 22, 30, 32];
+      const payColWidths = [40, 30, 28, 22, 32, 30];
 
       doc.setFillColor(...C.tableHeader);
       doc.rect(M, y, CW, hdrH, "F");
