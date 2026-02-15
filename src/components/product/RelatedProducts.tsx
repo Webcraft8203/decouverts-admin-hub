@@ -105,6 +105,7 @@ export function RelatedProducts({ categoryId, currentProductId }: RelatedProduct
 
   const handleAddToCart = (e: React.MouseEvent, productId: string) => {
     e.stopPropagation();
+    e.preventDefault();
     if (!user) {
       toast.info("Please login to add items to cart", {
         action: { label: "Login", onClick: () => navigate("/login") },
