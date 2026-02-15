@@ -181,7 +181,7 @@ export function useReportGenerator() {
     y: number
   ): number => {
     const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 15;
+    const margin = 14;
     const cardWidth = (pageWidth - 2 * margin - (stats.length - 1) * 5) / stats.length;
     const cardHeight = 24;
 
@@ -377,7 +377,7 @@ export function useReportGenerator() {
       // Orders table
       if (orders && orders.length > 0) {
         const headers = ["Order #", "Customer", "Items", "Amount", "Payment", "Status"];
-        const colWidths = [28, 45, 25, 32, 25, 25];
+        const colWidths = [28, 46, 25, 32, 26, 25];
         
         const rows = orders.map((order) => {
           const shippingAddr = order.shipping_address as any;
@@ -402,10 +402,15 @@ export function useReportGenerator() {
       } else {
         doc.setFontSize(10);
         doc.setTextColor(...colors.muted);
-        doc.text("No orders received today.", 15, y + 10);
+        doc.text("No orders received today.", 14, y + 10);
       }
 
-      addReportFooter(doc, 1);
+      // Add footers to all pages
+      const totalPages = doc.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        addReportFooter(doc, i, totalPages);
+      }
 
       const blob = doc.output("blob");
       const url = URL.createObjectURL(blob);
@@ -489,7 +494,7 @@ export function useReportGenerator() {
       doc.setFontSize(10);
       doc.setTextColor(...colors.primary);
       doc.setFont("helvetica", "bold");
-      doc.text("Order Status Breakdown", 15, y);
+      doc.text("Order Status Breakdown", 14, y);
       y += 6;
 
       const statusCounts: Record<string, number> = {};
@@ -498,7 +503,7 @@ export function useReportGenerator() {
       });
 
       const statusHeaders = ["Status", "Count", "Percentage"];
-      const statusColWidths = [70, 50, 60];
+      const statusColWidths = [72, 50, 60];
       const totalOrderCount = orders?.length || 1;
       
       const statusRows = Object.entries(statusCounts).map(([status, count]) => [
@@ -512,7 +517,11 @@ export function useReportGenerator() {
         statusColumnIndex: 0,
       });
 
-      addReportFooter(doc, 1);
+      const totalPages = doc.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        addReportFooter(doc, i, totalPages);
+      }
 
       const blob = doc.output("blob");
       const url = URL.createObjectURL(blob);
@@ -576,11 +585,11 @@ export function useReportGenerator() {
         doc.setFontSize(10);
         doc.setTextColor(...colors.primary);
         doc.setFont("helvetica", "bold");
-        doc.text("Invoice Details", 15, y);
+        doc.text("Invoice Details", 14, y);
         y += 6;
 
         const headers = ["Invoice #", "Date", "Subtotal", "CGST", "SGST", "IGST", "Total"];
-        const colWidths = [30, 22, 28, 22, 22, 22, 28];
+        const colWidths = [30, 22, 28, 24, 24, 24, 30];
         
         const rows = invoices.map((inv) => [
           inv.invoice_number,
@@ -598,10 +607,14 @@ export function useReportGenerator() {
       } else {
         doc.setFontSize(10);
         doc.setTextColor(...colors.muted);
-        doc.text("No final invoices found for this period.", 15, y + 10);
+        doc.text("No final invoices found for this period.", 14, y + 10);
       }
 
-      addReportFooter(doc, 1);
+      const totalPages = doc.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        addReportFooter(doc, i, totalPages);
+      }
 
       const blob = doc.output("blob");
       const url = URL.createObjectURL(blob);
@@ -659,7 +672,7 @@ export function useReportGenerator() {
       // Products table
       if (products && products.length > 0) {
         const headers = ["Product Name", "Stock Qty", "Price", "Cost", "Status"];
-        const colWidths = [70, 28, 30, 30, 32];
+        const colWidths = [62, 28, 30, 30, 32];
         
         const rows = products.map((p) => [
           (p.name || "").substring(0, 35),
@@ -675,7 +688,11 @@ export function useReportGenerator() {
         });
       }
 
-      addReportFooter(doc, 1);
+      const totalPages = doc.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        addReportFooter(doc, i, totalPages);
+      }
 
       const blob = doc.output("blob");
       const url = URL.createObjectURL(blob);
@@ -731,7 +748,7 @@ export function useReportGenerator() {
       // Materials table
       if (materials && materials.length > 0) {
         const headers = ["Material Name", "Quantity", "Unit", "Cost/Unit", "Total Value"];
-        const colWidths = [60, 28, 25, 32, 35];
+        const colWidths = [56, 28, 25, 36, 37];
         
         const rows = materials.map((m) => [
           (m.name || "").substring(0, 30),
@@ -746,7 +763,11 @@ export function useReportGenerator() {
         });
       }
 
-      addReportFooter(doc, 1);
+      const totalPages = doc.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        addReportFooter(doc, i, totalPages);
+      }
 
       const blob = doc.output("blob");
       const url = URL.createObjectURL(blob);
@@ -805,7 +826,7 @@ export function useReportGenerator() {
       // Customers table
       if (profiles && profiles.length > 0) {
         const headers = ["Name", "Email", "Phone", "Joined", "Status"];
-        const colWidths = [40, 55, 30, 28, 27];
+        const colWidths = [40, 55, 30, 30, 27];
         
         const rows = profiles.map((p) => [
           (p.full_name || "N/A").substring(0, 20),
@@ -820,7 +841,11 @@ export function useReportGenerator() {
         });
       }
 
-      addReportFooter(doc, 1);
+      const totalPages = doc.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        addReportFooter(doc, i, totalPages);
+      }
 
       const blob = doc.output("blob");
       const url = URL.createObjectURL(blob);
