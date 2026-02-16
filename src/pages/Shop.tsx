@@ -22,9 +22,9 @@ import {
   X,
   Check,
   Eye,
-  Sparkles,
   ArrowUpDown,
-  Loader2
+  Loader2,
+  Heart
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
@@ -103,14 +103,12 @@ const Shop = () => {
     },
   });
 
-  // Mark as animated after first render
   useEffect(() => {
     if (products && !hasAnimated.current) {
       hasAnimated.current = true;
     }
   }, [products]);
 
-  // Filter and sort products
   const filteredProducts = products
     ?.filter((product) => {
       const matchesSearch = 
@@ -147,7 +145,6 @@ const Shop = () => {
     path: "/shop",
   });
 
-  // Inject ItemList JSON-LD for product listings
   useEffect(() => {
     if (!filteredProducts?.length) return;
     const itemListLd = {
@@ -217,68 +214,66 @@ const Shop = () => {
 
   const featuredProducts = products?.filter((p) => p.is_highlighted) || [];
 
-  // Product Card Component - no motion to prevent re-animation on cart mutation
   const ProductCard = ({ product }: { product: Product }) => (
     <div
       onClick={() => navigate(`/product/${product.slug || product.id}`)}
-      className="group relative flex flex-col h-full bg-card rounded-2xl overflow-hidden cursor-pointer border border-border/40 hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1"
+      className="group relative flex flex-col h-full bg-card rounded-xl overflow-hidden cursor-pointer border border-border/30 hover:border-primary/20 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/[0.06]"
     >
-      {/* Image Container */}
-      <div className="relative aspect-[4/5] overflow-hidden bg-secondary/20">
+      {/* Image */}
+      <div className="relative aspect-square overflow-hidden bg-secondary/10">
         {product.images && product.images.length > 0 ? (
           <>
             <img
               src={product.images[0]}
               alt={`${product.name} - ${product.categories?.name || "Product"} by DECOUVERTES`}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-108"
               loading="lazy"
             />
             {product.images[1] && (
               <img
                 src={product.images[1]}
-                alt={`${product.name} alternate view - DECOUVERTES`}
-                className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                alt={`${product.name} alternate view`}
+                className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-600"
                 loading="lazy"
               />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           </>
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-secondary/40 to-secondary/20">
-            <Package className="w-12 h-12 text-muted-foreground/15" />
+          <div className="w-full h-full flex items-center justify-center">
+            <Package className="w-10 h-10 text-muted-foreground/10" />
           </div>
         )}
         
-        {/* Top Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+        {/* Badges */}
+        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 z-10">
           {product.is_highlighted && (
-            <Badge className="bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 shadow-lg rounded-md">
-              ★ BESTSELLER
-            </Badge>
+            <span className="inline-flex items-center gap-1 bg-foreground text-background text-[10px] font-bold px-2.5 py-1 rounded-md shadow-lg">
+              <Star className="w-2.5 h-2.5 fill-current" />
+              BEST SELLER
+            </span>
           )}
           {product.stock_quantity <= 5 && (
-            <Badge variant="destructive" className="text-[10px] font-bold px-2 py-0.5 shadow-lg rounded-md">
-              LOW STOCK
-            </Badge>
+            <span className="inline-flex items-center bg-destructive text-destructive-foreground text-[10px] font-bold px-2.5 py-1 rounded-md shadow-lg">
+              Only {product.stock_quantity} left
+            </span>
           )}
         </div>
 
-        {/* Top-right actions */}
-        <div className="absolute top-3 right-3 z-10 flex flex-col gap-1.5">
-          <div className="bg-card/90 backdrop-blur-md rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        {/* Hover Actions */}
+        <div className="absolute top-2.5 right-2.5 z-10 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-1 group-hover:translate-y-0">
+          <div className="bg-card/95 backdrop-blur-sm rounded-full p-1.5 shadow-md border border-border/20">
             <WishlistButton productId={product.id} size="sm" />
           </div>
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
-            <ShareMenu
-              url={`${window.location.origin}/product/${product.slug || product.id}`}
-              title={product.name}
-              description={product.description || undefined}
-            />
-          </div>
+          <ShareMenu
+            url={`${window.location.origin}/product/${product.slug || product.id}`}
+            title={product.name}
+            description={product.description || undefined}
+          />
         </div>
 
-        {/* Quick View on hover */}
-        <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 z-10">
+        {/* Quick View Overlay */}
+        <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/5 transition-colors duration-500" />
+        <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 translate-y-3 group-hover:translate-y-0 transition-all duration-400 z-10">
           <Button
             type="button"
             onClick={(e) => {
@@ -286,7 +281,7 @@ const Shop = () => {
               navigate(`/product/${product.slug || product.id}`);
             }}
             variant="secondary"
-            className="w-full bg-card/95 backdrop-blur-md hover:bg-card text-foreground shadow-lg h-9 rounded-lg font-medium text-xs"
+            className="w-full bg-card/95 backdrop-blur-md hover:bg-card text-foreground shadow-xl h-9 rounded-lg font-medium text-xs border border-border/20"
           >
             <Eye className="w-3.5 h-3.5 mr-1.5" />
             Quick View
@@ -294,29 +289,29 @@ const Shop = () => {
         </div>
       </div>
 
-      {/* Product Info */}
-      <div className="flex flex-col flex-1 p-4">
+      {/* Info */}
+      <div className="flex flex-col flex-1 p-3.5 sm:p-4">
         {product.categories && (
-          <p className="text-[10px] text-primary font-semibold uppercase tracking-[0.15em] mb-1">
+          <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-[0.12em] mb-1.5">
             {product.categories.name}
           </p>
         )}
-        <h3 className="font-semibold text-foreground text-sm leading-snug mb-1 line-clamp-2 min-h-[2.5em] group-hover:text-primary transition-colors duration-300">
+        <h3 className="font-semibold text-foreground text-[13px] sm:text-sm leading-snug mb-1 line-clamp-2 min-h-[2.5em] group-hover:text-primary transition-colors duration-300">
           {product.name}
         </h3>
         {product.sku && (
-          <span className="text-[9px] font-mono text-muted-foreground/50 mb-2">
+          <span className="text-[9px] font-mono text-muted-foreground/40 mb-2">
             {product.sku}
           </span>
         )}
         
-        <div className="mt-auto pt-3 border-t border-border/30">
-          <div className="flex items-end justify-between gap-2 mb-3">
+        <div className="mt-auto pt-3">
+          <div className="flex items-center justify-between gap-2 mb-3">
             <p className="text-lg font-bold text-foreground tracking-tight">
               ₹{product.price.toLocaleString("en-IN")}
             </p>
             {product.stock_quantity <= 10 && product.stock_quantity > 0 && (
-              <span className="text-[9px] text-destructive font-semibold bg-destructive/5 px-1.5 py-0.5 rounded">
+              <span className="text-[9px] text-amber-600 font-semibold bg-amber-50 px-1.5 py-0.5 rounded">
                 {product.stock_quantity} left
               </span>
             )}
@@ -326,7 +321,7 @@ const Shop = () => {
             type="button"
             onClick={(e) => handleAddToCart(e, product.id)}
             disabled={addToCartMutation.isPending}
-            className="w-full bg-foreground hover:bg-foreground/90 text-background h-9 rounded-lg font-semibold text-xs transition-all active:scale-[0.97]"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-9 rounded-lg font-semibold text-xs transition-all duration-200 active:scale-[0.97] shadow-sm hover:shadow-md hover:shadow-primary/15"
             size="sm"
           >
             {addToCartMutation.isPending ? (
@@ -341,18 +336,17 @@ const Shop = () => {
     </div>
   );
 
-  // Filter Sidebar Content
   const FilterContent = () => (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div>
-        <h4 className="font-bold text-foreground mb-3 text-xs uppercase tracking-[0.2em]">Categories</h4>
+        <h4 className="font-semibold text-foreground mb-3 text-xs uppercase tracking-[0.15em]">Categories</h4>
         <div className="space-y-0.5">
           <button
             onClick={() => setSelectedCategory(null)}
             className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 flex items-center justify-between ${
               !selectedCategory 
-                ? "bg-primary text-primary-foreground font-medium shadow-sm" 
-                : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                ? "bg-primary/10 text-primary font-medium" 
+                : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
             }`}
           >
             All Products
@@ -364,8 +358,8 @@ const Shop = () => {
               onClick={() => setSelectedCategory(category.id)}
               className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 flex items-center justify-between ${
                 selectedCategory === category.id 
-                  ? "bg-primary text-primary-foreground font-medium shadow-sm" 
-                  : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                  ? "bg-primary/10 text-primary font-medium" 
+                  : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
               }`}
             >
               {category.name}
@@ -390,37 +384,35 @@ const Shop = () => {
         {/* Hero Slider */}
         {!searchQuery && !selectedCategory && <ShopHeroSlider />}
 
-        {/* Shop Header */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-secondary/50 via-secondary/20 to-background">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary)/0.04),transparent_50%)]" />
-          <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
-            <div className="text-center max-w-2xl mx-auto">
-              <p className="text-primary font-bold text-xs uppercase tracking-[0.25em] mb-3 flex items-center justify-center gap-2">
-                <Sparkles className="w-3.5 h-3.5" />
-                DECOUVERTES COLLECTION
-                <Sparkles className="w-3.5 h-3.5" />
-              </p>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground tracking-tight mb-3">
-                {selectedCategory 
-                  ? categories?.find(c => c.id === selectedCategory)?.name 
-                  : "Our Products"}
-              </h1>
-              <p className="text-muted-foreground text-sm sm:text-base max-w-lg mx-auto leading-relaxed">
-                Premium industrial-grade products engineered for excellence.
+        {/* Shop Header - Clean & Minimal */}
+        <section className="border-b border-border/30">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+              <div>
+                <p className="text-primary font-semibold text-[11px] uppercase tracking-[0.2em] mb-1.5">
+                  DECOUVERTES
+                </p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+                  {selectedCategory 
+                    ? categories?.find(c => c.id === selectedCategory)?.name 
+                    : "Shop All Products"}
+                </h1>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {filteredProducts?.length || 0} product{(filteredProducts?.length || 0) !== 1 ? 's' : ''} available
               </p>
             </div>
           </div>
         </section>
 
-        {/* Filters & Sort Bar */}
-        <section className="sticky top-16 z-30 bg-background/90 backdrop-blur-xl border-b border-border/40 shadow-sm">
+        {/* Sticky Toolbar */}
+        <section className="sticky top-16 z-30 bg-background/95 backdrop-blur-lg border-b border-border/30">
           <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-13 sm:h-14 gap-3">
-              {/* Left: Filter Button (Mobile) & Search */}
+            <div className="flex items-center justify-between h-12 sm:h-14 gap-3">
               <div className="flex items-center gap-2 flex-1">
                 <Sheet>
                   <SheetTrigger asChild>
-                    <Button variant="outline" size="sm" className="lg:hidden h-8 px-2.5 gap-1.5 rounded-lg border-border/50 text-xs">
+                    <Button variant="ghost" size="sm" className="lg:hidden h-8 px-2.5 gap-1.5 text-xs">
                       <SlidersHorizontal className="w-3.5 h-3.5" />
                       <span className="hidden sm:inline">Filters</span>
                     </Button>
@@ -435,18 +427,18 @@ const Shop = () => {
                   </SheetContent>
                 </Sheet>
 
-                <div className="relative flex-1 max-w-sm">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                <div className="relative flex-1 max-w-xs">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
                   <Input
                     placeholder="Search products..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-8 h-8 text-xs bg-secondary/40 border-0 focus-visible:ring-1 focus-visible:ring-primary/30 rounded-lg"
+                    className="pl-8 h-8 text-xs bg-secondary/30 border-border/20 focus-visible:ring-1 focus-visible:ring-primary/20 rounded-lg"
                   />
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery("")}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -454,12 +446,11 @@ const Shop = () => {
                 </div>
               </div>
 
-              {/* Right: Sort & View */}
               <div className="flex items-center gap-2">
                 <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-[130px] sm:w-[150px] h-8 text-xs border-0 bg-secondary/40 rounded-lg">
-                    <ArrowUpDown className="w-3 h-3 mr-1 text-muted-foreground" />
-                    <SelectValue placeholder="Sort by" />
+                  <SelectTrigger className="w-[120px] sm:w-[140px] h-8 text-xs border-border/20 bg-secondary/30 rounded-lg">
+                    <ArrowUpDown className="w-3 h-3 mr-1 text-muted-foreground/50" />
+                    <SelectValue placeholder="Sort" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="newest">Newest</SelectItem>
@@ -469,45 +460,41 @@ const Shop = () => {
                   </SelectContent>
                 </Select>
 
-                <div className="hidden sm:flex items-center border border-border/30 rounded-lg bg-secondary/30 p-0.5">
+                <div className="hidden sm:flex items-center border border-border/20 rounded-lg p-0.5 bg-secondary/20">
                   <button
                     onClick={() => setGridView("grid")}
-                    className={`p-1 rounded transition-all ${
-                      gridView === "grid" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"
+                    className={`p-1.5 rounded-md transition-all ${
+                      gridView === "grid" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground/50"
                     }`}
                   >
                     <Grid3X3 className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => setGridView("large")}
-                    className={`p-1 rounded transition-all ${
-                      gridView === "large" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"
+                    className={`p-1.5 rounded-md transition-all ${
+                      gridView === "large" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground/50"
                     }`}
                   >
                     <LayoutGrid className="w-3.5 h-3.5" />
                   </button>
                 </div>
-
-                <span className="text-[10px] font-medium text-muted-foreground bg-secondary/50 px-2 py-1 rounded-md hidden md:block">
-                  {filteredProducts?.length || 0} items
-                </span>
               </div>
             </div>
           </div>
         </section>
 
         {/* Main Content */}
-        <section className="py-6 sm:py-10">
+        <section className="py-6 sm:py-8">
           <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex gap-8 lg:gap-10">
               {/* Desktop Sidebar */}
-              <aside className="hidden lg:block w-56 flex-shrink-0">
-                <div className="sticky top-36 bg-card rounded-xl border border-border/30 p-5 shadow-sm">
+              <aside className="hidden lg:block w-52 flex-shrink-0">
+                <div className="sticky top-36">
                   <FilterContent />
                 </div>
               </aside>
 
-              {/* Products Grid */}
+              {/* Products */}
               <div className="flex-1 min-w-0">
                 {/* Active Filters */}
                 {(selectedCategory || searchQuery) && (
@@ -515,7 +502,7 @@ const Shop = () => {
                     {selectedCategory && (
                       <Badge 
                         variant="secondary" 
-                        className="px-2.5 py-1 text-xs cursor-pointer hover:bg-secondary/80 rounded-full"
+                        className="px-2.5 py-1 text-xs cursor-pointer hover:bg-destructive/10 hover:text-destructive rounded-full transition-colors"
                         onClick={() => setSelectedCategory(null)}
                       >
                         {categories?.find(c => c.id === selectedCategory)?.name}
@@ -525,7 +512,7 @@ const Shop = () => {
                     {searchQuery && (
                       <Badge 
                         variant="secondary" 
-                        className="px-2.5 py-1 text-xs cursor-pointer hover:bg-secondary/80 rounded-full"
+                        className="px-2.5 py-1 text-xs cursor-pointer hover:bg-destructive/10 hover:text-destructive rounded-full transition-colors"
                         onClick={() => setSearchQuery("")}
                       >
                         "{searchQuery}"
@@ -534,23 +521,21 @@ const Shop = () => {
                     )}
                     <button 
                       onClick={() => { setSelectedCategory(null); setSearchQuery(""); }}
-                      className="text-[10px] font-medium text-primary hover:text-primary/80 underline underline-offset-4"
+                      className="text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
                     >
                       Clear all
                     </button>
                   </div>
                 )}
 
-                {/* Featured Products */}
+                {/* Featured */}
                 {featuredProducts.length > 0 && !selectedCategory && !searchQuery && (
-                  <div className="mb-8">
-                    <div className="flex items-center gap-2 mb-5">
-                      <div className="p-1.5 bg-primary/10 rounded-lg">
-                        <Star className="w-4 h-4 text-primary fill-primary" />
-                      </div>
-                      <h2 className="text-base font-bold text-foreground">Featured Products</h2>
+                  <div className="mb-10">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Star className="w-4 h-4 text-primary fill-primary" />
+                      <h2 className="text-sm font-bold text-foreground uppercase tracking-wide">Featured</h2>
                     </div>
-                    <div className={`grid gap-4 ${
+                    <div className={`grid gap-3 sm:gap-4 ${
                       gridView === "large" 
                         ? "grid-cols-1 sm:grid-cols-2" 
                         : "grid-cols-2 sm:grid-cols-3"
@@ -559,20 +544,20 @@ const Shop = () => {
                         <ProductCard key={product.id} product={product} />
                       ))}
                     </div>
-                    <Separator className="mt-8" />
+                    <Separator className="mt-10" />
                   </div>
                 )}
 
-                {/* Loading State */}
+                {/* Loading */}
                 {productsLoading ? (
-                  <div className={`grid gap-4 ${
+                  <div className={`grid gap-3 sm:gap-4 ${
                     gridView === "large" 
                       ? "grid-cols-1 sm:grid-cols-2" 
                       : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
                   }`}>
                     {[...Array(8)].map((_, i) => (
-                      <div key={i} className="bg-card rounded-2xl border border-border/30 overflow-hidden">
-                        <Skeleton className="aspect-[4/5]" />
+                      <div key={i} className="bg-card rounded-xl border border-border/20 overflow-hidden">
+                        <Skeleton className="aspect-square" />
                         <div className="p-4 space-y-2.5">
                           <Skeleton className="h-2.5 w-1/3" />
                           <Skeleton className="h-3.5 w-3/4" />
@@ -585,7 +570,7 @@ const Shop = () => {
                 ) : filteredProducts && filteredProducts.length > 0 ? (
                   <>
                     {(selectedCategory || searchQuery || featuredProducts.length > 0) && (
-                      <h2 className="text-base font-bold text-foreground mb-5">
+                      <h2 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide">
                         {selectedCategory 
                           ? `All ${categories?.find(c => c.id === selectedCategory)?.name}`
                           : searchQuery 
@@ -594,7 +579,7 @@ const Shop = () => {
                       </h2>
                     )}
                     
-                    <div className={`grid gap-4 ${
+                    <div className={`grid gap-3 sm:gap-4 ${
                       gridView === "large" 
                         ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" 
                         : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
@@ -607,14 +592,14 @@ const Shop = () => {
                     </div>
                   </>
                 ) : (
-                  <div className="text-center py-20">
-                    <div className="w-20 h-20 bg-secondary/50 rounded-2xl flex items-center justify-center mx-auto mb-5">
-                      <Package className="w-10 h-10 text-muted-foreground/25" />
+                  <div className="text-center py-24">
+                    <div className="w-16 h-16 bg-secondary/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Package className="w-8 h-8 text-muted-foreground/20" />
                     </div>
-                    <h2 className="text-xl font-bold text-foreground mb-2">
+                    <h2 className="text-lg font-bold text-foreground mb-1.5">
                       {searchQuery ? "No products found" : "No products yet"}
                     </h2>
-                    <p className="text-muted-foreground text-sm max-w-md mx-auto mb-6">
+                    <p className="text-muted-foreground text-sm max-w-sm mx-auto mb-6">
                       {searchQuery
                         ? "Try adjusting your search or filters."
                         : "Check back soon for our new collection."}
@@ -623,6 +608,7 @@ const Shop = () => {
                       <Button
                         type="button"
                         variant="outline"
+                        size="sm"
                         className="rounded-lg"
                         onClick={() => {
                           setSearchQuery("");
