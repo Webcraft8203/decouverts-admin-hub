@@ -98,7 +98,7 @@ export default function EmployeeAuth() {
       setEmployeeName(checkData.employeeName || "");
 
       // Email is verified as employee, send magic link
-      const redirectUrl = `https://decouvertsplus.vercel.app/admin`;
+      const redirectUrl = `https://www.decouvertes.in/admin`;
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
