@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const baseUrl = "https://www.decouvertes.in";
+    const baseUrl = req.headers.get("origin") || "https://admin-craft-engine.lovable.app";
 
     // Fetch all products with stock
     const { data: products } = await supabase
@@ -50,19 +50,9 @@ Deno.serve(async (req) => {
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>${baseUrl}/engineering</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>${baseUrl}/manufacturing</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
     <loc>${baseUrl}/about</loc>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>${baseUrl}/blogs</loc>
@@ -70,14 +60,24 @@ Deno.serve(async (req) => {
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>${baseUrl}/engineering</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/manufacturing</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>${baseUrl}/printer-configuration</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>${baseUrl}/drone-configuration</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>${baseUrl}/login</loc>

@@ -1,6 +1,5 @@
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { usePageSEO } from "@/hooks/usePageSEO";
-import { ServiceSchema, BreadcrumbSchema } from "@/components/SEOSchemas";
 import { PublicFooter } from "@/components/PublicFooter";
 import { 
   Cog, 
@@ -26,24 +25,13 @@ const Engineering = () => {
   const navigate = useNavigate();
 
   usePageSEO({
-    title: "Engineering Services – CAD, FEA, NPD & Prototyping | DECOUVERTES",
-    description: "Expert mechanical engineering NPD services: CAD design, FEA validation, prototyping, plastic & metal product development. DECOUVERTES Pune, India.",
+    title: "Engineering & Manufacturing Design Services | DECOUVERTES",
+    description: "CAD design, plastic & metal product engineering, FEA validation & prototyping. Expert mechanical engineering NPD services by DECOUVERTES India.",
     path: "/engineering",
-    keywords: "engineering services India, CAD design, FEA validation, prototyping, mechanical engineering NPD, product development, DECOUVERTES engineering",
   });
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans">
-      <ServiceSchema
-        name="Engineering Services by DECOUVERTES"
-        description="Comprehensive mechanical engineering NPD services including CAD design, FEA validation, prototyping, and plastic & metal product development."
-        url="/engineering"
-        serviceType="Engineering Services"
-      />
-      <BreadcrumbSchema items={[
-        { name: "Home", url: "/" },
-        { name: "Engineering Services", url: "/engineering" },
-      ]} />
       <PublicNavbar />
 
       <main className="flex-1 pt-16 md:pt-20">

@@ -1,6 +1,5 @@
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { usePageSEO } from "@/hooks/usePageSEO";
-import { ServiceSchema, BreadcrumbSchema } from "@/components/SEOSchemas";
 import { PublicFooter } from "@/components/PublicFooter";
 import { Factory, Printer, Plane, ArrowRight, ShieldCheck, Cpu, Scale, Award, Settings, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,24 +10,13 @@ const Manufacturing = () => {
   const navigate = useNavigate();
 
   usePageSEO({
-    title: "3D Printers & Drone Manufacturing – DFT Series | DECOUVERTES",
-    description: "DFT Series industrial 3D printers & custom drone systems. Indigenous manufacturing in India by DECOUVERTES. Configurable & production-ready.",
+    title: "Industrial 3D Printers & Drone Systems Manufacturing | DECOUVERTES",
+    description: "DFT Series industrial 3D printers & custom drone systems. Indigenous manufacturing excellence by DECOUVERTES India. Configurable & production-ready.",
     path: "/manufacturing",
-    keywords: "industrial 3D printers India, DFT Series, drone manufacturing, custom drones, 3D printer manufacturer, DECOUVERTES manufacturing, Made in India",
   });
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#F7F9FC] to-[#EEF2F7] font-sans text-slate-900 selection:bg-orange-100 selection:text-orange-900">
-      <ServiceSchema
-        name="Industrial 3D Printers & Drone Systems by DECOUVERTES"
-        description="DFT Series industrial 3D printers and custom drone systems. Indigenous manufacturing solutions designed for modern industry needs."
-        url="/manufacturing"
-        serviceType="Manufacturing"
-      />
-      <BreadcrumbSchema items={[
-        { name: "Home", url: "/" },
-        { name: "Manufacturing", url: "/manufacturing" },
-      ]} />
       <PublicNavbar />
 
       {/* Hero Section */}

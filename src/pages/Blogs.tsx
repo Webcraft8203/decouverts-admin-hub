@@ -22,10 +22,9 @@ export default function Blogs() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   usePageSEO({
-    title: "Blogs & News – 3D Printing, Drones & Engineering | DECOUVERTES",
-    description: "Latest blogs, news & insights on 3D printing, drone technology, engineering innovation & industry trends from DECOUVERTES India.",
+    title: "Blogs & News | DECOUVERTES – Tech Insights & Updates",
+    description: "Read the latest blogs, news & insights on 3D printing, drone technology, engineering innovation & industry trends from DECOUVERTES.",
     path: "/blogs",
-    keywords: "3D printing blog, drone technology news, engineering insights, DECOUVERTES blog, manufacturing trends India",
   });
 
   // Scroll to top on mount

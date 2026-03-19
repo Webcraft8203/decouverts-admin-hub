@@ -18,10 +18,9 @@ import { usePageSEO } from "@/hooks/usePageSEO";
 
 const Home = () => {
   usePageSEO({
-    title: "DECOUVERTES | Engineering, 3D Printers, Drones & Products India",
-    description: "India's indigenous R&D technology company. Engineering services, industrial 3D printers, drone systems, manufacturing solutions & premium products. Made in India.",
+    title: "DECOUVERTES | Engineering, 3D Printing & Industrial Products India",
+    description: "India's indigenous R&D technology company. Shop industrial 3D printers, drone systems, engineering services & premium products. Made in India.",
     path: "/",
-    keywords: "DECOUVERTES, engineering services India, 3D printers, drone technology, manufacturing, industrial products, DFT Series, Made in India",
   });
   const location = useLocation();
 

@@ -6,12 +6,11 @@ interface PageSEOConfig {
   path: string;
   type?: string;
   image?: string;
-  keywords?: string;
 }
 
 const BRAND = "DECOUVERTES";
-const DEFAULT_TITLE = `${BRAND} | Engineering Services, 3D Printers, Drones & Industrial Products India`;
-const SITE_URL = "https://www.decouvertes.in";
+const DEFAULT_TITLE = `${BRAND} | Engineering, 3D Printing & Industrial Products India`;
+const SITE_URL = "https://admin-craft-engine.lovable.app";
 const DEFAULT_IMAGE = `${SITE_URL}/logo.png`;
 
 export const usePageSEO = (config: PageSEOConfig) => {
@@ -34,12 +33,7 @@ export const usePageSEO = (config: PageSEOConfig) => {
     };
 
     setMeta("description", description);
-    setMeta("robots", "index, follow, max-image-preview:large, max-snippet:-1");
-
-    // Keywords
-    if (config.keywords) {
-      setMeta("keywords", config.keywords);
-    }
+    setMeta("robots", "index, follow");
 
     // Open Graph
     setMeta("og:title", title, true);
@@ -48,7 +42,6 @@ export const usePageSEO = (config: PageSEOConfig) => {
     setMeta("og:url", url, true);
     setMeta("og:image", config.image || DEFAULT_IMAGE, true);
     setMeta("og:site_name", BRAND, true);
-    setMeta("og:locale", "en_IN", true);
 
     // Twitter
     setMeta("twitter:card", "summary_large_image");
@@ -70,5 +63,5 @@ export const usePageSEO = (config: PageSEOConfig) => {
       const canonicalEl = document.querySelector('link[rel="canonical"]');
       if (canonicalEl) canonicalEl.remove();
     };
-  }, [config.title, config.description, config.path, config.type, config.image, config.keywords]);
+  }, [config.title, config.description, config.path, config.type, config.image]);
 };

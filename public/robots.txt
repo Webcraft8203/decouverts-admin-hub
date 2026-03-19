@@ -2,9 +2,6 @@ User-agent: Googlebot
 Allow: /
 Crawl-delay: 1
 
-User-agent: Googlebot-Image
-Allow: /
-
 User-agent: Bingbot
 Allow: /
 
@@ -14,17 +11,11 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: LinkedInBot
-Allow: /
-
 User-agent: *
 Allow: /
 Disallow: /admin
-Disallow: /admin/*
 Disallow: /dashboard
-Disallow: /dashboard/*
 Disallow: /auth
 Disallow: /employee-login
-Disallow: /checkout/*
 
-Sitemap: https://www.decouvertes.in/sitemap.xml
+Sitemap: https://admin-craft-engine.lovable.app/sitemap.xml
