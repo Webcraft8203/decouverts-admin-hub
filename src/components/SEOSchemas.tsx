@@ -1,23 +1,64 @@
 import { useEffect } from "react";
 
-const SITE_URL = "https://admin-craft-engine.lovable.app";
+const SITE_URL = "https://decouvertsplus.vercel.app";
 
 /**
- * Organization + WebSite structured data for homepage.
- * Injected once on mount, removed on unmount.
+ * Organization + WebSite + LocalBusiness structured data for homepage.
  */
 export const OrganizationSchema = () => {
   useEffect(() => {
     const orgSchema = {
       "@context": "https://schema.org",
-      "@type": "Organization",
+      "@type": ["Organization", "LocalBusiness"],
       name: "DECOUVERTES",
-      alternateName: "Decouvertes Future Tech Pvt. Ltd.",
+      alternateName: ["Decouvertes Future Tech Pvt. Ltd.", "Decouvertes Future Tech", "DECOUVERTES India"],
+      legalName: "Decouvertes Future Tech Pvt. Ltd.",
       url: SITE_URL,
       logo: `${SITE_URL}/logo.png`,
+      image: `${SITE_URL}/logo.png`,
       description:
-        "Indigenous R&D-driven technology company specializing in 3D printers, drone systems, engineering services, and industrial products. Made in India.",
+        "Indigenous R&D-driven technology company specializing in engineering services, industrial 3D printers (DFT Series), custom drone systems, manufacturing solutions, and premium industrial products. Made in India.",
       foundingDate: "2023",
+      knowsAbout: [
+        "Engineering Services",
+        "3D Printing Technology",
+        "Industrial 3D Printers",
+        "Drone Systems",
+        "Drone Technology",
+        "Manufacturing Solutions",
+        "Mechanical Engineering",
+        "New Product Development",
+        "CAD Design",
+        "FEA Validation",
+        "Prototyping",
+        "Industrial Products"
+      ],
+      hasOfferCatalog: {
+        "@type": "OfferCatalog",
+        name: "DECOUVERTES Products & Services",
+        itemListElement: [
+          {
+            "@type": "OfferCatalog",
+            name: "Engineering Services",
+            description: "Mechanical engineering NPD, CAD design, FEA validation & prototyping"
+          },
+          {
+            "@type": "OfferCatalog",
+            name: "Industrial 3D Printers",
+            description: "DFT Series customizable industrial 3D printers for manufacturing"
+          },
+          {
+            "@type": "OfferCatalog",
+            name: "Drone Systems",
+            description: "Custom FPV, surveillance & industrial drone solutions"
+          },
+          {
+            "@type": "OfferCatalog",
+            name: "Industrial Products",
+            description: "Premium engineering tools, components & innovative products"
+          }
+        ]
+      },
       address: {
         "@type": "PostalAddress",
         streetAddress: "Megapolis Springs, Phase 3, Hinjawadi Rajiv Gandhi Infotech Park",
@@ -26,13 +67,31 @@ export const OrganizationSchema = () => {
         postalCode: "411057",
         addressCountry: "IN",
       },
-      contactPoint: {
-        "@type": "ContactPoint",
-        telephone: "+91-9561103435",
-        contactType: "sales",
-        areaServed: "IN",
-        availableLanguage: ["English", "Hindi"],
+      geo: {
+        "@type": "GeoCoordinates",
+        latitude: "18.5913",
+        longitude: "73.7389"
       },
+      areaServed: {
+        "@type": "Country",
+        name: "India"
+      },
+      contactPoint: [
+        {
+          "@type": "ContactPoint",
+          telephone: "+91-9561103435",
+          contactType: "sales",
+          areaServed: "IN",
+          availableLanguage: ["English", "Hindi"],
+        },
+        {
+          "@type": "ContactPoint",
+          telephone: "+91-9561103435",
+          contactType: "customer service",
+          areaServed: "IN",
+          availableLanguage: ["English", "Hindi"],
+        }
+      ],
       sameAs: [],
     };
 
@@ -40,6 +99,7 @@ export const OrganizationSchema = () => {
       "@context": "https://schema.org",
       "@type": "WebSite",
       name: "DECOUVERTES",
+      alternateName: "Decouvertes Future Tech",
       url: SITE_URL,
       potentialAction: {
         "@type": "SearchAction",
@@ -61,6 +121,91 @@ export const OrganizationSchema = () => {
       document.getElementById("org-jsonld")?.remove();
     };
   }, []);
+
+  return null;
+};
+
+/**
+ * Service structured data for engineering/manufacturing pages.
+ */
+export const ServiceSchema = ({
+  name,
+  description,
+  url,
+  serviceType,
+  provider,
+}: {
+  name: string;
+  description: string;
+  url: string;
+  serviceType: string;
+  provider?: string;
+}) => {
+  useEffect(() => {
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      name,
+      description,
+      url: url.startsWith("http") ? url : `${SITE_URL}${url}`,
+      serviceType,
+      provider: {
+        "@type": "Organization",
+        name: provider || "DECOUVERTES",
+        url: SITE_URL,
+      },
+      areaServed: {
+        "@type": "Country",
+        name: "India"
+      },
+    };
+
+    const script = document.createElement("script");
+    script.id = "service-jsonld";
+    script.type = "application/ld+json";
+    script.textContent = JSON.stringify(schema);
+    document.head.appendChild(script);
+
+    return () => {
+      document.getElementById("service-jsonld")?.remove();
+    };
+  }, [name, description, url, serviceType, provider]);
+
+  return null;
+};
+
+/**
+ * FAQ structured data for pages with FAQ content.
+ */
+export const FAQSchema = ({
+  faqs,
+}: {
+  faqs: { question: string; answer: string }[];
+}) => {
+  useEffect(() => {
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqs.map((faq) => ({
+        "@type": "Question",
+        name: faq.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: faq.answer,
+        },
+      })),
+    };
+
+    const script = document.createElement("script");
+    script.id = "faq-jsonld";
+    script.type = "application/ld+json";
+    script.textContent = JSON.stringify(schema);
+    document.head.appendChild(script);
+
+    return () => {
+      document.getElementById("faq-jsonld")?.remove();
+    };
+  }, [faqs]);
 
   return null;
 };
