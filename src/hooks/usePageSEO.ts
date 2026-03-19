@@ -11,7 +11,7 @@ interface PageSEOConfig {
 
 const BRAND = "DECOUVERTES";
 const DEFAULT_TITLE = `${BRAND} | Engineering Services, 3D Printers, Drones & Industrial Products India`;
-const SITE_URL = "https://decouvertsplus.vercel.app";
+const SITE_URL = "https://www.decouvertes.in";
 const DEFAULT_IMAGE = `${SITE_URL}/logo.png`;
 
 export const usePageSEO = (config: PageSEOConfig) => {
