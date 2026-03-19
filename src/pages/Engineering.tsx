@@ -34,6 +34,16 @@ const Engineering = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans">
+      <ServiceSchema
+        name="Engineering Services by DECOUVERTES"
+        description="Comprehensive mechanical engineering NPD services including CAD design, FEA validation, prototyping, and plastic & metal product development."
+        url="/engineering"
+        serviceType="Engineering Services"
+      />
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "/" },
+        { name: "Engineering Services", url: "/engineering" },
+      ]} />
       <PublicNavbar />
 
       <main className="flex-1 pt-16 md:pt-20">
