@@ -70,6 +70,12 @@ interface PrinterConfig {
 
 const PrinterConfiguration = () => {
   const navigate = useNavigate();
+  usePageSEO({
+    title: "Custom 3D Printer Configuration – DFT Series | DECOUVERTES",
+    description: "Configure your custom industrial 3D printer. Choose extruder, bed, materials, AMS & more. DFT Series by DECOUVERTES India.",
+    path: "/printer-configuration",
+    keywords: "custom 3D printer India, DFT Series printer, industrial printer configuration, DECOUVERTES 3D printer",
+  });
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
