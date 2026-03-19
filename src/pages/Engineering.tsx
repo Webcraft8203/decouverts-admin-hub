@@ -1,5 +1,6 @@
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { usePageSEO } from "@/hooks/usePageSEO";
+import { ServiceSchema, BreadcrumbSchema } from "@/components/SEOSchemas";
 import { PublicFooter } from "@/components/PublicFooter";
 import { 
   Cog, 
