@@ -50,9 +50,10 @@ const Counter = ({ from, to, suffix = "" }: { from: number; to: number; suffix?:
 
 const About = () => {
   usePageSEO({
-    title: "About DECOUVERTES | Indigenous R&D Technology Company India",
-    description: "Learn about DECOUVERTES – India's R&D-driven technology company. Indigenous engineering, 3D printing, drone systems & manufacturing. Made in India.",
+    title: "About DECOUVERTES | R&D Technology Company Pune India",
+    description: "Learn about DECOUVERTES – India's indigenous R&D technology company. Engineering, 3D printing, drone systems & manufacturing from Pune, Maharashtra.",
     path: "/about",
+    keywords: "about DECOUVERTES, Decouvertes Future Tech, R&D company India, technology company Pune, engineering company India",
   });
 
   return (

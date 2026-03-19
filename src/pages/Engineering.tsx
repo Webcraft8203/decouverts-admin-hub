@@ -25,9 +25,10 @@ const Engineering = () => {
   const navigate = useNavigate();
 
   usePageSEO({
-    title: "Engineering & Manufacturing Design Services | DECOUVERTES",
-    description: "CAD design, plastic & metal product engineering, FEA validation & prototyping. Expert mechanical engineering NPD services by DECOUVERTES India.",
+    title: "Engineering Services – CAD, FEA, NPD & Prototyping | DECOUVERTES",
+    description: "Expert mechanical engineering NPD services: CAD design, FEA validation, prototyping, plastic & metal product development. DECOUVERTES Pune, India.",
     path: "/engineering",
+    keywords: "engineering services India, CAD design, FEA validation, prototyping, mechanical engineering NPD, product development, DECOUVERTES engineering",
   });
 
   return (

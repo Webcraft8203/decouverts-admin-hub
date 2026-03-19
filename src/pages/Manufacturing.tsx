@@ -10,9 +10,10 @@ const Manufacturing = () => {
   const navigate = useNavigate();
 
   usePageSEO({
-    title: "Industrial 3D Printers & Drone Systems Manufacturing | DECOUVERTES",
-    description: "DFT Series industrial 3D printers & custom drone systems. Indigenous manufacturing excellence by DECOUVERTES India. Configurable & production-ready.",
+    title: "3D Printers & Drone Manufacturing – DFT Series | DECOUVERTES",
+    description: "DFT Series industrial 3D printers & custom drone systems. Indigenous manufacturing in India by DECOUVERTES. Configurable & production-ready.",
     path: "/manufacturing",
+    keywords: "industrial 3D printers India, DFT Series, drone manufacturing, custom drones, 3D printer manufacturer, DECOUVERTES manufacturing, Made in India",
   });
 
   return (
