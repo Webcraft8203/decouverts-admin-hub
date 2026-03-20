@@ -134,7 +134,7 @@ export const ArticleSchema = ({
       },
       publisher: {
         "@type": "Organization",
-        name: "DECOUVERTES",
+        name: "Decouvertes",
         logo: {
           "@type": "ImageObject",
           url: `${SITE_URL}/logo.png`,

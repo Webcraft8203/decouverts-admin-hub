@@ -168,7 +168,7 @@ export const useProductSEO = (product: ProductSEOData | null | undefined, review
 
     // Cleanup on unmount
     return () => {
-      document.title = "DECOUVERTES | Engineering, 3D Printing & Industrial Products India";
+      document.title = "Decouvertes | Engineering, 3D Printing & Industrial Products India";
       document.getElementById("product-jsonld")?.remove();
       document.querySelector('link[rel="canonical"]')?.remove();
     };

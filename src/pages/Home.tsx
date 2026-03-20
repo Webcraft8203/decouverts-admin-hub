@@ -18,7 +18,7 @@ import { usePageSEO } from "@/hooks/usePageSEO";
 
 const Home = () => {
   usePageSEO({
-    title: "DECOUVERTES | Engineering, 3D Printing & Industrial Products India",
+    title: "Decouvertes | Engineering, 3D Printing & Industrial Products India",
     description: "India's indigenous R&D technology company. Shop industrial 3D printers, drone systems, engineering services & premium products. Made in India.",
     path: "/",
   });

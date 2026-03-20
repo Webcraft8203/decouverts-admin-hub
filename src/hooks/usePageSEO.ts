@@ -8,9 +8,9 @@ interface PageSEOConfig {
   image?: string;
 }
 
-const BRAND = "DECOUVERTES";
+const BRAND = "Decouvertes";
 const DEFAULT_TITLE = `${BRAND} | Engineering, 3D Printing & Industrial Products India`;
-const SITE_URL = "https://admin-craft-engine.lovable.app";
+const SITE_URL = "https://www.decouvertes.in";
 const DEFAULT_IMAGE = `${SITE_URL}/logo.png`;
 
 export const usePageSEO = (config: PageSEOConfig) => {

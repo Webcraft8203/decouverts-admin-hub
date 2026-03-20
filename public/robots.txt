@@ -18,4 +18,4 @@ Disallow: /dashboard
 Disallow: /auth
 Disallow: /employee-login
 
-Sitemap: https://admin-craft-engine.lovable.app/sitemap.xml
+Sitemap: https://www.decouvertes.in/sitemap.xml
