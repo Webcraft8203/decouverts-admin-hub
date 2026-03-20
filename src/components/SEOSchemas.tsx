@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-const SITE_URL = "https://admin-craft-engine.lovable.app";
+const SITE_URL = "https://www.decouvertes.in";
 
 /**
  * Organization + WebSite structured data for homepage.
@@ -11,7 +11,7 @@ export const OrganizationSchema = () => {
     const orgSchema = {
       "@context": "https://schema.org",
       "@type": "Organization",
-      name: "DECOUVERTES",
+      name: "Decouvertes",
       alternateName: "Decouvertes Future Tech Pvt. Ltd.",
       url: SITE_URL,
       logo: `${SITE_URL}/logo.png`,
@@ -39,7 +39,7 @@ export const OrganizationSchema = () => {
     const webSiteSchema = {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      name: "DECOUVERTES",
+      name: "Decouvertes",
       url: SITE_URL,
       potentialAction: {
         "@type": "SearchAction",
@@ -134,7 +134,7 @@ export const ArticleSchema = ({
       },
       publisher: {
         "@type": "Organization",
-        name: "DECOUVERTES",
+        name: "Decouvertes",
         logo: {
           "@type": "ImageObject",
           url: `${SITE_URL}/logo.png`,

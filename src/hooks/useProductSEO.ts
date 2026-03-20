@@ -17,13 +17,13 @@ interface ReviewData {
   reviewCount: number;
 }
 
-const SITE_URL = "https://admin-craft-engine.lovable.app";
+const SITE_URL = "https://www.decouvertes.in";
 
 export const useProductSEO = (product: ProductSEOData | null | undefined, reviews?: ReviewData) => {
   useEffect(() => {
     if (!product) return;
 
-    const brandName = "DECOUVERTES";
+    const brandName = "Decouvertes";
     const category = (product.categories as any)?.name || "";
     const title = `${product.name} | ${category ? category + " | " : ""}${brandName}`.slice(0, 60);
     const description = (
@@ -168,7 +168,7 @@ export const useProductSEO = (product: ProductSEOData | null | undefined, review
 
     // Cleanup on unmount
     return () => {
-      document.title = "DECOUVERTES | Engineering, 3D Printing & Industrial Products India";
+      document.title = "Decouvertes | Engineering, 3D Printing & Industrial Products India";
       document.getElementById("product-jsonld")?.remove();
       document.querySelector('link[rel="canonical"]')?.remove();
     };

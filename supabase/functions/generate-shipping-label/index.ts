@@ -156,7 +156,7 @@ serve(async (req) => {
       shipmentId,
       courier: order.courier_name,
       trackingId: order.tracking_id,
-      verify: `https://admin-craft-engine.lovable.app/verify-order?id=${order.id}`,
+      verify: `https://www.decouvertes.in/verify-order?id=${order.id}`,
     });
     const qrCodeDataUrl = await qrcode(qrData);
 
