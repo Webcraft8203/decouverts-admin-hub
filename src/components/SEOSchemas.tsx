@@ -39,7 +39,7 @@ export const OrganizationSchema = () => {
     const webSiteSchema = {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      name: "DECOUVERTES",
+      name: "Decouvertes",
       url: SITE_URL,
       potentialAction: {
         "@type": "SearchAction",
