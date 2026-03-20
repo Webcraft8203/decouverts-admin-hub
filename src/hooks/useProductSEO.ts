@@ -17,7 +17,7 @@ interface ReviewData {
   reviewCount: number;
 }
 
-const SITE_URL = "https://admin-craft-engine.lovable.app";
+const SITE_URL = "https://www.decouvertes.in";
 
 export const useProductSEO = (product: ProductSEOData | null | undefined, reviews?: ReviewData) => {
   useEffect(() => {
