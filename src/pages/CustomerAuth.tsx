@@ -28,6 +28,11 @@ const loginSchema = z.object({
 });
 
 export default function CustomerAuth() {
+  usePageSEO({
+    title: "Login or Sign Up | Decouvertes India",
+    description: "Create your Decouvertes account or sign in to shop industrial 3D printers, drone systems & engineering products. Track orders & manage your profile.",
+    path: "/login",
+  });
   const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
