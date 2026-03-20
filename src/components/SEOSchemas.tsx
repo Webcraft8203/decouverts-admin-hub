@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-const SITE_URL = "https://admin-craft-engine.lovable.app";
+const SITE_URL = "https://www.decouvertes.in";
 
 /**
  * Organization + WebSite structured data for homepage.
