@@ -23,7 +23,7 @@ export const useProductSEO = (product: ProductSEOData | null | undefined, review
   useEffect(() => {
     if (!product) return;
 
-    const brandName = "DECOUVERTES";
+    const brandName = "Decouvertes";
     const category = (product.categories as any)?.name || "";
     const title = `${product.name} | ${category ? category + " | " : ""}${brandName}`.slice(0, 60);
     const description = (
