@@ -54,6 +54,11 @@ interface DroneConfig {
 
 export default function DroneConfiguration() {
   const navigate = useNavigate();
+  usePageSEO({
+    title: "Custom Drone Configuration | Decouvertes India",
+    description: "Configure your custom drone system – FPV, surveillance or industrial. Choose frame, payload, range & more. Built to order by Decouvertes India.",
+    path: "/drone-configuration",
+  });
   const [step, setStep] = useState<Step>("details");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { checkRateLimit, recordSubmission, isChecking } = useFormRateLimit("drone_config");
