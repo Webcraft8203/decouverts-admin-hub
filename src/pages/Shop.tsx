@@ -155,7 +155,7 @@ const Shop = () => {
       itemListElement: filteredProducts.slice(0, 30).map((p, i) => ({
         "@type": "ListItem",
         position: i + 1,
-        url: `https://admin-craft-engine.lovable.app/product/${p.slug || p.id}`,
+        url: `https://www.decouvertes.in/product/${p.slug || p.id}`,
         name: p.name,
         image: p.images?.[0],
       })),
