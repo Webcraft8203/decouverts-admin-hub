@@ -11,11 +11,19 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
 User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /dashboard
 Disallow: /auth
 Disallow: /employee-login
+Disallow: /checkout
+Disallow: /verify-order
 
 Sitemap: https://www.decouvertes.in/sitemap.xml

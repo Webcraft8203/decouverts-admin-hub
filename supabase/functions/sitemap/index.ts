@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const baseUrl = req.headers.get("origin") || "https://www.decouvertes.in";
+    const baseUrl = "https://www.decouvertes.in";
 
     // Fetch all products with stock
     const { data: products } = await supabase

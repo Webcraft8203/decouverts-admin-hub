@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { usePageSEO } from "@/hooks/usePageSEO";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,11 @@ const loginSchema = z.object({
 });
 
 export default function CustomerAuth() {
+  usePageSEO({
+    title: "Login or Sign Up | Decouvertes India",
+    description: "Create your Decouvertes account or sign in to shop industrial 3D printers, drone systems & engineering products. Track orders & manage your profile.",
+    path: "/login",
+  });
   const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);

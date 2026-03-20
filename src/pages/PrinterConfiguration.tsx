@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { usePageSEO } from "@/hooks/usePageSEO";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -69,6 +70,11 @@ interface PrinterConfig {
 
 const PrinterConfiguration = () => {
   const navigate = useNavigate();
+  usePageSEO({
+    title: "3D Printer Configuration | Decouvertes India",
+    description: "Configure your industrial 3D printer – DFT Series. Choose motion, extruder, bed, enclosure & AMS options. Built to order by Decouvertes India.",
+    path: "/printer-configuration",
+  });
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);

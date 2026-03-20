@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { usePageSEO } from "@/hooks/usePageSEO";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PublicNavbar } from "@/components/PublicNavbar";
@@ -93,6 +94,11 @@ interface CartItemWithProduct {
 const Checkout = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
+  usePageSEO({
+    title: "Checkout | Decouvertes India",
+    description: "Complete your purchase securely on Decouvertes. Pay online or choose Cash on Delivery for industrial 3D printers, drone systems & products.",
+    path: "/checkout",
+  });
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [quantity, setQuantity] = useState(1);
