@@ -11,7 +11,7 @@ export const OrganizationSchema = () => {
     const orgSchema = {
       "@context": "https://schema.org",
       "@type": "Organization",
-      name: "DECOUVERTES",
+      name: "Decouvertes",
       alternateName: "Decouvertes Future Tech Pvt. Ltd.",
       url: SITE_URL,
       logo: `${SITE_URL}/logo.png`,
