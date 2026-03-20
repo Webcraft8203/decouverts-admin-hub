@@ -99,7 +99,6 @@ const Checkout = () => {
     description: "Complete your purchase securely on Decouvertes. Pay online or choose Cash on Delivery for industrial 3D printers, drone systems & products.",
     path: "/checkout",
   });
-  const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [quantity, setQuantity] = useState(1);
