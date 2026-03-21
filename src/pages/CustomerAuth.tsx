@@ -29,8 +29,8 @@ const loginSchema = z.object({
 
 export default function CustomerAuth() {
   usePageSEO({
-    title: "Login or Sign Up | Decouvertes India",
-    description: "Create your Decouvertes account or sign in to shop industrial 3D printers, drone systems & engineering products. Track orders & manage your profile.",
+    title: "Login | Decouvertes",
+    description: "Sign in or create your Decouvertes account to shop products, track orders and manage your profile.",
     path: "/login",
   });
   const [isSignUp, setIsSignUp] = useState(false);

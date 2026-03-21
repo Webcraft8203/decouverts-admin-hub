@@ -32,6 +32,8 @@ export const usePageSEO = (config: PageSEOConfig) => {
       el.setAttribute("content", content);
     };
 
+    setMeta("application-name", BRAND);
+    setMeta("apple-mobile-web-app-title", BRAND);
     setMeta("description", description);
     setMeta("robots", "index, follow");
 

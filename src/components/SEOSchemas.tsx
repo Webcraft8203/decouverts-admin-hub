@@ -3,7 +3,35 @@ import { useEffect } from "react";
 const SITE_URL = "https://www.decouvertes.in";
 
 /**
- * Organization + WebSite structured data for homepage.
+ * Global WebSite structured data for all pages.
+ * Injected once on mount, removed on unmount.
+ */
+export const SiteSchema = () => {
+  useEffect(() => {
+    const webSiteSchema = {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "Decouvertes",
+      alternateName: "Decouvertes India",
+      url: `${SITE_URL}/`,
+    };
+
+    const script = document.createElement("script");
+    script.id = "website-jsonld";
+    script.type = "application/ld+json";
+    script.textContent = JSON.stringify(webSiteSchema);
+    document.head.appendChild(script);
+
+    return () => {
+      document.getElementById("website-jsonld")?.remove();
+    };
+  }, []);
+
+  return null;
+};
+
+/**
+ * Organization structured data for homepage.
  * Injected once on mount, removed on unmount.
  */
 export const OrganizationSchema = () => {
@@ -36,25 +64,10 @@ export const OrganizationSchema = () => {
       sameAs: [],
     };
 
-    const webSiteSchema = {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      name: "Decouvertes",
-      url: SITE_URL,
-      potentialAction: {
-        "@type": "SearchAction",
-        target: {
-          "@type": "EntryPoint",
-          urlTemplate: `${SITE_URL}/shop?q={search_term_string}`,
-        },
-        "query-input": "required name=search_term_string",
-      },
-    };
-
     const script = document.createElement("script");
     script.id = "org-jsonld";
     script.type = "application/ld+json";
-    script.textContent = JSON.stringify([orgSchema, webSiteSchema]);
+    script.textContent = JSON.stringify(orgSchema);
     document.head.appendChild(script);
 
     return () => {
