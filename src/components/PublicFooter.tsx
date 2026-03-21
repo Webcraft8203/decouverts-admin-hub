@@ -262,11 +262,11 @@ export const PublicFooter = () => {
             </div>
 
             <div className="mt-8 space-y-4">
-              <a href="mailto:contact@DECOUVERTES.com" className="flex items-center gap-3 text-slate-400 hover:text-white transition-colors text-sm group">
+              <a href="mailto:hello@decouvertes.com" className="flex items-center gap-3 text-slate-400 hover:text-white transition-colors text-sm group">
                 <div className="p-2 bg-white/5 rounded-lg group-hover:bg-primary/20 transition-colors border border-white/5 group-hover:border-primary/20">
                   <Mail className="w-4 h-4 group-hover:text-primary transition-colors" />
                 </div>
-                hello@DECOUVERTES.com
+                hello@decouvertes.com
               </a>
               <a href="tel:+919561103435" className="flex items-center gap-3 text-slate-400 hover:text-white transition-colors text-sm group">
                 <div className="p-2 bg-white/5 rounded-lg group-hover:bg-primary/20 transition-colors border border-white/5 group-hover:border-primary/20">
