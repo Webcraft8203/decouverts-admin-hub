@@ -22,8 +22,8 @@ export default function Blogs() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   usePageSEO({
-    title: "Blogs & News | DECOUVERTES – Tech Insights & Updates",
-    description: "Read the latest blogs, news & insights on 3D printing, drone technology, engineering innovation & industry trends from DECOUVERTES.",
+    title: "Blog | Decouvertes",
+    description: "Read Decouvertes blog insights on 3D printing India, industrial 3D printers, drone technology and engineering services.",
     path: "/blogs",
   });
 

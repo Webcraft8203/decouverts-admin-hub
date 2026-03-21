@@ -168,7 +168,7 @@ export default function BlogDetail() {
   const blogUrl = `/blogs/${slug}`;
 
   usePageSEO({
-    title: `${post.meta_title || post.title} | DECOUVERTES`.slice(0, 60),
+    title: `${post.meta_title || post.title} | Decouvertes`.slice(0, 60),
     description: (post.meta_description || post.excerpt || post.title).slice(0, 160),
     path: blogUrl,
     type: "article",

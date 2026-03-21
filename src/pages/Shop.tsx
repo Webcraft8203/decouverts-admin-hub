@@ -137,11 +137,11 @@ const Shop = () => {
 
   usePageSEO({
     title: selectedCategoryName
-      ? `${selectedCategoryName} | Buy Online India | DECOUVERTES`
-      : "Shop Premium 3D Printers & Industrial Products | DECOUVERTES",
+      ? `${selectedCategoryName} | Shop | Decouvertes`
+      : "Shop | Decouvertes",
     description: selectedCategoryName
-      ? `Shop ${selectedCategoryName} from DECOUVERTES. Premium quality engineering & industrial products at best prices in India. Free shipping available.`
-      : "Browse DECOUVERTES collection of industrial 3D printers, engineering tools & premium products. Best prices in India with free shipping.",
+      ? `Shop ${selectedCategoryName} from Decouvertes with industrial-grade quality, reliable delivery and premium engineering products in India.`
+      : "Shop Decouvertes for industrial 3D printers, engineering products and premium technology solutions in India.",
     path: "/shop",
   });
 

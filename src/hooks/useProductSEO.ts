@@ -44,6 +44,8 @@ export const useProductSEO = (product: ProductSEOData | null | undefined, review
       el.setAttribute("content", content);
     };
 
+    setMeta("application-name", brandName);
+    setMeta("apple-mobile-web-app-title", brandName);
     setMeta("description", description);
     setMeta("robots", "index, follow, max-image-preview:large");
 

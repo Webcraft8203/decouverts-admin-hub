@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { usePageSEO } from "@/hooks/usePageSEO";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { PublicFooter } from "@/components/PublicFooter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,6 +62,12 @@ interface VerificationData {
 }
 
 const VerifyOrder = () => {
+  usePageSEO({
+    title: "Verify Order | Decouvertes",
+    description: "Verify Decouvertes orders, shipping details and delivery status from the official order verification page.",
+    path: "/verify-order",
+  });
+
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get("id");
   

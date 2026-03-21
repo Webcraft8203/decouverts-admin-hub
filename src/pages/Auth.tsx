@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { usePageSEO } from "@/hooks/usePageSEO";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,12 @@ import { z } from "zod";
 const emailSchema = z.string().email("Please enter a valid email address");
 
 export default function Auth() {
+  usePageSEO({
+    title: "Admin Login | Decouvertes",
+    description: "Secure admin login for Decouvertes to manage products, orders, reports and site operations.",
+    path: "/auth",
+  });
+
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSent, setIsSent] = useState(false);
