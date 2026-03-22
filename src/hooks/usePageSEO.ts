@@ -67,5 +67,5 @@ export const usePageSEO = (config: PageSEOConfig) => {
       const canonicalEl = document.querySelector('link[rel="canonical"]');
       if (canonicalEl) canonicalEl.remove();
     };
-  }, [config.title, config.description, config.path, config.type, config.image]);
+  }, [config.title, config.description, config.path, config.type, config.image, config.noindex]);
 };

@@ -143,7 +143,7 @@ export const PublicNavbar = () => {
           >
             <img 
               src={logo} 
-              alt="Decouvertes" 
+              alt="Decouvertes Logo" 
               className="h-9 md:h-11 lg:h-12 w-auto object-contain transition-transform group-hover:scale-105"
             />
             <div className="flex flex-col justify-center">

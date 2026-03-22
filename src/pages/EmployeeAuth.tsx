@@ -18,6 +18,7 @@ export default function EmployeeAuth() {
     title: "Employee Login | Decouvertes",
     description: "Employee login for Decouvertes to securely access internal tools, documents and assigned workflows.",
     path: "/employee-login",
+    noindex: true,
   });
 
   const [email, setEmail] = useState("");

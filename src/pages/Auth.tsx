@@ -18,6 +18,7 @@ export default function Auth() {
     title: "Admin Login | Decouvertes",
     description: "Secure admin login for Decouvertes to manage products, orders, reports and site operations.",
     path: "/auth",
+    noindex: true,
   });
 
   const [email, setEmail] = useState("");

@@ -103,7 +103,7 @@ export const PublicFooter = () => {
               <div className="p-2 bg-white/70 hover:bg-white rounded-xl transition-colors duration-300">
                 <img 
                   src={logo} 
-                  alt="DECOUVERTES Plus" 
+                  alt="Decouvertes Logo" 
                   className="h-10 w-auto"
                 />
               </div>
