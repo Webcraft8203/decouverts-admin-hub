@@ -33,6 +33,7 @@ const Engineering = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans">
+      <BreadcrumbSchema items={[{ name: "Home", url: "/" }, { name: "Engineering Services", url: "/engineering" }]} />
       <PublicNavbar />
 
       <main className="flex-1 pt-16 md:pt-20">

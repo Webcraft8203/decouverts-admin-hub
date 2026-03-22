@@ -80,6 +80,7 @@ export default function Blogs() {
 
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbSchema items={[{ name: "Home", url: "/" }, { name: "Blogs", url: "/blogs" }]} />
       <PublicNavbar />
       
       {/* Hero Slider */}
