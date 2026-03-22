@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { usePageSEO } from "@/hooks/usePageSEO";
+import { BreadcrumbSchema } from "@/components/SEOSchemas";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PublicNavbar } from "@/components/PublicNavbar";

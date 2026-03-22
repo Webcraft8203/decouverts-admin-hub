@@ -32,6 +32,7 @@ export default function CustomerAuth() {
     title: "Login | Decouvertes",
     description: "Sign in or create your Decouvertes account to shop products, track orders and manage your profile.",
     path: "/login",
+    noindex: true,
   });
   const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);

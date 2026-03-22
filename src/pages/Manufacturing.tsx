@@ -1,5 +1,6 @@
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { usePageSEO } from "@/hooks/usePageSEO";
+import { BreadcrumbSchema } from "@/components/SEOSchemas";
 import { PublicFooter } from "@/components/PublicFooter";
 import { Factory, Printer, Plane, ArrowRight, ShieldCheck, Cpu, Scale, Award, Settings, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";

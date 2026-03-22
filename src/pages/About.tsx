@@ -58,6 +58,7 @@ const About = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans selection:bg-orange-100 selection:text-orange-900">
+      <BreadcrumbSchema items={[{ name: "Home", url: "/" }, { name: "About Us", url: "/about" }]} />
       <PublicNavbar />
       
       <main className="flex-1 pt-16 md:pt-20 overflow-hidden">
