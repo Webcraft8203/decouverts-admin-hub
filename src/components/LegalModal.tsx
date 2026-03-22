@@ -33,7 +33,7 @@ const legalContent: Record<PolicyKey, PolicyData> = {
       },
       {
         heading: "2. Intellectual Property",
-        content: ["All content included on this site, such as text, graphics, logos, button icons, images, and software, is the property of Decouverts or its content suppliers and protected by international copyright laws."],
+        content: ["All content included on this site, such as text, graphics, logos, button icons, images, and software, is the property of Decouvertes or its content suppliers and protected by international copyright laws."],
       },
       {
         heading: "3. User Account",

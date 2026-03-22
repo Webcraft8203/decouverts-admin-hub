@@ -1,5 +1,6 @@
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { usePageSEO } from "@/hooks/usePageSEO";
+import { BreadcrumbSchema } from "@/components/SEOSchemas";
 import { PublicFooter } from "@/components/PublicFooter";
 import { Factory, Printer, Plane, ArrowRight, ShieldCheck, Cpu, Scale, Award, Settings, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ const Manufacturing = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#F7F9FC] to-[#EEF2F7] font-sans text-slate-900 selection:bg-orange-100 selection:text-orange-900">
+      <BreadcrumbSchema items={[{ name: "Home", url: "/" }, { name: "Manufacturing", url: "/manufacturing" }]} />
       <PublicNavbar />
 
       {/* Hero Section */}

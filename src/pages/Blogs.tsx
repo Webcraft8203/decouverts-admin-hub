@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { usePageSEO } from "@/hooks/usePageSEO";
+import { BreadcrumbSchema } from "@/components/SEOSchemas";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PublicNavbar } from "@/components/PublicNavbar";
@@ -79,6 +80,7 @@ export default function Blogs() {
 
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbSchema items={[{ name: "Home", url: "/" }, { name: "Blogs", url: "/blogs" }]} />
       <PublicNavbar />
       
       {/* Hero Slider */}

@@ -6,6 +6,7 @@ interface PageSEOConfig {
   path: string;
   type?: string;
   image?: string;
+  noindex?: boolean;
 }
 
 const BRAND = "Decouvertes";
@@ -34,8 +35,9 @@ export const usePageSEO = (config: PageSEOConfig) => {
 
     setMeta("application-name", BRAND);
     setMeta("apple-mobile-web-app-title", BRAND);
+    setMeta("publisher", BRAND);
     setMeta("description", description);
-    setMeta("robots", "index, follow");
+    setMeta("robots", config.noindex ? "noindex, follow" : "index, follow");
 
     // Open Graph
     setMeta("og:title", title, true);
@@ -65,5 +67,5 @@ export const usePageSEO = (config: PageSEOConfig) => {
       const canonicalEl = document.querySelector('link[rel="canonical"]');
       if (canonicalEl) canonicalEl.remove();
     };
-  }, [config.title, config.description, config.path, config.type, config.image]);
+  }, [config.title, config.description, config.path, config.type, config.image, config.noindex]);
 };

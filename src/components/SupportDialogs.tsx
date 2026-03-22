@@ -256,10 +256,10 @@ export const CopyrightDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose:
                 </div>
                 <div className="space-y-2">
                     <p className="text-sm text-slate-700 font-medium">
-                        © {new Date().getFullYear()} Decouverts. All rights reserved.
+                        © {new Date().getFullYear()} Decouvertes. All rights reserved.
                     </p>
                     <p className="text-sm text-slate-500 leading-relaxed">
-                        The content, design, graphics, and code on this website are the exclusive intellectual property of Decouverts and are protected by international copyright laws.
+                        The content, design, graphics, and code on this website are the exclusive intellectual property of Decouvertes and are protected by international copyright laws.
                     </p>
                 </div>
             </div>
