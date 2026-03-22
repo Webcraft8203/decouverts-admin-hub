@@ -6,6 +6,7 @@ interface PageSEOConfig {
   path: string;
   type?: string;
   image?: string;
+  noindex?: boolean;
 }
 
 const BRAND = "Decouvertes";
