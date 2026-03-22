@@ -35,8 +35,9 @@ export const usePageSEO = (config: PageSEOConfig) => {
 
     setMeta("application-name", BRAND);
     setMeta("apple-mobile-web-app-title", BRAND);
+    setMeta("publisher", BRAND);
     setMeta("description", description);
-    setMeta("robots", "index, follow");
+    setMeta("robots", config.noindex ? "noindex, follow" : "index, follow");
 
     // Open Graph
     setMeta("og:title", title, true);
