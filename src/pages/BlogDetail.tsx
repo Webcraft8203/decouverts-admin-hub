@@ -93,6 +93,16 @@ export default function BlogDetail() {
     enabled: !!post?.id,
   });
 
+  const blogUrl = `/blogs/${slug}`;
+
+  usePageSEO({
+    title: post ? `${post.meta_title || post.title} | Decouvertes`.slice(0, 60) : "Blog | Decouvertes",
+    description: post ? (post.meta_description || post.excerpt || post.title).slice(0, 160) : "Read our latest blog posts and news.",
+    path: blogUrl,
+    type: "article",
+    image: post?.feature_image || undefined,
+  });
+
   const handleShare = async (platform: string) => {
     const url = window.location.href;
     const title = post?.title || "Blog Post";
@@ -164,16 +174,6 @@ export default function BlogDetail() {
       </div>
     );
   }
-
-  const blogUrl = `/blogs/${slug}`;
-
-  usePageSEO({
-    title: `${post.meta_title || post.title} | Decouvertes`.slice(0, 60),
-    description: (post.meta_description || post.excerpt || post.title).slice(0, 160),
-    path: blogUrl,
-    type: "article",
-    image: post.feature_image || undefined,
-  });
 
   return (
     <div className="min-h-screen bg-background">
