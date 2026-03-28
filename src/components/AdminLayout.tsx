@@ -3,7 +3,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { PermissionsProvider, usePermissions, EmployeePermission } from "@/hooks/useEmployeePermissions";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard,
+  LayoutDashboard, Package, Layers, Warehouse, Box, FileText, LogOut, Menu, X, Shield,
+  ShoppingBag, Star, Ticket, Users, Activity, Palette, Home, Printer, Plane, MessageCircle,
+  Handshake, Image as ImageIcon, MessageSquare, SlidersHorizontal, FileText as BlogIcon,
+  Newspaper, Briefcase, FileBarChart, Mail,
+} from "lucide-react";
   Package,
   Layers,
   Warehouse,

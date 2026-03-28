@@ -162,6 +162,7 @@ const App = () => (
               <Route path="/admin/payslips" element={<AdminRoute><Payslips /></AdminRoute>} />
               <Route path="/admin/salary-reports" element={<AdminRoute><SalaryReports /></AdminRoute>} />
               <Route path="/admin/reports" element={<AdminRoute><Reports /></AdminRoute>} />
+              <Route path="/admin/newsletter" element={<AdminRoute><Newsletter /></AdminRoute>} />
 
               {/* 404 */}
               <Route path="*" element={<NotFound />} />
