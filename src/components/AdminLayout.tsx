@@ -81,6 +81,7 @@ const navItems: NavItem[] = [
   { to: "/admin/partners", icon: Handshake, label: "Partners", permissions: ["manage_partners"] },
   { to: "/admin/blog-posts", icon: Newspaper, label: "Blog Posts", permissions: ["manage_blog"] },
   { to: "/admin/blog-slides", icon: BlogIcon, label: "Blog Slider", permissions: ["manage_blog"] },
+  { to: "/admin/newsletter", icon: Mail, label: "Newsletter", superAdminOnly: true },
 ];
 
 interface AdminLayoutProps {
