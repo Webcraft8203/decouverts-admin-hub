@@ -3,34 +3,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { PermissionsProvider, usePermissions, EmployeePermission } from "@/hooks/useEmployeePermissions";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard,
-  Package,
-  Layers,
-  Warehouse,
-  Box,
-  FileText,
-  LogOut,
-  Menu,
-  X,
-  Shield,
-  ShoppingBag,
-  Star,
-  Ticket,
-  Users,
-  Activity,
-  Palette,
-  Home,
-  Printer,
-  Plane,
-  MessageCircle,
-  Handshake,
-  Image as ImageIcon,
-  MessageSquare,
-  SlidersHorizontal,
-  FileText as BlogIcon,
-  Newspaper,
-  Briefcase,
-  FileBarChart,
+  LayoutDashboard, Package, Layers, Warehouse, Box, FileText, LogOut, Menu, X, Shield,
+  ShoppingBag, Star, Ticket, Users, Activity, Palette, Home, Printer, Plane, MessageCircle,
+  Handshake, Image as ImageIcon, MessageSquare, SlidersHorizontal, FileText as BlogIcon,
+  Newspaper, Briefcase, FileBarChart, Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -81,6 +57,7 @@ const navItems: NavItem[] = [
   { to: "/admin/partners", icon: Handshake, label: "Partners", permissions: ["manage_partners"] },
   { to: "/admin/blog-posts", icon: Newspaper, label: "Blog Posts", permissions: ["manage_blog"] },
   { to: "/admin/blog-slides", icon: BlogIcon, label: "Blog Slider", permissions: ["manage_blog"] },
+  { to: "/admin/newsletter", icon: Mail, label: "Newsletter", superAdminOnly: true },
 ];
 
 interface AdminLayoutProps {

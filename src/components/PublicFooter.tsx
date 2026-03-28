@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Mail, MapPin, Linkedin, Twitter, Instagram, Phone, 
-  ArrowUp, Send, ShieldCheck, Cpu, ChevronRight
+  ArrowUp, Send, ShieldCheck, Cpu, ChevronRight, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,11 +63,31 @@ export const PublicFooter = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  const [isSubscribing, setIsSubscribing] = useState(false);
+
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
-    toast.success("Successfully subscribed to newsletter!");
-    setEmail("");
+    if (!email || isSubscribing) return;
+    setIsSubscribing(true);
+    try {
+      const { error } = await supabase
+        .from("newsletter_subscribers")
+        .insert({ email: email.trim().toLowerCase() });
+      if (error) {
+        if (error.code === "23505") {
+          toast.info("You're already subscribed!");
+        } else {
+          throw error;
+        }
+      } else {
+        toast.success("Successfully subscribed to newsletter!");
+      }
+      setEmail("");
+    } catch (err: any) {
+      toast.error("Failed to subscribe. Please try again.");
+    } finally {
+      setIsSubscribing(false);
+    }
   };
 
   const handleSupportClick = (e: React.MouseEvent, item: typeof supportLinks[0]) => {
@@ -255,8 +276,8 @@ export const PublicFooter = () => {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-9 text-sm font-medium">
-                  Subscribe <Send className="w-3 h-3 ml-2" />
+                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-9 text-sm font-medium" disabled={isSubscribing}>
+                  {isSubscribing ? <Loader2 className="h-3 w-3 animate-spin" /> : <>Subscribe <Send className="w-3 h-3 ml-2" /></>}
                 </Button>
               </form>
             </div>
