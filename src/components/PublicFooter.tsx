@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   Mail, MapPin, Linkedin, Twitter, Instagram, Phone, 
-  ArrowUp, Send, ShieldCheck, Cpu, ChevronRight
+  ArrowUp, Send, ShieldCheck, Cpu, ChevronRight, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
