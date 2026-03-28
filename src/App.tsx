@@ -70,6 +70,7 @@ import LeaveManagement from "./pages/admin/LeaveManagement";
 import Payslips from "./pages/admin/Payslips";
 import SalaryReports from "./pages/admin/SalaryReports";
 import Reports from "./pages/admin/Reports";
+import Newsletter from "./pages/admin/Newsletter";
 import VerifyOrder from "./pages/VerifyOrder";
 import NotFound from "./pages/NotFound";
 
