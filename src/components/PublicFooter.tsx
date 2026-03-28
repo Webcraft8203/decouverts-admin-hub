@@ -276,8 +276,8 @@ export const PublicFooter = () => {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-9 text-sm font-medium">
-                  Subscribe <Send className="w-3 h-3 ml-2" />
+                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-9 text-sm font-medium" disabled={isSubscribing}>
+                  {isSubscribing ? <Loader2 className="h-3 w-3 animate-spin" /> : <>Subscribe <Send className="w-3 h-3 ml-2" /></>}
                 </Button>
               </form>
             </div>
