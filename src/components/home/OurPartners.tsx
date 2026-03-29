@@ -40,21 +40,24 @@ export const OurPartners = () => {
 
   if (!partners || partners.length === 0) return null;
 
-  const PartnerCard = ({ partner }: { partner: Partner }) => {
+  // Duplicate for seamless infinite scroll
+  const marqueeItems = [...partners, ...partners, ...partners];
+
+  const PartnerLogo = ({ partner }: { partner: Partner }) => {
     const content = (
-      <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1 border border-slate-100 hover:border-primary/20 group flex items-center justify-center h-[140px] md:h-[160px] relative overflow-hidden">
+      <div className="flex-shrink-0 mx-4 md:mx-8 bg-white rounded-2xl p-5 md:p-7 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1 border border-slate-100 hover:border-primary/20 group flex items-center justify-center h-[120px] md:h-[140px] w-[180px] md:w-[220px]">
         <img
           src={partner.logo_url}
           alt={partner.image_title}
           title={partner.image_title}
-          className="max-h-12 md:max-h-16 w-auto max-w-full object-contain transition-transform duration-500 group-hover:scale-105"
+          className="max-h-10 md:max-h-14 w-auto max-w-full object-contain transition-all duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0"
         />
       </div>
     );
 
     if (partner.website_url) {
       return (
-        <a href={partner.website_url} target="_blank" rel="noopener noreferrer" className="block h-full">
+        <a href={partner.website_url} target="_blank" rel="noopener noreferrer" className="block">
           {content}
         </a>
       );
@@ -68,7 +71,7 @@ export const OurPartners = () => {
       
       <div className="container mx-auto px-4 relative z-10">
         <motion.div 
-          className="text-center mb-16"
+          className="text-center mb-14"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -83,19 +86,20 @@ export const OurPartners = () => {
             Collaborating with industry leaders to deliver excellence.
           </p>
         </motion.div>
+      </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 md:gap-8">
-          {partners.map((partner, index) => (
-            <motion.div
-              key={partner.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <PartnerCard partner={partner} />
-            </motion.div>
-          ))}
+      {/* Infinite Marquee */}
+      <div className="relative">
+        {/* Gradient fade edges */}
+        <div className="absolute left-0 top-0 bottom-0 w-20 md:w-40 bg-gradient-to-r from-slate-50 to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-20 md:w-40 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+        
+        <div className="overflow-hidden">
+          <div className="flex animate-marquee-smooth pause-on-hover">
+            {marqueeItems.map((partner, index) => (
+              <PartnerLogo key={`${partner.id}-${index}`} partner={partner} />
+            ))}
+          </div>
         </div>
       </div>
     </section>
