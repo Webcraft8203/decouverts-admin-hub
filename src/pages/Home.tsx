@@ -6,6 +6,7 @@ import { PublicNavbar } from "@/components/PublicNavbar";
 import { PublicFooter } from "@/components/PublicFooter";
 import { NotificationMarquee } from "@/components/NotificationMarquee";
 import { HeroSection } from "@/components/home/HeroSection";
+import { StatsCounter } from "@/components/home/StatsCounter";
 import { WhatDrivesUs } from "@/components/home/WhatDrivesUs";
 import { ServicesSection } from "@/components/home/ServicesSection";
 import { IndustrySolutions } from "@/components/home/IndustrySolutions";
@@ -13,6 +14,8 @@ import { HomepageGallery } from "@/components/home/HomepageGallery";
 import { ContactSection } from "@/components/home/ContactSection";
 import { OurCustomers } from "@/components/home/OurCustomers";
 import { OurPartners } from "@/components/home/OurPartners";
+import { BackToTop } from "@/components/home/BackToTop";
+import { SectionDivider } from "@/components/home/SectionDivider";
 import { OrganizationSchema } from "@/components/SEOSchemas";
 import { usePageSEO } from "@/hooks/usePageSEO";
 
@@ -28,16 +31,14 @@ const Home = () => {
   useEffect(() => {
     if (location.state?.scrollTo) {
       const sectionId = location.state.scrollTo;
-      // Small delay to ensure the page is rendered
       setTimeout(() => {
         const element = document.getElementById(sectionId);
         element?.scrollIntoView({ behavior: "smooth" });
       }, 100);
-      // Clear the state
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
-  // Check if there's an active notification to adjust spacing
+
   const { data: hasNotification } = useQuery({
     queryKey: ["has-active-notification"],
     queryFn: async () => {
@@ -58,32 +59,51 @@ const Home = () => {
       <NotificationMarquee />
 
       <main className={`flex-1 ${hasNotification ? 'pt-24 md:pt-28' : 'pt-16 md:pt-20'}`}>
-        {/* 1. Hero Section with integrated interactive hotspots */}
+        {/* 1. Hero Section */}
         <HeroSection />
         
-        {/* 4. What Drives Us Slider */}
+        {/* 2. Animated Stats Counter */}
+        <StatsCounter />
+        
+        {/* Divider: light → dark */}
+        <SectionDivider variant="wave" from="fill-[hsl(210,20%,98%)]" to="fill-[hsl(222,47%,11%)]" />
+        
+        {/* 3. What Drives Us */}
         <WhatDrivesUs />
         
-        {/* 5. Services Section */}
+        {/* Divider: dark → light */}
+        <SectionDivider variant="curve" from="fill-[hsl(222,47%,11%)]" to="fill-[hsl(210,20%,98%)]" />
+        
+        {/* 4. Services Section */}
         <ServicesSection />
         
-        {/* 6. Industry Solutions */}
+        {/* Divider: light → slate */}
+        <SectionDivider variant="angle" from="fill-[hsl(210,20%,98%)]" to="fill-slate-50" />
+        
+        {/* 5. Industry Solutions */}
         <IndustrySolutions />
         
-        {/* 7. Our Customers (Testimonials) */}
+        {/* Divider: slate → dark */}
+        <SectionDivider variant="wave" from="fill-slate-50" to="fill-[hsl(222,47%,11%)]" />
+        
+        {/* 6. Our Customers (Testimonials) */}
         <OurCustomers />
         
-        {/* 8. Our Partners */}
+        {/* Divider: dark → light */}
+        <SectionDivider variant="curve" from="fill-[hsl(222,47%,11%)]" to="fill-slate-50" />
+        
+        {/* 7. Our Partners */}
         <OurPartners />
         
-        {/* 9. Homepage Gallery (Admin-managed) */}
+        {/* 8. Homepage Gallery */}
         <HomepageGallery />
         
-        {/* 10. Contact Us Section */}
+        {/* 9. Contact Us Section */}
         <ContactSection />
       </main>
 
       <PublicFooter />
+      <BackToTop />
     </div>
   );
 };
