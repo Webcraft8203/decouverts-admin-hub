@@ -52,8 +52,8 @@ const COMPANY_SETTINGS = {
   business_pincode: "411034",
   business_country: "India",
   business_phone: "+91 9561103435",
-  business_email: "info@decouverts.com",
-  business_gstin: "27XXXXX1234X1ZX",
+  business_email: "hello@decouvertes.in",
+  business_gstin: "27AAKCD1492N1Z4",
   terms_and_conditions: "1. Goods once sold are non-refundable.\n2. Payment due within 30 days.\n3. Warranty as per product terms.",
 };
 
