@@ -1095,48 +1095,50 @@ export default function Invoices() {
               </div>
 
               {/* Items Table */}
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>#</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead className="text-right">Qty</TableHead>
-                    <TableHead className="text-right">Rate</TableHead>
-                    <TableHead className="text-right">GST</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {selectedInvoice.items.map((item, i) => (
-                    <TableRow key={i}>
-                      <TableCell>{i + 1}</TableCell>
-                      <TableCell>{item.description}</TableCell>
-                      <TableCell className="text-right">{item.quantity}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(item.price)}</TableCell>
-                      <TableCell className="text-right">{item.gst_rate || 18}%</TableCell>
-                      <TableCell className="text-right font-medium">
-                        {formatCurrency(item.total || item.quantity * item.price)}
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="w-10 text-center">#</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead className="text-center w-16">Qty</TableHead>
+                      <TableHead className="text-right w-24">Rate (₹)</TableHead>
+                      <TableHead className="text-center w-16">GST %</TableHead>
+                      <TableHead className="text-right w-24">Total (₹)</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {selectedInvoice.items.map((item, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="text-center text-muted-foreground">{i + 1}</TableCell>
+                        <TableCell className="font-medium">{item.description || item.name || item.product_name}</TableCell>
+                        <TableCell className="text-center">{item.quantity}</TableCell>
+                        <TableCell className="text-right tabular-nums">{formatCurrency(item.price || item.rate || item.product_price || 0)}</TableCell>
+                        <TableCell className="text-center">{item.gst_rate || 18}%</TableCell>
+                        <TableCell className="text-right font-medium tabular-nums">
+                          {formatCurrency(item.total || item.quantity * (item.price || item.rate || item.product_price || 0))}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
 
               {/* Totals */}
               <div className="flex justify-end">
-                <div className="w-72 space-y-2">
+                <div className="w-72 space-y-2.5 border rounded-lg p-4 bg-muted/30">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Subtotal:</span>
-                    <span>{formatCurrency(selectedInvoice.subtotal)}</span>
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span className="tabular-nums">{formatCurrency(selectedInvoice.subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">GST:</span>
-                    <span>{getGstDisplay(selectedInvoice)}</span>
+                    <span className="text-muted-foreground">GST</span>
+                    <span className="tabular-nums">{getGstDisplay(selectedInvoice)}</span>
                   </div>
                   <Separator />
-                  <div className="flex justify-between font-bold text-lg">
-                    <span>Total:</span>
-                    <span className="text-primary">{formatCurrency(selectedInvoice.total_amount)}</span>
+                  <div className="flex justify-between font-bold text-lg pt-1">
+                    <span>Grand Total</span>
+                    <span className="text-primary tabular-nums">{formatCurrency(selectedInvoice.total_amount)}</span>
                   </div>
                 </div>
               </div>
