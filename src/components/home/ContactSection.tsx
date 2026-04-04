@@ -32,7 +32,7 @@ const contactInfo = [
   {
     icon: Mail,
     label: "Email Us",
-    value: "hello@decouvertes.com",
+    value: "hello@decouvertes.in",
     color: "text-blue-600",
     bg: "bg-blue-50"
   },
