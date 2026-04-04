@@ -1034,36 +1034,43 @@ export default function Invoices() {
           {selectedInvoice && (
             <div className="space-y-6 mt-4">
               {/* Invoice Header Preview */}
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <h3 className="font-bold text-xl text-primary">{COMPANY_SETTINGS.business_name}</h3>
-                  <p className="text-sm text-muted-foreground">{COMPANY_SETTINGS.business_address}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {COMPANY_SETTINGS.business_city}, {COMPANY_SETTINGS.business_state} - {COMPANY_SETTINGS.business_pincode}
+              <div className="flex items-start justify-between gap-6">
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg text-primary leading-tight">{COMPANY_SETTINGS.business_name}</h3>
+                  <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{COMPANY_SETTINGS.business_address}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {COMPANY_SETTINGS.business_city}, {COMPANY_SETTINGS.business_state} – {COMPANY_SETTINGS.business_pincode}
                   </p>
-                  <p className="text-sm text-muted-foreground">GSTIN: {COMPANY_SETTINGS.business_gstin}</p>
+                  <div className="mt-2 space-y-0.5">
+                    <p className="text-xs text-muted-foreground">Phone: {COMPANY_SETTINGS.business_phone} | Email: {COMPANY_SETTINGS.business_email}</p>
+                    <p className="text-xs font-medium text-primary">GSTIN: {COMPANY_SETTINGS.business_gstin}</p>
+                  </div>
                 </div>
-                <div className="text-right">
+                <div className="text-right shrink-0">
                   <div className={`inline-block px-4 py-2 rounded-lg ${selectedInvoice.is_final ? 'bg-green-500/10' : 'bg-amber-500/10'}`}>
-                    <p className={`font-bold ${selectedInvoice.is_final ? 'text-green-600' : 'text-amber-600'}`}>
+                    <p className={`font-bold text-sm ${selectedInvoice.is_final ? 'text-green-600' : 'text-amber-600'}`}>
                       {selectedInvoice.is_final ? "TAX INVOICE" : "PROFORMA INVOICE"}
                     </p>
                     {!selectedInvoice.is_final && (
-                      <p className="text-xs text-muted-foreground">Temporary - Not a Tax Document</p>
+                      <p className="text-[10px] text-muted-foreground">Not a Tax Document</p>
                     )}
                   </div>
-                  <p className="text-sm mt-2">
-                    <span className="text-muted-foreground">Invoice #:</span> {selectedInvoice.invoice_number}
-                  </p>
-                  <p className="text-sm">
-                    <span className="text-muted-foreground">Date:</span>{" "}
-                    {format(new Date(selectedInvoice.created_at), "dd MMM yyyy")}
-                  </p>
-                  {selectedInvoice.order?.order_number && (
+                  <div className="mt-3 space-y-1">
                     <p className="text-sm">
-                      <span className="text-muted-foreground">Order #:</span> {selectedInvoice.order.order_number}
+                      <span className="text-muted-foreground">Invoice #:</span>{" "}
+                      <span className="font-medium">{selectedInvoice.invoice_number}</span>
                     </p>
-                  )}
+                    <p className="text-sm">
+                      <span className="text-muted-foreground">Date:</span>{" "}
+                      <span className="font-medium">{format(new Date(selectedInvoice.created_at), "dd MMM yyyy")}</span>
+                    </p>
+                    {selectedInvoice.order?.order_number && (
+                      <p className="text-sm">
+                        <span className="text-muted-foreground">Order #:</span>{" "}
+                        <span className="font-medium">{selectedInvoice.order.order_number}</span>
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -1088,48 +1095,50 @@ export default function Invoices() {
               </div>
 
               {/* Items Table */}
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>#</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead className="text-right">Qty</TableHead>
-                    <TableHead className="text-right">Rate</TableHead>
-                    <TableHead className="text-right">GST</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {selectedInvoice.items.map((item, i) => (
-                    <TableRow key={i}>
-                      <TableCell>{i + 1}</TableCell>
-                      <TableCell>{item.description}</TableCell>
-                      <TableCell className="text-right">{item.quantity}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(item.price)}</TableCell>
-                      <TableCell className="text-right">{item.gst_rate || 18}%</TableCell>
-                      <TableCell className="text-right font-medium">
-                        {formatCurrency(item.total || item.quantity * item.price)}
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="w-10 text-center">#</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead className="text-center w-16">Qty</TableHead>
+                      <TableHead className="text-right w-24">Rate (₹)</TableHead>
+                      <TableHead className="text-center w-16">GST %</TableHead>
+                      <TableHead className="text-right w-24">Total (₹)</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {selectedInvoice.items.map((item, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="text-center text-muted-foreground">{i + 1}</TableCell>
+                        <TableCell className="font-medium">{item.description || item.name || item.product_name}</TableCell>
+                        <TableCell className="text-center">{item.quantity}</TableCell>
+                        <TableCell className="text-right tabular-nums">{formatCurrency(item.price || item.rate || item.product_price || 0)}</TableCell>
+                        <TableCell className="text-center">{item.gst_rate || 18}%</TableCell>
+                        <TableCell className="text-right font-medium tabular-nums">
+                          {formatCurrency(item.total || item.quantity * (item.price || item.rate || item.product_price || 0))}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
 
               {/* Totals */}
               <div className="flex justify-end">
-                <div className="w-72 space-y-2">
+                <div className="w-72 space-y-2.5 border rounded-lg p-4 bg-muted/30">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Subtotal:</span>
-                    <span>{formatCurrency(selectedInvoice.subtotal)}</span>
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span className="tabular-nums">{formatCurrency(selectedInvoice.subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">GST:</span>
-                    <span>{getGstDisplay(selectedInvoice)}</span>
+                    <span className="text-muted-foreground">GST</span>
+                    <span className="tabular-nums">{getGstDisplay(selectedInvoice)}</span>
                   </div>
                   <Separator />
-                  <div className="flex justify-between font-bold text-lg">
-                    <span>Total:</span>
-                    <span className="text-primary">{formatCurrency(selectedInvoice.total_amount)}</span>
+                  <div className="flex justify-between font-bold text-lg pt-1">
+                    <span>Grand Total</span>
+                    <span className="text-primary tabular-nums">{formatCurrency(selectedInvoice.total_amount)}</span>
                   </div>
                 </div>
               </div>
