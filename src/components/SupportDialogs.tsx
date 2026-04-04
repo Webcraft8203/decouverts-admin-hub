@@ -43,13 +43,13 @@ export const HelpCenterDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose
 
         {/* Content */}
         <div className="p-6 space-y-4 bg-slate-50/50">
-          <a href="mailto:hello@decouvertes.com" className="flex items-start gap-4 p-4 bg-white border border-slate-100 rounded-xl hover:border-primary/30 hover:shadow-md transition-all group">
+          <a href="mailto:hello@decouvertes.in" className="flex items-start gap-4 p-4 bg-white border border-slate-100 rounded-xl hover:border-primary/30 hover:shadow-md transition-all group">
             <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
               <Mail className="w-5 h-5" />
             </div>
             <div>
               <h3 className="font-semibold text-slate-900 text-sm">Email Support</h3>
-              <p className="text-slate-500 text-xs mt-0.5">hello@decouvertes.com</p>
+              <p className="text-slate-500 text-xs mt-0.5">hello@decouvertes.in</p>
               <span className="text-[10px] text-blue-600 font-medium mt-1.5 inline-block">Response within 24h</span>
             </div>
           </a>
@@ -72,7 +72,7 @@ export const HelpCenterDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose
             <div>
               <h3 className="font-semibold text-slate-900 text-sm">Office</h3>
               <p className="text-slate-500 text-xs mt-1 leading-relaxed">
-                Megapolis Springs, Phase 3, Hinjawadi Rajiv Gandhi Infotech Park, Pune, Maharashtra, India
+                A-414, Gera's Imperium Gateway, Near Nashik Phata Flyover, Kasarwadi, Pimpri-Chinchwad, Pune, Maharashtra – 411034
               </p>
             </div>
           </div>
@@ -112,10 +112,10 @@ export const CareersDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
                 <p className="text-sm text-slate-500 mb-2">Please send your resume and portfolio to:</p>
                 <a 
-                    href="mailto:careers@decouvertes.com" 
+                    href="mailto:careers@decouvertes.in" 
                     className="text-lg font-bold text-primary hover:underline"
                 >
-                    careers@decouvertes.com
+                    careers@decouvertes.in
                 </a>
             </div>
 

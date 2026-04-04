@@ -30,16 +30,17 @@ const COLORS = {
 
 const COMPANY = {
   name: "DECOUVERTES",
+  fullName: "DECOUVERTES FUTURE TECH PRIVATE LIMITED",
   tagline: "Discovering Future Technologies",
-  address: "Megapolis Springs, Phase 3, Hinjawadi Rajiv Gandhi Infotech Park",
+  address: "A-414, Gera's Imperium Gateway, Near Nashik Phata Flyover, Opp. Bhosari Metro Station, Kasarwadi, Pimpri-Chinchwad",
   city: "Pune",
   state: "Maharashtra",
-  pincode: "411057",
+  pincode: "411034",
   country: "India",
   phone: "+91 9561103435",
-  email: "hello@decouvertes.com",
+  email: "hello@decouvertes.in",
   gstin: "27AAKCD1492N1Z4",
-  website: "www.decouvertes.com",
+  website: "www.decouvertes.in",
 };
 
 const PAGE = { width: 210, height: 297, margin: 14 };
@@ -587,7 +588,7 @@ serve(async (req) => {
     doc.setFont("helvetica", "normal");
     doc.text(`Generated: ${new Date().toLocaleString("en-IN")}`, M, fy - 1);
     doc.text(`${COMPANY.name} | ${COMPANY.website}`, pw - M, fy - 1, { align: "right" });
-    doc.text("Handle with care  •  For verification: decouvertes.com/verify-order  •  This is an auto-generated shipping label", pw / 2, fy + 3, { align: "center" });
+    doc.text("Handle with care  •  For verification: decouvertes.in/verify-order  •  This is an auto-generated shipping label", pw / 2, fy + 3, { align: "center" });
 
     // ==================== UPLOAD PDF ====================
     const pdfArrayBuffer = doc.output("arraybuffer");

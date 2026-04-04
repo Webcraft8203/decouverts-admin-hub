@@ -217,7 +217,7 @@ export const LegalModal = ({ isOpen, onClose, policyKey }: LegalModalProps) => {
                 <FileText className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
                 <p className="text-xs text-slate-500 leading-relaxed">
                   This document is legally binding. If you have any questions regarding these policies, 
-                  please contact our legal team at <a href="mailto:legal@decouvertes.com" className="text-primary hover:underline">legal@decouvertes.com</a>.
+                  please contact our legal team at <a href="mailto:legal@decouvertes.in" className="text-primary hover:underline">legal@decouvertes.in</a>.
                 </p>
               </div>
             </div>
