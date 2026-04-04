@@ -215,14 +215,14 @@ export default function Payslips() {
 
     // Company settings (same as invoices)
     const companySettings = {
-      business_name: "Decouverts",
-      business_address: "Innovation Hub, Tech Park",
+      business_name: "DECOUVERTES FUTURE TECH PRIVATE LIMITED",
+      business_address: "A-414, Gera's Imperium Gateway, Near Nashik Phata Flyover, Opp. Bhosari Metro Station, Kasarwadi, Pimpri-Chinchwad",
       business_city: "Pune",
       business_state: "Maharashtra",
-      business_pincode: "411001",
-      business_phone: "+91 98765 43210",
-      business_email: "info@decouverts.com",
-      business_gstin: "27XXXXX1234X1ZX",
+      business_pincode: "411034",
+      business_phone: "+91 9561103435",
+      business_email: "hello@decouvertes.in",
+      business_gstin: "27AAKCD1492N1Z4",
     };
 
     // Header background

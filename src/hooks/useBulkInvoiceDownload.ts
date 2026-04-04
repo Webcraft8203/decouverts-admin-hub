@@ -45,13 +45,13 @@ interface Invoice {
 
 // Company settings - matches invoice generation
 const COMPANY_SETTINGS = {
-  business_name: "Decouverts",
-  business_address: "Innovation Hub, Tech Park",
+  business_name: "DECOUVERTES FUTURE TECH PRIVATE LIMITED",
+  business_address: "A-414, Gera's Imperium Gateway, Near Nashik Phata Flyover, Opp. Bhosari Metro Station, Kasarwadi, Pimpri-Chinchwad",
   business_city: "Pune",
   business_state: "Maharashtra",
-  business_pincode: "411001",
+  business_pincode: "411034",
   business_country: "India",
-  business_phone: "+91 98765 43210",
+  business_phone: "+91 9561103435",
   business_email: "info@decouverts.com",
   business_gstin: "27XXXXX1234X1ZX",
   terms_and_conditions: "1. Goods once sold are non-refundable.\n2. Payment due within 30 days.\n3. Warranty as per product terms.",

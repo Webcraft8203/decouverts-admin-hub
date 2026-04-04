@@ -23,14 +23,15 @@ const COLORS = {
 
 const COMPANY = {
   name: "DECOUVERTES",
+  fullName: "DECOUVERTES FUTURE TECH PRIVATE LIMITED",
   tagline: "Discovering Future Technologies",
-  address: "Megapolis Springs, Phase 3, Hinjawadi Rajiv Gandhi Infotech Park",
+  address: "A-414, Gera's Imperium Gateway, Near Nashik Phata Flyover, Opp. Bhosari Metro Station, Kasarwadi, Pimpri-Chinchwad",
   city: "Pune",
   state: "Maharashtra",
-  pincode: "411057",
+  pincode: "411034",
   country: "India",
   phone: "+91 9561103435",
-  email: "hello@decouvertes.com",
+  email: "hello@decouvertes.in",
   gstin: "27AAKCD1492N1Z4",
   pan: "AAKCD1492N",
   website: "www.decouvertes.com",
