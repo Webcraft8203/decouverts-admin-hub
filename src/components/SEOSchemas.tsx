@@ -48,10 +48,10 @@ export const OrganizationSchema = () => {
       foundingDate: "2023",
       address: {
         "@type": "PostalAddress",
-        streetAddress: "Megapolis Springs, Phase 3, Hinjawadi Rajiv Gandhi Infotech Park",
+        streetAddress: "A-414, Gera's Imperium Gateway, Near Nashik Phata Flyover, Opp. Bhosari Metro Station, Kasarwadi, Pimpri-Chinchwad",
         addressLocality: "Pune",
         addressRegion: "Maharashtra",
-        postalCode: "411057",
+        postalCode: "411034",
         addressCountry: "IN",
       },
       contactPoint: {

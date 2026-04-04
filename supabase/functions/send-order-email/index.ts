@@ -95,9 +95,9 @@ serve(async (req) => {
       .select("business_name, business_email, business_phone, business_address, business_city, business_state, business_pincode, business_gstin")
       .single();
 
-    const companyName = settings?.business_name || "Decouverts Plus";
-    const companyEmail = settings?.business_email || "info@decouverts.com";
-    const companyPhone = settings?.business_phone || "+91 98765 43210";
+    const companyName = settings?.business_name || "DECOUVERTES FUTURE TECH PRIVATE LIMITED";
+    const companyEmail = settings?.business_email || "hello@decouvertes.in";
+    const companyPhone = settings?.business_phone || "+91 9561103435";
     const companyAddress = settings?.business_address || "";
     const companyCity = settings?.business_city || "";
     const companyState = settings?.business_state || "";

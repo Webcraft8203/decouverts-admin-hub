@@ -125,7 +125,7 @@ serve(async (req) => {
                 © ${new Date().getFullYear()} DECOUVERTES. All rights reserved.
               </p>
               <p style="margin:0;font-size:11px;color:#94a3b8;">
-                Megapolis Springs, Phase 3, Hinjawadi, Pune, Maharashtra, India
+                A-414, Gera's Imperium Gateway, Kasarwadi, Pimpri-Chinchwad, Pune, Maharashtra – 411034, India
               </p>
               <p style="margin:8px 0 0;font-size:11px;color:#94a3b8;">
                 You received this email because you subscribed to our newsletter.

@@ -46,7 +46,7 @@ const contactInfo = [
   {
     icon: MapPin,
     label: "Visit Us",
-    value: "Phase 3, Hinjawadi Rajiv Gandhi Infotech Park, Hinjawadi, Pimpri-Chinchwad, Maharashtra 411057",
+    value: "A-414, Gera's Imperium Gateway, Near Nashik Phata Flyover, Opp. Bhosari Metro Station, Kasarwadi, Pimpri-Chinchwad, Pune, Maharashtra 411034",
     color: "text-purple-600",
     bg: "bg-purple-50"
   }
