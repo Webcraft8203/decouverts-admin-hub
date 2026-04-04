@@ -72,7 +72,7 @@ export const HelpCenterDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose
             <div>
               <h3 className="font-semibold text-slate-900 text-sm">Office</h3>
               <p className="text-slate-500 text-xs mt-1 leading-relaxed">
-                Megapolis Springs, Phase 3, Hinjawadi Rajiv Gandhi Infotech Park, Pune, Maharashtra, India
+                A-414, Gera's Imperium Gateway, Near Nashik Phata Flyover, Kasarwadi, Pimpri-Chinchwad, Pune, Maharashtra – 411034
               </p>
             </div>
           </div>
