@@ -74,7 +74,7 @@ const IntroAnimation = ({ onComplete }: { onComplete: () => void }) => {
                {/* Logo */}
                <motion.img
                  src={logo}
-                 alt="Decouverts"
+                 alt="Decouvertes"
                  className="w-20 h-20 md:w-24 md:h-24 object-contain relative z-10"
                  initial={{ opacity: 0, scale: 0.96 }}
                  animate={{ opacity: 1, scale: 1 }}
