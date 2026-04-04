@@ -588,7 +588,7 @@ serve(async (req) => {
     doc.setFont("helvetica", "normal");
     doc.text(`Generated: ${new Date().toLocaleString("en-IN")}`, M, fy - 1);
     doc.text(`${COMPANY.name} | ${COMPANY.website}`, pw - M, fy - 1, { align: "right" });
-    doc.text("Handle with care  •  For verification: decouvertes.com/verify-order  •  This is an auto-generated shipping label", pw / 2, fy + 3, { align: "center" });
+    doc.text("Handle with care  •  For verification: decouvertes.in/verify-order  •  This is an auto-generated shipping label", pw / 2, fy + 3, { align: "center" });
 
     // ==================== UPLOAD PDF ====================
     const pdfArrayBuffer = doc.output("arraybuffer");

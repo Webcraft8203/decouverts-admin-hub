@@ -34,7 +34,7 @@ const COMPANY = {
   email: "hello@decouvertes.in",
   gstin: "27AAKCD1492N1Z4",
   pan: "AAKCD1492N",
-  website: "www.decouvertes.com",
+  website: "www.decouvertes.in",
   terms: [
     "1. Goods once sold will only be taken back or exchanged as per company policy.",
     "2. Payment is due within 30 days of invoice date unless otherwise specified.",

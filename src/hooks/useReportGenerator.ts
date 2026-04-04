@@ -35,7 +35,7 @@ const COMPANY = {
   email: "hello@decouvertes.in",
   gstin: "27AAKCD1492N1Z4",
   pan: "AAKCD1492N",
-  website: "www.decouvertes.com",
+  website: "www.decouvertes.in",
 };
 
 const formatCurrency = (amount: number): string => {

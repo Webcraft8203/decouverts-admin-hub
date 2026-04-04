@@ -112,10 +112,10 @@ export const CareersDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
                 <p className="text-sm text-slate-500 mb-2">Please send your resume and portfolio to:</p>
                 <a 
-                    href="mailto:careers@decouvertes.com" 
+                    href="mailto:careers@decouvertes.in" 
                     className="text-lg font-bold text-primary hover:underline"
                 >
-                    careers@decouvertes.com
+                    careers@decouvertes.in
                 </a>
             </div>
 
