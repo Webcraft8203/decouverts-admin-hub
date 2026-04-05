@@ -49,7 +49,7 @@ const COMPANY = {
 const PAGE = { width: 210, height: 297, margin: 14, footerHeight: 16 };
 
 const fmt = (amount: number): string =>
-  `₹${Number(amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  `Rs.${Number(amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const fmtDate = (d: string): string =>
   new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
@@ -333,11 +333,11 @@ function renderInvoicePdf(
   hdr("Item Description", cols.item);
   hdr("HSN", cols.hsn, "center");
   hdr("Qty", cols.qty, "center");
-  hdr("Rate (₹)", cols.rate, "right");
-  hdr("Taxable (₹)", cols.taxable, "right");
+  hdr("Rate (Rs.)", cols.rate, "right");
+  hdr("Taxable (Rs.)", cols.taxable, "right");
   hdr("GST %", cols.gstPct, "center");
-  hdr("GST Amt (₹)", cols.gstAmt, "right");
-  hdr("Total (₹)", cols.total, "right");
+  hdr("GST Amt (Rs.)", cols.gstAmt, "right");
+  hdr("Total (Rs.)", cols.total, "right");
 
   y += hdrH;
 
