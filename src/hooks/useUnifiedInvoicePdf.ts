@@ -447,8 +447,8 @@ function renderInvoicePdf(
   hdr("Rate (Rs.)", cols.rate, "right");
   hdr("Taxable (Rs.)", cols.taxable, "right");
   hdr("GST %", cols.gstPct, "center");
-  hdr("GST Amt (₹)", cols.gstAmt, "right");
-  hdr("Total (₹)", cols.total, "right");
+  hdr("GST Amt (Rs.)", cols.gstAmt, "right");
+  hdr("Total (Rs.)", cols.total, "right");
 
   y += hdrH;
 
