@@ -46,7 +46,7 @@ const COMPANY = {
 const PAGE = { width: 210, height: 297, margin: 14, footerHeight: 16 };
 
 const fmt = (amount: number): string =>
-  `₹${Number(amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  `Rs.${Number(amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const fmtDate = (d: string): string =>
   new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
