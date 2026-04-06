@@ -355,8 +355,11 @@ function renderInvoicePdf(
   const clientName = (invoice.client_name || "Customer").toUpperCase();
   const billedToLines = [clientName];
   if (invoice.client_address) {
-    const addrParts = invoice.client_address.split(", ").filter(Boolean);
-    billedToLines.push(...addrParts.slice(0, 3));
+    // Split long address into multiple lines using jsPDF splitTextToSize
+    const maxTextW = boxW - 8; // boxPad * 2
+    doc.setFontSize(6.5);
+    const wrappedAddr = doc.splitTextToSize(invoice.client_address, maxTextW);
+    billedToLines.push(...wrappedAddr);
   }
   if (invoice.buyer_state) billedToLines.push(`State: ${invoice.buyer_state}`);
   if (invoice.buyer_gstin) billedToLines.push(`GSTIN: ${invoice.buyer_gstin}`);
@@ -401,10 +404,12 @@ function renderInvoicePdf(
         doc.setFont("helvetica", "normal");
       }
       const maxW = boxW - boxPad * 2;
-      const truncated = doc.getStringUnitWidth(line) * 6.5 / doc.internal.scaleFactor > maxW
-        ? line.substring(0, 46) + "…"
-        : line;
-      doc.text(truncated, x + boxPad, ly);
+      // Wrap long lines instead of truncating
+      const wrappedLines = doc.splitTextToSize(line, maxW);
+      wrappedLines.forEach((wl: string, wIdx: number) => {
+        doc.text(wl, x + boxPad, ly);
+        if (wIdx < wrappedLines.length - 1) ly += 3.5;
+      });
       ly += idx === 0 ? 5 : 3.8;
     });
   };
@@ -477,9 +482,12 @@ function renderInvoicePdf(
     doc.setTextColor(...COLORS.primary);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(6.5);
-    const maxNameLen = isManual ? 38 : 28;
-    const itemName = item.name.length > maxNameLen ? item.name.substring(0, maxNameLen) + "…" : item.name;
-    doc.text(itemName, cx + 2, isManual ? cellCenterY : cellCenterY - 1);
+    const maxItemW = cols.item - 4;
+    const itemLines = doc.splitTextToSize(item.name, maxItemW);
+    const startItemY = isManual ? cellCenterY : cellCenterY - 1;
+    itemLines.forEach((il: string, ilIdx: number) => {
+      doc.text(il, cx + 2, startItemY + ilIdx * 3.2);
+    });
     if (!isManual) {
       doc.setFontSize(5.5);
       doc.setTextColor(...COLORS.muted);
