@@ -373,7 +373,8 @@ export default function Accounting() {
       // GST slab-wise breakdown from final invoices
       const gstSlabs: Record<string, GSTSlabData> = {};
       (finalInvoices || []).forEach((inv) => {
-        const breakdown = inv.gst_breakdown as any[] || [];
+        const rawBreakdown = inv.gst_breakdown;
+        const breakdown: any[] = Array.isArray(rawBreakdown) ? rawBreakdown : [];
         breakdown.forEach((item: any) => {
           const rate = item.gst_rate || item.gstRate || 18;
           const slabKey = `${rate}%`;

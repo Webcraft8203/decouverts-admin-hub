@@ -38,26 +38,17 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
       setCheckingAccess(true);
       
       try {
-        const { data: sessionData } = await supabase.auth.getSession();
-        const token = sessionData.session?.access_token;
-
-        if (!token) {
-          setHasAdminAccess(false);
-          setCheckingAccess(false);
-          return;
-        }
 
         // First check if already linked as active employee
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/employees?user_id=eq.${user.id}&is_active=eq.true&select=id`,
-          {
-            headers: {
-              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-              'Authorization': `Bearer ${token}`,
-            },
-          }
-        );
-        const employees = await response.json();
+        const { data: employees, error: empError } = await supabase
+          .from('employees')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('is_active', true);
+
+        if (empError) {
+          console.error("[ProtectedRoute] Error checking employee:", empError);
+        }
 
         if (employees && employees.length > 0) {
           // Already linked as active employee
