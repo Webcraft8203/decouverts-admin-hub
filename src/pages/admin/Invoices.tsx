@@ -1108,7 +1108,7 @@ export default function Invoices() {
                     </div>
                     <div className="px-4 py-3 space-y-0.5">
                       <p className="text-xs font-bold text-foreground">{inv.client_name}</p>
-                      {inv.client_address && <p className="text-[11px] text-muted-foreground leading-relaxed">{inv.client_address}</p>}
+                      {inv.client_address && <p className="text-[11px] text-muted-foreground leading-relaxed break-words whitespace-pre-wrap">{inv.client_address}</p>}
                       {inv.client_email && <p className="text-[11px] text-muted-foreground">{inv.client_email}</p>}
                       {inv.buyer_state && <p className="text-[11px] text-muted-foreground">State: {inv.buyer_state}</p>}
                       {inv.buyer_gstin && <p className="text-[11px] font-semibold text-[#D4AF37] pt-0.5">GSTIN: {inv.buyer_gstin}</p>}
@@ -1146,7 +1146,7 @@ export default function Invoices() {
                           return (
                             <tr key={i} className={`border-t ${i % 2 === 0 ? 'bg-background' : 'bg-muted/30'}`}>
                               <td className="px-3 py-3 text-center text-muted-foreground">{i + 1}</td>
-                              <td className="px-3 py-3 font-medium text-foreground">{item.description || item.name || item.product_name}</td>
+                              <td className="px-3 py-3 font-medium text-foreground break-words whitespace-pre-wrap">{item.description || item.name || item.product_name}</td>
                               <td className="px-3 py-3 text-center tabular-nums">{qty}</td>
                               <td className="px-3 py-3 text-right tabular-nums">{formatCurrency(rate)}</td>
                               <td className="px-3 py-3 text-right tabular-nums">{formatCurrency(taxableValue)}</td>

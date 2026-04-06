@@ -46,8 +46,6 @@ const navItems: NavItem[] = [
   { to: "/admin/reports", icon: FileBarChart, label: "Reports", permissions: ["view_accounting", "view_revenue", "download_financials"] },
   { to: "/admin/customers", icon: Users, label: "Customers", permissions: ["view_customers"] },
   { to: "/admin/employees", icon: Shield, label: "Employees", superAdminOnly: true },
-  { to: "/admin/activity-logs", icon: Activity, label: "Admin Logs", superAdminOnly: true },
-  { to: "/admin/employee-activity-logs", icon: Activity, label: "Employee Logs", superAdminOnly: true },
   { to: "/admin/homepage-settings", icon: Home, label: "Homepage Settings", permissions: ["manage_homepage"] },
   { to: "/admin/homepage-images", icon: ImageIcon, label: "Homepage Images", permissions: ["manage_homepage"] },
   { to: "/admin/contact-requests", icon: MessageSquare, label: "Contact Requests", permissions: ["view_contact_requests"] },

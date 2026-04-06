@@ -243,10 +243,6 @@ export default function EmployeeDetail() {
               <span className="sm:hidden">Perms</span>
             </TabsTrigger>
           )}
-          <TabsTrigger value="activity" className="flex items-center gap-2 py-3">
-            <Activity className="h-4 w-4" />
-            <span className="hidden sm:inline">Activity</span>
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="personal" className="mt-6">
@@ -284,9 +280,6 @@ export default function EmployeeDetail() {
           </TabsContent>
         )}
 
-        <TabsContent value="activity" className="mt-6">
-          <EmployeeActivityLog employeeId={employee.id} />
-        </TabsContent>
       </Tabs>
     </div>
   );
