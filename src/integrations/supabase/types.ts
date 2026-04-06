@@ -14,39 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      activity_logs: {
-        Row: {
-          action_type: string
-          admin_id: string
-          created_at: string
-          description: string | null
-          entity_id: string | null
-          entity_type: string
-          id: string
-          metadata: Json | null
-        }
-        Insert: {
-          action_type: string
-          admin_id: string
-          created_at?: string
-          description?: string | null
-          entity_id?: string | null
-          entity_type: string
-          id?: string
-          metadata?: Json | null
-        }
-        Update: {
-          action_type?: string
-          admin_id?: string
-          created_at?: string
-          description?: string | null
-          entity_id?: string | null
-          entity_type?: string
-          id?: string
-          metadata?: Json | null
-        }
-        Relationships: []
-      }
       admin_notes: {
         Row: {
           admin_id: string
@@ -512,53 +479,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
-      employee_activity_logs: {
-        Row: {
-          action_type: string
-          created_at: string
-          description: string | null
-          employee_id: string
-          entity_id: string | null
-          entity_type: string
-          id: string
-          ip_address: string | null
-          metadata: Json | null
-          user_agent: string | null
-        }
-        Insert: {
-          action_type: string
-          created_at?: string
-          description?: string | null
-          employee_id: string
-          entity_id?: string | null
-          entity_type: string
-          id?: string
-          ip_address?: string | null
-          metadata?: Json | null
-          user_agent?: string | null
-        }
-        Update: {
-          action_type?: string
-          created_at?: string
-          description?: string | null
-          employee_id?: string
-          entity_id?: string | null
-          entity_type?: string
-          id?: string
-          ip_address?: string | null
-          metadata?: Json | null
-          user_agent?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "employee_activity_logs_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       employee_attendance: {
         Row: {
