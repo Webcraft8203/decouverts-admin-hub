@@ -38,14 +38,6 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
       setCheckingAccess(true);
       
       try {
-        const { data: sessionData } = await supabase.auth.getSession();
-        const token = sessionData.session?.access_token;
-
-        if (!token) {
-          setHasAdminAccess(false);
-          setCheckingAccess(false);
-          return;
-        }
 
         // First check if already linked as active employee
         const { data: employees, error: empError } = await supabase
