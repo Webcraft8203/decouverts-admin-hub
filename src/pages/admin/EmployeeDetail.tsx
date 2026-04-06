@@ -14,7 +14,7 @@ import {
   FileText, 
   Wallet, 
   Shield, 
-  Activity,
+  
   UserCheck,
   UserX
 } from "lucide-react";
@@ -22,7 +22,7 @@ import { EmployeePersonalInfo } from "@/components/admin/employee/EmployeePerson
 import { EmployeeDocuments } from "@/components/admin/employee/EmployeeDocuments";
 import { EmployeeBankSalary } from "@/components/admin/employee/EmployeeBankSalary";
 import { EmployeePermissions } from "@/components/admin/employee/EmployeePermissions";
-import { EmployeeActivityLog } from "@/components/admin/employee/EmployeeActivityLog";
+
 
 interface EmployeeData {
   id: string;
