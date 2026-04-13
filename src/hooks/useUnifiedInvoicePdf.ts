@@ -4,13 +4,11 @@ import { jsPDF } from "jspdf";
 import { toast } from "sonner";
 
 // ==================== UNIFIED DECOUVERTES INVOICE TEMPLATE ====================
-// This template matches the edge function (generate-invoice) exactly.
-// Both admin and user downloads produce identical professional invoices.
 
 const COLORS = {
-  primary: [28, 28, 28] as [number, number, number],       // Charcoal
-  accent: [212, 175, 55] as [number, number, number],       // Brand Gold
-  orange: [230, 126, 34] as [number, number, number],       // Tagline orange
+  primary: [28, 28, 28] as [number, number, number],
+  accent: [212, 175, 55] as [number, number, number],
+  orange: [230, 126, 34] as [number, number, number],
   secondary: [68, 68, 68] as [number, number, number],
   muted: [130, 130, 130] as [number, number, number],
   light: [245, 245, 245] as [number, number, number],
@@ -25,7 +23,7 @@ const COMPANY = {
   name: "DECOUVERTES",
   fullName: "DECOUVERTES FUTURE TECH PRIVATE LIMITED",
   tagline: "Discovering Future Technologies",
-  address: "A-414, Gera's Imperium Gateway, Near Nashik Phata Flyover, Opp. Bhosari Metro Station, Kasarwadi, Pimpri-Chinchwad",
+  address: "A-414, Gera's Imperium Gateway,\nNear Nashik Phata Flyover, Opp. Bhosari Metro Station,\nKasarwadi, Pimpri-Chinchwad",
   city: "Pune",
   state: "Maharashtra",
   pincode: "411034",
@@ -46,7 +44,7 @@ const COMPANY = {
 const PAGE = { width: 210, height: 297, margin: 14, footerHeight: 16 };
 
 const fmt = (amount: number): string =>
-  `Rs.${Number(amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  `Rs. ${Number(amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const fmtDate = (d: string): string =>
   new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
@@ -87,9 +85,7 @@ const fetchLogoAsBase64 = async (): Promise<string | null> => {
         reader.onerror = () => resolve(null);
         reader.readAsDataURL(blob);
       });
-    } catch {
-      continue;
-    }
+    } catch { continue; }
   }
   try {
     const response = await fetch('/logo.png');
@@ -199,7 +195,37 @@ function normalizeItem(item: InvoiceItem, index: number, isIgst: boolean): Norma
   };
 }
 
-// ==================== SHARED PDF RENDERER ====================
+// ==================== HELPERS ====================
+
+/** Parse a possibly concatenated address into clean multi-line form */
+function parseAddress(raw: string): string[] {
+  // Fix common concatenation issues: "LIMITEDloor" → "LIMITED, Floor"
+  let cleaned = raw
+    .replace(/([a-z])([A-Z])/g, '$1, $2')  // camelCase breaks
+    .replace(/(\w)(Floor|Building|Plot|Flat|Office|Room|Unit|Suite|Wing|Tower|Block|Sector)/g, '$1, $2')
+    .replace(/,\s*,/g, ',')  // double commas
+    .replace(/\s{2,}/g, ' ') // multiple spaces
+    .trim();
+
+  // Split on common delimiters
+  const parts = cleaned.split(/[,\n]+/).map(s => s.trim()).filter(Boolean);
+  
+  // Group into logical lines (max ~50 chars per line)
+  const lines: string[] = [];
+  let current = '';
+  for (const part of parts) {
+    if (current && (current.length + part.length > 50)) {
+      lines.push(current.trim());
+      current = part;
+    } else {
+      current = current ? `${current}, ${part}` : part;
+    }
+  }
+  if (current) lines.push(current.trim());
+  return lines;
+}
+
+// ==================== PDF RENDERER ====================
 function renderInvoicePdf(
   doc: jsPDF,
   invoice: Invoice,
@@ -212,7 +238,7 @@ function renderInvoicePdf(
 ) {
   const isManual = !invoice.order_id;
   const { width: pw, height: ph, margin: M } = PAGE;
-  const CW = pw - 2 * M; // content width = 182
+  const CW = pw - 2 * M;
   const safeZone = ph - PAGE.footerHeight - 4;
   let y = M;
   let currentPage = 1;
@@ -241,36 +267,31 @@ function renderInvoicePdf(
   };
 
   // ==================== 1. HEADER ====================
-  // Fixed header height for consistent vertical centering
-  const HEADER_H = 14; // total header block height
+  const HEADER_H = 16;
   const headerTop = y;
   const headerRight = pw - M;
-  const headerCenterY = headerTop + HEADER_H / 2; // vertical center line
+  const headerCenterY = headerTop + HEADER_H / 2;
 
   if (logoBase64) {
     try {
-      const logoH = 12;
-      const logoW = 24;
-      const logoY = headerCenterY - logoH / 2; // vertically center logo
-      doc.addImage(logoBase64, "PNG", M, logoY, logoW, logoH);
+      const logoH = 13;
+      const logoW = 26;
+      doc.addImage(logoBase64, "PNG", M, headerCenterY - logoH / 2, logoW, logoH);
     } catch { /* ignore */ }
   }
 
-  const logoTextX = logoBase64 ? M + 28 : M;
+  const logoTextX = logoBase64 ? M + 30 : M;
 
-  // Company name – vertically centered
   doc.setFontSize(20);
   doc.setTextColor(...COLORS.primary);
   doc.setFont("helvetica", "bold");
   doc.text(COMPANY.name, logoTextX, headerCenterY + 1);
 
-  // Tagline – positioned below company name
   doc.setFontSize(8);
   doc.setTextColor(...COLORS.orange);
   doc.setFont("helvetica", "italic");
-  doc.text(COMPANY.tagline, logoTextX, headerCenterY + 6);
+  doc.text(COMPANY.tagline, logoTextX, headerCenterY + 7);
 
-  // Invoice type label – vertically centered on right
   const typeLabel = isFinal ? "TAX INVOICE" : "PROFORMA INVOICE";
   doc.setFontSize(12);
   doc.setTextColor(...(isFinal ? COLORS.primary : COLORS.secondary));
@@ -280,27 +301,28 @@ function renderInvoicePdf(
     doc.setFontSize(6);
     doc.setTextColor(...COLORS.muted);
     doc.setFont("helvetica", "normal");
-    doc.text("Not valid for tax purposes", headerRight, headerCenterY + 5.5, { align: "right" });
+    doc.text("Not valid for tax purposes", headerRight, headerCenterY + 6, { align: "right" });
   }
 
-  y = headerTop + HEADER_H + 4;
+  y = headerTop + HEADER_H + 5;
 
-  // Company details – two structured lines
+  // Company address – each part on a clean line
   doc.setFontSize(6.5);
   doc.setTextColor(...COLORS.secondary);
   doc.setFont("helvetica", "normal");
-  doc.text(`${COMPANY.address}, ${COMPANY.city}, ${COMPANY.state} – ${COMPANY.pincode}, ${COMPANY.country}`, M, y);
-  y += 3.5;
+  const companyAddr = `${COMPANY.address.replace(/\n/g, ', ')}, ${COMPANY.city}, ${COMPANY.state} - ${COMPANY.pincode}, ${COMPANY.country}`;
+  const addrLines = doc.splitTextToSize(companyAddr, CW);
+  addrLines.forEach((line: string) => { doc.text(line, M, y); y += 3.5; });
   doc.text(`Phone: ${COMPANY.phone}  |  Email: ${COMPANY.email}  |  GSTIN: ${COMPANY.gstin}  |  PAN: ${COMPANY.pan}`, M, y);
   y += 5;
 
   // Gold divider
   doc.setFillColor(...COLORS.accent);
   doc.rect(M, y, CW, 1.2, "F");
-  y += 5;
+  y += 6;
 
   // ==================== 2. INVOICE META ROW ====================
-  const metaH = 14;
+  const metaH = 16;
   doc.setFillColor(...COLORS.light);
   doc.rect(M, y, CW, metaH, "F");
   doc.setDrawColor(...COLORS.border);
@@ -313,121 +335,141 @@ function renderInvoicePdf(
     ["Order No.", invoice.order?.order_number || "N/A"],
   ];
   if (!isManual) {
-    metaPairs.push(["Delivery Date", invoice.delivery_date ? fmtDate(invoice.delivery_date) : (isFinal ? "—" : "Pending")]);
+    metaPairs.push(["Delivery Date", invoice.delivery_date ? fmtDate(invoice.delivery_date) : (isFinal ? "-" : "Pending")]);
   }
   const metaColW = CW / metaPairs.length;
-  const metaLabelY = y + 5;
-  const metaValueY = y + 10.5;
 
   metaPairs.forEach(([label, value], i) => {
-    const x = M + metaColW * i + 5;
+    const x = M + metaColW * i + 6;
     doc.setFontSize(6);
     doc.setTextColor(...COLORS.muted);
     doc.setFont("helvetica", "normal");
-    doc.text(label, x, metaLabelY);
-    doc.setFontSize(8);
+    doc.text(label, x, y + 6);
+    doc.setFontSize(8.5);
     doc.setTextColor(...COLORS.primary);
     doc.setFont("helvetica", "bold");
-    doc.text(value, x, metaValueY);
+    doc.text(value, x, y + 11.5);
     if (i > 0) {
       doc.setDrawColor(...COLORS.border);
-      doc.line(M + metaColW * i, y + 2, M + metaColW * i, y + metaH - 2);
+      doc.line(M + metaColW * i, y + 3, M + metaColW * i, y + metaH - 3);
     }
   });
 
-  y += metaH + 4;
+  y += metaH + 6;
 
   // ==================== 3. BILLED BY / BILLED TO ====================
-  const boxW = (CW - 6) / 2;
-  const boxPad = 4;
+  const boxW = (CW - 8) / 2;
+  const boxPad = 5;
+  const lineH = 3.8;
+  const titleBarH = 8;
 
-  // Calculate dynamic box height based on content
-  const billedByLines = [
-    COMPANY.name,
-    COMPANY.address,
-    `${COMPANY.city}, ${COMPANY.state} – ${COMPANY.pincode}`,
+  // Prepare Billed By lines
+  const billedByContentLines = [
+    COMPANY.fullName,
+    ...COMPANY.address.split('\n'),
+    `${COMPANY.city}, ${COMPANY.state} - ${COMPANY.pincode}`,
     `Phone: ${COMPANY.phone}`,
     `Email: ${COMPANY.email}`,
     `GSTIN: ${COMPANY.gstin}`,
     `PAN: ${COMPANY.pan}`,
   ];
 
+  // Prepare Billed To lines with proper address parsing
   const clientName = (invoice.client_name || "Customer").toUpperCase();
-  const billedToLines = [clientName];
+  const billedToContentLines = [clientName];
   if (invoice.client_address) {
-    // Split long address into multiple lines using jsPDF splitTextToSize
-    const maxTextW = boxW - 8; // boxPad * 2
-    doc.setFontSize(6.5);
-    const wrappedAddr = doc.splitTextToSize(invoice.client_address, maxTextW);
-    billedToLines.push(...wrappedAddr);
+    const addressLines = parseAddress(invoice.client_address);
+    billedToContentLines.push(...addressLines);
   }
-  if (invoice.buyer_state) billedToLines.push(`State: ${invoice.buyer_state}`);
-  if (invoice.buyer_gstin) billedToLines.push(`GSTIN: ${invoice.buyer_gstin}`);
+  if (invoice.client_email) billedToContentLines.push(`Email: ${invoice.client_email}`);
+  if (invoice.buyer_state) billedToContentLines.push(`State: ${invoice.buyer_state}`);
+  if (invoice.buyer_gstin) billedToContentLines.push(`GSTIN: ${invoice.buyer_gstin}`);
 
-  // Calculate height: title bar (7) + padding (5) + lines
-  const calcBoxH = (lines: string[]) => {
-    let h = 7 + 5; // title bar + top padding
-    lines.forEach((_, idx) => { h += idx === 0 ? 5 : 3.8; });
-    h += 3; // bottom padding
-    return h;
+  // Pre-wrap all lines to measure height
+  const maxTextW = boxW - boxPad * 2;
+  const wrapLines = (lines: string[]): string[][] => {
+    doc.setFontSize(6.5);
+    return lines.map(l => doc.splitTextToSize(l, maxTextW) as string[]);
   };
-  const boxH = Math.max(calcBoxH(billedByLines), calcBoxH(billedToLines));
+  const wrappedBy = wrapLines(billedByContentLines);
+  const wrappedTo = wrapLines(billedToContentLines);
 
-  // Helper to draw party box
-  const drawPartyBox = (x: number, title: string, titleBg: [number, number, number], titleFg: [number, number, number], lines: string[]) => {
+  const countWrappedH = (wrapped: string[][]): number => {
+    let h = titleBarH + boxPad; // title bar + top padding
+    wrapped.forEach((wl, idx) => {
+      const extra = idx === 0 ? 5.5 : lineH; // first line (name) is larger
+      h += extra;
+      if (wl.length > 1) h += (wl.length - 1) * lineH;
+    });
+    return h + boxPad; // bottom padding
+  };
+
+  const boxH = Math.max(countWrappedH(wrappedBy), countWrappedH(wrappedTo));
+
+  const drawPartyBox = (
+    x: number, title: string, 
+    titleBg: [number, number, number], titleFg: [number, number, number], 
+    contentLines: string[], wrappedContent: string[][]
+  ) => {
+    // Box background
     doc.setFillColor(...COLORS.white);
     doc.setDrawColor(...COLORS.border);
     doc.setLineWidth(0.3);
-    doc.roundedRect(x, y, boxW, boxH, 1.5, 1.5, "FD");
+    doc.roundedRect(x, y, boxW, boxH, 2, 2, "FD");
+
     // Title bar
     doc.setFillColor(...titleBg);
-    doc.roundedRect(x, y, boxW, 7, 1.5, 1.5, "F");
-    doc.rect(x, y + 3, boxW, 4, "F"); // fill gap below rounded corners
+    doc.roundedRect(x, y, boxW, titleBarH, 2, 2, "F");
+    doc.rect(x, y + 4, boxW, titleBarH - 4, "F"); // fill rounded gap
     doc.setFontSize(7);
     doc.setTextColor(...titleFg);
     doc.setFont("helvetica", "bold");
-    doc.text(title, x + boxPad, y + 5);
-    // Content lines
-    let ly = y + 12;
-    lines.forEach((line, idx) => {
+    doc.text(title, x + boxPad, y + 5.5);
+
+    // Content
+    let ly = y + titleBarH + boxPad + 1;
+    wrappedContent.forEach((wl, idx) => {
+      const originalLine = contentLines[idx] || '';
       if (idx === 0) {
-        doc.setFontSize(8);
+        // Name – bold, slightly larger
+        doc.setFontSize(7.5);
         doc.setTextColor(...COLORS.primary);
         doc.setFont("helvetica", "bold");
-      } else if (line.startsWith("GSTIN:") || line.startsWith("PAN:")) {
+      } else if (originalLine.startsWith("GSTIN:") || originalLine.startsWith("PAN:")) {
         doc.setFontSize(6.5);
         doc.setTextColor(...COLORS.accent);
         doc.setFont("helvetica", "bold");
+      } else if (originalLine.startsWith("Email:") || originalLine.startsWith("Phone:") || originalLine.startsWith("State:")) {
+        doc.setFontSize(6.5);
+        doc.setTextColor(...COLORS.secondary);
+        doc.setFont("helvetica", "normal");
       } else {
         doc.setFontSize(6.5);
         doc.setTextColor(...COLORS.secondary);
         doc.setFont("helvetica", "normal");
       }
-      const maxW = boxW - boxPad * 2;
-      // Wrap long lines instead of truncating
-      const wrappedLines = doc.splitTextToSize(line, maxW);
-      wrappedLines.forEach((wl: string, wIdx: number) => {
-        doc.text(wl, x + boxPad, ly);
-        if (wIdx < wrappedLines.length - 1) ly += 3.5;
+
+      wl.forEach((segment: string, si: number) => {
+        doc.text(segment, x + boxPad, ly);
+        if (si < wl.length - 1) ly += lineH;
       });
-      ly += idx === 0 ? 5 : 3.8;
+      ly += (idx === 0 ? 5.5 : lineH);
     });
   };
 
-  drawPartyBox(M, "BILLED BY", COLORS.primary, COLORS.white, billedByLines);
-  drawPartyBox(M + boxW + 6, "BILLED TO", COLORS.accent, COLORS.primary, billedToLines);
+  drawPartyBox(M, "BILLED BY", COLORS.primary, COLORS.white, billedByContentLines, wrappedBy);
+  drawPartyBox(M + boxW + 8, "BILLED TO", COLORS.accent, COLORS.primary, billedToContentLines, wrappedTo);
 
-  y += boxH + 6;
+  y += boxH + 8;
 
   // ==================== 4. ITEMS TABLE ====================
-  // Column layout – total = CW (182). For manual invoices, remove HSN & SKU, widen other cols.
+  // Column layout – total = CW (182)
   const cols = isManual
     ? { sno: 8, item: 56, hsn: 0, qty: 12, rate: 26, taxable: 26, gstPct: 12, gstAmt: 16, total: 26 }
-    : { sno: 8, item: 42, hsn: 14, qty: 10, rate: 22, taxable: 22, gstPct: 12, gstAmt: 24, total: 28 };
+    : { sno: 8, item: 40, hsn: 14, qty: 10, rate: 22, taxable: 24, gstPct: 12, gstAmt: 24, total: 28 };
   const tableX = M;
   const tableW = CW;
-  const hdrH = 8;
-  const rowH = isManual ? 8 : 11;
+  const hdrH = 9;
 
   // Header
   doc.setFillColor(...COLORS.tableHeader);
@@ -437,12 +479,12 @@ function renderInvoicePdf(
   doc.setFont("helvetica", "bold");
 
   let cx = tableX;
-  const hdrY = y + 5.5;
+  const hdrY = y + 6;
   const hdr = (label: string, w: number, align: "left" | "right" | "center" = "left") => {
     if (w === 0) return;
-    if (align === "right") doc.text(label, cx + w - 2, hdrY, { align: "right" });
+    if (align === "right") doc.text(label, cx + w - 3, hdrY, { align: "right" });
     else if (align === "center") doc.text(label, cx + w / 2, hdrY, { align: "center" });
-    else doc.text(label, cx + 2, hdrY);
+    else doc.text(label, cx + 3, hdrY);
     cx += w;
   };
   hdr("#", cols.sno, "center");
@@ -457,9 +499,20 @@ function renderInvoicePdf(
 
   y += hdrH;
 
-  // Rows
+  // Rows – dynamic height based on text wrapping
   items.forEach((item, idx) => {
+    // Pre-calculate row height based on item name wrapping
+    const maxItemW = cols.item - 6;
+    doc.setFontSize(6.5);
+    const itemNameLines: string[] = doc.splitTextToSize(item.name, maxItemW);
+    const nameBlockH = itemNameLines.length * 3.5;
+    const skuLineH = isManual ? 0 : 4;
+    const minRowH = 10;
+    const rowH = Math.max(minRowH, nameBlockH + skuLineH + 4);
+
     checkBreak(rowH + 1);
+
+    // Row background
     doc.setFillColor(...(idx % 2 === 0 ? COLORS.white : COLORS.tableAlt));
     doc.rect(tableX, y, tableW, rowH, "F");
     doc.setDrawColor(...COLORS.border);
@@ -467,73 +520,65 @@ function renderInvoicePdf(
     doc.line(tableX, y + rowH, tableX + tableW, y + rowH);
 
     cx = tableX;
-    // Use consistent vertical centering for all cell content
-    const cellCenterY = y + (isManual ? rowH / 2 + 1.5 : rowH / 2 + 0.5);
-    const skuY = y + rowH / 2 + 4.5; // SKU line below center
+    const numCenterY = y + rowH / 2 + 1;
 
     // S.No
     doc.setFontSize(6);
     doc.setTextColor(...COLORS.secondary);
     doc.setFont("helvetica", "normal");
-    doc.text(String(item.sno), cx + cols.sno / 2, cellCenterY, { align: "center" });
+    doc.text(String(item.sno), cx + cols.sno / 2, numCenterY, { align: "center" });
     cx += cols.sno;
 
-    // Item name (+ SKU only for order invoices)
+    // Item name – wrapped multi-line
     doc.setTextColor(...COLORS.primary);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(6.5);
-    const maxItemW = cols.item - 4;
-    const itemLines = doc.splitTextToSize(item.name, maxItemW);
-    const startItemY = isManual ? cellCenterY : cellCenterY - 1;
-    itemLines.forEach((il: string, ilIdx: number) => {
-      doc.text(il, cx + 2, startItemY + ilIdx * 3.2);
+    const nameStartY = y + 4;
+    itemNameLines.forEach((il: string, ilIdx: number) => {
+      doc.text(il, cx + 3, nameStartY + ilIdx * 3.5);
     });
+    // SKU below name
     if (!isManual) {
+      const skuY = nameStartY + itemNameLines.length * 3.5 + 1;
       doc.setFontSize(5.5);
       doc.setTextColor(...COLORS.muted);
       doc.setFont("helvetica", "normal");
-      doc.text(`SKU: ${item.sku}`, cx + 2, skuY);
+      doc.text(`SKU: ${item.sku}`, cx + 3, skuY);
     }
     cx += cols.item;
 
+    // Numeric columns – all vertically centered
     doc.setFontSize(6);
     doc.setTextColor(...COLORS.secondary);
     doc.setFont("helvetica", "normal");
 
-    // HSN (only for order invoices)
     if (!isManual) {
-      doc.text(item.hsn, cx + cols.hsn / 2, cellCenterY, { align: "center" });
+      doc.text(item.hsn, cx + cols.hsn / 2, numCenterY, { align: "center" });
       cx += cols.hsn;
     }
 
-    // Qty
-    doc.text(String(item.qty), cx + cols.qty / 2, cellCenterY, { align: "center" });
+    doc.text(String(item.qty), cx + cols.qty / 2, numCenterY, { align: "center" });
     cx += cols.qty;
 
-    // Rate
-    doc.text(fmt(item.rate), cx + cols.rate - 2, cellCenterY, { align: "right" });
+    doc.text(fmt(item.rate), cx + cols.rate - 3, numCenterY, { align: "right" });
     cx += cols.rate;
 
-    // Taxable
-    doc.text(fmt(item.taxableValue), cx + cols.taxable - 2, cellCenterY, { align: "right" });
+    doc.text(fmt(item.taxableValue), cx + cols.taxable - 3, numCenterY, { align: "right" });
     cx += cols.taxable;
 
-    // GST %
     doc.setTextColor(...COLORS.accent);
     doc.setFont("helvetica", "bold");
-    doc.text(`${item.gstRate}%`, cx + cols.gstPct / 2, cellCenterY, { align: "center" });
+    doc.text(`${item.gstRate}%`, cx + cols.gstPct / 2, numCenterY, { align: "center" });
     cx += cols.gstPct;
 
-    // GST Amount
     doc.setTextColor(...COLORS.secondary);
     doc.setFont("helvetica", "normal");
-    doc.text(fmt(item.gstAmount), cx + cols.gstAmt - 2, cellCenterY, { align: "right" });
+    doc.text(fmt(item.gstAmount), cx + cols.gstAmt - 3, numCenterY, { align: "right" });
     cx += cols.gstAmt;
 
-    // Total
     doc.setTextColor(...COLORS.primary);
     doc.setFont("helvetica", "bold");
-    doc.text(fmt(item.total), cx + cols.total - 2, cellCenterY, { align: "right" });
+    doc.text(fmt(item.total), cx + cols.total - 3, numCenterY, { align: "right" });
 
     y += rowH;
   });
@@ -542,11 +587,11 @@ function renderInvoicePdf(
   doc.setDrawColor(...COLORS.primary);
   doc.setLineWidth(0.5);
   doc.line(tableX, y, tableX + tableW, y);
-  y += 6;
+  y += 7;
 
   // ==================== 5. AMOUNT IN WORDS ====================
   checkBreak(55);
-  const wordsBoxH = 12;
+  const wordsBoxH = 14;
   doc.setFillColor(...COLORS.light);
   doc.setDrawColor(...COLORS.border);
   doc.setLineWidth(0.15);
@@ -554,22 +599,23 @@ function renderInvoicePdf(
   doc.setFontSize(6);
   doc.setTextColor(...COLORS.muted);
   doc.setFont("helvetica", "normal");
-  doc.text("Amount in Words:", M + 4, y + 4.5);
+  doc.text("Amount in Words:", M + 5, y + 5);
   doc.setFontSize(7);
   doc.setTextColor(...COLORS.primary);
   doc.setFont("helvetica", "bold");
   const wordsText = numberToWords(invoice.total_amount);
-  const truncWords = wordsText.length > 85 ? wordsText.substring(0, 85) + "…" : wordsText;
-  doc.text(truncWords, M + 4, y + 9);
-  y += wordsBoxH + 4;
+  const wrappedWords: string[] = doc.splitTextToSize(wordsText, CW - 10);
+  wrappedWords.forEach((wl: string, wi: number) => {
+    doc.text(wl, M + 5, y + 10 + wi * 3.5);
+  });
+  y += wordsBoxH + 5;
 
-  // ==================== 6. SUMMARY SECTION (side by side) ====================
-  const sumRightW = 86;
-  const sumLeftW = CW - sumRightW - 6;
-  // Calculate dynamic height
+  // ==================== 6. SUMMARY SECTION ====================
+  const sumRightW = 88;
+  const sumLeftW = CW - sumRightW - 8;
   const taxLines = isIgst ? 1 : 2;
   const pfLines = platformFee > 0 ? (platformFeeTax > 0 ? 2 : 1) : 0;
-  const summaryH = 44 + (taxLines - 1) * 5.5 + pfLines * 5.5;
+  const summaryH = 48 + (taxLines - 1) * 6 + pfLines * 6;
 
   checkBreak(summaryH + 20);
 
@@ -582,20 +628,19 @@ function renderInvoicePdf(
   doc.setFontSize(7.5);
   doc.setTextColor(...COLORS.primary);
   doc.setFont("helvetica", "bold");
-  doc.text("TAX SUMMARY", M + 4, y + 7);
+  doc.text("TAX SUMMARY", M + 5, y + 8);
 
-  let gy = y + 14;
+  let gy = y + 16;
   doc.setFontSize(6.5);
-  doc.setFont("helvetica", "normal");
 
   const taxRow = (label: string, value: string) => {
     doc.setTextColor(...COLORS.muted);
-    doc.text(label, M + 4, gy);
+    doc.setFont("helvetica", "normal");
+    doc.text(label, M + 5, gy);
     doc.setTextColor(...COLORS.primary);
     doc.setFont("helvetica", "bold");
-    doc.text(value, M + sumLeftW - 4, gy, { align: "right" });
-    doc.setFont("helvetica", "normal");
-    gy += 5.5;
+    doc.text(value, M + sumLeftW - 5, gy, { align: "right" });
+    gy += 6;
   };
 
   taxRow("Supply Type", isIgst ? "Inter-State" : "Intra-State");
@@ -603,8 +648,8 @@ function renderInvoicePdf(
 
   gy += 1;
   doc.setDrawColor(...COLORS.border);
-  doc.line(M + 4, gy, M + sumLeftW - 4, gy);
-  gy += 4;
+  doc.line(M + 5, gy, M + sumLeftW - 5, gy);
+  gy += 5;
 
   if (isIgst) {
     taxRow("IGST", fmt(totalIgst));
@@ -616,24 +661,24 @@ function renderInvoicePdf(
   gy += 1;
   doc.setDrawColor(...COLORS.accent);
   doc.setLineWidth(0.5);
-  doc.line(M + 4, gy, M + sumLeftW - 4, gy);
-  gy += 4;
+  doc.line(M + 5, gy, M + sumLeftW - 5, gy);
+  gy += 5;
 
   doc.setFontSize(7);
   doc.setTextColor(...COLORS.primary);
   doc.setFont("helvetica", "bold");
-  doc.text("Total Tax", M + 4, gy);
+  doc.text("Total Tax", M + 5, gy);
   doc.setTextColor(...COLORS.accent);
-  doc.text(fmt(totalCgst + totalSgst + totalIgst), M + sumLeftW - 4, gy, { align: "right" });
+  doc.text(fmt(totalCgst + totalSgst + totalIgst), M + sumLeftW - 5, gy, { align: "right" });
 
   // ---- CHARGES & TOTAL (right) ----
-  const rx = M + sumLeftW + 6;
+  const rx = M + sumLeftW + 8;
   doc.setFillColor(...COLORS.darkBox);
   doc.roundedRect(rx, y, sumRightW, summaryH, 2, 2, "F");
 
-  let ty = y + 10;
-  const lx = rx + 6;
-  const vx = rx + sumRightW - 6;
+  let ty = y + 12;
+  const lx = rx + 7;
+  const vx = rx + sumRightW - 7;
   doc.setFontSize(7);
   doc.setTextColor(200, 200, 200);
   doc.setFont("helvetica", "normal");
@@ -641,18 +686,16 @@ function renderInvoicePdf(
   const sumRow = (label: string, value: string) => {
     doc.text(label, lx, ty);
     doc.text(value, vx, ty, { align: "right" });
-    ty += 5.5;
+    ty += 6;
   };
 
   sumRow("Subtotal", fmt(invoice.subtotal));
-
   if (platformFee > 0) {
     sumRow("Platform Fee (2%)", fmt(platformFee));
     if (platformFeeTax > 0) {
       sumRow("Fee Tax (18% GST)", fmt(platformFeeTax));
     }
   }
-
   if (isIgst) {
     sumRow("IGST", fmt(totalIgst));
   } else {
@@ -661,10 +704,10 @@ function renderInvoicePdf(
   }
 
   // Grand Total bar
-  const grandTotalBarH = 13;
-  const grandTotalY = y + summaryH - grandTotalBarH - 3;
+  const grandTotalBarH = 14;
+  const grandTotalY = y + summaryH - grandTotalBarH - 4;
   doc.setFillColor(...COLORS.accent);
-  doc.roundedRect(rx + 3, grandTotalY, sumRightW - 6, grandTotalBarH, 2, 2, "F");
+  doc.roundedRect(rx + 4, grandTotalY, sumRightW - 8, grandTotalBarH, 2, 2, "F");
   doc.setFontSize(8);
   doc.setTextColor(...COLORS.primary);
   doc.setFont("helvetica", "bold");
@@ -672,10 +715,10 @@ function renderInvoicePdf(
   doc.setFontSize(10);
   doc.text(fmt(invoice.total_amount), vx - 1, grandTotalY + grandTotalBarH / 2 + 1.5, { align: "right" });
 
-  y += summaryH + 6;
+  y += summaryH + 8;
 
   // ==================== 7. TERMS ====================
-  if (y + 22 < safeZone) {
+  if (y + 24 < safeZone) {
     doc.setFontSize(7);
     doc.setTextColor(...COLORS.primary);
     doc.setFont("helvetica", "bold");
@@ -684,7 +727,7 @@ function renderInvoicePdf(
     doc.setFontSize(5.5);
     doc.setTextColor(...COLORS.muted);
     doc.setFont("helvetica", "normal");
-    COMPANY.terms.forEach((t) => { doc.text(t, M, y); y += 3.5; });
+    COMPANY.terms.forEach((t) => { doc.text(t, M, y); y += 3.8; });
   }
 
   // ==================== FOOTERS ====================
