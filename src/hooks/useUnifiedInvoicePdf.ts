@@ -464,9 +464,7 @@ function renderInvoicePdf(
 
   // ==================== 4. ITEMS TABLE ====================
   // Column layout – total = CW (182)
-  const cols = isManual
-    ? { sno: 8, item: 56, hsn: 0, qty: 12, rate: 26, taxable: 26, gstPct: 12, gstAmt: 16, total: 26 }
-    : { sno: 8, item: 40, hsn: 14, qty: 10, rate: 22, taxable: 24, gstPct: 12, gstAmt: 24, total: 28 };
+  const cols = { sno: 8, item: 40, hsn: 14, qty: 10, rate: 22, taxable: 24, gstPct: 12, gstAmt: 24, total: 28 };
   const tableX = M;
   const tableW = CW;
   const hdrH = 9;
@@ -489,7 +487,7 @@ function renderInvoicePdf(
   };
   hdr("#", cols.sno, "center");
   hdr("Item Description", cols.item);
-  if (!isManual) hdr("HSN", cols.hsn, "center");
+  hdr("HSN", cols.hsn, "center");
   hdr("Qty", cols.qty, "center");
   hdr("Rate (Rs.)", cols.rate, "right");
   hdr("Taxable (Rs.)", cols.taxable, "right");
@@ -506,7 +504,7 @@ function renderInvoicePdf(
     doc.setFontSize(6.5);
     const itemNameLines: string[] = doc.splitTextToSize(item.name, maxItemW);
     const nameBlockH = itemNameLines.length * 3.5;
-    const skuLineH = isManual ? 0 : 4;
+    const skuLineH = 4;
     const minRowH = 10;
     const rowH = Math.max(minRowH, nameBlockH + skuLineH + 4);
 
