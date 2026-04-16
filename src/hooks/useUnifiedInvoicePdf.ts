@@ -535,25 +535,22 @@ function renderInvoicePdf(
     itemNameLines.forEach((il: string, ilIdx: number) => {
       doc.text(il, cx + 3, nameStartY + ilIdx * 3.5);
     });
-    // SKU below name
+    // SKU & HSN below name
+    const skuY = nameStartY + itemNameLines.length * 3.5 + 1;
+    doc.setFontSize(5.5);
+    doc.setTextColor(...COLORS.muted);
+    doc.setFont("helvetica", "normal");
     if (!isManual) {
-      const skuY = nameStartY + itemNameLines.length * 3.5 + 1;
-      doc.setFontSize(5.5);
-      doc.setTextColor(...COLORS.muted);
-      doc.setFont("helvetica", "normal");
       doc.text(`SKU: ${item.sku}`, cx + 3, skuY);
     }
     cx += cols.item;
 
-    // Numeric columns – all vertically centered
+    // HSN column – always shown
     doc.setFontSize(6);
     doc.setTextColor(...COLORS.secondary);
     doc.setFont("helvetica", "normal");
-
-    if (!isManual) {
-      doc.text(item.hsn, cx + cols.hsn / 2, numCenterY, { align: "center" });
-      cx += cols.hsn;
-    }
+    doc.text(item.hsn || "N/A", cx + cols.hsn / 2, numCenterY, { align: "center" });
+    cx += cols.hsn;
 
     doc.text(String(item.qty), cx + cols.qty / 2, numCenterY, { align: "center" });
     cx += cols.qty;
