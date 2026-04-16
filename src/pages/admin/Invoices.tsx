@@ -1149,6 +1149,7 @@ export default function Invoices() {
                         <tr className="bg-foreground text-background">
                           <th className="px-3 py-2.5 text-center font-semibold w-8">#</th>
                           <th className="px-3 py-2.5 text-left font-semibold">Item Description</th>
+                          <th className="px-3 py-2.5 text-center font-semibold w-16">HSN</th>
                           <th className="px-3 py-2.5 text-center font-semibold w-12">Qty</th>
                           <th className="px-3 py-2.5 text-right font-semibold w-20">Rate</th>
                           <th className="px-3 py-2.5 text-right font-semibold w-20">Taxable</th>
@@ -1167,11 +1168,13 @@ export default function Invoices() {
                             ? Number(item.igst_amount) || (taxableValue * gstRate / 100)
                             : (Number(item.cgst_amount) || 0) + (Number(item.sgst_amount) || 0) || (taxableValue * gstRate / 100);
                           const total = Number(item.total) || taxableValue + gstAmt;
+                          const hsn = item.hsn_code || (item as any).hsn || "N/A";
 
                           return (
                             <tr key={i} className={`border-t ${i % 2 === 0 ? 'bg-background' : 'bg-muted/30'}`}>
                               <td className="px-3 py-3 text-center text-muted-foreground">{i + 1}</td>
                               <td className="px-3 py-3 font-medium text-foreground break-words whitespace-pre-wrap">{item.description || item.name || item.product_name}</td>
+                              <td className="px-3 py-3 text-center text-muted-foreground font-mono text-[10px]">{hsn}</td>
                               <td className="px-3 py-3 text-center tabular-nums">{qty}</td>
                               <td className="px-3 py-3 text-right tabular-nums">{formatCurrency(rate)}</td>
                               <td className="px-3 py-3 text-right tabular-nums">{formatCurrency(taxableValue)}</td>
