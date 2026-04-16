@@ -25,6 +25,7 @@ import { format } from "date-fns";
 // Invoice item interface - standardized
 interface InvoiceItem {
   description: string;
+  hsn_code: string;
   quantity: number;
   price: number;
   gst_rate?: number;
@@ -39,6 +40,7 @@ interface InvoiceItem {
 function normalizeInvoiceItem(item: any): InvoiceItem {
   return {
     description: item.description || item.name || item.product_name || "Item",
+    hsn_code: item.hsn_code || item.hsn || "",
     quantity: Number(item.quantity) || 1,
     price: Number(item.price) || Number(item.rate) || Number(item.product_price) || 0,
     gst_rate: Number(item.gst_rate) || 18,
@@ -118,7 +120,7 @@ export default function Invoices() {
     buyer_state: "Maharashtra",
     buyer_gstin: "",
   });
-  const [items, setItems] = useState<InvoiceItem[]>([{ description: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
+  const [items, setItems] = useState<InvoiceItem[]>([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
   const { toast } = useToast();
   const { user } = useAuth();
   
@@ -212,7 +214,7 @@ export default function Invoices() {
     return matchesTab && matchesSearch && matchesPayment && matchesStatus && matchesDateFrom && matchesDateTo;
   });
 
-  const addItem = () => setItems([...items, { description: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
+  const addItem = () => setItems([...items, { description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
   const removeItem = (i: number) => setItems(items.filter((_, idx) => idx !== i));
   const updateItem = (i: number, field: keyof InvoiceItem, value: string | number) => {
     const n = [...items];
