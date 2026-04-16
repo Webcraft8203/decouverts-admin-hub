@@ -265,11 +265,19 @@ export default function Invoices() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate HSN codes
+    const invalidHsn = items.some(item => !item.hsn_code || !/^[a-zA-Z0-9]{4,10}$/.test(item.hsn_code.trim()));
+    if (invalidHsn) {
+      toast({ title: "Validation Error", description: "Each item must have a valid HSN code (4-10 alphanumeric characters)", variant: "destructive" });
+      return;
+    }
+
     // Prepare items with GST calculations
     const invoiceItems: InvoiceItem[] = items.map((item) => {
       const gst = calculateItemGst(item);
       return {
         description: item.description,
+        hsn_code: item.hsn_code.trim(),
         quantity: item.quantity,
         price: item.price,
         gst_rate: item.gst_rate || DEFAULT_GST_RATE,
@@ -315,7 +323,7 @@ export default function Invoices() {
     toast({ title: "Invoice created", description: `Invoice ${invoiceNumber} generated` });
     setDialogOpen(false);
     setFormData({ client_name: "", client_email: "", client_address: "", notes: "", buyer_state: "Maharashtra", buyer_gstin: "" });
-    setItems([{ description: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
+    setItems([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
     fetchData();
   };
 
