@@ -25,6 +25,7 @@ import { format } from "date-fns";
 // Invoice item interface - standardized
 interface InvoiceItem {
   description: string;
+  hsn_code: string;
   quantity: number;
   price: number;
   gst_rate?: number;
@@ -39,6 +40,7 @@ interface InvoiceItem {
 function normalizeInvoiceItem(item: any): InvoiceItem {
   return {
     description: item.description || item.name || item.product_name || "Item",
+    hsn_code: item.hsn_code || item.hsn || "",
     quantity: Number(item.quantity) || 1,
     price: Number(item.price) || Number(item.rate) || Number(item.product_price) || 0,
     gst_rate: Number(item.gst_rate) || 18,
@@ -118,7 +120,7 @@ export default function Invoices() {
     buyer_state: "Maharashtra",
     buyer_gstin: "",
   });
-  const [items, setItems] = useState<InvoiceItem[]>([{ description: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
+  const [items, setItems] = useState<InvoiceItem[]>([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
   const { toast } = useToast();
   const { user } = useAuth();
   
@@ -212,7 +214,7 @@ export default function Invoices() {
     return matchesTab && matchesSearch && matchesPayment && matchesStatus && matchesDateFrom && matchesDateTo;
   });
 
-  const addItem = () => setItems([...items, { description: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
+  const addItem = () => setItems([...items, { description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
   const removeItem = (i: number) => setItems(items.filter((_, idx) => idx !== i));
   const updateItem = (i: number, field: keyof InvoiceItem, value: string | number) => {
     const n = [...items];
@@ -263,11 +265,19 @@ export default function Invoices() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate HSN codes
+    const invalidHsn = items.some(item => !item.hsn_code || !/^[a-zA-Z0-9]{4,10}$/.test(item.hsn_code.trim()));
+    if (invalidHsn) {
+      toast({ title: "Validation Error", description: "Each item must have a valid HSN code (4-10 alphanumeric characters)", variant: "destructive" });
+      return;
+    }
+
     // Prepare items with GST calculations
     const invoiceItems: InvoiceItem[] = items.map((item) => {
       const gst = calculateItemGst(item);
       return {
         description: item.description,
+        hsn_code: item.hsn_code.trim(),
         quantity: item.quantity,
         price: item.price,
         gst_rate: item.gst_rate || DEFAULT_GST_RATE,
@@ -313,7 +323,7 @@ export default function Invoices() {
     toast({ title: "Invoice created", description: `Invoice ${invoiceNumber} generated` });
     setDialogOpen(false);
     setFormData({ client_name: "", client_email: "", client_address: "", notes: "", buyer_state: "Maharashtra", buyer_gstin: "" });
-    setItems([{ description: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
+    setItems([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
     fetchData();
   };
 
@@ -551,61 +561,76 @@ export default function Invoices() {
                   </Button>
                 </div>
                 {items.map((item, i) => (
-                  <div key={i} className="grid grid-cols-12 gap-2 items-end p-4 bg-muted/30 rounded-lg">
-                    <div className="col-span-12 md:col-span-4">
-                      <Label>Description</Label>
-                      <Input
-                        value={item.description}
-                        onChange={(e) => updateItem(i, "description", e.target.value)}
-                        placeholder="Product or service"
-                        required
-                      />
-                    </div>
-                    <div className="col-span-4 md:col-span-2">
-                      <Label>Qty</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={item.quantity}
-                        onChange={(e) => updateItem(i, "quantity", Number(e.target.value))}
-                        required
-                      />
-                    </div>
-                    <div className="col-span-4 md:col-span-2">
-                      <Label>Rate (₹)</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={item.price}
-                        onChange={(e) => updateItem(i, "price", Number(e.target.value))}
-                        required
-                      />
-                    </div>
-                    <div className="col-span-3 md:col-span-2">
-                      <Label>GST %</Label>
-                      <Select
-                        value={String(item.gst_rate || DEFAULT_GST_RATE)}
-                        onValueChange={(value) => updateItem(i, "gst_rate", Number(value))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="0">0%</SelectItem>
-                          <SelectItem value="5">5%</SelectItem>
-                          <SelectItem value="12">12%</SelectItem>
-                          <SelectItem value="18">18%</SelectItem>
-                          <SelectItem value="28">28%</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="col-span-1 md:col-span-2 flex justify-end">
-                      {items.length > 1 && (
-                        <Button type="button" variant="ghost" size="icon" onClick={() => removeItem(i)}>
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
-                      )}
+                  <div key={i} className="space-y-2 p-4 bg-muted/30 rounded-lg">
+                    <div className="grid grid-cols-12 gap-2 items-end">
+                      <div className="col-span-12 md:col-span-3">
+                        <Label>Description <span className="text-destructive">*</span></Label>
+                        <Input
+                          value={item.description}
+                          onChange={(e) => updateItem(i, "description", e.target.value)}
+                          placeholder="Product or service"
+                          required
+                        />
+                      </div>
+                      <div className="col-span-6 md:col-span-2">
+                        <Label>HSN Code <span className="text-destructive">*</span></Label>
+                        <Input
+                          value={item.hsn_code}
+                          onChange={(e) => updateItem(i, "hsn_code", e.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 10))}
+                          placeholder="e.g., 8471"
+                          required
+                          className={!item.hsn_code || /^[a-zA-Z0-9]{4,10}$/.test(item.hsn_code) ? '' : 'border-destructive'}
+                        />
+                        {item.hsn_code && !/^[a-zA-Z0-9]{4,10}$/.test(item.hsn_code) && (
+                          <p className="text-[10px] text-destructive mt-0.5">4-10 alphanumeric chars</p>
+                        )}
+                      </div>
+                      <div className="col-span-3 md:col-span-1">
+                        <Label>Qty</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={item.quantity}
+                          onChange={(e) => updateItem(i, "quantity", Number(e.target.value))}
+                          required
+                        />
+                      </div>
+                      <div className="col-span-3 md:col-span-2">
+                        <Label>Rate (₹)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={item.price}
+                          onChange={(e) => updateItem(i, "price", Number(e.target.value))}
+                          required
+                        />
+                      </div>
+                      <div className="col-span-3 md:col-span-2">
+                        <Label>GST %</Label>
+                        <Select
+                          value={String(item.gst_rate || DEFAULT_GST_RATE)}
+                          onValueChange={(value) => updateItem(i, "gst_rate", Number(value))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="0">0%</SelectItem>
+                            <SelectItem value="5">5%</SelectItem>
+                            <SelectItem value="12">12%</SelectItem>
+                            <SelectItem value="18">18%</SelectItem>
+                            <SelectItem value="28">28%</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="col-span-3 md:col-span-2 flex justify-end">
+                        {items.length > 1 && (
+                          <Button type="button" variant="ghost" size="icon" onClick={() => removeItem(i)}>
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -1124,6 +1149,7 @@ export default function Invoices() {
                         <tr className="bg-foreground text-background">
                           <th className="px-3 py-2.5 text-center font-semibold w-8">#</th>
                           <th className="px-3 py-2.5 text-left font-semibold">Item Description</th>
+                          <th className="px-3 py-2.5 text-center font-semibold w-16">HSN</th>
                           <th className="px-3 py-2.5 text-center font-semibold w-12">Qty</th>
                           <th className="px-3 py-2.5 text-right font-semibold w-20">Rate</th>
                           <th className="px-3 py-2.5 text-right font-semibold w-20">Taxable</th>
@@ -1142,11 +1168,13 @@ export default function Invoices() {
                             ? Number(item.igst_amount) || (taxableValue * gstRate / 100)
                             : (Number(item.cgst_amount) || 0) + (Number(item.sgst_amount) || 0) || (taxableValue * gstRate / 100);
                           const total = Number(item.total) || taxableValue + gstAmt;
+                          const hsn = item.hsn_code || (item as any).hsn || "N/A";
 
                           return (
                             <tr key={i} className={`border-t ${i % 2 === 0 ? 'bg-background' : 'bg-muted/30'}`}>
                               <td className="px-3 py-3 text-center text-muted-foreground">{i + 1}</td>
                               <td className="px-3 py-3 font-medium text-foreground break-words whitespace-pre-wrap">{item.description || item.name || item.product_name}</td>
+                              <td className="px-3 py-3 text-center text-muted-foreground font-mono text-[10px]">{hsn}</td>
                               <td className="px-3 py-3 text-center tabular-nums">{qty}</td>
                               <td className="px-3 py-3 text-right tabular-nums">{formatCurrency(rate)}</td>
                               <td className="px-3 py-3 text-right tabular-nums">{formatCurrency(taxableValue)}</td>

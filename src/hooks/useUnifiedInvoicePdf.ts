@@ -185,7 +185,7 @@ function normalizeItem(item: InvoiceItem, index: number, isIgst: boolean): Norma
     sno: index + 1,
     name: item.name || item.description || item.product_name || "Item",
     sku: item.sku || `DEC-PRD-${String(index + 1).padStart(5, '0')}`,
-    hsn: item.hsn_code || item.hsn || "8471",
+    hsn: item.hsn_code || item.hsn || "N/A",
     qty,
     rate,
     taxableValue,
@@ -464,9 +464,7 @@ function renderInvoicePdf(
 
   // ==================== 4. ITEMS TABLE ====================
   // Column layout – total = CW (182)
-  const cols = isManual
-    ? { sno: 8, item: 56, hsn: 0, qty: 12, rate: 26, taxable: 26, gstPct: 12, gstAmt: 16, total: 26 }
-    : { sno: 8, item: 40, hsn: 14, qty: 10, rate: 22, taxable: 24, gstPct: 12, gstAmt: 24, total: 28 };
+  const cols = { sno: 8, item: 40, hsn: 14, qty: 10, rate: 22, taxable: 24, gstPct: 12, gstAmt: 24, total: 28 };
   const tableX = M;
   const tableW = CW;
   const hdrH = 9;
@@ -489,7 +487,7 @@ function renderInvoicePdf(
   };
   hdr("#", cols.sno, "center");
   hdr("Item Description", cols.item);
-  if (!isManual) hdr("HSN", cols.hsn, "center");
+  hdr("HSN", cols.hsn, "center");
   hdr("Qty", cols.qty, "center");
   hdr("Rate (Rs.)", cols.rate, "right");
   hdr("Taxable (Rs.)", cols.taxable, "right");
@@ -506,7 +504,7 @@ function renderInvoicePdf(
     doc.setFontSize(6.5);
     const itemNameLines: string[] = doc.splitTextToSize(item.name, maxItemW);
     const nameBlockH = itemNameLines.length * 3.5;
-    const skuLineH = isManual ? 0 : 4;
+    const skuLineH = 4;
     const minRowH = 10;
     const rowH = Math.max(minRowH, nameBlockH + skuLineH + 4);
 
@@ -537,25 +535,22 @@ function renderInvoicePdf(
     itemNameLines.forEach((il: string, ilIdx: number) => {
       doc.text(il, cx + 3, nameStartY + ilIdx * 3.5);
     });
-    // SKU below name
+    // SKU & HSN below name
+    const skuY = nameStartY + itemNameLines.length * 3.5 + 1;
+    doc.setFontSize(5.5);
+    doc.setTextColor(...COLORS.muted);
+    doc.setFont("helvetica", "normal");
     if (!isManual) {
-      const skuY = nameStartY + itemNameLines.length * 3.5 + 1;
-      doc.setFontSize(5.5);
-      doc.setTextColor(...COLORS.muted);
-      doc.setFont("helvetica", "normal");
       doc.text(`SKU: ${item.sku}`, cx + 3, skuY);
     }
     cx += cols.item;
 
-    // Numeric columns – all vertically centered
+    // HSN column – always shown
     doc.setFontSize(6);
     doc.setTextColor(...COLORS.secondary);
     doc.setFont("helvetica", "normal");
-
-    if (!isManual) {
-      doc.text(item.hsn, cx + cols.hsn / 2, numCenterY, { align: "center" });
-      cx += cols.hsn;
-    }
+    doc.text(item.hsn || "N/A", cx + cols.hsn / 2, numCenterY, { align: "center" });
+    cx += cols.hsn;
 
     doc.text(String(item.qty), cx + cols.qty / 2, numCenterY, { align: "center" });
     cx += cols.qty;
