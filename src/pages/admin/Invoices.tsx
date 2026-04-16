@@ -561,61 +561,76 @@ export default function Invoices() {
                   </Button>
                 </div>
                 {items.map((item, i) => (
-                  <div key={i} className="grid grid-cols-12 gap-2 items-end p-4 bg-muted/30 rounded-lg">
-                    <div className="col-span-12 md:col-span-4">
-                      <Label>Description</Label>
-                      <Input
-                        value={item.description}
-                        onChange={(e) => updateItem(i, "description", e.target.value)}
-                        placeholder="Product or service"
-                        required
-                      />
-                    </div>
-                    <div className="col-span-4 md:col-span-2">
-                      <Label>Qty</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={item.quantity}
-                        onChange={(e) => updateItem(i, "quantity", Number(e.target.value))}
-                        required
-                      />
-                    </div>
-                    <div className="col-span-4 md:col-span-2">
-                      <Label>Rate (₹)</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={item.price}
-                        onChange={(e) => updateItem(i, "price", Number(e.target.value))}
-                        required
-                      />
-                    </div>
-                    <div className="col-span-3 md:col-span-2">
-                      <Label>GST %</Label>
-                      <Select
-                        value={String(item.gst_rate || DEFAULT_GST_RATE)}
-                        onValueChange={(value) => updateItem(i, "gst_rate", Number(value))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="0">0%</SelectItem>
-                          <SelectItem value="5">5%</SelectItem>
-                          <SelectItem value="12">12%</SelectItem>
-                          <SelectItem value="18">18%</SelectItem>
-                          <SelectItem value="28">28%</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="col-span-1 md:col-span-2 flex justify-end">
-                      {items.length > 1 && (
-                        <Button type="button" variant="ghost" size="icon" onClick={() => removeItem(i)}>
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
-                      )}
+                  <div key={i} className="space-y-2 p-4 bg-muted/30 rounded-lg">
+                    <div className="grid grid-cols-12 gap-2 items-end">
+                      <div className="col-span-12 md:col-span-3">
+                        <Label>Description <span className="text-destructive">*</span></Label>
+                        <Input
+                          value={item.description}
+                          onChange={(e) => updateItem(i, "description", e.target.value)}
+                          placeholder="Product or service"
+                          required
+                        />
+                      </div>
+                      <div className="col-span-6 md:col-span-2">
+                        <Label>HSN Code <span className="text-destructive">*</span></Label>
+                        <Input
+                          value={item.hsn_code}
+                          onChange={(e) => updateItem(i, "hsn_code", e.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 10))}
+                          placeholder="e.g., 8471"
+                          required
+                          className={!item.hsn_code || /^[a-zA-Z0-9]{4,10}$/.test(item.hsn_code) ? '' : 'border-destructive'}
+                        />
+                        {item.hsn_code && !/^[a-zA-Z0-9]{4,10}$/.test(item.hsn_code) && (
+                          <p className="text-[10px] text-destructive mt-0.5">4-10 alphanumeric chars</p>
+                        )}
+                      </div>
+                      <div className="col-span-3 md:col-span-1">
+                        <Label>Qty</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={item.quantity}
+                          onChange={(e) => updateItem(i, "quantity", Number(e.target.value))}
+                          required
+                        />
+                      </div>
+                      <div className="col-span-3 md:col-span-2">
+                        <Label>Rate (₹)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={item.price}
+                          onChange={(e) => updateItem(i, "price", Number(e.target.value))}
+                          required
+                        />
+                      </div>
+                      <div className="col-span-3 md:col-span-2">
+                        <Label>GST %</Label>
+                        <Select
+                          value={String(item.gst_rate || DEFAULT_GST_RATE)}
+                          onValueChange={(value) => updateItem(i, "gst_rate", Number(value))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="0">0%</SelectItem>
+                            <SelectItem value="5">5%</SelectItem>
+                            <SelectItem value="12">12%</SelectItem>
+                            <SelectItem value="18">18%</SelectItem>
+                            <SelectItem value="28">28%</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="col-span-3 md:col-span-2 flex justify-end">
+                        {items.length > 1 && (
+                          <Button type="button" variant="ghost" size="icon" onClick={() => removeItem(i)}>
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
