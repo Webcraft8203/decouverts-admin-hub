@@ -185,7 +185,7 @@ function normalizeItem(item: InvoiceItem, index: number, isIgst: boolean): Norma
     sno: index + 1,
     name: item.name || item.description || item.product_name || "Item",
     sku: item.sku || `DEC-PRD-${String(index + 1).padStart(5, '0')}`,
-    hsn: item.hsn_code || item.hsn || "8471",
+    hsn: item.hsn_code || item.hsn || "N/A",
     qty,
     rate,
     taxableValue,
