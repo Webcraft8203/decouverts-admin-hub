@@ -669,7 +669,7 @@ function renderInvoicePdf(
   const pfLines = platformFee > 0 ? (platformFeeTax > 0 ? 2 : 1) : 0;
 
   // Calculate Box Heights for a balanced grid
-  const taxBoxH = 36 + taxLines * 6; // Dynamically sizes based on tax rows
+  const taxBoxH = 28 + (taxLines * 5); // Dynamically sizes based on tax rows
 
   // Bank Details Config
   const bankRows: [string, string][] = [
@@ -704,26 +704,29 @@ function renderInvoicePdf(
   doc.setFont("helvetica", "bold");
   doc.text("TAX SUMMARY", M + 5, y + 8);
 
-  let gy = y + 16;
+  let gy = y + 12;
   doc.setFontSize(6.5);
+
+  const labelX = M + 5;
+  const valueX = M + sumLeftW - 5;
+  const taxRowGap = 4.5;
 
   const taxRow = (label: string, value: string) => {
     doc.setTextColor(...COLORS.muted);
     doc.setFont("helvetica", "normal");
-    doc.text(label, M + 5, gy);
+    doc.text(label, labelX, gy);
     doc.setTextColor(...COLORS.primary);
     doc.setFont("helvetica", "bold");
-    doc.text(value, M + sumLeftW - 5, gy, { align: "right" });
-    gy += 6;
+    doc.text(value, valueX, gy, { align: "right" });
+    gy += taxRowGap;
   };
 
   taxRow("Supply Type", isIgst ? "Inter-State" : "Intra-State");
   taxRow("Place of Supply", invoice.buyer_state || COMPANY.state);
 
-  gy += 1;
   doc.setDrawColor(...COLORS.border);
-  doc.line(M + 5, gy, M + sumLeftW - 5, gy);
-  gy += 5;
+  doc.line(labelX, gy, valueX, gy);
+  gy += 3;
 
   if (isIgst) {
     taxRow("IGST", fmt(totalIgst));
@@ -732,21 +735,25 @@ function renderInvoicePdf(
     taxRow("SGST", fmt(totalSgst));
   }
 
-  gy += 1;
   doc.setDrawColor(...COLORS.accent);
   doc.setLineWidth(0.5);
-  doc.line(M + 5, gy, M + sumLeftW - 5, gy);
-  gy += 5;
+  doc.line(labelX, gy, valueX, gy);
+  gy += 3;
 
   doc.setFontSize(7);
   doc.setTextColor(...COLORS.primary);
   doc.setFont("helvetica", "bold");
-  doc.text("Total Tax", M + 5, gy);
+  doc.text("Total Tax", labelX, gy);
   doc.setTextColor(...COLORS.accent);
-  doc.text(fmt(totalCgst + totalSgst + totalIgst), M + sumLeftW - 5, gy, { align: "right" });
+  doc.text(fmt(totalCgst + totalSgst + totalIgst), valueX, gy, { align: "right" });
 
-  // ---- BANK DETAILS (left bottom, minimal layout) ----
-  let bankY = taxStartY + taxBoxH + 10;
+  // ---- GRID ALIGNMENT ----
+  const sectionGap = 4;
+  const blockPadding = 6;
+  const gridY = Math.max(taxStartY + taxBoxH, taxStartY + rightBoxH) + sectionGap;
+
+  // ---- BANK DETAILS (left bottom, aligned) ----
+  let bankY = gridY;
   let bankPage = taxPage;
   if (bankY + bankBlockH > safeZone) {
     doc.addPage();
@@ -757,28 +764,28 @@ function renderInvoicePdf(
   // Divider before Bank Details
   doc.setDrawColor(...COLORS.border);
   doc.setLineWidth(0.2);
-  doc.line(M, bankY - 4, M + sumLeftW, bankY - 4);
+  doc.line(M, bankY - (sectionGap / 2), M + sumLeftW, bankY - (sectionGap / 2));
   
   // Title
   doc.setFontSize(7.5);
   doc.setTextColor(...COLORS.primary);
   doc.setFont("helvetica", "bold");
-  doc.text("Bank Details", M, bankY + bankTitleH);
+  doc.text("Bank Details", M, bankY + blockPadding);
 
   // Rows – labels left, values right-aligned column
-  let by = bankY + bankTitleH + 6;
-  const labelX = M;
-  const valueX = M + sumLeftW;
+  let by = bankY + blockPadding + bankRowH + 2; // +2 for baseline text alignment
+  const bankLabelX = M;
+  const bankValueX = M + sumLeftW;
   
   bankRows.forEach(([label, value]) => {
     doc.setFontSize(6.5);
     doc.setTextColor(...COLORS.muted);
     doc.setFont("helvetica", "normal");
-    doc.text(label, labelX, by);
+    doc.text(label, bankLabelX, by);
     
     doc.setTextColor(...COLORS.primary);
     doc.setFont("helvetica", "bold");
-    doc.text(value, valueX - 2, by, { align: "right" });
+    doc.text(value, bankValueX, by, { align: "right" });
     by += bankRowH;
   });
 
@@ -850,72 +857,67 @@ function renderInvoicePdf(
   doc.text(fmt(invoice.total_amount), vx - 1, grandTotalY + grandTotalBarH / 2 + 1.5, { align: "right" });
 
   // ==================== 7.5 UPI PAYMENT ====================
-  doc.setPage(rightPage);
-  const upiBlockHeight = 24;
-  let upiY = rightY + rightBoxH + 6;
-  let upiPage = rightPage;
+  const upiBlockHeight = 54;
+  let upiY = bankY; // START AT EXACT SAME Y POSITION
+  let upiPage = bankPage;
 
   if (upiY + upiBlockHeight > safeZone) {
     doc.addPage();
     upiY = M;
     upiPage = doc.getNumberOfPages();
   }
+  doc.setPage(upiPage);
 
   const upiX = rx;
-  const labelX = upiX + 6;
-  const valueX = upiX + sumRightW - 6;
-
-  const qrSize = 22;
-  const qrX = upiX + sumRightW - qrSize - 6;
-  const qrY = upiY + 2;
+  const centerX = upiX + (sumRightW / 2);
 
   // Title
-  doc.setFontSize(8);
+  doc.setFontSize(7.5);
   doc.setTextColor(...COLORS.primary);
   doc.setFont("helvetica", "bold");
-  doc.text("Scan to Pay via UPI", labelX, upiY);
+  doc.text("Scan to Pay via UPI", centerX, upiY + 6, { align: "center" });
 
-  let uy = upiY + 5;
-
-  const rowH = 4;
-
-  // UPI ID
-  doc.setFontSize(6);
+  // Description
+  let uy = upiY + 10;
+  doc.setFontSize(6.5);
   doc.setTextColor(...COLORS.muted);
   doc.setFont("helvetica", "normal");
-  doc.text("UPI ID", labelX, uy);
-
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(...COLORS.accent);
-  doc.text("natashasoni0529-2@okhdfcbank", valueX, uy, { align: "right" });
-
-  uy += rowH;
-
-  // Limit
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(...COLORS.muted);
-  doc.text("Limit", labelX, uy);
-  doc.text("1 lakh/day", valueX, uy, { align: "right" });
+  doc.text("Maximum of 1 lakh can", centerX, uy, { align: "center" });
+  uy += 3.5;
+  doc.text("be transferred via UPI in a", centerX, uy, { align: "center" });
+  uy += 3.5;
+  doc.text("single day", centerX, uy, { align: "center" });
 
   // Placeholder QR Box
+  const qrSize = 22;
+  const qrX = centerX - (qrSize / 2);
+  const qrY = uy + 6;
+
   doc.setDrawColor(...COLORS.border);
   doc.setLineWidth(0.2);
   doc.roundedRect(qrX, qrY, qrSize, qrSize, 2, 2, "S");
 
+  // UPI ID
+  doc.setFontSize(7.5);
+  doc.setTextColor(...COLORS.accent);
+  doc.setFont("helvetica", "bold");
+  doc.text("natashasoni0529-2@okhdfcbank", centerX, qrY + qrSize + 6, { align: "center" });
+
   // ---- ADVANCE Y FOR TERMS ----
-  const finalPage = Math.max(taxPage, bankPage, rightPage, upiPage);
-  doc.setPage(finalPage);
-
-  let maxY = M;
-  if (taxPage === finalPage) maxY = Math.max(maxY, taxStartY + taxBoxH);
-  if (bankPage === finalPage) maxY = Math.max(maxY, bankY + bankBlockH);
-  if (rightPage === finalPage && upiPage !== finalPage) maxY = Math.max(maxY, rightY + rightBoxH);
-  if (upiPage === finalPage) maxY = Math.max(maxY, upiY + upiBlockHeight);
-
-  y = Math.max(y, maxY + 6);
+  doc.setPage(bankPage);
+  y = bankY + bankBlockH + 4;
 
   // ==================== 8. TERMS ====================
-  const termsHeight = 5 + (COMPANY.terms.length * 3.8);
+  doc.setFontSize(5.5);
+  const termsLines: string[] = [];
+  COMPANY.terms.forEach((term) => {
+    const wrapped = doc.splitTextToSize(term, CW) as string[];
+    termsLines.push(...wrapped);
+  });
+
+  const termsLineHeight = 3.2;
+  const termsHeight = 5 + (termsLines.length * termsLineHeight);
+
   if (y + termsHeight > safeZone) {
     doc.addPage();
     y = M;
@@ -926,10 +928,14 @@ function renderInvoicePdf(
   doc.setFont("helvetica", "bold");
   doc.text("Terms & Conditions", M, y);
   y += 5;
+
   doc.setFontSize(5.5);
   doc.setTextColor(...COLORS.muted);
   doc.setFont("helvetica", "normal");
-  COMPANY.terms.forEach((t) => { doc.text(t, M, y); y += 3.8; });
+  termsLines.forEach((line) => { 
+    doc.text(line, M, y); 
+    y += termsLineHeight; 
+  });
 
   // ==================== FOOTERS ====================
   const pageCount = doc.getNumberOfPages();
