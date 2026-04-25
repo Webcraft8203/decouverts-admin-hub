@@ -257,16 +257,26 @@ function renderInvoicePdf(
 
   // ---------- HELPERS ----------
   const addFooter = (pageNum: number, total: number) => {
-    const fy = ph - 10;
+    const fy = ph - 9;
+    // Top border separator
     doc.setDrawColor(...COLORS.border);
-    doc.setLineWidth(0.4);
-    doc.line(M, fy - 5, pw - M, fy - 5);
-    doc.setFontSize(6);
+    doc.setLineWidth(0.3);
+    doc.line(M, fy - 4, pw - M, fy - 4);
+
+    doc.setFontSize(6.2);
     doc.setTextColor(...COLORS.muted);
     doc.setFont("helvetica", "normal");
-    doc.text("This is a computer-generated document and does not require a signature.", M, fy - 1);
-    doc.text(`Page ${pageNum} of ${total}`, pw - M, fy - 1, { align: "right" });
-    doc.text(`Generated: ${new Date().toLocaleString("en-IN")} | ${COMPANY.website}`, pw / 2, fy + 3, { align: "center" });
+    // Left
+    doc.text("This is a computer-generated document and does not require a signature.", M, fy);
+    // Right
+    doc.text(`Page ${pageNum} of ${total}`, pw - M, fy, { align: "right" });
+    // Bottom center
+    const genTime = new Date().toLocaleString("en-IN", {
+      day: "2-digit", month: "short", year: "numeric",
+      hour: "2-digit", minute: "2-digit", hour12: true,
+    });
+    doc.setFontSize(5.8);
+    doc.text(`Generated: ${genTime}  |  ${COMPANY.website}`, pw / 2, fy + 4, { align: "center" });
   };
 
   const checkBreak = (h: number) => {
@@ -275,59 +285,72 @@ function renderInvoicePdf(
   };
 
   // ==================== 1. HEADER ====================
-  const HEADER_H = 16;
+  // Logo on left, company name + tagline aligned beside it. Invoice type on right.
+  const HEADER_H = 18;
   const headerTop = y;
   const headerRight = pw - M;
-  const headerCenterY = headerTop + HEADER_H / 2;
+  const logoSize = 14;
+  const logoX = M;
+  const logoY = headerTop + (HEADER_H - logoSize) / 2;
 
   if (logoBase64) {
     try {
-      const logoH = 13;
-      const logoW = 26;
-      doc.addImage(logoBase64, "PNG", M, headerCenterY - logoH / 2, logoW, logoH);
+      doc.addImage(logoBase64, "PNG", logoX, logoY, logoSize, logoSize);
     } catch { /* ignore */ }
   }
 
-  const logoTextX = logoBase64 ? M + 30 : M;
+  const textX = logoBase64 ? logoX + logoSize + 4 : M;
 
-  doc.setFontSize(20);
+  // Company name – aligned with logo center vertically
+  doc.setFontSize(18);
   doc.setTextColor(...COLORS.primary);
   doc.setFont("helvetica", "bold");
-  doc.text(COMPANY.name, logoTextX, headerCenterY + 1);
+  doc.text(COMPANY.name, textX, headerTop + 8);
 
-  doc.setFontSize(8);
-  doc.setTextColor(...COLORS.orange);
+  // Tagline – just below company name, smaller + lighter
+  doc.setFontSize(7);
+  doc.setTextColor(...COLORS.muted);
   doc.setFont("helvetica", "italic");
-  doc.text(COMPANY.tagline, logoTextX, headerCenterY + 7);
+  doc.text(COMPANY.tagline, textX, headerTop + 13);
 
+  // Invoice type – right side, vertically aligned with company name
   const typeLabel = isFinal ? "TAX INVOICE" : "PROFORMA INVOICE";
-  doc.setFontSize(12);
+  doc.setFontSize(13);
   doc.setTextColor(...(isFinal ? COLORS.primary : COLORS.secondary));
   doc.setFont("helvetica", "bold");
-  doc.text(typeLabel, headerRight, headerCenterY + 1, { align: "right" });
-  if (!isFinal) {
-    doc.setFontSize(6);
-    doc.setTextColor(...COLORS.muted);
-    doc.setFont("helvetica", "normal");
-    doc.text("Not valid for tax purposes", headerRight, headerCenterY + 6, { align: "right" });
-  }
+  doc.text(typeLabel, headerRight, headerTop + 8, { align: "right" });
+  doc.setFontSize(6);
+  doc.setTextColor(...COLORS.muted);
+  doc.setFont("helvetica", "normal");
+  doc.text(
+    isFinal ? "GST-Compliant Tax Invoice" : "Not valid for tax purposes",
+    headerRight, headerTop + 13, { align: "right" }
+  );
 
-  y = headerTop + HEADER_H + 5;
+  y = headerTop + HEADER_H + 3;
 
-  // Company address – each part on a clean line
+  // ---------- COMPANY DETAILS ROW ----------
+  // Address (one line) + contact info (one line) — small, muted, well spaced
   doc.setFontSize(6.5);
-  doc.setTextColor(...COLORS.secondary);
+  doc.setTextColor(...COLORS.muted);
   doc.setFont("helvetica", "normal");
   const companyAddr = `${COMPANY.address.replace(/\n/g, ', ')}, ${COMPANY.city}, ${COMPANY.state} - ${COMPANY.pincode}, ${COMPANY.country}`;
   const addrLines = doc.splitTextToSize(companyAddr, CW);
-  addrLines.forEach((line: string) => { doc.text(line, M, y); y += 3.5; });
-  doc.text(`Phone: ${COMPANY.phone}  |  Email: ${COMPANY.email}  |  GSTIN: ${COMPANY.gstin}  |  PAN: ${COMPANY.pan}`, M, y);
-  y += 5;
+  addrLines.forEach((line: string) => { doc.text(line, M, y); y += 3.3; });
+  y += 0.5;
+  // Contact info row with • separators for cleaner look
+  doc.setTextColor(...COLORS.secondary);
+  doc.text(
+    `Phone: ${COMPANY.phone}   •   Email: ${COMPANY.email}   •   GSTIN: ${COMPANY.gstin}   •   PAN: ${COMPANY.pan}`,
+    M, y
+  );
+  y += 4;
 
-  // Gold divider
-  doc.setFillColor(...COLORS.accent);
-  doc.rect(M, y, CW, 1.2, "F");
-  y += 6;
+  // Thin divider line below header
+  doc.setDrawColor(...COLORS.accent);
+  doc.setLineWidth(0.6);
+  doc.line(M, y, pw - M, y);
+  y += 5;
 
   // ==================== 2. INVOICE META ROW ====================
   const metaH = 16;
