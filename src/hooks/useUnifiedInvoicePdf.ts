@@ -234,6 +234,7 @@ function parseAddress(raw: string): string[] {
 }
 
 // ==================== PDF RENDERER ====================
+// 8px grid system → in mm: 1 unit = 2mm. Spacings: 2/4/6/8/10/12/16
 function renderInvoicePdf(
   doc: jsPDF,
   invoice: Invoice,
@@ -247,40 +248,59 @@ function renderInvoicePdf(
   const isManual = !invoice.order_id;
   const { width: pw, height: ph, margin: M } = PAGE;
   const CW = pw - 2 * M;
-  const safeZone = ph - PAGE.footerHeight - 4;
+  const FOOTER_RESERVE = 18; // reserved space at bottom for footer (always)
+  const safeZone = ph - FOOTER_RESERVE;
   let y = M;
-  let currentPage = 1;
 
   const platformFee = Number(invoice.platform_fee) || 0;
   const platformFeeTax = Number(invoice.platform_fee_tax) || 0;
   const isFinal = invoice.is_final || invoice.invoice_type === "final";
+  const genTime = new Date().toLocaleString("en-IN", {
+    day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit", hour12: true,
+  });
 
-  // ---------- HELPERS ----------
+  // ---------- FOOTER (3-column, pixel-aligned, repeats on every page) ----------
   const addFooter = (pageNum: number, total: number) => {
-    const fy = ph - 9;
-    // Top border separator
+    const fy = ph - FOOTER_RESERVE + 4;
+    // Top divider
     doc.setDrawColor(...COLORS.border);
-    doc.setLineWidth(0.3);
-    doc.line(M, fy - 4, pw - M, fy - 4);
+    doc.setLineWidth(0.25);
+    doc.line(M, fy, pw - M, fy);
 
+    const lineY1 = fy + 4.5;
+    const lineY2 = fy + 8.5;
+
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(6.2);
     doc.setTextColor(...COLORS.muted);
+
+    // LEFT — disclaimer (wrapped, max ~60mm)
+    const leftMaxW = 60;
+    const disclaimer = doc.splitTextToSize(
+      "This is a computer-generated document and does not require a signature.",
+      leftMaxW
+    ) as string[];
+    disclaimer.forEach((l, i) => doc.text(l, M, lineY1 + i * 3.4));
+
+    // CENTER — generated timestamp + website
+    doc.text(`Generated: ${genTime}`, pw / 2, lineY1, { align: "center" });
+    doc.setTextColor(...COLORS.accent);
+    doc.setFont("helvetica", "bold");
+    doc.text(COMPANY.website, pw / 2, lineY2, { align: "center" });
+
+    // RIGHT — page X of Y
     doc.setFont("helvetica", "normal");
-    // Left
-    doc.text("This is a computer-generated document and does not require a signature.", M, fy);
-    // Right
-    doc.text(`Page ${pageNum} of ${total}`, pw - M, fy, { align: "right" });
-    // Bottom center
-    const genTime = new Date().toLocaleString("en-IN", {
-      day: "2-digit", month: "short", year: "numeric",
-      hour: "2-digit", minute: "2-digit", hour12: true,
-    });
+    doc.setTextColor(...COLORS.secondary);
+    doc.setFontSize(6.5);
+    doc.text(`Page ${pageNum} of ${total}`, pw - M, lineY1, { align: "right" });
     doc.setFontSize(5.8);
-    doc.text(`Generated: ${genTime}  |  ${COMPANY.website}`, pw / 2, fy + 4, { align: "center" });
+    doc.setTextColor(...COLORS.muted);
+    doc.text(invoice.invoice_number, pw - M, lineY2, { align: "right" });
   };
 
   const checkBreak = (h: number) => {
-    if (y + h > safeZone) { doc.addPage(); currentPage++; y = M + 6; return true; }
+    if (y + h > safeZone) { doc.addPage(); y = M; return true; }
     return false;
   };
 
