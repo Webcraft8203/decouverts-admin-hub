@@ -2,6 +2,11 @@ import { useCallback, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
+import invoiceLogo from "@/assets/invoice-logo.png";
+
+// Intrinsic aspect ratio of the bundled invoice logo (width / height)
+// Trimmed source: 313 x 257 px
+const LOGO_ASPECT = 313 / 257;
 
 // ==================== UNIFIED DECOUVERTES INVOICE TEMPLATE ====================
 
@@ -78,16 +83,15 @@ const numberToWords = (num: number): string => {
 };
 
 const fetchLogoAsBase64 = async (): Promise<string | null> => {
-  const urls = [
-    `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/customer-partner-images/email-logo.png`,
-  ];
-  for (const logoUrl of urls) {
+  // Always prefer the bundled, pre-trimmed invoice logo for consistent header alignment
+  const sources = [invoiceLogo, '/logo.png'];
+  for (const src of sources) {
     try {
-      const response = await fetch(logoUrl);
+      const response = await fetch(src);
       if (!response.ok) continue;
       const blob = await response.blob();
       if (blob.size < 100) continue;
-      return new Promise((resolve) => {
+      return await new Promise<string | null>((resolve) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result as string);
         reader.onerror = () => resolve(null);
@@ -95,20 +99,6 @@ const fetchLogoAsBase64 = async (): Promise<string | null> => {
       });
     } catch { continue; }
   }
-  try {
-    const response = await fetch('/logo.png');
-    if (response.ok) {
-      const blob = await response.blob();
-      if (blob.size > 100) {
-        return new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = () => resolve(null);
-          reader.readAsDataURL(blob);
-        });
-      }
-    }
-  } catch { /* ignore */ }
   return null;
 };
 
@@ -306,48 +296,59 @@ function renderInvoicePdf(
 
   // ==================== 1. HEADER ====================
   // Flex-style: [Logo + Company stack] LEFT  ←→  [Invoice type stack] RIGHT
-  const HEADER_H = 20;
+  // Optical alignment: logo, company name and invoice type share the same vertical center.
   const headerTop = y;
   const headerRight = pw - M;
-  const logoSize = 16; // ≈ 45-50px equivalent in PDF
+
+  // Logo sized by HEIGHT (16mm ≈ 48px @ 72dpi), width derived from intrinsic aspect.
+  // Pre-trimmed source removes transparent padding so bounding box hugs the mark.
+  const logoH = 16;
+  const logoW = +(logoH * LOGO_ASPECT).toFixed(2);
   const logoX = M;
-  const logoY = headerTop + 1;
+  // Optical nudge: the mark is visually heavier at the top, push it ~0.6mm down
+  // so its perceived center sits on the shared baseline of the text block.
+  const opticalNudge = 0.6;
+  const logoY = headerTop + opticalNudge;
 
   if (logoBase64) {
     try {
-      doc.addImage(logoBase64, "PNG", logoX, logoY, logoSize, logoSize);
+      doc.addImage(logoBase64, "PNG", logoX, logoY, logoW, logoH);
     } catch { /* ignore */ }
   }
 
-  const textX = logoBase64 ? logoX + logoSize + 4 : M;
+  // Shared vertical center for the whole header row
+  const centerY = headerTop + logoH / 2;
+  // 12-16px gap between logo and text → ~4mm in PDF
+  const textX = logoBase64 ? logoX + logoW + 4 : M;
 
-  // Company name – optically vertically aligned with logo center
-  doc.setFontSize(17);
+  // Company name – baseline placed so cap-height optically centers on centerY
+  doc.setFontSize(18);
   doc.setTextColor(...COLORS.primary);
   doc.setFont("helvetica", "bold");
-  doc.text(COMPANY.name, textX, headerTop + 8.5);
+  doc.text(COMPANY.name, textX, centerY - 0.4);
 
-  // Tagline – LEFT aligned with company name, muted grey
-  doc.setFontSize(7.5);
+  // Tagline – tight 4px gap below name (line-height: 1 feel), left-aligned with name
+  doc.setFontSize(8);
   doc.setTextColor(...COLORS.muted);
   doc.setFont("helvetica", "normal");
-  doc.text(COMPANY.tagline, textX, headerTop + 13);
+  doc.text(COMPANY.tagline, textX, centerY + 4);
 
-  // Invoice type – right side, vertically aligned with company name
+  // Invoice type – right side, optically centered on the same row as company name
   const typeLabel = isFinal ? "TAX INVOICE" : "PROFORMA INVOICE";
   doc.setFontSize(13);
   doc.setTextColor(...(isFinal ? COLORS.primary : COLORS.secondary));
   doc.setFont("helvetica", "bold");
-  doc.text(typeLabel, headerRight, headerTop + 8.5, { align: "right" });
-  doc.setFontSize(6.5);
+  doc.text(typeLabel, headerRight, centerY - 0.4, { align: "right" });
+  doc.setFontSize(6.8);
   doc.setTextColor(...COLORS.muted);
   doc.setFont("helvetica", "normal");
   doc.text(
     isFinal ? "GST-Compliant Tax Invoice" : "Not valid for tax purposes",
-    headerRight, headerTop + 13, { align: "right" }
+    headerRight, centerY + 4, { align: "right" }
   );
 
-  y = headerTop + HEADER_H;
+  // Reserve consistent header height (logo height + small breathing room)
+  y = headerTop + logoH + 4;
 
   // ---------- COMPANY DETAILS ROW (inline w/ "|" separators) ----------
   doc.setFontSize(6.8);
