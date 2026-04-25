@@ -83,16 +83,15 @@ const numberToWords = (num: number): string => {
 };
 
 const fetchLogoAsBase64 = async (): Promise<string | null> => {
-  const urls = [
-    `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/customer-partner-images/email-logo.png`,
-  ];
-  for (const logoUrl of urls) {
+  // Always prefer the bundled, pre-trimmed invoice logo for consistent header alignment
+  const sources = [invoiceLogo, '/logo.png'];
+  for (const src of sources) {
     try {
-      const response = await fetch(logoUrl);
+      const response = await fetch(src);
       if (!response.ok) continue;
       const blob = await response.blob();
       if (blob.size < 100) continue;
-      return new Promise((resolve) => {
+      return await new Promise<string | null>((resolve) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result as string);
         reader.onerror = () => resolve(null);
@@ -100,20 +99,6 @@ const fetchLogoAsBase64 = async (): Promise<string | null> => {
       });
     } catch { continue; }
   }
-  try {
-    const response = await fetch('/logo.png');
-    if (response.ok) {
-      const blob = await response.blob();
-      if (blob.size > 100) {
-        return new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = () => resolve(null);
-          reader.readAsDataURL(blob);
-        });
-      }
-    }
-  } catch { /* ignore */ }
   return null;
 };
 
