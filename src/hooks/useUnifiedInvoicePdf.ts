@@ -40,10 +40,10 @@ const COMPANY = {
   website: "www.decouvertes.in",
   bank: {
     accountName: "DECOUVERTES FUTURE TECH PRIVATE LIMITED",
-    accountNumber: "50200095123456",
+    accountNumber: "50200084298316",
     bankName: "HDFC Bank",
-    branch: "Pimpri, Pune",
-    ifsc: "HDFC0001234",
+    branch: "Hinjawadi, Pune",
+    ifsc: "HDFC0000794",
     accountType: "Current Account",
   },
   terms: [
@@ -100,6 +100,22 @@ const fetchLogoAsBase64 = async (): Promise<string | null> => {
     } catch { continue; }
   }
   return null;
+};
+
+const fetchUpiQr = async (): Promise<string | null> => {
+  try {
+    const res = await fetch('/upiqr.png');
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
 };
 
 export interface InvoiceItem {
@@ -234,6 +250,7 @@ function renderInvoicePdf(
   totalSgst: number,
   totalIgst: number,
   logoBase64: string | null,
+  qrBase64: string | null
 ) {
   const isManual = !invoice.order_id;
   const { width: pw, height: ph, margin: M } = PAGE;
@@ -298,18 +315,17 @@ function renderInvoicePdf(
   // Optical alignment baseline system
   const headerTop = y;
   const headerRight = pw - M;
-  const textBaseY = headerTop + 10; // fixed baseline
 
   // Logo sized by HEIGHT (16mm ≈ 48px @ 72dpi), width derived from intrinsic aspect.
   // Pre-trimmed source removes transparent padding so bounding box hugs the mark.
-  const logoH = 13.5; // reduced size
-  const logoW = +(logoH * LOGO_ASPECT).toFixed(2);
+  const logoH = 12; // reduced size
+  const logoW = logoH * LOGO_ASPECT;
   const logoX = M;
 
-  // Optical alignment logic for logo relative to text baseline
-  const logoCenterOffset = 0.60; // tuned for this logo shape
-  const opticalAdjust = 0.9;
-  const logoY = textBaseY - (logoH * logoCenterOffset) + opticalAdjust;
+  // Optical alignment logic for logo
+  const logoCenterOffset = 0.64; // tuned for this logo shape
+  const opticalAdjust = 2;
+  const logoY = (headerTop + 10) - (logoH * logoCenterOffset) + opticalAdjust;
 
   if (logoBase64) {
     try {
@@ -320,38 +336,51 @@ function renderInvoicePdf(
   // 12-16px gap between logo and text → ~4mm in PDF
   const textX = logoBase64 ? logoX + logoW + 4 : M;
 
+  const logoCenterY = logoY + (logoH / 2);
+
+  const titleFontSize = 18;
+  const taglineFontSize = 7.8;
+  const gapBetween = 3.5;
+
+  const textBlockHeight = titleFontSize * 0.35 + gapBetween + taglineFontSize * 0.35;
+
+  // Compute starting Y so text block is vertically centered to logo
+  // Adjusted to point to the text baseline instead of the bounding box top
+  const textStartY = logoCenterY - (textBlockHeight / 2) + (titleFontSize * 0.35);
+
   // Company name aligned exactly to baseline
-  doc.setFontSize(18);
+  doc.setFontSize(titleFontSize);
   doc.setTextColor(...COLORS.primary);
   doc.setFont("helvetica", "bold");
   const titleWidth = doc.getTextWidth(COMPANY.name);
-  doc.text(COMPANY.name, textX, textBaseY);
+  doc.text(COMPANY.name, textX, textStartY);
 
-  // Tagline – tight 4px gap below name, centered under company name
-  doc.setFontSize(8);
+  // Place tagline directly below name
+  doc.setFontSize(taglineFontSize);
   doc.setTextColor(...COLORS.muted);
   doc.setFont("helvetica", "normal");
   const taglineWidth = doc.getTextWidth(COMPANY.tagline);
   
+  const taglineY = textStartY + 6; // controlled spacing
   const taglineX = textX + (titleWidth / 2) - (taglineWidth / 2);
-  doc.text(COMPANY.tagline, taglineX, textBaseY + 5);
+  doc.text(COMPANY.tagline, taglineX, taglineY);
 
   // Invoice type – right side, perfectly aligned with company name
   const typeLabel = isFinal ? "TAX INVOICE" : "PROFORMA INVOICE";
   doc.setFontSize(13);
   doc.setTextColor(...(isFinal ? COLORS.primary : COLORS.secondary));
   doc.setFont("helvetica", "bold");
-  doc.text(typeLabel, headerRight, textBaseY, { align: "right" });
+  doc.text(typeLabel, headerRight, textStartY, { align: "right" });
   doc.setFontSize(6.8);
   doc.setTextColor(...COLORS.muted);
   doc.setFont("helvetica", "normal");
   doc.text(
     isFinal ? "GST-Compliant Tax Invoice" : "Not valid for tax purposes",
-    headerRight, textBaseY + 4, { align: "right" }
+    headerRight, textStartY + 5.5, { align: "right" }
   );
 
   // Reserve consistent header height (logo height + small breathing room)
-  y = headerTop + logoH + 5;
+  y = headerTop + logoH + 9;
 
   // ---------- COMPANY DETAILS ROW (inline w/ "|" separators) ----------
   doc.setFontSize(6.8);
@@ -888,14 +917,22 @@ function renderInvoicePdf(
   uy += 3.5;
   doc.text("single day", centerX, uy, { align: "center" });
 
-  // Placeholder QR Box
-  const qrSize = 22;
+  // UPI QR Image or fallback Box
+  const qrSize = 26;
   const qrX = centerX - (qrSize / 2);
   const qrY = uy + 6;
 
   doc.setDrawColor(...COLORS.border);
   doc.setLineWidth(0.2);
-  doc.roundedRect(qrX, qrY, qrSize, qrSize, 2, 2, "S");
+  if (qrBase64) {
+    try {
+      doc.addImage(qrBase64, "PNG", qrX, qrY, qrSize, qrSize);
+    } catch {
+      doc.roundedRect(qrX, qrY, qrSize, qrSize, 2, 2, "S");
+    }
+  } else {
+    doc.roundedRect(qrX, qrY, qrSize, qrSize, 2, 2, "S");
+  }
 
   // UPI ID
   doc.setFontSize(7.5);
@@ -969,7 +1006,8 @@ export function useUnifiedInvoicePdf() {
     }
 
     const logoBase64 = await fetchLogoAsBase64();
-    renderInvoicePdf(doc, invoice, items, isIgst, totalCgst, totalSgst, totalIgst, logoBase64);
+    const qrBase64 = await fetchUpiQr();
+    renderInvoicePdf(doc, invoice, items, isIgst, totalCgst, totalSgst, totalIgst, logoBase64, qrBase64);
     return doc.output("blob");
   }, []);
 
