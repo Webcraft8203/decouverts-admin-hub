@@ -2,6 +2,11 @@ import { useCallback, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
+import invoiceLogo from "@/assets/invoice-logo.png";
+
+// Intrinsic aspect ratio of the bundled invoice logo (width / height)
+// Trimmed source: 313 x 257 px
+const LOGO_ASPECT = 313 / 257;
 
 // ==================== UNIFIED DECOUVERTES INVOICE TEMPLATE ====================
 
