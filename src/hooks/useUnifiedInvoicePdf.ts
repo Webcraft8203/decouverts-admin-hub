@@ -234,6 +234,7 @@ function parseAddress(raw: string): string[] {
 }
 
 // ==================== PDF RENDERER ====================
+// 8px grid system → in mm: 1 unit = 2mm. Spacings: 2/4/6/8/10/12/16
 function renderInvoicePdf(
   doc: jsPDF,
   invoice: Invoice,
@@ -247,51 +248,70 @@ function renderInvoicePdf(
   const isManual = !invoice.order_id;
   const { width: pw, height: ph, margin: M } = PAGE;
   const CW = pw - 2 * M;
-  const safeZone = ph - PAGE.footerHeight - 4;
+  const FOOTER_RESERVE = 18; // reserved space at bottom for footer (always)
+  const safeZone = ph - FOOTER_RESERVE;
   let y = M;
-  let currentPage = 1;
 
   const platformFee = Number(invoice.platform_fee) || 0;
   const platformFeeTax = Number(invoice.platform_fee_tax) || 0;
   const isFinal = invoice.is_final || invoice.invoice_type === "final";
+  const genTime = new Date().toLocaleString("en-IN", {
+    day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit", hour12: true,
+  });
 
-  // ---------- HELPERS ----------
+  // ---------- FOOTER (3-column, pixel-aligned, repeats on every page) ----------
   const addFooter = (pageNum: number, total: number) => {
-    const fy = ph - 9;
-    // Top border separator
+    const fy = ph - FOOTER_RESERVE + 4;
+    // Top divider
     doc.setDrawColor(...COLORS.border);
-    doc.setLineWidth(0.3);
-    doc.line(M, fy - 4, pw - M, fy - 4);
+    doc.setLineWidth(0.25);
+    doc.line(M, fy, pw - M, fy);
 
+    const lineY1 = fy + 4.5;
+    const lineY2 = fy + 8.5;
+
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(6.2);
     doc.setTextColor(...COLORS.muted);
+
+    // LEFT — disclaimer (wrapped, max ~60mm)
+    const leftMaxW = 60;
+    const disclaimer = doc.splitTextToSize(
+      "This is a computer-generated document and does not require a signature.",
+      leftMaxW
+    ) as string[];
+    disclaimer.forEach((l, i) => doc.text(l, M, lineY1 + i * 3.4));
+
+    // CENTER — generated timestamp + website
+    doc.text(`Generated: ${genTime}`, pw / 2, lineY1, { align: "center" });
+    doc.setTextColor(...COLORS.accent);
+    doc.setFont("helvetica", "bold");
+    doc.text(COMPANY.website, pw / 2, lineY2, { align: "center" });
+
+    // RIGHT — page X of Y
     doc.setFont("helvetica", "normal");
-    // Left
-    doc.text("This is a computer-generated document and does not require a signature.", M, fy);
-    // Right
-    doc.text(`Page ${pageNum} of ${total}`, pw - M, fy, { align: "right" });
-    // Bottom center
-    const genTime = new Date().toLocaleString("en-IN", {
-      day: "2-digit", month: "short", year: "numeric",
-      hour: "2-digit", minute: "2-digit", hour12: true,
-    });
+    doc.setTextColor(...COLORS.secondary);
+    doc.setFontSize(6.5);
+    doc.text(`Page ${pageNum} of ${total}`, pw - M, lineY1, { align: "right" });
     doc.setFontSize(5.8);
-    doc.text(`Generated: ${genTime}  |  ${COMPANY.website}`, pw / 2, fy + 4, { align: "center" });
+    doc.setTextColor(...COLORS.muted);
+    doc.text(invoice.invoice_number, pw - M, lineY2, { align: "right" });
   };
 
   const checkBreak = (h: number) => {
-    if (y + h > safeZone) { doc.addPage(); currentPage++; y = M + 6; return true; }
+    if (y + h > safeZone) { doc.addPage(); y = M; return true; }
     return false;
   };
 
   // ==================== 1. HEADER ====================
-  // Logo on left, company name + tagline aligned beside it. Invoice type on right.
-  const HEADER_H = 18;
+  // Flex-style: [Logo + Company stack] LEFT  ←→  [Invoice type stack] RIGHT
+  const HEADER_H = 20;
   const headerTop = y;
   const headerRight = pw - M;
-  const logoSize = 14;
+  const logoSize = 16; // ≈ 45-50px equivalent in PDF
   const logoX = M;
-  const logoY = headerTop + (HEADER_H - logoSize) / 2;
+  const logoY = headerTop + 1;
 
   if (logoBase64) {
     try {
@@ -301,16 +321,16 @@ function renderInvoicePdf(
 
   const textX = logoBase64 ? logoX + logoSize + 4 : M;
 
-  // Company name – aligned with logo center vertically
-  doc.setFontSize(18);
+  // Company name – optically vertically aligned with logo center
+  doc.setFontSize(17);
   doc.setTextColor(...COLORS.primary);
   doc.setFont("helvetica", "bold");
-  doc.text(COMPANY.name, textX, headerTop + 8);
+  doc.text(COMPANY.name, textX, headerTop + 8.5);
 
-  // Tagline – just below company name, smaller + lighter
-  doc.setFontSize(7);
+  // Tagline – LEFT aligned with company name, muted grey
+  doc.setFontSize(7.5);
   doc.setTextColor(...COLORS.muted);
-  doc.setFont("helvetica", "italic");
+  doc.setFont("helvetica", "normal");
   doc.text(COMPANY.tagline, textX, headerTop + 13);
 
   // Invoice type – right side, vertically aligned with company name
@@ -318,8 +338,8 @@ function renderInvoicePdf(
   doc.setFontSize(13);
   doc.setTextColor(...(isFinal ? COLORS.primary : COLORS.secondary));
   doc.setFont("helvetica", "bold");
-  doc.text(typeLabel, headerRight, headerTop + 8, { align: "right" });
-  doc.setFontSize(6);
+  doc.text(typeLabel, headerRight, headerTop + 8.5, { align: "right" });
+  doc.setFontSize(6.5);
   doc.setTextColor(...COLORS.muted);
   doc.setFont("helvetica", "normal");
   doc.text(
@@ -327,66 +347,68 @@ function renderInvoicePdf(
     headerRight, headerTop + 13, { align: "right" }
   );
 
-  y = headerTop + HEADER_H + 3;
+  y = headerTop + HEADER_H;
 
-  // ---------- COMPANY DETAILS ROW ----------
-  // Address (one line) + contact info (one line) — small, muted, well spaced
-  doc.setFontSize(6.5);
+  // ---------- COMPANY DETAILS ROW (inline w/ "|" separators) ----------
+  doc.setFontSize(6.8);
   doc.setTextColor(...COLORS.muted);
   doc.setFont("helvetica", "normal");
-  const companyAddr = `${COMPANY.address.replace(/\n/g, ', ')}, ${COMPANY.city}, ${COMPANY.state} - ${COMPANY.pincode}, ${COMPANY.country}`;
-  const addrLines = doc.splitTextToSize(companyAddr, CW);
-  addrLines.forEach((line: string) => { doc.text(line, M, y); y += 3.3; });
-  y += 0.5;
-  // Contact info row with • separators for cleaner look
+  const addrFlat = `${COMPANY.address.replace(/\n/g, ', ')}, ${COMPANY.city}, ${COMPANY.state} - ${COMPANY.pincode}`;
+  const addrLines = doc.splitTextToSize(addrFlat, CW) as string[];
+  addrLines.forEach((line) => { doc.text(line, M, y); y += 3.4; });
+  y += 0.6;
+  // Contact / tax info row with "|" separators
   doc.setTextColor(...COLORS.secondary);
-  doc.text(
-    `Phone: ${COMPANY.phone}   •   Email: ${COMPANY.email}   •   GSTIN: ${COMPANY.gstin}   •   PAN: ${COMPANY.pan}`,
-    M, y
-  );
+  const contactRow = `Phone: ${COMPANY.phone}  |  Email: ${COMPANY.email}  |  GSTIN: ${COMPANY.gstin}  |  PAN: ${COMPANY.pan}`;
+  doc.text(contactRow, M, y);
   y += 4;
 
-  // Thin divider line below header
+  // Bottom divider (gold accent)
   doc.setDrawColor(...COLORS.accent);
-  doc.setLineWidth(0.6);
+  doc.setLineWidth(0.5);
   doc.line(M, y, pw - M, y);
-  y += 5;
+  y += 6;
 
-  // ==================== 2. INVOICE META ROW ====================
-  const metaH = 16;
+  // ==================== 2. INVOICE META ROW (3-col responsive grid) ====================
+  // Auto-skip Order No on manual invoices to keep grid balanced
+  const metaPairs: [string, string][] = [
+    ["INVOICE NO.", invoice.invoice_number],
+    ["INVOICE DATE", fmtDate(invoice.created_at)],
+  ];
+  if (!isManual && invoice.order?.order_number) {
+    metaPairs.push(["ORDER NO.", invoice.order.order_number]);
+  }
+  if (!isManual) {
+    metaPairs.push(["DELIVERY DATE", invoice.delivery_date ? fmtDate(invoice.delivery_date) : (isFinal ? "-" : "Pending")]);
+  }
+  const metaH = 14;
   doc.setFillColor(...COLORS.light);
   doc.rect(M, y, CW, metaH, "F");
   doc.setDrawColor(...COLORS.border);
   doc.setLineWidth(0.2);
   doc.rect(M, y, CW, metaH, "S");
-
-  const metaPairs: [string, string][] = [
-    ["Invoice No.", invoice.invoice_number],
-    ["Date", fmtDate(invoice.created_at)],
-    ["Order No.", invoice.order?.order_number || "N/A"],
-  ];
-  if (!isManual) {
-    metaPairs.push(["Delivery Date", invoice.delivery_date ? fmtDate(invoice.delivery_date) : (isFinal ? "-" : "Pending")]);
-  }
   const metaColW = CW / metaPairs.length;
 
+
   metaPairs.forEach(([label, value], i) => {
-    const x = M + metaColW * i + 6;
+    const x = M + metaColW * i + 5;
     doc.setFontSize(6);
     doc.setTextColor(...COLORS.muted);
     doc.setFont("helvetica", "normal");
-    doc.text(label, x, y + 6);
+    doc.text(label, x, y + 5.5);
     doc.setFontSize(8.5);
     doc.setTextColor(...COLORS.primary);
     doc.setFont("helvetica", "bold");
-    doc.text(value, x, y + 11.5);
+    const valueLines = doc.splitTextToSize(value || "-", metaColW - 10) as string[];
+    doc.text(valueLines[0], x, y + 10.5);
     if (i > 0) {
       doc.setDrawColor(...COLORS.border);
-      doc.line(M + metaColW * i, y + 3, M + metaColW * i, y + metaH - 3);
+      doc.setLineWidth(0.2);
+      doc.line(M + metaColW * i, y + 2.5, M + metaColW * i, y + metaH - 2.5);
     }
   });
 
-  y += metaH + 6;
+  y += metaH + 8;
 
   // ==================== 3. BILLED BY / BILLED TO ====================
   const boxW = (CW - 8) / 2;
