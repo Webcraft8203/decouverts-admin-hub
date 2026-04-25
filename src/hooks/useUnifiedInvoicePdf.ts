@@ -238,7 +238,7 @@ function renderInvoicePdf(
   const isManual = !invoice.order_id;
   const { width: pw, height: ph, margin: M } = PAGE;
   const CW = pw - 2 * M;
-  const FOOTER_RESERVE = 18; // reserved space at bottom for footer (always)
+  const FOOTER_RESERVE = 12; // reserved space at bottom for footer (always)
   const safeZone = ph - FOOTER_RESERVE;
   let y = M;
 
@@ -252,7 +252,7 @@ function renderInvoicePdf(
 
   // ---------- FOOTER (3-column, pixel-aligned, repeats on every page) ----------
   const addFooter = (pageNum: number, total: number) => {
-    const fy = ph - FOOTER_RESERVE + 4;
+    const fy = ph - 12;
     // Top divider
     doc.setDrawColor(...COLORS.border);
     doc.setLineWidth(0.25);
@@ -295,20 +295,21 @@ function renderInvoicePdf(
   };
 
   // ==================== 1. HEADER ====================
-  // Flex-style: [Logo + Company stack] LEFT  ←→  [Invoice type stack] RIGHT
-  // Optical alignment: logo, company name and invoice type share the same vertical center.
+  // Optical alignment baseline system
   const headerTop = y;
   const headerRight = pw - M;
+  const textBaseY = headerTop + 10; // fixed baseline
 
   // Logo sized by HEIGHT (16mm ≈ 48px @ 72dpi), width derived from intrinsic aspect.
   // Pre-trimmed source removes transparent padding so bounding box hugs the mark.
-  const logoH = 16;
+  const logoH = 13.5; // reduced size
   const logoW = +(logoH * LOGO_ASPECT).toFixed(2);
   const logoX = M;
-  // Optical nudge: the mark is visually heavier at the top, push it ~0.6mm down
-  // so its perceived center sits on the shared baseline of the text block.
-  const opticalNudge = 0.6;
-  const logoY = headerTop + opticalNudge;
+
+  // Optical alignment logic for logo relative to text baseline
+  const logoCenterOffset = 0.60; // tuned for this logo shape
+  const opticalAdjust = 0.9;
+  const logoY = textBaseY - (logoH * logoCenterOffset) + opticalAdjust;
 
   if (logoBase64) {
     try {
@@ -316,39 +317,41 @@ function renderInvoicePdf(
     } catch { /* ignore */ }
   }
 
-  // Shared vertical center for the whole header row
-  const centerY = headerTop + logoH / 2;
   // 12-16px gap between logo and text → ~4mm in PDF
   const textX = logoBase64 ? logoX + logoW + 4 : M;
 
-  // Company name – baseline placed so cap-height optically centers on centerY
+  // Company name aligned exactly to baseline
   doc.setFontSize(18);
   doc.setTextColor(...COLORS.primary);
   doc.setFont("helvetica", "bold");
-  doc.text(COMPANY.name, textX, centerY - 0.4);
+  const titleWidth = doc.getTextWidth(COMPANY.name);
+  doc.text(COMPANY.name, textX, textBaseY);
 
-  // Tagline – tight 4px gap below name (line-height: 1 feel), left-aligned with name
+  // Tagline – tight 4px gap below name, centered under company name
   doc.setFontSize(8);
   doc.setTextColor(...COLORS.muted);
   doc.setFont("helvetica", "normal");
-  doc.text(COMPANY.tagline, textX, centerY + 4);
+  const taglineWidth = doc.getTextWidth(COMPANY.tagline);
+  
+  const taglineX = textX + (titleWidth / 2) - (taglineWidth / 2);
+  doc.text(COMPANY.tagline, taglineX, textBaseY + 5);
 
-  // Invoice type – right side, optically centered on the same row as company name
+  // Invoice type – right side, perfectly aligned with company name
   const typeLabel = isFinal ? "TAX INVOICE" : "PROFORMA INVOICE";
   doc.setFontSize(13);
   doc.setTextColor(...(isFinal ? COLORS.primary : COLORS.secondary));
   doc.setFont("helvetica", "bold");
-  doc.text(typeLabel, headerRight, centerY - 0.4, { align: "right" });
+  doc.text(typeLabel, headerRight, textBaseY, { align: "right" });
   doc.setFontSize(6.8);
   doc.setTextColor(...COLORS.muted);
   doc.setFont("helvetica", "normal");
   doc.text(
     isFinal ? "GST-Compliant Tax Invoice" : "Not valid for tax purposes",
-    headerRight, centerY + 4, { align: "right" }
+    headerRight, textBaseY + 4, { align: "right" }
   );
 
   // Reserve consistent header height (logo height + small breathing room)
-  y = headerTop + logoH + 4;
+  y = headerTop + logoH + 5;
 
   // ---------- COMPANY DETAILS ROW (inline w/ "|" separators) ----------
   doc.setFontSize(6.8);
@@ -357,7 +360,7 @@ function renderInvoicePdf(
   const addrFlat = `${COMPANY.address.replace(/\n/g, ', ')}, ${COMPANY.city}, ${COMPANY.state} - ${COMPANY.pincode}`;
   const addrLines = doc.splitTextToSize(addrFlat, CW) as string[];
   addrLines.forEach((line) => { doc.text(line, M, y); y += 3.4; });
-  y += 0.6;
+  y += 2;
   // Contact / tax info row with "|" separators
   doc.setTextColor(...COLORS.secondary);
   const contactRow = `Phone: ${COMPANY.phone}  |  Email: ${COMPANY.email}  |  GSTIN: ${COMPANY.gstin}  |  PAN: ${COMPANY.pan}`;
@@ -368,7 +371,7 @@ function renderInvoicePdf(
   doc.setDrawColor(...COLORS.accent);
   doc.setLineWidth(0.5);
   doc.line(M, y, pw - M, y);
-  y += 6;
+  y += 4;
 
   // ==================== 2. INVOICE META ROW (3-col responsive grid) ====================
   // Auto-skip Order No on manual invoices to keep grid balanced
@@ -409,7 +412,7 @@ function renderInvoicePdf(
     }
   });
 
-  y += metaH + 8;
+  y += metaH + 6;
 
   // ==================== 3. BILLED BY / BILLED TO ====================
   const boxW = (CW - 8) / 2;
@@ -514,7 +517,7 @@ function renderInvoicePdf(
   drawPartyBox(M, "BILLED BY", COLORS.primary, COLORS.white, billedByContentLines, wrappedBy);
   drawPartyBox(M + boxW + 8, "BILLED TO", COLORS.accent, COLORS.primary, billedToContentLines, wrappedTo);
 
-  y += boxH + 8;
+  y += boxH + 6;
 
   // ==================== 4. ITEMS TABLE ====================
   // Column layout – total = CW (182)
@@ -636,7 +639,7 @@ function renderInvoicePdf(
   doc.setDrawColor(...COLORS.primary);
   doc.setLineWidth(0.5);
   doc.line(tableX, y, tableX + tableW, y);
-  y += 7;
+  y += 5;
 
   // ==================== 5. AMOUNT IN WORDS ====================
   checkBreak(55);
@@ -657,22 +660,44 @@ function renderInvoicePdf(
   wrappedWords.forEach((wl: string, wi: number) => {
     doc.text(wl, M + 5, y + 10 + wi * 3.5);
   });
-  y += wordsBoxH + 5;
+  y += wordsBoxH + 3;
 
-  // ==================== 6. SUMMARY SECTION ====================
-  const sumRightW = 88;
-  const sumLeftW = CW - sumRightW - 8;
+  // ==================== 6. SUMMARY SECTION & BANK DETAILS ====================
+  const sumRightW = CW * 0.38;
+  const sumLeftW = CW - sumRightW - 10;
   const taxLines = isIgst ? 1 : 2;
   const pfLines = platformFee > 0 ? (platformFeeTax > 0 ? 2 : 1) : 0;
-  const summaryH = 48 + (taxLines - 1) * 6 + pfLines * 6;
 
-  checkBreak(summaryH + 20);
+  // Calculate Box Heights for a balanced grid
+  const taxBoxH = 36 + taxLines * 6; // Dynamically sizes based on tax rows
 
-  // ---- TAX SUMMARY (left) ----
+  // Bank Details Config
+  const bankRows: [string, string][] = [
+    ["Account Name", COMPANY.bank.accountName],
+    ["Account Number", COMPANY.bank.accountNumber],
+    ["Bank Name", COMPANY.bank.bankName],
+    ["Branch", COMPANY.bank.branch],
+    ["IFSC Code", COMPANY.bank.ifsc],
+    ["Account Type", COMPANY.bank.accountType],
+  ];
+  const bankTitleH = 6;
+  const bankRowH = 3.2;
+  const bankBlockH = bankTitleH + 6 + bankRows.length * bankRowH;
+
+  const rightBoxH = 10 + (pfLines * 5) + (taxLines * 5) + 6 + 12 + 6;
+
+  // ---- TAX SUMMARY (left top) ----
+  if (y + taxBoxH > safeZone) {
+    doc.addPage();
+    y = M;
+  }
+  const taxStartY = y;
+  const taxPage = doc.getNumberOfPages();
+
   doc.setFillColor(...COLORS.light);
   doc.setDrawColor(...COLORS.border);
   doc.setLineWidth(0.2);
-  doc.roundedRect(M, y, sumLeftW, summaryH, 2, 2, "FD");
+  doc.roundedRect(M, y, sumLeftW, taxBoxH, 2, 2, "FD");
 
   doc.setFontSize(7.5);
   doc.setTextColor(...COLORS.primary);
@@ -720,14 +745,71 @@ function renderInvoicePdf(
   doc.setTextColor(...COLORS.accent);
   doc.text(fmt(totalCgst + totalSgst + totalIgst), M + sumLeftW - 5, gy, { align: "right" });
 
-  // ---- CHARGES & TOTAL (right) ----
-  const rx = M + sumLeftW + 8;
-  doc.setFillColor(...COLORS.darkBox);
-  doc.roundedRect(rx, y, sumRightW, summaryH, 2, 2, "F");
+  // ---- BANK DETAILS (left bottom, minimal layout) ----
+  let bankY = taxStartY + taxBoxH + 10;
+  let bankPage = taxPage;
+  if (bankY + bankBlockH > safeZone) {
+    doc.addPage();
+    bankY = M;
+    bankPage = doc.getNumberOfPages();
+  }
+  
+  // Divider before Bank Details
+  doc.setDrawColor(...COLORS.border);
+  doc.setLineWidth(0.2);
+  doc.line(M, bankY - 4, M + sumLeftW, bankY - 4);
+  
+  // Title
+  doc.setFontSize(7.5);
+  doc.setTextColor(...COLORS.primary);
+  doc.setFont("helvetica", "bold");
+  doc.text("Bank Details", M, bankY + bankTitleH);
 
-  let ty = y + 12;
+  // Rows – labels left, values right-aligned column
+  let by = bankY + bankTitleH + 6;
+  const labelX = M;
+  const valueX = M + sumLeftW;
+  
+  bankRows.forEach(([label, value]) => {
+    doc.setFontSize(6.5);
+    doc.setTextColor(...COLORS.muted);
+    doc.setFont("helvetica", "normal");
+    doc.text(label, labelX, by);
+    
+    doc.setTextColor(...COLORS.primary);
+    doc.setFont("helvetica", "bold");
+    doc.text(value, valueX - 2, by, { align: "right" });
+    by += bankRowH;
+  });
+
+  // ---- CHARGES & TOTAL (right column) ----
+  let rightY = taxStartY;
+  let rightPage = taxPage;
+  if (rightY + rightBoxH > safeZone) {
+    if (bankPage > taxPage && M + rightBoxH <= safeZone) {
+      rightPage = bankPage;
+      rightY = M;
+    } else {
+      doc.setPage(bankPage); // Jump to last created page before adding a new one
+      doc.addPage();
+      rightPage = doc.getNumberOfPages();
+      rightY = M;
+    }
+  }
+  doc.setPage(rightPage);
+
+  const rx = M + sumLeftW + 10;
+  doc.setFillColor(45, 45, 45); // slightly lighter
+  doc.roundedRect(rx, rightY, sumRightW, rightBoxH, 2, 2, "F");
+
   const lx = rx + 7;
   const vx = rx + sumRightW - 7;
+  
+  doc.setFontSize(7);
+  doc.setTextColor(180, 180, 180);
+  doc.text("SUMMARY", lx, rightY + 6);
+
+  let ty = rightY + 11; // 5 units below summary title
   doc.setFontSize(7);
   doc.setTextColor(200, 200, 200);
   doc.setFont("helvetica", "normal");
@@ -735,7 +817,7 @@ function renderInvoicePdf(
   const sumRow = (label: string, value: string) => {
     doc.text(label, lx, ty);
     doc.text(value, vx, ty, { align: "right" });
-    ty += 6;
+    ty += 5;
   };
 
   sumRow("Subtotal", fmt(invoice.subtotal));
@@ -753,81 +835,101 @@ function renderInvoicePdf(
   }
 
   // Grand Total bar
-  const grandTotalBarH = 14;
-  const grandTotalY = y + summaryH - grandTotalBarH - 4;
+  const grandTotalBarH = 12;
+  const grandTotalY = ty + 3;
+  
   doc.setFillColor(...COLORS.accent);
   doc.roundedRect(rx + 4, grandTotalY, sumRightW - 8, grandTotalBarH, 2, 2, "F");
+  
   doc.setFontSize(8);
   doc.setTextColor(...COLORS.primary);
   doc.setFont("helvetica", "bold");
   doc.text("GRAND TOTAL", lx + 1, grandTotalY + grandTotalBarH / 2 + 1.5);
+  
   doc.setFontSize(10);
   doc.text(fmt(invoice.total_amount), vx - 1, grandTotalY + grandTotalBarH / 2 + 1.5, { align: "right" });
 
-  y += summaryH + 8;
+  // ==================== 7.5 UPI PAYMENT ====================
+  doc.setPage(rightPage);
+  const upiBlockHeight = 24;
+  let upiY = rightY + rightBoxH + 6;
+  let upiPage = rightPage;
 
-  // ==================== 7. BANK DETAILS CARD ====================
-  const bankRows: [string, string][] = [
-    ["Account Name", COMPANY.bank.accountName],
-    ["Account Number", COMPANY.bank.accountNumber],
-    ["Bank Name", COMPANY.bank.bankName],
-    ["Branch", COMPANY.bank.branch],
-    ["IFSC Code", COMPANY.bank.ifsc],
-    ["Account Type", COMPANY.bank.accountType],
-  ];
-  const bankTitleH = 8;
-  const bankRowH = 5;
-  const bankPad = 6;
-  const bankCardH = bankTitleH + bankPad + bankRows.length * bankRowH + bankPad;
-
-  if (y + bankCardH + 4 < safeZone) {
-    // Card background – subtle tint
-    doc.setFillColor(249, 246, 240); // very subtle warm tint
-    doc.setDrawColor(...COLORS.border);
-    doc.setLineWidth(0.25);
-    doc.roundedRect(M, y, CW, bankCardH, 2.5, 2.5, "FD");
-
-    // Title
-    doc.setFontSize(8.5);
-    doc.setTextColor(...COLORS.primary);
-    doc.setFont("helvetica", "bold");
-    doc.text("Bank Details", M + bankPad, y + bankTitleH);
-
-    // Thin underline under title
-    doc.setDrawColor(...COLORS.accent);
-    doc.setLineWidth(0.4);
-    doc.line(M + bankPad, y + bankTitleH + 1.2, M + bankPad + 22, y + bankTitleH + 1.2);
-
-    // Rows – labels left, values right-aligned column
-    let by = y + bankTitleH + bankPad + 2;
-    const labelX = M + bankPad;
-    const valueX = M + CW - bankPad;
-    bankRows.forEach(([label, value]) => {
-      doc.setFontSize(6.8);
-      doc.setTextColor(...COLORS.muted);
-      doc.setFont("helvetica", "normal");
-      doc.text(label, labelX, by);
-      doc.setTextColor(...COLORS.primary);
-      doc.setFont("helvetica", "bold");
-      doc.text(value, valueX, by, { align: "right" });
-      by += bankRowH;
-    });
-
-    y += bankCardH + 6;
+  if (upiY + upiBlockHeight > safeZone) {
+    doc.addPage();
+    upiY = M;
+    upiPage = doc.getNumberOfPages();
   }
+
+  const upiX = rx;
+  const labelX = upiX + 6;
+  const valueX = upiX + sumRightW - 6;
+
+  const qrSize = 22;
+  const qrX = upiX + sumRightW - qrSize - 6;
+  const qrY = upiY + 2;
+
+  // Title
+  doc.setFontSize(8);
+  doc.setTextColor(...COLORS.primary);
+  doc.setFont("helvetica", "bold");
+  doc.text("Scan to Pay via UPI", labelX, upiY);
+
+  let uy = upiY + 5;
+
+  const rowH = 4;
+
+  // UPI ID
+  doc.setFontSize(6);
+  doc.setTextColor(...COLORS.muted);
+  doc.setFont("helvetica", "normal");
+  doc.text("UPI ID", labelX, uy);
+
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...COLORS.accent);
+  doc.text("natashasoni0529-2@okhdfcbank", valueX, uy, { align: "right" });
+
+  uy += rowH;
+
+  // Limit
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...COLORS.muted);
+  doc.text("Limit", labelX, uy);
+  doc.text("1 lakh/day", valueX, uy, { align: "right" });
+
+  // Placeholder QR Box
+  doc.setDrawColor(...COLORS.border);
+  doc.setLineWidth(0.2);
+  doc.roundedRect(qrX, qrY, qrSize, qrSize, 2, 2, "S");
+
+  // ---- ADVANCE Y FOR TERMS ----
+  const finalPage = Math.max(taxPage, bankPage, rightPage, upiPage);
+  doc.setPage(finalPage);
+
+  let maxY = M;
+  if (taxPage === finalPage) maxY = Math.max(maxY, taxStartY + taxBoxH);
+  if (bankPage === finalPage) maxY = Math.max(maxY, bankY + bankBlockH);
+  if (rightPage === finalPage && upiPage !== finalPage) maxY = Math.max(maxY, rightY + rightBoxH);
+  if (upiPage === finalPage) maxY = Math.max(maxY, upiY + upiBlockHeight);
+
+  y = Math.max(y, maxY + 6);
 
   // ==================== 8. TERMS ====================
-  if (y + 24 < safeZone) {
-    doc.setFontSize(7);
-    doc.setTextColor(...COLORS.primary);
-    doc.setFont("helvetica", "bold");
-    doc.text("Terms & Conditions", M, y);
-    y += 5;
-    doc.setFontSize(5.5);
-    doc.setTextColor(...COLORS.muted);
-    doc.setFont("helvetica", "normal");
-    COMPANY.terms.forEach((t) => { doc.text(t, M, y); y += 3.8; });
+  const termsHeight = 5 + (COMPANY.terms.length * 3.8);
+  if (y + termsHeight > safeZone) {
+    doc.addPage();
+    y = M;
   }
+
+  doc.setFontSize(7);
+  doc.setTextColor(...COLORS.primary);
+  doc.setFont("helvetica", "bold");
+  doc.text("Terms & Conditions", M, y);
+  y += 5;
+  doc.setFontSize(5.5);
+  doc.setTextColor(...COLORS.muted);
+  doc.setFont("helvetica", "normal");
+  COMPANY.terms.forEach((t) => { doc.text(t, M, y); y += 3.8; });
 
   // ==================== FOOTERS ====================
   const pageCount = doc.getNumberOfPages();
