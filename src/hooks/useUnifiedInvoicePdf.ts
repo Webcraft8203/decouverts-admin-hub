@@ -743,7 +743,57 @@ function renderInvoicePdf(
 
   y += summaryH + 8;
 
-  // ==================== 7. TERMS ====================
+  // ==================== 7. BANK DETAILS CARD ====================
+  const bankRows: [string, string][] = [
+    ["Account Name", COMPANY.bank.accountName],
+    ["Account Number", COMPANY.bank.accountNumber],
+    ["Bank Name", COMPANY.bank.bankName],
+    ["Branch", COMPANY.bank.branch],
+    ["IFSC Code", COMPANY.bank.ifsc],
+    ["Account Type", COMPANY.bank.accountType],
+  ];
+  const bankTitleH = 8;
+  const bankRowH = 5;
+  const bankPad = 6;
+  const bankCardH = bankTitleH + bankPad + bankRows.length * bankRowH + bankPad;
+
+  if (y + bankCardH + 4 < safeZone) {
+    // Card background – subtle tint
+    doc.setFillColor(249, 246, 240); // very subtle warm tint
+    doc.setDrawColor(...COLORS.border);
+    doc.setLineWidth(0.25);
+    doc.roundedRect(M, y, CW, bankCardH, 2.5, 2.5, "FD");
+
+    // Title
+    doc.setFontSize(8.5);
+    doc.setTextColor(...COLORS.primary);
+    doc.setFont("helvetica", "bold");
+    doc.text("Bank Details", M + bankPad, y + bankTitleH);
+
+    // Thin underline under title
+    doc.setDrawColor(...COLORS.accent);
+    doc.setLineWidth(0.4);
+    doc.line(M + bankPad, y + bankTitleH + 1.2, M + bankPad + 22, y + bankTitleH + 1.2);
+
+    // Rows – labels left, values right-aligned column
+    let by = y + bankTitleH + bankPad + 2;
+    const labelX = M + bankPad;
+    const valueX = M + CW - bankPad;
+    bankRows.forEach(([label, value]) => {
+      doc.setFontSize(6.8);
+      doc.setTextColor(...COLORS.muted);
+      doc.setFont("helvetica", "normal");
+      doc.text(label, labelX, by);
+      doc.setTextColor(...COLORS.primary);
+      doc.setFont("helvetica", "bold");
+      doc.text(value, valueX, by, { align: "right" });
+      by += bankRowH;
+    });
+
+    y += bankCardH + 6;
+  }
+
+  // ==================== 8. TERMS ====================
   if (y + 24 < safeZone) {
     doc.setFontSize(7);
     doc.setTextColor(...COLORS.primary);
