@@ -391,22 +391,24 @@ function renderInvoicePdf(
 
 
   metaPairs.forEach(([label, value], i) => {
-    const x = M + metaColW * i + 6;
+    const x = M + metaColW * i + 5;
     doc.setFontSize(6);
     doc.setTextColor(...COLORS.muted);
     doc.setFont("helvetica", "normal");
-    doc.text(label, x, y + 6);
+    doc.text(label, x, y + 5.5);
     doc.setFontSize(8.5);
     doc.setTextColor(...COLORS.primary);
     doc.setFont("helvetica", "bold");
-    doc.text(value, x, y + 11.5);
+    const valueLines = doc.splitTextToSize(value || "-", metaColW - 10) as string[];
+    doc.text(valueLines[0], x, y + 10.5);
     if (i > 0) {
       doc.setDrawColor(...COLORS.border);
-      doc.line(M + metaColW * i, y + 3, M + metaColW * i, y + metaH - 3);
+      doc.setLineWidth(0.2);
+      doc.line(M + metaColW * i, y + 2.5, M + metaColW * i, y + metaH - 2.5);
     }
   });
 
-  y += metaH + 6;
+  y += metaH + 8;
 
   // ==================== 3. BILLED BY / BILLED TO ====================
   const boxW = (CW - 8) / 2;
