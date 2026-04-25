@@ -296,48 +296,59 @@ function renderInvoicePdf(
 
   // ==================== 1. HEADER ====================
   // Flex-style: [Logo + Company stack] LEFT  ←→  [Invoice type stack] RIGHT
-  const HEADER_H = 20;
+  // Optical alignment: logo, company name and invoice type share the same vertical center.
   const headerTop = y;
   const headerRight = pw - M;
-  const logoSize = 16; // ≈ 45-50px equivalent in PDF
+
+  // Logo sized by HEIGHT (16mm ≈ 48px @ 72dpi), width derived from intrinsic aspect.
+  // Pre-trimmed source removes transparent padding so bounding box hugs the mark.
+  const logoH = 16;
+  const logoW = +(logoH * LOGO_ASPECT).toFixed(2);
   const logoX = M;
-  const logoY = headerTop + 1;
+  // Optical nudge: the mark is visually heavier at the top, push it ~0.6mm down
+  // so its perceived center sits on the shared baseline of the text block.
+  const opticalNudge = 0.6;
+  const logoY = headerTop + opticalNudge;
 
   if (logoBase64) {
     try {
-      doc.addImage(logoBase64, "PNG", logoX, logoY, logoSize, logoSize);
+      doc.addImage(logoBase64, "PNG", logoX, logoY, logoW, logoH);
     } catch { /* ignore */ }
   }
 
-  const textX = logoBase64 ? logoX + logoSize + 4 : M;
+  // Shared vertical center for the whole header row
+  const centerY = headerTop + logoH / 2;
+  // 12-16px gap between logo and text → ~4mm in PDF
+  const textX = logoBase64 ? logoX + logoW + 4 : M;
 
-  // Company name – optically vertically aligned with logo center
-  doc.setFontSize(17);
+  // Company name – baseline placed so cap-height optically centers on centerY
+  doc.setFontSize(18);
   doc.setTextColor(...COLORS.primary);
   doc.setFont("helvetica", "bold");
-  doc.text(COMPANY.name, textX, headerTop + 8.5);
+  doc.text(COMPANY.name, textX, centerY - 0.4);
 
-  // Tagline – LEFT aligned with company name, muted grey
-  doc.setFontSize(7.5);
+  // Tagline – tight 4px gap below name (line-height: 1 feel), left-aligned with name
+  doc.setFontSize(8);
   doc.setTextColor(...COLORS.muted);
   doc.setFont("helvetica", "normal");
-  doc.text(COMPANY.tagline, textX, headerTop + 13);
+  doc.text(COMPANY.tagline, textX, centerY + 4);
 
-  // Invoice type – right side, vertically aligned with company name
+  // Invoice type – right side, optically centered on the same row as company name
   const typeLabel = isFinal ? "TAX INVOICE" : "PROFORMA INVOICE";
   doc.setFontSize(13);
   doc.setTextColor(...(isFinal ? COLORS.primary : COLORS.secondary));
   doc.setFont("helvetica", "bold");
-  doc.text(typeLabel, headerRight, headerTop + 8.5, { align: "right" });
-  doc.setFontSize(6.5);
+  doc.text(typeLabel, headerRight, centerY - 0.4, { align: "right" });
+  doc.setFontSize(6.8);
   doc.setTextColor(...COLORS.muted);
   doc.setFont("helvetica", "normal");
   doc.text(
     isFinal ? "GST-Compliant Tax Invoice" : "Not valid for tax purposes",
-    headerRight, headerTop + 13, { align: "right" }
+    headerRight, centerY + 4, { align: "right" }
   );
 
-  y = headerTop + HEADER_H;
+  // Reserve consistent header height (logo height + small breathing room)
+  y = headerTop + logoH + 4;
 
   // ---------- COMPANY DETAILS ROW (inline w/ "|" separators) ----------
   doc.setFontSize(6.8);
