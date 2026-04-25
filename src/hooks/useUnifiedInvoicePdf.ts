@@ -324,13 +324,33 @@ function renderInvoicePdf(
   // Company name – aligned with logo center vertically
   doc.setFontSize(18);
   doc.setTextColor(...COLORS.primary);
-  doc.setFont("helvetica", "bold");
-  doc.text(COMPANY.name, textX, headerTop + 8);
+  // ==================== 1. HEADER ====================
+  // Flex-style: [Logo + Company stack] LEFT  ←→  [Invoice type stack] RIGHT
+  const HEADER_H = 20;
+  const headerTop = y;
+  const headerRight = pw - M;
+  const logoSize = 16; // ≈ 45-50px equivalent in PDF
+  const logoX = M;
+  const logoY = headerTop + 1;
 
-  // Tagline – just below company name, smaller + lighter
-  doc.setFontSize(7);
+  if (logoBase64) {
+    try {
+      doc.addImage(logoBase64, "PNG", logoX, logoY, logoSize, logoSize);
+    } catch { /* ignore */ }
+  }
+
+  const textX = logoBase64 ? logoX + logoSize + 4 : M;
+
+  // Company name – optically vertically aligned with logo center
+  doc.setFontSize(17);
+  doc.setTextColor(...COLORS.primary);
+  doc.setFont("helvetica", "bold");
+  doc.text(COMPANY.name, textX, headerTop + 8.5);
+
+  // Tagline – LEFT aligned with company name, muted grey
+  doc.setFontSize(7.5);
   doc.setTextColor(...COLORS.muted);
-  doc.setFont("helvetica", "italic");
+  doc.setFont("helvetica", "normal");
   doc.text(COMPANY.tagline, textX, headerTop + 13);
 
   // Invoice type – right side, vertically aligned with company name
@@ -338,8 +358,8 @@ function renderInvoicePdf(
   doc.setFontSize(13);
   doc.setTextColor(...(isFinal ? COLORS.primary : COLORS.secondary));
   doc.setFont("helvetica", "bold");
-  doc.text(typeLabel, headerRight, headerTop + 8, { align: "right" });
-  doc.setFontSize(6);
+  doc.text(typeLabel, headerRight, headerTop + 8.5, { align: "right" });
+  doc.setFontSize(6.5);
   doc.setTextColor(...COLORS.muted);
   doc.setFont("helvetica", "normal");
   doc.text(
@@ -347,48 +367,48 @@ function renderInvoicePdf(
     headerRight, headerTop + 13, { align: "right" }
   );
 
-  y = headerTop + HEADER_H + 3;
+  y = headerTop + HEADER_H;
 
-  // ---------- COMPANY DETAILS ROW ----------
-  // Address (one line) + contact info (one line) — small, muted, well spaced
-  doc.setFontSize(6.5);
+  // ---------- COMPANY DETAILS ROW (inline w/ "|" separators) ----------
+  doc.setFontSize(6.8);
   doc.setTextColor(...COLORS.muted);
   doc.setFont("helvetica", "normal");
-  const companyAddr = `${COMPANY.address.replace(/\n/g, ', ')}, ${COMPANY.city}, ${COMPANY.state} - ${COMPANY.pincode}, ${COMPANY.country}`;
-  const addrLines = doc.splitTextToSize(companyAddr, CW);
-  addrLines.forEach((line: string) => { doc.text(line, M, y); y += 3.3; });
-  y += 0.5;
-  // Contact info row with • separators for cleaner look
+  const addrFlat = `${COMPANY.address.replace(/\n/g, ', ')}, ${COMPANY.city}, ${COMPANY.state} - ${COMPANY.pincode}`;
+  const addrLines = doc.splitTextToSize(addrFlat, CW) as string[];
+  addrLines.forEach((line) => { doc.text(line, M, y); y += 3.4; });
+  y += 0.6;
+  // Contact / tax info row with "|" separators
   doc.setTextColor(...COLORS.secondary);
-  doc.text(
-    `Phone: ${COMPANY.phone}   •   Email: ${COMPANY.email}   •   GSTIN: ${COMPANY.gstin}   •   PAN: ${COMPANY.pan}`,
-    M, y
-  );
+  const contactRow = `Phone: ${COMPANY.phone}  |  Email: ${COMPANY.email}  |  GSTIN: ${COMPANY.gstin}  |  PAN: ${COMPANY.pan}`;
+  doc.text(contactRow, M, y);
   y += 4;
 
-  // Thin divider line below header
+  // Bottom divider (gold accent)
   doc.setDrawColor(...COLORS.accent);
-  doc.setLineWidth(0.6);
+  doc.setLineWidth(0.5);
   doc.line(M, y, pw - M, y);
-  y += 5;
+  y += 6;
 
-  // ==================== 2. INVOICE META ROW ====================
-  const metaH = 16;
+  // ==================== 2. INVOICE META ROW (3-col responsive grid) ====================
+  // Auto-skip Order No on manual invoices to keep grid balanced
+  const metaPairs: [string, string][] = [
+    ["INVOICE NO.", invoice.invoice_number],
+    ["INVOICE DATE", fmtDate(invoice.created_at)],
+  ];
+  if (!isManual && invoice.order?.order_number) {
+    metaPairs.push(["ORDER NO.", invoice.order.order_number]);
+  }
+  if (!isManual) {
+    metaPairs.push(["DELIVERY DATE", invoice.delivery_date ? fmtDate(invoice.delivery_date) : (isFinal ? "-" : "Pending")]);
+  }
+  const metaH = 14;
   doc.setFillColor(...COLORS.light);
   doc.rect(M, y, CW, metaH, "F");
   doc.setDrawColor(...COLORS.border);
   doc.setLineWidth(0.2);
   doc.rect(M, y, CW, metaH, "S");
-
-  const metaPairs: [string, string][] = [
-    ["Invoice No.", invoice.invoice_number],
-    ["Date", fmtDate(invoice.created_at)],
-    ["Order No.", invoice.order?.order_number || "N/A"],
-  ];
-  if (!isManual) {
-    metaPairs.push(["Delivery Date", invoice.delivery_date ? fmtDate(invoice.delivery_date) : (isFinal ? "-" : "Pending")]);
-  }
   const metaColW = CW / metaPairs.length;
+
 
   metaPairs.forEach(([label, value], i) => {
     const x = M + metaColW * i + 6;
