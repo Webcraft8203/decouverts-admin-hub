@@ -33,6 +33,14 @@ const COMPANY = {
   gstin: "27AAKCD1492N1Z4",
   pan: "AAKCD1492N",
   website: "www.decouvertes.in",
+  bank: {
+    accountName: "DECOUVERTES FUTURE TECH PRIVATE LIMITED",
+    accountNumber: "50200095123456",
+    bankName: "HDFC Bank",
+    branch: "Pimpri, Pune",
+    ifsc: "HDFC0001234",
+    accountType: "Current Account",
+  },
   terms: [
     "1. Goods once sold will only be taken back or exchanged as per company policy.",
     "2. Payment is due within 30 days of invoice date unless otherwise specified.",
