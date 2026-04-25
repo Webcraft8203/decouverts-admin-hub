@@ -305,26 +305,6 @@ function renderInvoicePdf(
   };
 
   // ==================== 1. HEADER ====================
-  // Logo on left, company name + tagline aligned beside it. Invoice type on right.
-  const HEADER_H = 18;
-  const headerTop = y;
-  const headerRight = pw - M;
-  const logoSize = 14;
-  const logoX = M;
-  const logoY = headerTop + (HEADER_H - logoSize) / 2;
-
-  if (logoBase64) {
-    try {
-      doc.addImage(logoBase64, "PNG", logoX, logoY, logoSize, logoSize);
-    } catch { /* ignore */ }
-  }
-
-  const textX = logoBase64 ? logoX + logoSize + 4 : M;
-
-  // Company name – aligned with logo center vertically
-  doc.setFontSize(18);
-  doc.setTextColor(...COLORS.primary);
-  // ==================== 1. HEADER ====================
   // Flex-style: [Logo + Company stack] LEFT  ←→  [Invoice type stack] RIGHT
   const HEADER_H = 20;
   const headerTop = y;
