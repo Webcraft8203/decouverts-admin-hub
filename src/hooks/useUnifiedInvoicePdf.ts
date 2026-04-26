@@ -339,8 +339,8 @@ function renderInvoicePdf(
   const logoCenterY = logoY + (logoH / 2);
 
   const titleFontSize = 18;
-  const taglineFontSize = 7.8;
-  const gapBetween = 3.5;
+  const taglineFontSize = 7;
+  const gapBetween = 2.2;
 
   const textBlockHeight = titleFontSize * 0.35 + gapBetween + taglineFontSize * 0.35;
 
@@ -361,7 +361,7 @@ function renderInvoicePdf(
   doc.setFont("helvetica", "normal");
   const taglineWidth = doc.getTextWidth(COMPANY.tagline);
   
-  const taglineY = textStartY + 6; // controlled spacing
+  const taglineY = textStartY + 4.2; // tighter controlled spacing
   const taglineX = textX + (titleWidth / 2) - (taglineWidth / 2);
   doc.text(COMPANY.tagline, taglineX, taglineY);
 
