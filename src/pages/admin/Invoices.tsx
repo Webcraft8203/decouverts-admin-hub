@@ -298,42 +298,129 @@ export default function Invoices() {
       };
     });
 
-    const invoiceNumber = `INV-${Date.now().toString(36).toUpperCase()}`;
+    const invoiceNumber = editingInvoiceId
+      ? (invoices.find((i) => i.id === editingInvoiceId)?.invoice_number || `INV-${Date.now().toString(36).toUpperCase()}`)
+      : `INV-${Date.now().toString(36).toUpperCase()}`;
 
-    const { error } = await supabase.from("invoices").insert([
-      {
-        invoice_number: invoiceNumber,
-        invoice_type: "final",
-        is_final: true,
-        client_name: formData.client_name,
-        client_email: formData.client_email || null,
-        client_address: formData.client_address || null,
-        items: JSON.parse(JSON.stringify(invoiceItems)),
-        subtotal: totals.subtotal,
-        tax_amount: totals.totalTax,
-        total_amount: totals.grandTotal,
-        cgst_amount: totals.totalCgst,
-        sgst_amount: totals.totalSgst,
-        igst_amount: totals.totalIgst,
-        is_igst: isInterState,
-        buyer_state: formData.buyer_state,
-        seller_state: COMPANY_SETTINGS.business_state,
-        buyer_gstin: formData.buyer_gstin || null,
-        notes: formData.notes || null,
-        created_by: user?.id,
-      },
-    ]);
+    const payload = {
+      invoice_number: invoiceNumber,
+      invoice_type: "final",
+      is_final: true,
+      client_name: formData.client_name,
+      client_email: formData.client_email || null,
+      client_address: formData.client_address || null,
+      items: JSON.parse(JSON.stringify(invoiceItems)),
+      subtotal: totals.subtotal,
+      tax_amount: totals.totalTax,
+      total_amount: totals.grandTotal,
+      cgst_amount: totals.totalCgst,
+      sgst_amount: totals.totalSgst,
+      igst_amount: totals.totalIgst,
+      is_igst: isInterState,
+      buyer_state: formData.buyer_state,
+      seller_state: COMPANY_SETTINGS.business_state,
+      buyer_gstin: formData.buyer_gstin || null,
+      notes: formData.notes || null,
+    };
+
+    let error;
+    if (editingInvoiceId) {
+      ({ error } = await supabase.from("invoices").update(payload).eq("id", editingInvoiceId));
+    } else {
+      ({ error } = await supabase.from("invoices").insert([{ ...payload, created_by: user?.id }]));
+    }
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
       return;
     }
 
-    toast({ title: "Invoice created", description: `Invoice ${invoiceNumber} generated` });
+    toast({
+      title: editingInvoiceId ? "Invoice updated" : "Invoice created",
+      description: `Invoice ${invoiceNumber} ${editingInvoiceId ? "updated" : "generated"}`,
+    });
     setDialogOpen(false);
+    setEditingInvoiceId(null);
     setFormData({ client_name: "", client_email: "", client_address: "", notes: "", buyer_state: "Maharashtra", buyer_gstin: "" });
     setItems([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
     fetchData();
+  };
+
+  const handleEdit = (invoice: Invoice) => {
+    if (invoice.order_id) {
+      toast({ title: "Cannot edit", description: "Auto-generated invoices from orders cannot be edited.", variant: "destructive" });
+      return;
+    }
+    setEditingInvoiceId(invoice.id);
+    setFormData({
+      client_name: invoice.client_name || "",
+      client_email: invoice.client_email || "",
+      client_address: invoice.client_address || "",
+      notes: invoice.notes || "",
+      buyer_state: invoice.buyer_state || "Maharashtra",
+      buyer_gstin: invoice.buyer_gstin || "",
+    });
+    const its = (invoice.items || []).map((it: any) => ({
+      description: it.description || "",
+      hsn_code: it.hsn_code || "",
+      quantity: Number(it.quantity) || 1,
+      price: Number(it.price) || 0,
+      gst_rate: Number(it.gst_rate) || DEFAULT_GST_RATE,
+    }));
+    setItems(its.length > 0 ? its : [{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
+    setDialogOpen(true);
+  };
+
+  const openEmailDialog = (invoice: Invoice) => {
+    setEmailTarget(invoice);
+    setEmailRecipient(invoice.client_email || "");
+    setEmailMessage("");
+    setEmailDialogOpen(true);
+  };
+
+  const blobToBase64 = (blob: Blob): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        // Strip "data:application/pdf;base64," prefix
+        const base64 = result.includes(",") ? result.split(",")[1] : result;
+        resolve(base64);
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+
+  const handleSendEmail = async () => {
+    if (!emailTarget) return;
+    if (!emailRecipient || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailRecipient)) {
+      toast({ title: "Invalid email", description: "Please enter a valid email address.", variant: "destructive" });
+      return;
+    }
+    setIsSendingEmail(true);
+    try {
+      const blob = await generateInvoicePdf(emailTarget);
+      const pdfBase64 = await blobToBase64(blob);
+      const { data, error } = await supabase.functions.invoke("send-invoice-email", {
+        body: {
+          to: emailRecipient,
+          invoiceNumber: emailTarget.invoice_number,
+          clientName: emailTarget.client_name,
+          totalAmount: emailTarget.total_amount,
+          pdfBase64,
+          message: emailMessage || undefined,
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast({ title: "Email sent", description: `Invoice emailed to ${emailRecipient}` });
+      setEmailDialogOpen(false);
+    } catch (e: any) {
+      console.error("Send invoice email error:", e);
+      toast({ title: "Failed to send", description: e?.message || "Could not send email", variant: "destructive" });
+    } finally {
+      setIsSendingEmail(false);
+    }
   };
 
   const handleDelete = async (id: string) => {
