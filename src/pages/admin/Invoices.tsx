@@ -961,6 +961,7 @@ export default function Invoices() {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => handleViewInvoice(invoice)}
+                                title="View"
                               >
                                 <Eye className="w-4 h-4" />
                               </Button>
@@ -969,14 +970,36 @@ export default function Invoices() {
                                 size="icon"
                                 onClick={() => downloadInvoice(invoice)}
                                 disabled={isDownloading}
+                                title="Download PDF"
                               >
                                 <Download className="w-4 h-4" />
                               </Button>
+                              {!invoice.order_id && (
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => openEmailDialog(invoice)}
+                                    title="Send by email"
+                                  >
+                                    <Mail className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleEdit(invoice)}
+                                    title="Edit"
+                                  >
+                                    <Pencil className="w-4 h-4" />
+                                  </Button>
+                                </>
+                              )}
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => handleDelete(invoice.id)}
                                 className="text-destructive hover:text-destructive"
+                                title="Delete"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
