@@ -1470,6 +1470,54 @@ export default function Invoices() {
           })()}
         </DialogContent>
       </Dialog>
+
+      {/* Send Invoice Email Dialog */}
+      <Dialog open={emailDialogOpen} onOpenChange={(open) => { setEmailDialogOpen(open); if (!open) setEmailTarget(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="w-5 h-5 text-primary" />
+              Email Invoice
+            </DialogTitle>
+          </DialogHeader>
+          {emailTarget && (
+            <div className="space-y-4 mt-2">
+              <div className="text-sm bg-muted/40 rounded-md p-3 space-y-1">
+                <div className="flex justify-between"><span className="text-muted-foreground">Invoice:</span><span className="font-medium">{emailTarget.invoice_number}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Client:</span><span className="font-medium">{emailTarget.client_name}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Amount:</span><span className="font-semibold text-primary">{formatCurrency(emailTarget.total_amount)}</span></div>
+              </div>
+              <div>
+                <Label htmlFor="email_recipient">Recipient Email *</Label>
+                <Input
+                  id="email_recipient"
+                  type="email"
+                  placeholder="client@example.com"
+                  value={emailRecipient}
+                  onChange={(e) => setEmailRecipient(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="email_message">Message (optional)</Label>
+                <Textarea
+                  id="email_message"
+                  placeholder="Add a personal note..."
+                  value={emailMessage}
+                  onChange={(e) => setEmailMessage(e.target.value)}
+                  rows={4}
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="outline" onClick={() => setEmailDialogOpen(false)} disabled={isSendingEmail}>Cancel</Button>
+                <Button onClick={handleSendEmail} disabled={isSendingEmail} className="gap-2">
+                  {isSendingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                  {isSendingEmail ? "Sending..." : "Send Invoice"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
