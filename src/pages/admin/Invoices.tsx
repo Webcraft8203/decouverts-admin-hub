@@ -121,6 +121,15 @@ export default function Invoices() {
     buyer_gstin: "",
   });
   const [items, setItems] = useState<InvoiceItem[]>([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
+  const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
+
+  // Email-invoice state
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [emailTarget, setEmailTarget] = useState<Invoice | null>(null);
+  const [emailRecipient, setEmailRecipient] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+
   const { toast } = useToast();
   const { user } = useAuth();
   
@@ -128,7 +137,7 @@ export default function Invoices() {
   const { downloadBulkInvoices, downloadInvoiceReport, isDownloading: isBulkDownloading, progress } = useBulkInvoiceDownload();
   
   // Unified invoice PDF hook
-  const { downloadInvoice, isGenerating: isPdfGenerating } = useUnifiedInvoicePdf();
+  const { downloadInvoice, generateInvoicePdf, isGenerating: isPdfGenerating } = useUnifiedInvoicePdf();
 
   useEffect(() => {
     fetchData();
