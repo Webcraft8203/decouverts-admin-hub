@@ -787,7 +787,7 @@ export default function Invoices() {
                 />
               </div>
 
-              <Button type="submit" className="w-full">Create Invoice</Button>
+              <Button type="submit" className="w-full">{editingInvoiceId ? "Update Invoice" : "Create Invoice"}</Button>
             </form>
           </DialogContent>
         </Dialog>
