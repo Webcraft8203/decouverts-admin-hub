@@ -571,7 +571,17 @@ export default function Invoices() {
           <h1 className="text-3xl font-bold text-foreground">Invoice Management</h1>
           <p className="text-muted-foreground">Generate and manage GST-compliant invoices</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog
+          open={dialogOpen}
+          onOpenChange={(open) => {
+            setDialogOpen(open);
+            if (!open) {
+              setEditingInvoiceId(null);
+              setFormData({ client_name: "", client_email: "", client_address: "", notes: "", buyer_state: "Maharashtra", buyer_gstin: "" });
+              setItems([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
+            }
+          }}
+        >
           <DialogTrigger asChild>
             <Button className="gap-2">
               <Plus className="w-4 h-4" />
@@ -580,7 +590,7 @@ export default function Invoices() {
           </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Create New Invoice</DialogTitle>
+              <DialogTitle>{editingInvoiceId ? "Edit Invoice" : "Create New Invoice"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6 mt-4">
               {/* Client Information */}
