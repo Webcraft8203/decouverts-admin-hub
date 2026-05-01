@@ -376,6 +376,7 @@ export default function Invoices() {
       notes: invoice.notes || "",
       buyer_state: invoice.buyer_state || "Maharashtra",
       buyer_gstin: invoice.buyer_gstin || "",
+      category_code: (invoice as any).category_code || "",
     });
     const its = (invoice.items || []).map((it: any) => ({
       description: it.description || "",
