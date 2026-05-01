@@ -707,6 +707,9 @@ serve(async (req) => {
       platform_fee: platformFee, platform_fee_tax: platformFeeTax,
       buyer_gstin: order.buyer_gstin || null, buyer_state: buyerState, seller_state: sellerState,
       gst_breakdown: items, created_by: order.user_id,
+      category_code: invoiceCategoryCode,
+      financial_year: invoiceFinancialYear,
+      serial_number: invoiceSerialNumber,
       notes: `Order: ${order.order_number}\nPayment ID: ${order.payment_id || "N/A"}\nInvoice Type: ${invoiceType.toUpperCase()}`,
     }).select().single();
 
