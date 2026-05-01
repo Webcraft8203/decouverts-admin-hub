@@ -57,6 +57,22 @@ function normalizeInvoiceItem(item: any): InvoiceItem {
 // Default GST rate
 const DEFAULT_GST_RATE = 18;
 
+// Structured invoice number categories
+const INVOICE_CATEGORIES: { group: string; code: string; label: string }[] = [
+  { group: "Product", code: "PRD-DM", label: "Product — Dropping Mechanism (PRD-DM)" },
+  { group: "Product", code: "PRD-3DP", label: "Product — 3D Printer (PRD-3DP)" },
+  { group: "Product", code: "PRD-DRN", label: "Product — Drone (PRD-DRN)" },
+  { group: "Parts", code: "PRT-PRO", label: "Parts — Production (PRT-PRO)" },
+  { group: "Parts", code: "PRT-MEC", label: "Parts — Mechanical (PRT-MEC)" },
+  { group: "Parts", code: "PRT-ELE", label: "Parts — Electronics (PRT-ELE)" },
+  { group: "Service", code: "SRV-DES", label: "Service — Design (SRV-DES)" },
+  { group: "Service", code: "SRV-RND", label: "Service — R&D (SRV-RND)" },
+  { group: "Service", code: "SRV-PRT", label: "Service — Printing (SRV-PRT)" },
+  { group: "Training", code: "TRN-IND", label: "Training — Industry (TRN-IND)" },
+  { group: "Training", code: "TRN-STU", label: "Training — Students (TRN-STU)" },
+  { group: "Training", code: "TRN-WS", label: "Training — Workshop (TRN-WS)" },
+];
+
 // Invoice Settings (matches the generate-invoice edge function)
 const COMPANY_SETTINGS = {
   business_name: "DECOUVERTES FUTURE TECH PRIVATE LIMITED",
@@ -119,6 +135,7 @@ export default function Invoices() {
     notes: "",
     buyer_state: "Maharashtra",
     buyer_gstin: "",
+    category_code: "",
   });
   const [items, setItems] = useState<InvoiceItem[]>([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
   const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
@@ -274,6 +291,12 @@ export default function Invoices() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate Category (required for new invoices)
+    if (!editingInvoiceId && !formData.category_code) {
+      toast({ title: "Category required", description: "Please select an invoice category.", variant: "destructive" });
+      return;
+    }
+
     // Validate HSN codes
     const invalidHsn = items.some(item => !item.hsn_code || !/^[a-zA-Z0-9]{4,10}$/.test(item.hsn_code.trim()));
     if (invalidHsn) {
@@ -298,11 +321,35 @@ export default function Invoices() {
       };
     });
 
-    const invoiceNumber = editingInvoiceId
-      ? (invoices.find((i) => i.id === editingInvoiceId)?.invoice_number || `INV-${Date.now().toString(36).toUpperCase()}`)
-      : `INV-${Date.now().toString(36).toUpperCase()}`;
+    // Generate structured invoice number for new invoices via RPC
+    let invoiceNumber: string;
+    let categoryCode: string | null = formData.category_code || null;
+    let financialYear: string | null = null;
+    let serialNumber: number | null = null;
 
-    const payload = {
+    if (editingInvoiceId) {
+      const existing = invoices.find((i) => i.id === editingInvoiceId);
+      invoiceNumber = existing?.invoice_number || `INV-${Date.now().toString(36).toUpperCase()}`;
+      categoryCode = (existing as any)?.category_code ?? categoryCode;
+      financialYear = (existing as any)?.financial_year ?? null;
+      serialNumber = (existing as any)?.serial_number ?? null;
+    } else {
+      const { data: numData, error: numErr } = await supabase.rpc(
+        "generate_structured_invoice_number" as any,
+        { _category_code: formData.category_code }
+      );
+      if (numErr || !numData || (Array.isArray(numData) && numData.length === 0)) {
+        toast({ title: "Error", description: numErr?.message || "Failed to generate invoice number", variant: "destructive" });
+        return;
+      }
+      const row: any = Array.isArray(numData) ? numData[0] : numData;
+      invoiceNumber = row.invoice_number;
+      categoryCode = row.category_code;
+      financialYear = row.financial_year;
+      serialNumber = row.serial_number;
+    }
+
+    const payload: any = {
       invoice_number: invoiceNumber,
       invoice_type: "final",
       is_final: true,
@@ -321,6 +368,9 @@ export default function Invoices() {
       seller_state: COMPANY_SETTINGS.business_state,
       buyer_gstin: formData.buyer_gstin || null,
       notes: formData.notes || null,
+      category_code: categoryCode,
+      financial_year: financialYear,
+      serial_number: serialNumber,
     };
 
     let error;
@@ -341,7 +391,7 @@ export default function Invoices() {
     });
     setDialogOpen(false);
     setEditingInvoiceId(null);
-    setFormData({ client_name: "", client_email: "", client_address: "", notes: "", buyer_state: "Maharashtra", buyer_gstin: "" });
+    setFormData({ client_name: "", client_email: "", client_address: "", notes: "", buyer_state: "Maharashtra", buyer_gstin: "", category_code: "" });
     setItems([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
     fetchData();
   };
@@ -359,6 +409,7 @@ export default function Invoices() {
       notes: invoice.notes || "",
       buyer_state: invoice.buyer_state || "Maharashtra",
       buyer_gstin: invoice.buyer_gstin || "",
+      category_code: (invoice as any).category_code || "",
     });
     const its = (invoice.items || []).map((it: any) => ({
       description: it.description || "",
@@ -577,7 +628,7 @@ export default function Invoices() {
             setDialogOpen(open);
             if (!open) {
               setEditingInvoiceId(null);
-              setFormData({ client_name: "", client_email: "", client_address: "", notes: "", buyer_state: "Maharashtra", buyer_gstin: "" });
+              setFormData({ client_name: "", client_email: "", client_address: "", notes: "", buyer_state: "Maharashtra", buyer_gstin: "", category_code: "" });
               setItems([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
             }
           }}
@@ -593,6 +644,33 @@ export default function Invoices() {
               <DialogTitle>{editingInvoiceId ? "Edit Invoice" : "Create New Invoice"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+              {/* Invoice Category */}
+              <div className="space-y-2">
+                <Label htmlFor="category_code">
+                  Invoice Category <span className="text-destructive">*</span>
+                </Label>
+                <Select
+                  value={formData.category_code}
+                  onValueChange={(value) => setFormData({ ...formData, category_code: value })}
+                  disabled={!!editingInvoiceId}
+                >
+                  <SelectTrigger id="category_code">
+                    <SelectValue placeholder="Select invoice category (e.g. PRD-DM)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {INVOICE_CATEGORIES.map((c) => (
+                      <SelectItem key={c.code} value={c.code}>
+                        {c.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Determines invoice number format: <code>DFT/&lt;FY&gt;/&lt;CATEGORY&gt;/###</code>
+                  {editingInvoiceId && " (locked when editing)"}
+                </p>
+              </div>
+
               {/* Client Information */}
               <div className="space-y-4">
                 <h3 className="font-semibold text-lg flex items-center gap-2">

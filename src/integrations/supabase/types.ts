@@ -1189,6 +1189,7 @@ export type Database = {
         Row: {
           buyer_gstin: string | null
           buyer_state: string | null
+          category_code: string | null
           cgst_amount: number | null
           client_address: string | null
           client_email: string | null
@@ -1196,6 +1197,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           delivery_date: string | null
+          financial_year: string | null
           gst_breakdown: Json | null
           id: string
           igst_amount: number | null
@@ -1210,6 +1212,7 @@ export type Database = {
           platform_fee: number | null
           platform_fee_tax: number | null
           seller_state: string | null
+          serial_number: number | null
           sgst_amount: number | null
           subtotal: number
           tax_amount: number
@@ -1219,6 +1222,7 @@ export type Database = {
         Insert: {
           buyer_gstin?: string | null
           buyer_state?: string | null
+          category_code?: string | null
           cgst_amount?: number | null
           client_address?: string | null
           client_email?: string | null
@@ -1226,6 +1230,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           delivery_date?: string | null
+          financial_year?: string | null
           gst_breakdown?: Json | null
           id?: string
           igst_amount?: number | null
@@ -1240,6 +1245,7 @@ export type Database = {
           platform_fee?: number | null
           platform_fee_tax?: number | null
           seller_state?: string | null
+          serial_number?: number | null
           sgst_amount?: number | null
           subtotal?: number
           tax_amount?: number
@@ -1249,6 +1255,7 @@ export type Database = {
         Update: {
           buyer_gstin?: string | null
           buyer_state?: string | null
+          category_code?: string | null
           cgst_amount?: number | null
           client_address?: string | null
           client_email?: string | null
@@ -1256,6 +1263,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           delivery_date?: string | null
+          financial_year?: string | null
           gst_breakdown?: Json | null
           id?: string
           igst_amount?: number | null
@@ -1270,6 +1278,7 @@ export type Database = {
           platform_fee?: number | null
           platform_fee_tax?: number | null
           seller_state?: string | null
+          serial_number?: number | null
           sgst_amount?: number | null
           subtotal?: number
           tax_amount?: number
@@ -2405,6 +2414,15 @@ export type Database = {
       }
       generate_order_number: { Args: never; Returns: string }
       generate_shipment_id: { Args: never; Returns: string }
+      generate_structured_invoice_number: {
+        Args: { _category_code: string }
+        Returns: {
+          category_code: string
+          financial_year: string
+          invoice_number: string
+          serial_number: number
+        }[]
+      }
       has_admin_access: { Args: { _user_id: string }; Returns: boolean }
       has_permission: {
         Args: {

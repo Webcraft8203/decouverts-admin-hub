@@ -575,7 +575,7 @@ serve(async (req) => {
 
     const { data: order, error: orderError } = await supabase
       .from("orders")
-      .select("*, order_items(*, products(name, images, gst_percentage, sku, hsn_code))")
+      .select("*, order_items(*, products(name, images, gst_percentage, sku, hsn_code, categories(name)))")
       .eq("id", orderId)
       .single();
 
@@ -597,8 +597,48 @@ serve(async (req) => {
       terms_and_conditions: COMPANY.terms.join("\n"),
     };
 
+    // Map first product to a structured invoice category code
+    const mapProductToCategory = (productName?: string, categoryName?: string): string => {
+      const hay = `${productName || ""} ${categoryName || ""}`.toLowerCase();
+      if (hay.includes("drone")) return "PRD-DRN";
+      if (hay.includes("3d") || hay.includes("printer")) return "PRD-3DP";
+      if (hay.includes("dropping") || hay.includes("mechanism")) return "PRD-DM";
+      if (hay.includes("part") || hay.includes("spare") || hay.includes("component")) return "PRT-MEC";
+      if (hay.includes("training") || hay.includes("workshop")) return "TRN-WS";
+      if (hay.includes("service") || hay.includes("design")) return "SRV-DES";
+      return "PRD-DM"; // sensible default for product orders
+    };
+
+    const firstItem = order.order_items?.[0];
+    const categoryCodeForOrder = mapProductToCategory(
+      firstItem?.products?.name || firstItem?.product_name,
+      firstItem?.products?.categories?.name
+    );
+
+    // Generate structured invoice number for FINAL invoices.
+    // Proforma / Offline keep their existing prefixed format so they don't consume FY serial numbers prematurely.
     const orderSuffix = order.order_number.replace("DP-", "").replace(/-/g, "");
-    const invoiceNumber = isFinalInvoice ? `${company.invoice_prefix}-${orderSuffix}` : isOfflineInvoice ? `OFF-${orderSuffix}` : `PRO-${orderSuffix}`;
+    let invoiceNumber: string;
+    let invoiceCategoryCode: string | null = null;
+    let invoiceFinancialYear: string | null = null;
+    let invoiceSerialNumber: number | null = null;
+
+    if (isFinalInvoice) {
+      const { data: numData, error: numErr } = await supabase.rpc(
+        "generate_structured_invoice_number",
+        { _category_code: categoryCodeForOrder }
+      );
+      if (numErr || !numData || (Array.isArray(numData) && numData.length === 0)) {
+        throw new Error(`Failed to generate invoice number: ${numErr?.message || "no result"}`);
+      }
+      const row: any = Array.isArray(numData) ? numData[0] : numData;
+      invoiceNumber = row.invoice_number;
+      invoiceCategoryCode = row.category_code;
+      invoiceFinancialYear = row.financial_year;
+      invoiceSerialNumber = row.serial_number;
+    } else {
+      invoiceNumber = isOfflineInvoice ? `OFF-${orderSuffix}` : `PRO-${orderSuffix}`;
+    }
     const invoiceDate = isFinalInvoice ? fmtDate(order.delivered_at || new Date().toISOString()) : fmtDate(order.created_at);
 
     const shippingAddress = order.shipping_address as any;
@@ -667,6 +707,9 @@ serve(async (req) => {
       platform_fee: platformFee, platform_fee_tax: platformFeeTax,
       buyer_gstin: order.buyer_gstin || null, buyer_state: buyerState, seller_state: sellerState,
       gst_breakdown: items, created_by: order.user_id,
+      category_code: invoiceCategoryCode,
+      financial_year: invoiceFinancialYear,
+      serial_number: invoiceSerialNumber,
       notes: `Order: ${order.order_number}\nPayment ID: ${order.payment_id || "N/A"}\nInvoice Type: ${invoiceType.toUpperCase()}`,
     }).select().single();
 
