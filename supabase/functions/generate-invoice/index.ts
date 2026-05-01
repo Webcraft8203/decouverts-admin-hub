@@ -575,7 +575,7 @@ serve(async (req) => {
 
     const { data: order, error: orderError } = await supabase
       .from("orders")
-      .select("*, order_items(*, products(name, images, gst_percentage, sku, hsn_code))")
+      .select("*, order_items(*, products(name, images, gst_percentage, sku, hsn_code, categories(name)))")
       .eq("id", orderId)
       .single();
 
