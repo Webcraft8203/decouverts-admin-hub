@@ -135,6 +135,7 @@ export default function Invoices() {
     notes: "",
     buyer_state: "Maharashtra",
     buyer_gstin: "",
+    category_code: "",
   });
   const [items, setItems] = useState<InvoiceItem[]>([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
   const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
