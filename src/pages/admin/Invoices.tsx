@@ -644,6 +644,33 @@ export default function Invoices() {
               <DialogTitle>{editingInvoiceId ? "Edit Invoice" : "Create New Invoice"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+              {/* Invoice Category */}
+              <div className="space-y-2">
+                <Label htmlFor="category_code">
+                  Invoice Category <span className="text-destructive">*</span>
+                </Label>
+                <Select
+                  value={formData.category_code}
+                  onValueChange={(value) => setFormData({ ...formData, category_code: value })}
+                  disabled={!!editingInvoiceId}
+                >
+                  <SelectTrigger id="category_code">
+                    <SelectValue placeholder="Select invoice category (e.g. PRD-DM)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {INVOICE_CATEGORIES.map((c) => (
+                      <SelectItem key={c.code} value={c.code}>
+                        {c.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Determines invoice number format: <code>DFT/&lt;FY&gt;/&lt;CATEGORY&gt;/###</code>
+                  {editingInvoiceId && " (locked when editing)"}
+                </p>
+              </div>
+
               {/* Client Information */}
               <div className="space-y-4">
                 <h3 className="font-semibold text-lg flex items-center gap-2">
