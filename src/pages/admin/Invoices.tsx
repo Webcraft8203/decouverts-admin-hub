@@ -358,7 +358,7 @@ export default function Invoices() {
     });
     setDialogOpen(false);
     setEditingInvoiceId(null);
-    setFormData({ client_name: "", client_email: "", client_address: "", notes: "", buyer_state: "Maharashtra", buyer_gstin: "" });
+    setFormData({ client_name: "", client_email: "", client_address: "", notes: "", buyer_state: "Maharashtra", buyer_gstin: "", category_code: "" });
     setItems([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
     fetchData();
   };
@@ -594,7 +594,7 @@ export default function Invoices() {
             setDialogOpen(open);
             if (!open) {
               setEditingInvoiceId(null);
-              setFormData({ client_name: "", client_email: "", client_address: "", notes: "", buyer_state: "Maharashtra", buyer_gstin: "" });
+              setFormData({ client_name: "", client_email: "", client_address: "", notes: "", buyer_state: "Maharashtra", buyer_gstin: "", category_code: "" });
               setItems([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
             }
           }}
