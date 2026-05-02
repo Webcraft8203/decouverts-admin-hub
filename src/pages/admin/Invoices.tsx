@@ -968,7 +968,7 @@ export default function Invoices() {
                   className="w-full"
                 />
               </div>
-              {(searchQuery || paymentFilter !== "all" || statusFilter !== "all" || dateRange.from || dateRange.to) && (
+              {(searchQuery || paymentFilter !== "all" || statusFilter !== "all" || categoryFilter !== "all" || sourceFilter !== "all" || dateRange.from || dateRange.to) && (
                 <Button 
                   variant="ghost" 
                   size="icon"
@@ -976,6 +976,8 @@ export default function Invoices() {
                     setSearchQuery("");
                     setPaymentFilter("all");
                     setStatusFilter("all");
+                    setCategoryFilter("all");
+                    setSourceFilter("all");
                     setDateRange({ from: "", to: "" });
                   }}
                   className="shrink-0"
@@ -985,14 +987,52 @@ export default function Invoices() {
               )}
             </div>
           </div>
+
+          {/* Second row: Category + Source filters */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+            <div className="md:col-span-6">
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger>
+                  <Receipt className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="All categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Invoice Categories</SelectItem>
+                  {INVOICE_CATEGORIES.map((c) => (
+                    <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="md:col-span-3">
+              <Select value={sourceFilter} onValueChange={(v) => setSourceFilter(v as any)}>
+                <SelectTrigger>
+                  <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Source" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Sources</SelectItem>
+                  <SelectItem value="manual">Manual</SelectItem>
+                  <SelectItem value="auto">Auto (from Order)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="md:col-span-3 flex items-center text-xs text-muted-foreground">
+              {categoryFilter !== "all" && (
+                <span>Filtered: <code className="font-mono">{categoryFilter}</code></span>
+              )}
+            </div>
+          </div>
           
           {/* Active filters summary */}
-          {(searchQuery || paymentFilter !== "all" || statusFilter !== "all" || dateRange.from || dateRange.to) && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          {(searchQuery || paymentFilter !== "all" || statusFilter !== "all" || categoryFilter !== "all" || sourceFilter !== "all" || dateRange.from || dateRange.to) && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
               <span>Showing {filteredInvoices.length} of {activeTab === "proforma" ? proformaCount : finalCount} invoices</span>
               {searchQuery && <Badge variant="secondary" className="text-xs">Search: {searchQuery}</Badge>}
               {paymentFilter !== "all" && <Badge variant="secondary" className="text-xs capitalize">{paymentFilter}</Badge>}
               {statusFilter !== "all" && <Badge variant="secondary" className="text-xs capitalize">{statusFilter}</Badge>}
+              {categoryFilter !== "all" && <Badge variant="secondary" className="text-xs">{categoryFilter}</Badge>}
+              {sourceFilter !== "all" && <Badge variant="secondary" className="text-xs capitalize">{sourceFilter}</Badge>}
               {(dateRange.from || dateRange.to) && <Badge variant="secondary" className="text-xs">Date filtered</Badge>}
             </div>
           )}
