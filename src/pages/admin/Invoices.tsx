@@ -621,13 +621,13 @@ export default function Invoices() {
   };
 
   const handleDownloadReport = async () => {
-    const dateRangeLabel = dateRange.from && dateRange.to 
-      ? `${format(new Date(dateRange.from), "dd MMM yyyy")} - ${format(new Date(dateRange.to), "dd MMM yyyy")}`
-      : "All Time";
-    await downloadInvoiceReport({
+    const catObj = INVOICE_CATEGORIES.find((c) => c.code === categoryFilter);
+    await generateInvoiceCollectionReport({
+      categoryCode: categoryFilter !== "all" ? categoryFilter : undefined,
+      categoryLabel: catObj?.label,
       dateFrom: dateRange.from || undefined,
       dateTo: dateRange.to || undefined,
-      dateRange: dateRangeLabel,
+      invoiceType: activeTab === "final" ? "final" : "proforma",
     });
   };
 
