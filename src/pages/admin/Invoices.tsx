@@ -1193,10 +1193,10 @@ export default function Invoices() {
                     variant="outline"
                     size="sm"
                     onClick={handleDownloadReport}
-                    disabled={isBulkDownloading || finalInvoices.length === 0}
+                    disabled={isBulkDownloading || isReportGenerating}
                     className="gap-2"
                   >
-                    <FileText className="w-4 h-4" />
+                    {isReportGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
                     Download Report
                   </Button>
                 </div>
