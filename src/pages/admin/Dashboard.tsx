@@ -9,10 +9,22 @@ import {
   Users,
   RefreshCw,
   Wallet,
-  Receipt
+  Receipt,
+  FileText
 } from "lucide-react";
 import { format } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { SalesChart } from "@/components/admin/analytics/SalesChart";
+import { OrderStatusChart } from "@/components/admin/analytics/OrderStatusChart";
+import { TopProductsTable } from "@/components/admin/analytics/TopProductsTable";
+import { CustomerInsights } from "@/components/admin/analytics/CustomerInsights";
+import { LowStockProducts } from "@/components/admin/analytics/LowStockProducts";
+import { LowStockMaterials } from "@/components/admin/LowStockMaterials";
+import { AccessDeniedBanner, PermissionsInfoCard } from "@/components/admin/AccessDeniedBanner";
+import { PermissionGate } from "@/components/admin/PermissionGate";
+import { usePermissions } from "@/hooks/useEmployeePermissions";
 import { SalesChart } from "@/components/admin/analytics/SalesChart";
 import { OrderStatusChart } from "@/components/admin/analytics/OrderStatusChart";
 import { TopProductsTable } from "@/components/admin/analytics/TopProductsTable";
