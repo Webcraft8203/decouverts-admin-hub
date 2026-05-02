@@ -82,38 +82,36 @@ export function useReportGenerator() {
     const CW = pageWidth - 2 * margin;
     let y = margin;
 
-    // Logo
+    // ---------- LOGO (left, prominent — same image used in invoice template) ----------
     const logoBase64 = await fetchLogoAsBase64();
     if (logoBase64) {
       try {
-        doc.addImage(logoBase64, "PNG", margin, y, 24, 12);
+        // Auto-height (height=0) preserves aspect-ratio at 60mm wide
+        doc.addImage(logoBase64, "PNG", margin, y, 60, 0);
       } catch (e) {
         console.error("Failed to add logo:", e);
       }
+    } else {
+      // Fallback: text-only brand block
+      doc.setFontSize(20);
+      doc.setTextColor(...colors.primary);
+      doc.setFont("helvetica", "bold");
+      doc.text(COMPANY.name, margin, y + 8);
+      doc.setFontSize(8);
+      doc.setTextColor(...colors.orange);
+      doc.setFont("helvetica", "italic");
+      doc.text(COMPANY.tagline, margin, y + 13);
     }
 
-    // Company name
-    const logoTextX = logoBase64 ? margin + 28 : margin;
-    doc.setFontSize(20);
-    doc.setTextColor(...colors.primary);
-    doc.setFont("helvetica", "bold");
-    doc.text(COMPANY.name, logoTextX, y + 8);
-
-    // Tagline
-    doc.setFontSize(8);
-    doc.setTextColor(...colors.orange);
-    doc.setFont("helvetica", "italic");
-    doc.text(COMPANY.tagline, logoTextX, y + 13);
-
-    // Report badge — top right
+    // ---------- REPORT BADGE (top right) ----------
     const headerRight = pageWidth - margin;
     const badgeColor = config.badgeColor || colors.accent;
     doc.setFillColor(...badgeColor);
-    const badgeWidth = 58;
+    const badgeWidth = 64;
     const badgeX = headerRight - badgeWidth;
     doc.roundedRect(badgeX, y, badgeWidth, 18, 2, 2, "F");
 
-    doc.setFontSize(8);
+    doc.setFontSize(8.5);
     doc.setTextColor(...colors.primary);
     doc.setFont("helvetica", "bold");
     doc.text(config.badgeText, badgeX + badgeWidth / 2, y + 7, { align: "center" });
@@ -122,7 +120,8 @@ export function useReportGenerator() {
     doc.setFont("helvetica", "normal");
     doc.text(config.dateRange, badgeX + badgeWidth / 2, y + 13, { align: "center" });
 
-    y += 17;
+    // Reserve consistent header height regardless of logo render
+    y += 22;
 
     // Company details line
     doc.setFontSize(6.5);
