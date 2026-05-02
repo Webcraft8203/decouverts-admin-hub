@@ -126,6 +126,8 @@ export default function Invoices() {
   const [searchQuery, setSearchQuery] = useState("");
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [sourceFilter, setSourceFilter] = useState<"all" | "manual" | "auto">("all");
   const [dateRange, setDateRange] = useState<{ from: string; to: string }>({ from: "", to: "" });
   
   const [formData, setFormData] = useState({
