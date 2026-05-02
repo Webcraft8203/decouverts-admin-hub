@@ -153,10 +153,13 @@ export default function Invoices() {
   const { user } = useAuth();
   
   // Bulk download hook
-  const { downloadBulkInvoices, downloadInvoiceReport, isDownloading: isBulkDownloading, progress } = useBulkInvoiceDownload();
-  
+  const { downloadBulkInvoices, isDownloading: isBulkDownloading, progress } = useBulkInvoiceDownload();
+
   // Unified invoice PDF hook
   const { downloadInvoice, generateInvoicePdf, isGenerating: isPdfGenerating } = useUnifiedInvoicePdf();
+
+  // Branded report generator (uses /invoice-logo.png + DECOUVERTES template)
+  const { generateInvoiceCollectionReport, isGenerating: isReportGenerating } = useReportGenerator();
 
   useEffect(() => {
     fetchData();
