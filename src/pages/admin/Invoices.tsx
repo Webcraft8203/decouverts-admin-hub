@@ -168,7 +168,8 @@ export default function Invoices() {
       .select(`
         id, invoice_number, invoice_type, is_final, client_name, client_email, client_address, 
         total_amount, subtotal, tax_amount, items, notes, pdf_url, created_at, delivery_date,
-        order_id, buyer_state, seller_state, is_igst, cgst_amount, sgst_amount, igst_amount, buyer_gstin
+        order_id, buyer_state, seller_state, is_igst, cgst_amount, sgst_amount, igst_amount, buyer_gstin,
+        category_code, financial_year, serial_number
       `)
       .order("created_at", { ascending: false });
 
