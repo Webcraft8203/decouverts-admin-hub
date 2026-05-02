@@ -40,6 +40,25 @@ export default function Dashboard() {
     refetch,
   } = useAnalytics();
 
+  // Manual invoices KPIs (invoices created without an order_id)
+  const { data: manualInvoiceStats } = useQuery({
+    queryKey: ["manual-invoices-kpi"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("invoices")
+        .select("total_amount, created_at")
+        .is("order_id", null);
+      if (error) throw error;
+      const list = data || [];
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const totalValue = list.reduce((s: number, i: any) => s + Number(i.total_amount || 0), 0);
+      const thisMonth = list.filter((i: any) => new Date(i.created_at) >= monthStart);
+      const thisMonthValue = thisMonth.reduce((s: number, i: any) => s + Number(i.total_amount || 0), 0);
+      return { count: list.length, totalValue, monthCount: thisMonth.length, monthValue: thisMonthValue };
+    },
+  });
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
