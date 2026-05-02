@@ -869,6 +869,108 @@ export function useReportGenerator() {
     }
   }, []);
 
+  // Generate Invoice Collection Report (filtered by category / date / type)
+  const generateInvoiceCollectionReport = useCallback(async (opts: {
+    categoryCode?: string;       // e.g. "PRD-DM" or undefined for all
+    categoryLabel?: string;      // human-readable category
+    dateFrom?: string;           // ISO yyyy-mm-dd
+    dateTo?: string;
+    invoiceType?: "all" | "manual" | "auto" | "final" | "proforma";
+  }) => {
+    setIsGenerating(true);
+    try {
+      let q = supabase.from("invoices").select("*").order("created_at", { ascending: false });
+      if (opts.categoryCode) q = q.eq("category_code", opts.categoryCode);
+      if (opts.dateFrom) q = q.gte("created_at", opts.dateFrom);
+      if (opts.dateTo)   q = q.lte("created_at", opts.dateTo + "T23:59:59");
+      if (opts.invoiceType === "final")    q = q.eq("is_final", true);
+      if (opts.invoiceType === "proforma") q = q.eq("is_final", false);
+
+      const { data, error } = await q;
+      if (error) throw error;
+
+      let invoices = data || [];
+      if (opts.invoiceType === "manual") invoices = invoices.filter((i: any) => !i.order_id);
+      if (opts.invoiceType === "auto")   invoices = invoices.filter((i: any) =>  i.order_id);
+
+      const dateRangeStr =
+        opts.dateFrom && opts.dateTo
+          ? `${format(new Date(opts.dateFrom), "dd MMM")} - ${format(new Date(opts.dateTo), "dd MMM yyyy")}`
+          : "All Time";
+
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const subtitle = opts.categoryLabel
+        ? `Category: ${opts.categoryLabel}  |  Period: ${dateRangeStr}`
+        : `All invoice categories  |  Period: ${dateRangeStr}`;
+
+      let y = await createReportHeader(doc, {
+        title: "Invoice Collection Report",
+        subtitle,
+        dateRange: dateRangeStr,
+        badgeText: "INVOICES",
+        badgeColor: colors.accent,
+      });
+
+      const total = invoices.reduce((s, i: any) => s + Number(i.total_amount || 0), 0);
+      const subtotal = invoices.reduce((s, i: any) => s + Number(i.subtotal || 0), 0);
+      const tax = invoices.reduce((s, i: any) => s + Number(i.tax_amount || 0), 0);
+      const manualCount = invoices.filter((i: any) => !i.order_id).length;
+
+      y = createStatCards(doc, [
+        { label: "Total Invoices", value: String(invoices.length), color: colors.primary },
+        { label: "Manual Invoices", value: String(manualCount), color: colors.warning },
+        { label: "Subtotal", value: formatCurrency(subtotal), color: colors.primary },
+        { label: "Total GST", value: formatCurrency(tax), color: colors.warning },
+        { label: "Grand Total", value: formatCurrency(total), color: colors.accent },
+      ], y);
+
+      if (invoices.length > 0) {
+        const headers = ["Invoice #", "Date", "Category", "Client", "Source", "Total"];
+        const colWidths = [40, 22, 24, 50, 20, 26];
+        const rows = invoices.map((inv: any) => [
+          inv.invoice_number,
+          format(new Date(inv.created_at), "dd/MM/yy"),
+          inv.category_code || "-",
+          (inv.client_name || "Customer").substring(0, 28),
+          inv.order_id ? "Auto" : "Manual",
+          formatCurrency(inv.total_amount || 0),
+        ]);
+        y = createDataTable(doc, headers, rows, y, colWidths, {
+          valueColumnIndices: [5],
+          statusColumnIndex: 4,
+        });
+      } else {
+        doc.setFontSize(10);
+        doc.setTextColor(...colors.muted);
+        doc.text("No invoices found for the selected filters.", 14, y + 10);
+      }
+
+      const totalPages = doc.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        addReportFooter(doc, i, totalPages);
+      }
+
+      const blob = doc.output("blob");
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      const tag = opts.categoryCode ? `_${opts.categoryCode}` : "";
+      link.download = `Invoice-Report${tag}_${format(new Date(), "yyyy-MM-dd")}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success(`Report generated with ${invoices.length} invoice(s)`);
+    } catch (e: any) {
+      console.error("Error generating invoice report:", e);
+      toast.error(e?.message || "Failed to generate report");
+    } finally {
+      setIsGenerating(false);
+    }
+  }, []);
+
   return {
     isGenerating,
     generateTodayOrdersReport,
@@ -877,5 +979,6 @@ export function useReportGenerator() {
     generateProductInventoryReport,
     generateRawMaterialsReport,
     generateCustomerReport,
+    generateInvoiceCollectionReport,
   };
 }
