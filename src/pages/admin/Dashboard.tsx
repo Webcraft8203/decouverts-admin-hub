@@ -25,15 +25,6 @@ import { LowStockMaterials } from "@/components/admin/LowStockMaterials";
 import { AccessDeniedBanner, PermissionsInfoCard } from "@/components/admin/AccessDeniedBanner";
 import { PermissionGate } from "@/components/admin/PermissionGate";
 import { usePermissions } from "@/hooks/useEmployeePermissions";
-import { SalesChart } from "@/components/admin/analytics/SalesChart";
-import { OrderStatusChart } from "@/components/admin/analytics/OrderStatusChart";
-import { TopProductsTable } from "@/components/admin/analytics/TopProductsTable";
-import { CustomerInsights } from "@/components/admin/analytics/CustomerInsights";
-import { LowStockProducts } from "@/components/admin/analytics/LowStockProducts";
-import { LowStockMaterials } from "@/components/admin/LowStockMaterials";
-import { AccessDeniedBanner, PermissionsInfoCard } from "@/components/admin/AccessDeniedBanner";
-import { PermissionGate } from "@/components/admin/PermissionGate";
-import { usePermissions } from "@/hooks/useEmployeePermissions";
 
 export default function Dashboard() {
   const {
