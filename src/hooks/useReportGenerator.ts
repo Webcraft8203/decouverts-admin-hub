@@ -42,15 +42,18 @@ const formatCurrency = (amount: number): string => {
   return `₹${Number(amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
+// Use the same /invoice-logo.png that the unified invoice template uses
+// so all reports + invoices share identical branding.
 const fetchLogoAsBase64 = async (): Promise<string | null> => {
   try {
-    const logoUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/customer-partner-images/email-logo.png`;
-    const response = await fetch(logoUrl);
+    const response = await fetch('/invoice-logo.png');
     if (!response.ok) return null;
     const blob = await response.blob();
-    return new Promise((resolve) => {
+    if (blob.size < 100) return null;
+    return await new Promise<string | null>((resolve) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
       reader.readAsDataURL(blob);
     });
   } catch {
