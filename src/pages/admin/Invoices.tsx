@@ -239,8 +239,18 @@ export default function Invoices() {
     const invoiceDate = new Date(invoice.created_at);
     const matchesDateFrom = !dateRange.from || invoiceDate >= new Date(dateRange.from);
     const matchesDateTo = !dateRange.to || invoiceDate <= new Date(dateRange.to + "T23:59:59");
-    
-    return matchesTab && matchesSearch && matchesPayment && matchesStatus && matchesDateFrom && matchesDateTo;
+
+    // Category filter
+    const invCat = (invoice as any).category_code as string | undefined;
+    const matchesCategory = categoryFilter === "all" || invCat === categoryFilter;
+
+    // Source filter (manual = no order_id, auto = has order_id)
+    const matchesSource =
+      sourceFilter === "all" ||
+      (sourceFilter === "manual" && !invoice.order_id) ||
+      (sourceFilter === "auto" && !!invoice.order_id);
+
+    return matchesTab && matchesSearch && matchesPayment && matchesStatus && matchesDateFrom && matchesDateTo && matchesCategory && matchesSource;
   });
 
   const addItem = () => setItems([...items, { description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
