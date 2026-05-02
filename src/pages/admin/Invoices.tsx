@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useBulkInvoiceDownload } from "@/hooks/useBulkInvoiceDownload";
 import { useUnifiedInvoicePdf, type Invoice } from "@/hooks/useUnifiedInvoicePdf";
+import { useReportGenerator } from "@/hooks/useReportGenerator";
 import { Plus, Trash2, Download, FileText, Eye, X, Search, Filter, Calendar, CreditCard, Banknote, CheckCircle, Clock, AlertCircle, Receipt, FileCheck, FileDown, Loader2, Mail, Pencil } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { INDIAN_STATES } from "@/constants/indianStates";
@@ -126,6 +127,8 @@ export default function Invoices() {
   const [searchQuery, setSearchQuery] = useState("");
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [sourceFilter, setSourceFilter] = useState<"all" | "manual" | "auto">("all");
   const [dateRange, setDateRange] = useState<{ from: string; to: string }>({ from: "", to: "" });
   
   const [formData, setFormData] = useState({
@@ -151,10 +154,13 @@ export default function Invoices() {
   const { user } = useAuth();
   
   // Bulk download hook
-  const { downloadBulkInvoices, downloadInvoiceReport, isDownloading: isBulkDownloading, progress } = useBulkInvoiceDownload();
-  
+  const { downloadBulkInvoices, isDownloading: isBulkDownloading, progress } = useBulkInvoiceDownload();
+
   // Unified invoice PDF hook
   const { downloadInvoice, generateInvoicePdf, isGenerating: isPdfGenerating } = useUnifiedInvoicePdf();
+
+  // Branded report generator (uses /invoice-logo.png + DECOUVERTES template)
+  const { generateInvoiceCollectionReport, isGenerating: isReportGenerating } = useReportGenerator();
 
   useEffect(() => {
     fetchData();
@@ -166,7 +172,8 @@ export default function Invoices() {
       .select(`
         id, invoice_number, invoice_type, is_final, client_name, client_email, client_address, 
         total_amount, subtotal, tax_amount, items, notes, pdf_url, created_at, delivery_date,
-        order_id, buyer_state, seller_state, is_igst, cgst_amount, sgst_amount, igst_amount, buyer_gstin
+        order_id, buyer_state, seller_state, is_igst, cgst_amount, sgst_amount, igst_amount, buyer_gstin,
+        category_code, financial_year, serial_number
       `)
       .order("created_at", { ascending: false });
 
@@ -236,8 +243,18 @@ export default function Invoices() {
     const invoiceDate = new Date(invoice.created_at);
     const matchesDateFrom = !dateRange.from || invoiceDate >= new Date(dateRange.from);
     const matchesDateTo = !dateRange.to || invoiceDate <= new Date(dateRange.to + "T23:59:59");
-    
-    return matchesTab && matchesSearch && matchesPayment && matchesStatus && matchesDateFrom && matchesDateTo;
+
+    // Category filter
+    const invCat = (invoice as any).category_code as string | undefined;
+    const matchesCategory = categoryFilter === "all" || invCat === categoryFilter;
+
+    // Source filter (manual = no order_id, auto = has order_id)
+    const matchesSource =
+      sourceFilter === "all" ||
+      (sourceFilter === "manual" && !invoice.order_id) ||
+      (sourceFilter === "auto" && !!invoice.order_id);
+
+    return matchesTab && matchesSearch && matchesPayment && matchesStatus && matchesDateFrom && matchesDateTo && matchesCategory && matchesSource;
   });
 
   const addItem = () => setItems([...items, { description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
@@ -604,13 +621,13 @@ export default function Invoices() {
   };
 
   const handleDownloadReport = async () => {
-    const dateRangeLabel = dateRange.from && dateRange.to 
-      ? `${format(new Date(dateRange.from), "dd MMM yyyy")} - ${format(new Date(dateRange.to), "dd MMM yyyy")}`
-      : "All Time";
-    await downloadInvoiceReport({
+    const catObj = INVOICE_CATEGORIES.find((c) => c.code === categoryFilter);
+    await generateInvoiceCollectionReport({
+      categoryCode: categoryFilter !== "all" ? categoryFilter : undefined,
+      categoryLabel: catObj?.label,
       dateFrom: dateRange.from || undefined,
       dateTo: dateRange.to || undefined,
-      dateRange: dateRangeLabel,
+      invoiceType: activeTab === "final" ? "final" : "proforma",
     });
   };
 
@@ -951,7 +968,7 @@ export default function Invoices() {
                   className="w-full"
                 />
               </div>
-              {(searchQuery || paymentFilter !== "all" || statusFilter !== "all" || dateRange.from || dateRange.to) && (
+              {(searchQuery || paymentFilter !== "all" || statusFilter !== "all" || categoryFilter !== "all" || sourceFilter !== "all" || dateRange.from || dateRange.to) && (
                 <Button 
                   variant="ghost" 
                   size="icon"
@@ -959,6 +976,8 @@ export default function Invoices() {
                     setSearchQuery("");
                     setPaymentFilter("all");
                     setStatusFilter("all");
+                    setCategoryFilter("all");
+                    setSourceFilter("all");
                     setDateRange({ from: "", to: "" });
                   }}
                   className="shrink-0"
@@ -968,14 +987,52 @@ export default function Invoices() {
               )}
             </div>
           </div>
+
+          {/* Second row: Category + Source filters */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+            <div className="md:col-span-6">
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger>
+                  <Receipt className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="All categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Invoice Categories</SelectItem>
+                  {INVOICE_CATEGORIES.map((c) => (
+                    <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="md:col-span-3">
+              <Select value={sourceFilter} onValueChange={(v) => setSourceFilter(v as any)}>
+                <SelectTrigger>
+                  <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Source" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Sources</SelectItem>
+                  <SelectItem value="manual">Manual</SelectItem>
+                  <SelectItem value="auto">Auto (from Order)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="md:col-span-3 flex items-center text-xs text-muted-foreground">
+              {categoryFilter !== "all" && (
+                <span>Filtered: <code className="font-mono">{categoryFilter}</code></span>
+              )}
+            </div>
+          </div>
           
           {/* Active filters summary */}
-          {(searchQuery || paymentFilter !== "all" || statusFilter !== "all" || dateRange.from || dateRange.to) && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          {(searchQuery || paymentFilter !== "all" || statusFilter !== "all" || categoryFilter !== "all" || sourceFilter !== "all" || dateRange.from || dateRange.to) && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
               <span>Showing {filteredInvoices.length} of {activeTab === "proforma" ? proformaCount : finalCount} invoices</span>
               {searchQuery && <Badge variant="secondary" className="text-xs">Search: {searchQuery}</Badge>}
               {paymentFilter !== "all" && <Badge variant="secondary" className="text-xs capitalize">{paymentFilter}</Badge>}
               {statusFilter !== "all" && <Badge variant="secondary" className="text-xs capitalize">{statusFilter}</Badge>}
+              {categoryFilter !== "all" && <Badge variant="secondary" className="text-xs">{categoryFilter}</Badge>}
+              {sourceFilter !== "all" && <Badge variant="secondary" className="text-xs capitalize">{sourceFilter}</Badge>}
               {(dateRange.from || dateRange.to) && <Badge variant="secondary" className="text-xs">Date filtered</Badge>}
             </div>
           )}
@@ -1136,10 +1193,10 @@ export default function Invoices() {
                     variant="outline"
                     size="sm"
                     onClick={handleDownloadReport}
-                    disabled={isBulkDownloading || finalInvoices.length === 0}
+                    disabled={isBulkDownloading || isReportGenerating}
                     className="gap-2"
                   >
-                    <FileText className="w-4 h-4" />
+                    {isReportGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
                     Download Report
                   </Button>
                 </div>
