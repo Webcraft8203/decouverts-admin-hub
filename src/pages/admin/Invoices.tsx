@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useBulkInvoiceDownload } from "@/hooks/useBulkInvoiceDownload";
 import { useUnifiedInvoicePdf, type Invoice } from "@/hooks/useUnifiedInvoicePdf";
+import { useReportGenerator } from "@/hooks/useReportGenerator";
 import { Plus, Trash2, Download, FileText, Eye, X, Search, Filter, Calendar, CreditCard, Banknote, CheckCircle, Clock, AlertCircle, Receipt, FileCheck, FileDown, Loader2, Mail, Pencil } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { INDIAN_STATES } from "@/constants/indianStates";
