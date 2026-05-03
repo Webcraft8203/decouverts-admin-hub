@@ -1151,7 +1151,7 @@ export default function Invoices() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => handleDelete(invoice.id)}
+                                onClick={() => handleDelete(invoice)}
                                 className="text-destructive hover:text-destructive"
                                 title="Delete"
                               >
