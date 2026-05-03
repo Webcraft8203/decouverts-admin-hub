@@ -491,10 +491,29 @@ export default function Invoices() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this invoice?")) return;
-    await supabase.from("invoices").delete().eq("id", id);
-    toast({ title: "Invoice deleted" });
+  const handleDelete = async (invoice: Invoice) => {
+    const label = invoice.is_final ? "FINAL TAX invoice" : "PROFORMA invoice";
+    const ok = window.confirm(
+      `Permanently delete ${label} ${invoice.invoice_number}?\n\nThis will also remove its PDF from storage and cannot be undone.`
+    );
+    if (!ok) return;
+    const { error, count } = await supabase
+      .from("invoices")
+      .delete({ count: "exact" })
+      .eq("id", invoice.id);
+    if (error) {
+      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    if (!count) {
+      toast({
+        title: "Not allowed",
+        description: "You don't have permission to delete this invoice.",
+        variant: "destructive",
+      });
+      return;
+    }
+    toast({ title: "Invoice deleted", description: invoice.invoice_number });
     fetchData();
   };
 
