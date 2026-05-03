@@ -893,12 +893,34 @@ export function useReportGenerator() {
       if (opts.invoiceType === "manual") invoices = invoices.filter((i: any) => !i.order_id);
       if (opts.invoiceType === "auto")   invoices = invoices.filter((i: any) =>  i.order_id);
 
+      // Fetch payment status for invoices linked to orders
+      const orderIds = invoices.map((i: any) => i.order_id).filter(Boolean);
+      const orderPaymentMap: Record<string, string> = {};
+      if (orderIds.length > 0) {
+        const { data: ordersData } = await supabase
+          .from("orders")
+          .select("id, payment_status, cod_payment_status, order_type, payment_id")
+          .in("id", orderIds);
+        (ordersData || []).forEach((o: any) => {
+          const isCod = o.order_type === "cod" || o.payment_id?.startsWith("COD") || o.cod_payment_status != null;
+          if (isCod) {
+            orderPaymentMap[o.id] = (o.cod_payment_status === "settled" || o.cod_payment_status === "received")
+              ? "Paid" : "Pending";
+          } else {
+            orderPaymentMap[o.id] = o.payment_status === "paid" ? "Paid" : "Pending";
+          }
+        });
+      }
+      const getStatus = (inv: any) =>
+        inv.order_id ? (orderPaymentMap[inv.order_id] || "Pending") : "Manual";
+
       const dateRangeStr =
         opts.dateFrom && opts.dateTo
           ? `${format(new Date(opts.dateFrom), "dd MMM")} - ${format(new Date(opts.dateTo), "dd MMM yyyy")}`
           : "All Time";
 
-      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      // Landscape for richer table
+      const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
       const subtitle = opts.categoryLabel
         ? `Category: ${opts.categoryLabel}  |  Period: ${dateRangeStr}`
         : `All invoice categories  |  Period: ${dateRangeStr}`;
@@ -911,34 +933,113 @@ export function useReportGenerator() {
         badgeColor: colors.accent,
       });
 
-      const total = invoices.reduce((s, i: any) => s + Number(i.total_amount || 0), 0);
-      const subtotal = invoices.reduce((s, i: any) => s + Number(i.subtotal || 0), 0);
-      const tax = invoices.reduce((s, i: any) => s + Number(i.tax_amount || 0), 0);
+      // Aggregations
+      const total    = invoices.reduce((s, i: any) => s + Number(i.total_amount || 0), 0);
+      const subtotal = invoices.reduce((s, i: any) => s + Number(i.subtotal     || 0), 0);
+      const cgst     = invoices.reduce((s, i: any) => s + Number(i.cgst_amount  || 0), 0);
+      const sgst     = invoices.reduce((s, i: any) => s + Number(i.sgst_amount  || 0), 0);
+      const igst     = invoices.reduce((s, i: any) => s + Number(i.igst_amount  || 0), 0);
+      const tax      = cgst + sgst + igst;
       const manualCount = invoices.filter((i: any) => !i.order_id).length;
+      const autoCount   = invoices.length - manualCount;
+      const paidAmount    = invoices
+        .filter((i: any) => getStatus(i) === "Paid")
+        .reduce((s, i: any) => s + Number(i.total_amount || 0), 0);
+      const pendingAmount = invoices
+        .filter((i: any) => getStatus(i) === "Pending")
+        .reduce((s, i: any) => s + Number(i.total_amount || 0), 0);
 
+      // First row of cards: counts + subtotal + tax breakup
       y = createStatCards(doc, [
-        { label: "Total Invoices", value: String(invoices.length), color: colors.primary },
-        { label: "Manual Invoices", value: String(manualCount), color: colors.warning },
-        { label: "Subtotal", value: formatCurrency(subtotal), color: colors.primary },
-        { label: "Total GST", value: formatCurrency(tax), color: colors.warning },
-        { label: "Grand Total", value: formatCurrency(total), color: colors.accent },
+        { label: "Total Invoices",  value: String(invoices.length), color: colors.primary },
+        { label: "Manual / Auto",   value: `${manualCount} / ${autoCount}`, color: colors.warning },
+        { label: "Subtotal",        value: formatCurrency(subtotal), color: colors.primary },
+        { label: "CGST",            value: formatCurrency(cgst),     color: colors.warning },
+        { label: "SGST",            value: formatCurrency(sgst),     color: colors.warning },
+        { label: "IGST",            value: formatCurrency(igst),     color: colors.warning },
+      ], y);
+
+      // Second row of cards: totals + payment split
+      y = createStatCards(doc, [
+        { label: "Total GST",     value: formatCurrency(tax),           color: colors.warning },
+        { label: "Grand Total",   value: formatCurrency(total),         color: colors.accent  },
+        { label: "Paid Amount",   value: formatCurrency(paidAmount),    color: colors.success },
+        { label: "Pending Amount",value: formatCurrency(pendingAmount), color: colors.error   },
       ], y);
 
       if (invoices.length > 0) {
-        const headers = ["Invoice #", "Date", "Category", "Client", "Source", "Total"];
-        const colWidths = [40, 22, 24, 50, 20, 26];
+        const headers = ["Invoice #", "Date", "Client", "Category", "Source", "Subtotal", "CGST", "SGST", "IGST", "Total", "Status"];
+        const colWidths = [38, 18, 44, 22, 18, 25, 22, 22, 22, 28, 18];
         const rows = invoices.map((inv: any) => [
           inv.invoice_number,
           format(new Date(inv.created_at), "dd/MM/yy"),
+          (inv.client_name || "Customer").substring(0, 26),
           inv.category_code || "-",
-          (inv.client_name || "Customer").substring(0, 28),
           inv.order_id ? "Auto" : "Manual",
+          formatCurrency(inv.subtotal || 0),
+          formatCurrency(inv.cgst_amount || 0),
+          formatCurrency(inv.sgst_amount || 0),
+          formatCurrency(inv.igst_amount || 0),
           formatCurrency(inv.total_amount || 0),
+          getStatus(inv),
         ]);
-        y = createDataTable(doc, headers, rows, y, colWidths, {
-          valueColumnIndices: [5],
-          statusColumnIndex: 4,
+        // Highlight high-value (> ₹50,000) by tagging client name with marker
+        rows.forEach((r, idx) => {
+          const inv = invoices[idx];
+          if (Number(inv.total_amount || 0) > 50000) {
+            r[2] = "★ " + r[2];
+          }
         });
+
+        y = createDataTable(doc, headers, rows, y, colWidths, {
+          valueColumnIndices: [5, 6, 7, 8, 9],
+          statusColumnIndex: 10,
+        });
+
+        // Summary row at bottom of table
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const margin = 14;
+        const tableWidth = pageWidth - 2 * margin;
+        doc.setFillColor(...colors.darkBox);
+        doc.rect(margin, y, tableWidth, 9, "F");
+        doc.setFontSize(7);
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "bold");
+        doc.text("TOTALS", margin + 3, y + 6);
+
+        // Right-aligned totals matching value columns
+        let xCursor = margin + 3;
+        const offsets = [colWidths[0], colWidths[1], colWidths[2], colWidths[3], colWidths[4]];
+        offsets.forEach((w) => (xCursor += w));
+        const valueWidths = [colWidths[5], colWidths[6], colWidths[7], colWidths[8], colWidths[9]];
+        const values = [subtotal, cgst, sgst, igst, total];
+        values.forEach((v, i) => {
+          doc.text(formatCurrency(v), xCursor + valueWidths[i] - 2, y + 6, { align: "right" });
+          xCursor += valueWidths[i];
+        });
+        y += 13;
+
+        // Notes / GST split clarity
+        doc.setFontSize(7);
+        doc.setTextColor(...colors.muted);
+        doc.setFont("helvetica", "italic");
+        const intra = formatCurrency(cgst + sgst);
+        doc.text(
+          `Intra-state GST (CGST + SGST): ${intra}   |   Inter-state GST (IGST): ${formatCurrency(igst)}   |   ★ marks high-value invoices (> ${formatCurrency(50000)})`,
+          margin, y
+        );
+        y += 6;
+
+        // Authorized signature placeholder
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(...colors.secondary);
+        doc.setFontSize(8);
+        doc.text("Authorized Signatory", pageWidth - margin - 50, y + 18);
+        doc.setDrawColor(...colors.border);
+        doc.line(pageWidth - margin - 60, y + 16, pageWidth - margin - 5, y + 16);
+        doc.setFontSize(7);
+        doc.setTextColor(...colors.muted);
+        doc.text("This is a system-generated report.", margin, y + 18);
       } else {
         doc.setFontSize(10);
         doc.setTextColor(...colors.muted);
