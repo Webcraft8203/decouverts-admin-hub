@@ -272,6 +272,64 @@ export default function Dashboard() {
         </div>
       </PermissionGate>
 
+      {/* Manual Invoices KPIs */}
+      <PermissionGate permission={["view_invoices", "view_accounting"]}>
+        <div>
+          <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+            <FileText className="h-5 w-5 text-primary" />
+            Manual Invoices
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="border-border hover:shadow-md transition-shadow bg-gradient-to-br from-amber-500/10 to-amber-500/5 border-amber-500/20">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  Total Manual Invoices
+                </CardTitle>
+                <FileText className="h-4 w-4 text-amber-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-amber-600">
+                  {manualInvoiceStats?.count ?? "..."}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">All time</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  Total Value
+                </CardTitle>
+                <IndianRupee className="h-4 w-4 text-emerald-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-emerald-600">
+                  {manualInvoiceStats ? formatCurrency(manualInvoiceStats.totalValue) : "..."}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Sum of manual invoices</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  This Month
+                </CardTitle>
+                <Calendar className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600">
+                  {manualInvoiceStats ? formatCurrency(manualInvoiceStats.monthValue) : "..."}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {manualInvoiceStats?.monthCount ?? 0} invoice{(manualInvoiceStats?.monthCount ?? 0) === 1 ? "" : "s"} • {format(new Date(), "MMM yyyy")}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </PermissionGate>
+
       {/* Sales Analytics Section - Only for revenue/accounting permissions */}
       <PermissionGate permission={["view_revenue", "view_accounting"]}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
