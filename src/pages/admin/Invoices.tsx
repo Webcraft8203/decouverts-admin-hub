@@ -1326,8 +1326,17 @@ export default function Invoices() {
                                       <Pencil className="w-4 h-4" />
                                     </Button>
                                   </>
-                                )}
-                              </div>
+                                 )}
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleDelete(invoice)}
+                                  className="text-destructive hover:text-destructive"
+                                  title="Delete"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                               </div>
                             </TableCell>
                           </TableRow>
                         );
