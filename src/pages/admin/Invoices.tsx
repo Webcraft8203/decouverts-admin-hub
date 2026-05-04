@@ -433,6 +433,11 @@ export default function Invoices() {
       buyer_state: invoice.buyer_state || "Maharashtra",
       buyer_gstin: invoice.buyer_gstin || "",
       category_code: (invoice as any).category_code || "",
+      payment_status: (invoice as any).payment_status || "unpaid",
+      payment_method: (invoice as any).payment_method || "",
+      payment_reference: (invoice as any).payment_reference || "",
+      payment_date: (invoice as any).payment_date ? String((invoice as any).payment_date).slice(0, 10) : "",
+      payment_notes: (invoice as any).payment_notes || "",
     });
     const its = (invoice.items || []).map((it: any) => ({
       description: it.description || "",
