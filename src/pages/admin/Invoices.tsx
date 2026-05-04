@@ -107,6 +107,7 @@ const invoiceStatusConfig = {
   
   // Offline payment
   offline_paid: { label: "Offline Paid", color: "bg-purple-100 text-purple-700 border-purple-200", icon: Banknote },
+  offline_unpaid: { label: "Unpaid", color: "bg-orange-100 text-orange-700 border-orange-200", icon: Clock },
   
   failed: { label: "Failed", color: "bg-red-100 text-red-700 border-red-200", icon: AlertCircle },
 };
