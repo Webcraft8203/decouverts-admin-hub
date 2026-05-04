@@ -262,6 +262,11 @@ export default function Accounting() {
       // Platform fee collected
       const platformFeeCollected = finalInvoices?.reduce((sum, inv) => sum + (inv.platform_fee || 0), 0) || 0;
 
+      // Manual final invoices (no linked order) — count as offline/manual revenue
+      const manualFinalInvoices = (finalInvoices || []).filter((inv) => !inv.order_id);
+      const manualRevenue = manualFinalInvoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
+      const manualCount = manualFinalInvoices.length;
+
       // All invoices for summary
       const { data: allInvoices } = await supabase
         .from("invoices")
