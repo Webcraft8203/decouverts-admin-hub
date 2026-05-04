@@ -270,6 +270,7 @@ export default function Accounting() {
       const manualFinalInvoices = (finalInvoices || []).filter((inv) => !inv.order_id);
       const manualRevenue = manualFinalInvoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
       const manualCount = manualFinalInvoices.length;
+      totalRevenue += manualRevenue;
 
       // All invoices for summary
       const { data: allInvoices } = await supabase
