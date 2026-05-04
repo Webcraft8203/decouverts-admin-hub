@@ -394,6 +394,13 @@ export default function Invoices() {
       category_code: categoryCode,
       financial_year: financialYear,
       serial_number: serialNumber,
+      payment_status: formData.payment_status || "unpaid",
+      payment_method: formData.payment_status === "paid" ? (formData.payment_method || null) : null,
+      payment_reference: formData.payment_status === "paid" ? (formData.payment_reference || null) : null,
+      payment_date: formData.payment_status === "paid"
+        ? (formData.payment_date ? new Date(formData.payment_date).toISOString() : new Date().toISOString())
+        : null,
+      payment_notes: formData.payment_status === "paid" ? (formData.payment_notes || null) : null,
     };
 
     let error;
