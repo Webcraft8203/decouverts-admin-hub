@@ -131,7 +131,7 @@ export default function Invoices() {
   const [sourceFilter, setSourceFilter] = useState<"all" | "manual" | "auto">("all");
   const [dateRange, setDateRange] = useState<{ from: string; to: string }>({ from: "", to: "" });
   
-  const [formData, setFormData] = useState({
+  const emptyFormData = {
     client_name: "",
     client_email: "",
     client_address: "",
@@ -144,7 +144,8 @@ export default function Invoices() {
     payment_reference: "",
     payment_date: "",
     payment_notes: "",
-  });
+  };
+  const [formData, setFormData] = useState(emptyFormData);
   const [items, setItems] = useState<InvoiceItem[]>([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
   const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
 
