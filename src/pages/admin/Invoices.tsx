@@ -922,6 +922,81 @@ export default function Invoices() {
                 />
               </div>
 
+              {/* Payment Status (Admin only - manual invoices) */}
+              <Card className="border-dashed">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Banknote className="w-4 h-4" />
+                    Payment Status (Admin)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>Status</Label>
+                    <Select
+                      value={formData.payment_status}
+                      onValueChange={(value) => setFormData({ ...formData, payment_status: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="unpaid">Unpaid</SelectItem>
+                        <SelectItem value="paid">Paid</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {formData.payment_status === "paid" && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>Payment Method *</Label>
+                        <Select
+                          value={formData.payment_method}
+                          onValueChange={(value) => setFormData({ ...formData, payment_method: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select method" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="cash">Cash</SelectItem>
+                            <SelectItem value="upi">UPI</SelectItem>
+                            <SelectItem value="bank_transfer">Bank Transfer / NEFT / RTGS</SelectItem>
+                            <SelectItem value="cheque">Cheque</SelectItem>
+                            <SelectItem value="card">Card</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Payment Date</Label>
+                        <Input
+                          type="date"
+                          value={formData.payment_date}
+                          onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })}
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label>Reference / Transaction ID</Label>
+                        <Input
+                          value={formData.payment_reference}
+                          onChange={(e) => setFormData({ ...formData, payment_reference: e.target.value })}
+                          placeholder="e.g. UTR, UPI ref, Cheque No."
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label>Payment Notes</Label>
+                        <Textarea
+                          value={formData.payment_notes}
+                          onChange={(e) => setFormData({ ...formData, payment_notes: e.target.value })}
+                          placeholder="Bank name, branch, remarks..."
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               <Button type="submit" className="w-full">{editingInvoiceId ? "Update Invoice" : "Create Invoice"}</Button>
             </form>
           </DialogContent>
