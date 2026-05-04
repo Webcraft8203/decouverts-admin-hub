@@ -243,7 +243,7 @@ export default function Accounting() {
 
       const onlinePaidOrders = paidOrders.filter((o) => !isCodOrder(o));
       const onlineRevenue = onlinePaidOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
-      // Note: manualRevenue is added below after manual invoices are computed
+      let totalRevenue = onlineRevenue + codSettled;
       
       const pendingAmount = pendingOrders
         .filter((o) => !isCodOrder(o))
