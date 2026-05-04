@@ -107,6 +107,7 @@ const invoiceStatusConfig = {
   
   // Offline payment
   offline_paid: { label: "Offline Paid", color: "bg-purple-100 text-purple-700 border-purple-200", icon: Banknote },
+  offline_unpaid: { label: "Unpaid", color: "bg-orange-100 text-orange-700 border-orange-200", icon: Clock },
   
   failed: { label: "Failed", color: "bg-red-100 text-red-700 border-red-200", icon: AlertCircle },
 };
@@ -131,7 +132,7 @@ export default function Invoices() {
   const [sourceFilter, setSourceFilter] = useState<"all" | "manual" | "auto">("all");
   const [dateRange, setDateRange] = useState<{ from: string; to: string }>({ from: "", to: "" });
   
-  const [formData, setFormData] = useState({
+  const emptyFormData = {
     client_name: "",
     client_email: "",
     client_address: "",
@@ -139,7 +140,13 @@ export default function Invoices() {
     buyer_state: "Maharashtra",
     buyer_gstin: "",
     category_code: "",
-  });
+    payment_status: "unpaid",
+    payment_method: "",
+    payment_reference: "",
+    payment_date: "",
+    payment_notes: "",
+  };
+  const [formData, setFormData] = useState(emptyFormData);
   const [items, setItems] = useState<InvoiceItem[]>([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
   const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
 
@@ -173,7 +180,8 @@ export default function Invoices() {
         id, invoice_number, invoice_type, is_final, client_name, client_email, client_address, 
         total_amount, subtotal, tax_amount, items, notes, pdf_url, created_at, delivery_date,
         order_id, buyer_state, seller_state, is_igst, cgst_amount, sgst_amount, igst_amount, buyer_gstin,
-        category_code, financial_year, serial_number
+        category_code, financial_year, serial_number,
+        payment_status, payment_method, payment_reference, payment_date, payment_notes
       `)
       .order("created_at", { ascending: false });
 
@@ -388,6 +396,13 @@ export default function Invoices() {
       category_code: categoryCode,
       financial_year: financialYear,
       serial_number: serialNumber,
+      payment_status: formData.payment_status || "unpaid",
+      payment_method: formData.payment_status === "paid" ? (formData.payment_method || null) : null,
+      payment_reference: formData.payment_status === "paid" ? (formData.payment_reference || null) : null,
+      payment_date: formData.payment_status === "paid"
+        ? (formData.payment_date ? new Date(formData.payment_date).toISOString() : new Date().toISOString())
+        : null,
+      payment_notes: formData.payment_status === "paid" ? (formData.payment_notes || null) : null,
     };
 
     let error;
@@ -408,7 +423,7 @@ export default function Invoices() {
     });
     setDialogOpen(false);
     setEditingInvoiceId(null);
-    setFormData({ client_name: "", client_email: "", client_address: "", notes: "", buyer_state: "Maharashtra", buyer_gstin: "", category_code: "" });
+    setFormData(emptyFormData);
     setItems([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
     fetchData();
   };
@@ -427,6 +442,11 @@ export default function Invoices() {
       buyer_state: invoice.buyer_state || "Maharashtra",
       buyer_gstin: invoice.buyer_gstin || "",
       category_code: (invoice as any).category_code || "",
+      payment_status: (invoice as any).payment_status || "unpaid",
+      payment_method: (invoice as any).payment_method || "",
+      payment_reference: (invoice as any).payment_reference || "",
+      payment_date: (invoice as any).payment_date ? String((invoice as any).payment_date).slice(0, 10) : "",
+      payment_notes: (invoice as any).payment_notes || "",
     });
     const its = (invoice.items || []).map((it: any) => ({
       description: it.description || "",
@@ -564,9 +584,10 @@ export default function Invoices() {
     const isOffline = !invoice.order_id;
     const isCOD = !isOffline && (!invoice.order?.payment_id || invoice.order.payment_id?.startsWith("COD"));
     
-    // Offline/Manual invoices - always show as paid
+    // Offline/Manual invoices - based on admin-recorded payment status
     if (isOffline) {
-      return invoiceStatusConfig.offline_paid;
+      const manualStatus = (invoice as any).payment_status;
+      return manualStatus === "paid" ? invoiceStatusConfig.offline_paid : invoiceStatusConfig.offline_unpaid;
     }
     
     // COD orders
@@ -664,7 +685,7 @@ export default function Invoices() {
             setDialogOpen(open);
             if (!open) {
               setEditingInvoiceId(null);
-              setFormData({ client_name: "", client_email: "", client_address: "", notes: "", buyer_state: "Maharashtra", buyer_gstin: "", category_code: "" });
+              setFormData(emptyFormData);
               setItems([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
             }
           }}
@@ -900,6 +921,81 @@ export default function Invoices() {
                   placeholder="Additional notes for this invoice"
                 />
               </div>
+
+              {/* Payment Status (Admin only - manual invoices) */}
+              <Card className="border-dashed">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Banknote className="w-4 h-4" />
+                    Payment Status (Admin)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>Status</Label>
+                    <Select
+                      value={formData.payment_status}
+                      onValueChange={(value) => setFormData({ ...formData, payment_status: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="unpaid">Unpaid</SelectItem>
+                        <SelectItem value="paid">Paid</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {formData.payment_status === "paid" && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>Payment Method *</Label>
+                        <Select
+                          value={formData.payment_method}
+                          onValueChange={(value) => setFormData({ ...formData, payment_method: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select method" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="cash">Cash</SelectItem>
+                            <SelectItem value="upi">UPI</SelectItem>
+                            <SelectItem value="bank_transfer">Bank Transfer / NEFT / RTGS</SelectItem>
+                            <SelectItem value="cheque">Cheque</SelectItem>
+                            <SelectItem value="card">Card</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Payment Date</Label>
+                        <Input
+                          type="date"
+                          value={formData.payment_date}
+                          onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })}
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label>Reference / Transaction ID</Label>
+                        <Input
+                          value={formData.payment_reference}
+                          onChange={(e) => setFormData({ ...formData, payment_reference: e.target.value })}
+                          placeholder="e.g. UTR, UPI ref, Cheque No."
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label>Payment Notes</Label>
+                        <Textarea
+                          value={formData.payment_notes}
+                          onChange={(e) => setFormData({ ...formData, payment_notes: e.target.value })}
+                          placeholder="Bank name, branch, remarks..."
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
               <Button type="submit" className="w-full">{editingInvoiceId ? "Update Invoice" : "Create Invoice"}</Button>
             </form>
