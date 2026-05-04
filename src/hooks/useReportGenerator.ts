@@ -39,7 +39,7 @@ const COMPANY = {
 };
 
 const formatCurrency = (amount: number): string => {
-  return `₹${Number(amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `Rs. ${Number(amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
 // Use the same /invoice-logo.png that the unified invoice template uses
@@ -79,117 +79,121 @@ export function useReportGenerator() {
   ): Promise<number> => {
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 14;
-    const CW = pageWidth - 2 * margin;
+    const contentWidth = pageWidth - (margin * 2);
     let y = margin;
 
-    // ---------- LOGO (left, prominent — same image used in invoice template) ----------
+    // Logo & Header text Grid Alignment
     const logoBase64 = await fetchLogoAsBase64();
+    const logoWidth = 60;
+    const spacing = 6;
+    const textX = logoBase64 ? margin + logoWidth + spacing : margin;
+
     if (logoBase64) {
       try {
-        // Auto-height (height=0) preserves aspect-ratio at 60mm wide
-        doc.addImage(logoBase64, "PNG", margin, y, 60, 0);
+        doc.addImage(logoBase64, "PNG", margin, y, logoWidth, 0);
       } catch (e) {
         console.error("Failed to add logo:", e);
       }
-    } else {
-      // Fallback: text-only brand block
-      doc.setFontSize(20);
-      doc.setTextColor(...colors.primary);
-      doc.setFont("helvetica", "bold");
-      doc.text(COMPANY.name, margin, y + 8);
-      doc.setFontSize(8);
-      doc.setTextColor(...colors.orange);
-      doc.setFont("helvetica", "italic");
-      doc.text(COMPANY.tagline, margin, y + 13);
     }
 
-    // ---------- REPORT BADGE (top right) ----------
-    const headerRight = pageWidth - margin;
-    const badgeColor = config.badgeColor || colors.accent;
-    doc.setFillColor(...badgeColor);
-    const badgeWidth = 64;
-    const badgeX = headerRight - badgeWidth;
-    doc.roundedRect(badgeX, y, badgeWidth, 18, 2, 2, "F");
-
-    doc.setFontSize(8.5);
+    // Company Name & Tagline aligned strictly after logo
+    doc.setFontSize(16);
     doc.setTextColor(...colors.primary);
     doc.setFont("helvetica", "bold");
-    doc.text(config.badgeText, badgeX + badgeWidth / 2, y + 7, { align: "center" });
+    doc.text(COMPANY.name, textX, y + 6);
 
-    doc.setFontSize(7);
-    doc.setFont("helvetica", "normal");
-    doc.text(config.dateRange, badgeX + badgeWidth / 2, y + 13, { align: "center" });
-
-    // Reserve consistent header height regardless of logo render
-    y += 22;
+    doc.setFontSize(8);
+    doc.setTextColor(...colors.orange);
+    doc.setFont("helvetica", "italic");
+    doc.text(COMPANY.tagline, textX, y + 10);
 
     // Company details line
     doc.setFontSize(6.5);
     doc.setTextColor(...colors.secondary);
     doc.setFont("helvetica", "normal");
-    doc.text(`${COMPANY.address}, ${COMPANY.city}, ${COMPANY.state} - ${COMPANY.pincode}`, margin, y);
-    y += 3.5;
-    doc.text(`Phone: ${COMPANY.phone}  |  Email: ${COMPANY.email}  |  GSTIN: ${COMPANY.gstin}  |  PAN: ${COMPANY.pan}`, margin, y);
-    y += 5;
+    doc.text(`${COMPANY.address}, ${COMPANY.city}, ${COMPANY.state} - ${COMPANY.pincode}`, textX, y + 15);
+    doc.text(`Phone: ${COMPANY.phone}  |  Email: ${COMPANY.email}  |  GSTIN: ${COMPANY.gstin}  |  PAN: ${COMPANY.pan}`, textX, y + 19);
+
+    // Right Badge aligned exactly to the right margin
+    const badgeWidth = 64;
+    const badgeX = pageWidth - margin - badgeWidth;
+    const badgeColor = config.badgeColor || colors.accent;
+    doc.setFillColor(...badgeColor);
+    doc.roundedRect(badgeX, y, badgeWidth, 18, 2, 2, "F");
+
+    doc.setFontSize(8.5);
+    doc.setTextColor(...colors.primary);
+    doc.setFont("helvetica", "bold");
+    doc.text(config.badgeText, badgeX + (badgeWidth / 2), y + 7, { align: "center" });
+
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "normal");
+    doc.text(config.dateRange, badgeX + (badgeWidth / 2), y + 13, { align: "center" });
+
+    y += 26;
 
     // Gold divider
     doc.setFillColor(...colors.accent);
-    doc.rect(margin, y, CW, 1.5, "F");
+    doc.rect(margin, y, contentWidth, 1.5, "F");
     y += 5;
 
     // Report title section
     doc.setFontSize(14);
     doc.setTextColor(...colors.primary);
     doc.setFont("helvetica", "bold");
-    doc.text(config.title, margin, y);
-
-    y += 5;
+    doc.text(config.title, margin, y + 4);
 
     doc.setFontSize(8);
     doc.setTextColor(...colors.muted);
     doc.setFont("helvetica", "normal");
-    doc.text(config.subtitle, margin, y);
+    doc.text(config.subtitle, margin, y + 9);
 
-    y += 8;
-
-    return y;
+    return y + 14;
   };
 
-  // Add standard footer — matches invoice template
   const addReportFooter = (doc: jsPDF, pageNum: number, totalPages?: number) => {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 14;
-    const fy = pageHeight - 10;
+    const fy = pageHeight - 12; // Base Y for footer
 
     doc.setDrawColor(...colors.border);
     doc.setLineWidth(0.4);
-    doc.line(margin, fy - 5, pageWidth - margin, fy - 5);
+    doc.line(margin, fy - 3, pageWidth - margin, fy - 3);
 
     doc.setFontSize(6);
     doc.setTextColor(...colors.muted);
     doc.setFont("helvetica", "normal");
-    doc.text("This is a computer-generated document and does not require a signature.", margin, fy - 1);
+    
+    // Grid aligned Footer parts
+    doc.text("This is a system-generated report and does not require a signature.", margin, fy + 1);
+    doc.text(`Generated: ${format(new Date(), "dd MMM yyyy, hh:mm a")} | ${COMPANY.website}`, pageWidth / 2, fy + 1, { align: "center" });
 
     const pageText = totalPages ? `Page ${pageNum} of ${totalPages}` : `Page ${pageNum}`;
-    doc.text(pageText, pageWidth - margin, fy - 1, { align: "right" });
-
-    doc.text(`Generated: ${new Date().toLocaleString("en-IN")} | ${COMPANY.website}`, pageWidth / 2, fy + 3, { align: "center" });
+    doc.text(pageText, pageWidth - margin, fy + 1, { align: "right" });
   };
 
-  // Create summary stat cards with gold accents
   const createStatCards = (
     doc: jsPDF,
     stats: { label: string; value: string; color?: [number, number, number] }[],
-    y: number
+    startY: number
   ): number => {
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 14;
-    const cardWidth = (pageWidth - 2 * margin - (stats.length - 1) * 5) / stats.length;
+    const contentWidth = pageWidth - (margin * 2);
+    const columns = 4;
+    const gap = 5;
+    const cardWidth = (contentWidth - (gap * (columns - 1))) / columns;
     const cardHeight = 24;
 
+    let currentY = startY;
+
     stats.forEach((stat, index) => {
-      const x = margin + index * (cardWidth + 5);
+      const colIndex = index % columns;
+      const rowIndex = Math.floor(index / columns);
+
+      const x = margin + (colIndex * (cardWidth + gap));
+      const y = currentY + (rowIndex * (cardHeight + gap));
       
       doc.setFillColor(...colors.light);
       doc.setDrawColor(...colors.border);
@@ -206,18 +210,18 @@ export function useReportGenerator() {
       doc.setFontSize(7);
       doc.setTextColor(...colors.muted);
       doc.setFont("helvetica", "normal");
-      doc.text(stat.label.toUpperCase(), x + cardWidth / 2, y + 11, { align: "center" });
+      doc.text(stat.label.toUpperCase(), x + (cardWidth / 2), y + 10, { align: "center" });
 
       doc.setFontSize(12);
       doc.setTextColor(...(stat.color || colors.primary));
       doc.setFont("helvetica", "bold");
-      doc.text(stat.value, x + cardWidth / 2, y + 20, { align: "center" });
+      doc.text(stat.value, x + (cardWidth / 2), y + 18, { align: "center" });
     });
 
-    return y + cardHeight + 8;
+    const totalRows = Math.ceil(stats.length / columns);
+    return currentY + (totalRows * (cardHeight + gap)) + 3;
   };
 
-  // Create data table — matches invoice template table style
   const createDataTable = (
     doc: jsPDF,
     headers: string[],
@@ -228,68 +232,54 @@ export function useReportGenerator() {
       valueColumnIndices?: number[];
       statusColumnIndex?: number;
     }
-  ): number => {
+  ): { nextY: number; normalizedColWidths: number[] } => {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 14;
-    const tableWidth = pageWidth - 2 * margin;
+    const contentWidth = pageWidth - (margin * 2);
     const hdrH = 8;
     const rowH = 7;
+    const paddingX = 3;
 
-    // Table header — charcoal background (matches invoice)
-    doc.setFillColor(...colors.tableHeader);
-    doc.rect(margin, y, tableWidth, hdrH, "F");
+    // Normalize column widths to ensure exact match with contentWidth
+    const totalWidth = colWidths.reduce((a, b) => a + b, 0);
+    const normalizedColWidths = colWidths.map((w) => (w / totalWidth) * contentWidth);
 
-    doc.setFontSize(6);
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold");
+    const drawHeader = (startY: number) => {
+      doc.setFillColor(...colors.tableHeader);
+      doc.rect(margin, startY, contentWidth, hdrH, "F");
+      doc.setFontSize(6);
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
 
-    let x = margin + 3;
-    headers.forEach((h, i) => {
-      const align = options?.valueColumnIndices?.includes(i) ? "right" : "left";
-      if (align === "right") {
-        doc.text(h, x + colWidths[i] - 2, y + 5.5, { align: "right" });
-      } else {
-        doc.text(h, x, y + 5.5);
-      }
-      x += colWidths[i];
-    });
+      let x = margin;
+      headers.forEach((h, i) => {
+        const align = options?.valueColumnIndices?.includes(i) ? "right" : "left";
+        const colW = normalizedColWidths[i];
+        if (align === "right") {
+          doc.text(h, x + colW - paddingX, startY + 5.5, { align: "right" });
+        } else {
+          doc.text(h, x + paddingX, startY + 5.5);
+        }
+        x += colW;
+      });
+    };
 
+    drawHeader(y);
     y += hdrH;
 
-    // Table rows
     rows.forEach((row, rowIndex) => {
-      // Check for page break
       if (y > pageHeight - 30) {
         addReportFooter(doc, doc.getNumberOfPages());
         doc.addPage();
-        y = 20;
-        
-        // Re-add header on new page
-        doc.setFillColor(...colors.tableHeader);
-        doc.rect(margin, y, tableWidth, hdrH, "F");
-        doc.setFontSize(6);
-        doc.setTextColor(255, 255, 255);
-        doc.setFont("helvetica", "bold");
-        
-        x = margin + 3;
-        headers.forEach((h, i) => {
-          const align = options?.valueColumnIndices?.includes(i) ? "right" : "left";
-          if (align === "right") {
-            doc.text(h, x + colWidths[i] - 2, y + 5.5, { align: "right" });
-          } else {
-            doc.text(h, x, y + 5.5);
-          }
-          x += colWidths[i];
-        });
+        y = margin;
+        drawHeader(y);
         y += hdrH;
       }
 
-      // Alternate row background (matches invoice)
       doc.setFillColor(...(rowIndex % 2 === 0 ? colors.white : colors.tableAlt));
-      doc.rect(margin, y, tableWidth, rowH, "F");
+      doc.rect(margin, y, contentWidth, rowH, "F");
 
-      // Row border
       doc.setDrawColor(...colors.border);
       doc.setLineWidth(0.08);
       doc.line(margin, y + rowH, pageWidth - margin, y + rowH);
@@ -297,9 +287,8 @@ export function useReportGenerator() {
       doc.setFontSize(6.5);
       doc.setFont("helvetica", "normal");
 
-      x = margin + 3;
+      let x = margin;
       row.forEach((cell, cellIndex) => {
-        // Handle status column coloring
         if (cellIndex === options?.statusColumnIndex) {
           const status = cell.toLowerCase();
           if (status.includes("paid") || status.includes("delivered") || status.includes("in stock") || status.includes("active")) {
@@ -318,23 +307,23 @@ export function useReportGenerator() {
         }
 
         const align = options?.valueColumnIndices?.includes(cellIndex) ? "right" : "left";
+        const colW = normalizedColWidths[cellIndex];
         if (align === "right") {
-          doc.text(cell, x + colWidths[cellIndex] - 2, y + 5, { align: "right" });
+          doc.text(cell, x + colW - paddingX, y + 5, { align: "right" });
         } else {
-          doc.text(cell.substring(0, 38), x, y + 5);
+          doc.text(cell.substring(0, 38), x + paddingX, y + 5);
         }
-        x += colWidths[cellIndex];
+        x += colW;
       });
 
       y += rowH;
     });
 
-    // Table bottom line (matches invoice)
     doc.setDrawColor(...colors.primary);
     doc.setLineWidth(0.5);
     doc.line(margin, y, pageWidth - margin, y);
 
-    return y + 5;
+    return { nextY: y + 5, normalizedColWidths };
   };
 
   // Generate Today's Orders Report
@@ -398,10 +387,11 @@ export function useReportGenerator() {
           ];
         });
 
-        y = createDataTable(doc, headers, rows, y, colWidths, {
+        const tableResult = createDataTable(doc, headers, rows, y, colWidths, {
           valueColumnIndices: [3],
           statusColumnIndex: 5,
         });
+        y = tableResult.nextY;
       } else {
         doc.setFontSize(10);
         doc.setTextColor(...colors.muted);
@@ -515,10 +505,11 @@ export function useReportGenerator() {
         `${((count / totalOrderCount) * 100).toFixed(1)}%`,
       ]);
 
-      y = createDataTable(doc, statusHeaders, statusRows, y, statusColWidths, {
+      const tableResult = createDataTable(doc, statusHeaders, statusRows, y, statusColWidths, {
         valueColumnIndices: [1, 2],
         statusColumnIndex: 0,
       });
+      y = tableResult.nextY;
 
       const totalPages = doc.getNumberOfPages();
       for (let i = 1; i <= totalPages; i++) {
@@ -604,9 +595,10 @@ export function useReportGenerator() {
           formatCurrency(inv.total_amount || 0),
         ]);
 
-        y = createDataTable(doc, headers, rows, y, colWidths, {
+        const tableResult = createDataTable(doc, headers, rows, y, colWidths, {
           valueColumnIndices: [2, 3, 4, 5, 6],
         });
+        y = tableResult.nextY;
       } else {
         doc.setFontSize(10);
         doc.setTextColor(...colors.muted);
@@ -685,10 +677,11 @@ export function useReportGenerator() {
           (p.availability_status || "unknown").replace(/_/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase()),
         ]);
 
-        y = createDataTable(doc, headers, rows, y, colWidths, {
+        const tableResult = createDataTable(doc, headers, rows, y, colWidths, {
           valueColumnIndices: [1, 2, 3],
           statusColumnIndex: 4,
         });
+        y = tableResult.nextY;
       }
 
       const totalPages = doc.getNumberOfPages();
@@ -761,9 +754,10 @@ export function useReportGenerator() {
           formatCurrency((m.quantity || 0) * (m.cost_per_unit || 0)),
         ]);
 
-        y = createDataTable(doc, headers, rows, y, colWidths, {
+        const tableResult = createDataTable(doc, headers, rows, y, colWidths, {
           valueColumnIndices: [1, 3, 4],
         });
+        y = tableResult.nextY;
       }
 
       const totalPages = doc.getNumberOfPages();
@@ -839,9 +833,10 @@ export function useReportGenerator() {
           p.is_blocked ? "Blocked" : "Active",
         ]);
 
-        y = createDataTable(doc, headers, rows, y, colWidths, {
+        const tableResult = createDataTable(doc, headers, rows, y, colWidths, {
           statusColumnIndex: 4,
         });
+        y = tableResult.nextY;
       }
 
       const totalPages = doc.getNumberOfPages();
@@ -911,8 +906,16 @@ export function useReportGenerator() {
           }
         });
       }
-      const getStatus = (inv: any) =>
-        inv.order_id ? (orderPaymentMap[inv.order_id] || "Pending") : "Manual";
+      
+      const getStatus = (inv: any) => {
+        if (inv.order_id) {
+          return orderPaymentMap[inv.order_id] || "Pending";
+        }
+        if (!inv.is_final) {
+          return "Pending";
+        }
+        return "Paid";
+      };
 
       const dateRangeStr =
         opts.dateFrom && opts.dateTo
@@ -934,46 +937,54 @@ export function useReportGenerator() {
       });
 
       // Aggregations
-      const total    = invoices.reduce((s, i: any) => s + Number(i.total_amount || 0), 0);
-      const subtotal = invoices.reduce((s, i: any) => s + Number(i.subtotal     || 0), 0);
-      const cgst     = invoices.reduce((s, i: any) => s + Number(i.cgst_amount  || 0), 0);
-      const sgst     = invoices.reduce((s, i: any) => s + Number(i.sgst_amount  || 0), 0);
-      const igst     = invoices.reduce((s, i: any) => s + Number(i.igst_amount  || 0), 0);
-      const tax      = cgst + sgst + igst;
+      let subtotal = 0;
+      let cgst = 0;
+      let sgst = 0;
+      let igst = 0;
+      let paidAmount = 0;
+
+      invoices.forEach((inv: any) => {
+        subtotal += Number(inv.subtotal || 0);
+        cgst += Number(inv.cgst_amount || 0);
+        sgst += Number(inv.sgst_amount || 0);
+        igst += Number(inv.igst_amount || 0);
+        if (getStatus(inv) === "Paid") {
+          paidAmount += Number(inv.total_amount || 0);
+        }
+      });
+
+      const tax = cgst + sgst + igst;
+      const grandTotal = subtotal + tax;
+      const pendingAmount = grandTotal - paidAmount;
+
       const manualCount = invoices.filter((i: any) => !i.order_id).length;
       const autoCount   = invoices.length - manualCount;
-      const paidAmount    = invoices
-        .filter((i: any) => getStatus(i) === "Paid")
-        .reduce((s, i: any) => s + Number(i.total_amount || 0), 0);
-      const pendingAmount = invoices
-        .filter((i: any) => getStatus(i) === "Pending")
-        .reduce((s, i: any) => s + Number(i.total_amount || 0), 0);
 
       // First row of cards: counts + subtotal + tax breakup
       y = createStatCards(doc, [
         { label: "Total Invoices",  value: String(invoices.length), color: colors.primary },
         { label: "Manual / Auto",   value: `${manualCount} / ${autoCount}`, color: colors.warning },
         { label: "Subtotal",        value: formatCurrency(subtotal), color: colors.primary },
-        { label: "CGST",            value: formatCurrency(cgst),     color: colors.warning },
-        { label: "SGST",            value: formatCurrency(sgst),     color: colors.warning },
-        { label: "IGST",            value: formatCurrency(igst),     color: colors.warning },
+        { label: "Total GST",       value: formatCurrency(tax),      color: colors.warning },
+        { label: "Grand Total",     value: formatCurrency(grandTotal), color: colors.accent  },
       ], y);
 
       // Second row of cards: totals + payment split
       y = createStatCards(doc, [
-        { label: "Total GST",     value: formatCurrency(tax),           color: colors.warning },
-        { label: "Grand Total",   value: formatCurrency(total),         color: colors.accent  },
+        { label: "CGST",          value: formatCurrency(cgst),          color: colors.muted },
+        { label: "SGST",          value: formatCurrency(sgst),          color: colors.muted },
+        { label: "IGST",          value: formatCurrency(igst),          color: colors.muted },
         { label: "Paid Amount",   value: formatCurrency(paidAmount),    color: colors.success },
         { label: "Pending Amount",value: formatCurrency(pendingAmount), color: colors.error   },
       ], y);
 
       if (invoices.length > 0) {
         const headers = ["Invoice #", "Date", "Client", "Category", "Source", "Subtotal", "CGST", "SGST", "IGST", "Total", "Status"];
-        const colWidths = [38, 18, 44, 22, 18, 25, 22, 22, 22, 28, 18];
+        const colWidths = [35, 24, 40, 20, 16, 24, 22, 22, 22, 26, 18];
         const rows = invoices.map((inv: any) => [
           inv.invoice_number,
-          format(new Date(inv.created_at), "dd/MM/yy"),
-          (inv.client_name || "Customer").substring(0, 26),
+          format(new Date(inv.created_at), "dd MMM yyyy"),
+          (inv.client_name || "Customer").substring(0, 24),
           inv.category_code || "-",
           inv.order_id ? "Auto" : "Manual",
           formatCurrency(inv.subtotal || 0),
@@ -983,39 +994,41 @@ export function useReportGenerator() {
           formatCurrency(inv.total_amount || 0),
           getStatus(inv),
         ]);
-        // Highlight high-value (> ₹50,000) by tagging client name with marker
+        // Highlight high-value (> Rs. 50,000) by tagging client name with marker
         rows.forEach((r, idx) => {
           const inv = invoices[idx];
           if (Number(inv.total_amount || 0) > 50000) {
-            r[2] = "★ " + r[2];
+            r[2] = "* " + r[2];
           }
         });
 
-        y = createDataTable(doc, headers, rows, y, colWidths, {
+        const tableResult = createDataTable(doc, headers, rows, y, colWidths, {
           valueColumnIndices: [5, 6, 7, 8, 9],
           statusColumnIndex: 10,
         });
+        y = tableResult.nextY;
+        const normalizedColWidths = tableResult.normalizedColWidths;
 
-        // Summary row at bottom of table
+        // Grid-Aligned Grand Total Row
         const pageWidth = doc.internal.pageSize.getWidth();
         const margin = 14;
-        const tableWidth = pageWidth - 2 * margin;
+        const contentWidth = pageWidth - (margin * 2);
         doc.setFillColor(...colors.darkBox);
-        doc.rect(margin, y, tableWidth, 9, "F");
-        doc.setFontSize(7);
+        doc.rect(margin, y, contentWidth, 9, "F");
+        doc.setFontSize(7.5);
         doc.setTextColor(255, 255, 255);
         doc.setFont("helvetica", "bold");
-        doc.text("TOTALS", margin + 3, y + 6);
+        const paddingX = 3;
+        doc.text("GRAND TOTAL", margin + paddingX, y + 6);
 
-        // Right-aligned totals matching value columns
-        let xCursor = margin + 3;
-        const offsets = [colWidths[0], colWidths[1], colWidths[2], colWidths[3], colWidths[4]];
-        offsets.forEach((w) => (xCursor += w));
-        const valueWidths = [colWidths[5], colWidths[6], colWidths[7], colWidths[8], colWidths[9]];
-        const values = [subtotal, cgst, sgst, igst, total];
-        values.forEach((v, i) => {
-          doc.text(formatCurrency(v), xCursor + valueWidths[i] - 2, y + 6, { align: "right" });
-          xCursor += valueWidths[i];
+        // Right-aligned totals using normalized column widths matching the table EXACTLY
+        const valueIndices = [5, 6, 7, 8, 9];
+        const values = [subtotal, cgst, sgst, igst, grandTotal];
+        valueIndices.forEach((colIndex, i) => {
+          let colX = margin;
+          for (let k = 0; k < colIndex; k++) colX += normalizedColWidths[k];
+          const colW = normalizedColWidths[colIndex];
+          doc.text(formatCurrency(values[i]), colX + colW - paddingX, y + 6, { align: "right" });
         });
         y += 13;
 
@@ -1025,21 +1038,24 @@ export function useReportGenerator() {
         doc.setFont("helvetica", "italic");
         const intra = formatCurrency(cgst + sgst);
         doc.text(
-          `Intra-state GST (CGST + SGST): ${intra}   |   Inter-state GST (IGST): ${formatCurrency(igst)}   |   ★ marks high-value invoices (> ${formatCurrency(50000)})`,
+          `Intra-state GST (CGST + SGST): ${intra}   |   Inter-state GST (IGST): ${formatCurrency(igst)}   |   * marks high-value invoices (> ${formatCurrency(50000)})`,
           margin, y
         );
         y += 6;
 
-        // Authorized signature placeholder
+        // Authorized signature grid alignment
+        const sigWidth = 40;
+        const sigX = pageWidth - margin - sigWidth;
         doc.setFont("helvetica", "normal");
         doc.setTextColor(...colors.secondary);
         doc.setFontSize(8);
-        doc.text("Authorized Signatory", pageWidth - margin - 50, y + 18);
+        doc.text("Authorized Signatory", sigX + (sigWidth / 2), y + 12, { align: "center" });
         doc.setDrawColor(...colors.border);
-        doc.line(pageWidth - margin - 60, y + 16, pageWidth - margin - 5, y + 16);
+        doc.line(sigX, y + 8, pageWidth - margin, y + 8);
+        
         doc.setFontSize(7);
         doc.setTextColor(...colors.muted);
-        doc.text("This is a system-generated report.", margin, y + 18);
+        doc.text("This is a system-generated report.", margin, y + 12);
       } else {
         doc.setFontSize(10);
         doc.setTextColor(...colors.muted);
