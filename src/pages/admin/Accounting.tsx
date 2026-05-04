@@ -426,6 +426,8 @@ export default function Accounting() {
         cancelledAmount: cancelledOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0),
         totalProductsSold,
         platformFeeCollected,
+        manualRevenue,
+        manualCount,
       });
 
       // Sales data for chart
