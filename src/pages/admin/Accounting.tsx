@@ -131,6 +131,8 @@ export default function Accounting() {
     cancelledAmount: 0,
     totalProductsSold: 0,
     platformFeeCollected: 0,
+    manualRevenue: 0,
+    manualCount: 0,
   });
   const [invoiceSummary, setInvoiceSummary] = useState<InvoiceSummary>({
     proformaCount: 0,
