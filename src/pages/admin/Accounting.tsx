@@ -66,6 +66,8 @@ interface AccountingStats {
   cancelledAmount: number;
   totalProductsSold: number;
   platformFeeCollected: number;
+  manualRevenue: number;
+  manualCount: number;
 }
 
 interface InvoiceSummary {
