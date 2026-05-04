@@ -1208,6 +1208,11 @@ export type Database = {
           items: Json
           notes: string | null
           order_id: string | null
+          payment_date: string | null
+          payment_method: string | null
+          payment_notes: string | null
+          payment_reference: string | null
+          payment_status: string
           pdf_url: string | null
           platform_fee: number | null
           platform_fee_tax: number | null
@@ -1241,6 +1246,11 @@ export type Database = {
           items?: Json
           notes?: string | null
           order_id?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_notes?: string | null
+          payment_reference?: string | null
+          payment_status?: string
           pdf_url?: string | null
           platform_fee?: number | null
           platform_fee_tax?: number | null
@@ -1274,6 +1284,11 @@ export type Database = {
           items?: Json
           notes?: string | null
           order_id?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_notes?: string | null
+          payment_reference?: string | null
+          payment_status?: string
           pdf_url?: string | null
           platform_fee?: number | null
           platform_fee_tax?: number | null
