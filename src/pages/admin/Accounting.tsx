@@ -670,6 +670,16 @@ export default function Accounting() {
             <p className="text-xs text-muted-foreground">{formatCurrency(stats.cancelledAmount)} lost</p>
           </CardContent>
         </Card>
+        <Card className="bg-gradient-to-br from-emerald-500/5 to-emerald-500/10 border-emerald-500/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">Manual Invoices</CardTitle>
+            <FileText className="h-4 w-4 text-emerald-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold text-emerald-600">{formatCurrency(stats.manualRevenue)}</div>
+            <p className="text-xs text-muted-foreground">{stats.manualCount} offline invoice{stats.manualCount === 1 ? "" : "s"}</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* COD Payment Tracking */}
