@@ -66,6 +66,8 @@ interface AccountingStats {
   cancelledAmount: number;
   totalProductsSold: number;
   platformFeeCollected: number;
+  manualRevenue: number;
+  manualCount: number;
 }
 
 interface InvoiceSummary {
@@ -129,6 +131,8 @@ export default function Accounting() {
     cancelledAmount: 0,
     totalProductsSold: 0,
     platformFeeCollected: 0,
+    manualRevenue: 0,
+    manualCount: 0,
   });
   const [invoiceSummary, setInvoiceSummary] = useState<InvoiceSummary>({
     proformaCount: 0,
@@ -239,7 +243,7 @@ export default function Accounting() {
 
       const onlinePaidOrders = paidOrders.filter((o) => !isCodOrder(o));
       const onlineRevenue = onlinePaidOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
-      const totalRevenue = onlineRevenue + codSettled;
+      let totalRevenue = onlineRevenue + codSettled;
       
       const pendingAmount = pendingOrders
         .filter((o) => !isCodOrder(o))
@@ -261,6 +265,12 @@ export default function Accounting() {
 
       // Platform fee collected
       const platformFeeCollected = finalInvoices?.reduce((sum, inv) => sum + (inv.platform_fee || 0), 0) || 0;
+
+      // Manual final invoices (no linked order) — count as offline/manual revenue
+      const manualFinalInvoices = (finalInvoices || []).filter((inv) => !inv.order_id);
+      const manualRevenue = manualFinalInvoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
+      const manualCount = manualFinalInvoices.length;
+      totalRevenue += manualRevenue;
 
       // All invoices for summary
       const { data: allInvoices } = await supabase
@@ -417,6 +427,8 @@ export default function Accounting() {
         cancelledAmount: cancelledOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0),
         totalProductsSold,
         platformFeeCollected,
+        manualRevenue,
+        manualCount,
       });
 
       // Sales data for chart
@@ -656,6 +668,16 @@ export default function Accounting() {
           <CardContent>
             <div className="text-xl font-bold">{stats.cancelledOrders}</div>
             <p className="text-xs text-muted-foreground">{formatCurrency(stats.cancelledAmount)} lost</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-gradient-to-br from-emerald-500/5 to-emerald-500/10 border-emerald-500/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">Manual Invoices</CardTitle>
+            <FileText className="h-4 w-4 text-emerald-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold text-emerald-600">{formatCurrency(stats.manualRevenue)}</div>
+            <p className="text-xs text-muted-foreground">{stats.manualCount} offline invoice{stats.manualCount === 1 ? "" : "s"}</p>
           </CardContent>
         </Card>
       </div>
