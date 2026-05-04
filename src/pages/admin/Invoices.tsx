@@ -584,9 +584,10 @@ export default function Invoices() {
     const isOffline = !invoice.order_id;
     const isCOD = !isOffline && (!invoice.order?.payment_id || invoice.order.payment_id?.startsWith("COD"));
     
-    // Offline/Manual invoices - always show as paid
+    // Offline/Manual invoices - based on admin-recorded payment status
     if (isOffline) {
-      return invoiceStatusConfig.offline_paid;
+      const manualStatus = (invoice as any).payment_status;
+      return manualStatus === "paid" ? invoiceStatusConfig.offline_paid : invoiceStatusConfig.offline_unpaid;
     }
     
     // COD orders
