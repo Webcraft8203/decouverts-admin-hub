@@ -274,11 +274,16 @@ export default function Accounting() {
       // Platform fee collected
       const platformFeeCollected = finalInvoices?.reduce((sum, inv) => sum + (inv.platform_fee || 0), 0) || 0;
 
-      // Manual final invoices (no linked order) — count as offline/manual revenue
+      // Manual final invoices (no linked order). Only PAID manual invoices count as revenue.
+      // Unpaid manual invoices count as pending receivables.
       const manualFinalInvoices = (finalInvoices || []).filter((inv) => !inv.order_id);
-      const manualRevenue = manualFinalInvoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
+      const manualPaidInvoices = manualFinalInvoices.filter((inv: any) => inv.payment_status === "paid");
+      const manualUnpaidInvoices = manualFinalInvoices.filter((inv: any) => inv.payment_status !== "paid");
+      const manualPaidRevenue = manualPaidInvoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
+      const manualUnpaidAmount = manualUnpaidInvoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
+      const manualRevenue = manualPaidRevenue; // backwards compat
       const manualCount = manualFinalInvoices.length;
-      totalRevenue += manualRevenue;
+      totalRevenue += manualPaidRevenue;
 
       // All invoices for summary
       const { data: allInvoices } = await supabase
