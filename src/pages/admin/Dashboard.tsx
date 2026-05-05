@@ -46,16 +46,29 @@ export default function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invoices")
-        .select("total_amount, created_at")
+        .select("total_amount, created_at, payment_status")
         .is("order_id", null);
       if (error) throw error;
       const list = data || [];
       const now = new Date();
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
       const totalValue = list.reduce((s: number, i: any) => s + Number(i.total_amount || 0), 0);
+      const paid = list.filter((i: any) => i.payment_status === "paid");
+      const unpaid = list.filter((i: any) => i.payment_status !== "paid");
+      const paidValue = paid.reduce((s: number, i: any) => s + Number(i.total_amount || 0), 0);
+      const unpaidValue = unpaid.reduce((s: number, i: any) => s + Number(i.total_amount || 0), 0);
       const thisMonth = list.filter((i: any) => new Date(i.created_at) >= monthStart);
       const thisMonthValue = thisMonth.reduce((s: number, i: any) => s + Number(i.total_amount || 0), 0);
-      return { count: list.length, totalValue, monthCount: thisMonth.length, monthValue: thisMonthValue };
+      return {
+        count: list.length,
+        totalValue,
+        monthCount: thisMonth.length,
+        monthValue: thisMonthValue,
+        paidCount: paid.length,
+        paidValue,
+        unpaidCount: unpaid.length,
+        unpaidValue,
+      };
     },
   });
 
