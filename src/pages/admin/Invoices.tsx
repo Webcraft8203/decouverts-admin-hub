@@ -1373,7 +1373,7 @@ export default function Invoices() {
                               }
                             </TableCell>
                             <TableCell>
-                              {invoice.order && getPaymentTypeBadge(invoice)}
+                              {getPaymentTypeBadge(invoice)}
                             </TableCell>
                             <TableCell>
                               <Badge variant="outline" className={paymentStatus.color}>
