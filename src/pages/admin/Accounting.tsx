@@ -442,6 +442,10 @@ export default function Accounting() {
         platformFeeCollected,
         manualRevenue,
         manualCount,
+        manualPaidRevenue,
+        manualPaidCount: manualPaidInvoices.length,
+        manualUnpaidAmount,
+        manualUnpaidCount: manualUnpaidInvoices.length,
       });
 
       // Sales data for chart
