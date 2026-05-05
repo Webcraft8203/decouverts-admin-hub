@@ -68,6 +68,10 @@ interface AccountingStats {
   platformFeeCollected: number;
   manualRevenue: number;
   manualCount: number;
+  manualPaidRevenue: number;
+  manualPaidCount: number;
+  manualUnpaidAmount: number;
+  manualUnpaidCount: number;
 }
 
 interface InvoiceSummary {
