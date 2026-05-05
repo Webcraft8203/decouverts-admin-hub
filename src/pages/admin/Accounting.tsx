@@ -693,8 +693,13 @@ export default function Accounting() {
             <FileText className="h-4 w-4 text-emerald-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold text-emerald-600">{formatCurrency(stats.manualRevenue)}</div>
-            <p className="text-xs text-muted-foreground">{stats.manualCount} offline invoice{stats.manualCount === 1 ? "" : "s"}</p>
+            <div className="text-xl font-bold text-emerald-600">{formatCurrency(stats.manualPaidRevenue)}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.manualPaidCount} paid
+              {stats.manualUnpaidCount > 0 && (
+                <span className="text-orange-600"> • {stats.manualUnpaidCount} unpaid ({formatCurrency(stats.manualUnpaidAmount)})</span>
+              )}
+            </p>
           </CardContent>
         </Card>
       </div>
