@@ -68,6 +68,10 @@ interface AccountingStats {
   platformFeeCollected: number;
   manualRevenue: number;
   manualCount: number;
+  manualPaidRevenue: number;
+  manualPaidCount: number;
+  manualUnpaidAmount: number;
+  manualUnpaidCount: number;
 }
 
 interface InvoiceSummary {
@@ -133,6 +137,10 @@ export default function Accounting() {
     platformFeeCollected: 0,
     manualRevenue: 0,
     manualCount: 0,
+    manualPaidRevenue: 0,
+    manualPaidCount: 0,
+    manualUnpaidAmount: 0,
+    manualUnpaidCount: 0,
   });
   const [invoiceSummary, setInvoiceSummary] = useState<InvoiceSummary>({
     proformaCount: 0,
@@ -266,11 +274,16 @@ export default function Accounting() {
       // Platform fee collected
       const platformFeeCollected = finalInvoices?.reduce((sum, inv) => sum + (inv.platform_fee || 0), 0) || 0;
 
-      // Manual final invoices (no linked order) — count as offline/manual revenue
+      // Manual final invoices (no linked order). Only PAID manual invoices count as revenue.
+      // Unpaid manual invoices count as pending receivables.
       const manualFinalInvoices = (finalInvoices || []).filter((inv) => !inv.order_id);
-      const manualRevenue = manualFinalInvoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
+      const manualPaidInvoices = manualFinalInvoices.filter((inv: any) => inv.payment_status === "paid");
+      const manualUnpaidInvoices = manualFinalInvoices.filter((inv: any) => inv.payment_status !== "paid");
+      const manualPaidRevenue = manualPaidInvoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
+      const manualUnpaidAmount = manualUnpaidInvoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
+      const manualRevenue = manualPaidRevenue; // backwards compat
       const manualCount = manualFinalInvoices.length;
-      totalRevenue += manualRevenue;
+      totalRevenue += manualPaidRevenue;
 
       // All invoices for summary
       const { data: allInvoices } = await supabase
@@ -412,8 +425,8 @@ export default function Accounting() {
         totalIgst,
         totalTax: totalCgst + totalSgst + totalIgst,
         paidOrders: paidOrders.length,
-        pendingPayments: pendingOrders.filter((o) => !isCodOrder(o)).length,
-        pendingAmount,
+        pendingPayments: pendingOrders.filter((o) => !isCodOrder(o)).length + manualUnpaidInvoices.length,
+        pendingAmount: pendingAmount + manualUnpaidAmount,
         codSettled,
         codCollectedByCourier,
         codAwaitingSettlement,
@@ -429,6 +442,10 @@ export default function Accounting() {
         platformFeeCollected,
         manualRevenue,
         manualCount,
+        manualPaidRevenue,
+        manualPaidCount: manualPaidInvoices.length,
+        manualUnpaidAmount,
+        manualUnpaidCount: manualUnpaidInvoices.length,
       });
 
       // Sales data for chart
@@ -676,8 +693,13 @@ export default function Accounting() {
             <FileText className="h-4 w-4 text-emerald-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold text-emerald-600">{formatCurrency(stats.manualRevenue)}</div>
-            <p className="text-xs text-muted-foreground">{stats.manualCount} offline invoice{stats.manualCount === 1 ? "" : "s"}</p>
+            <div className="text-xl font-bold text-emerald-600">{formatCurrency(stats.manualPaidRevenue)}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.manualPaidCount} paid
+              {stats.manualUnpaidCount > 0 && (
+                <span className="text-orange-600"> • {stats.manualUnpaidCount} unpaid ({formatCurrency(stats.manualUnpaidAmount)})</span>
+              )}
+            </p>
           </CardContent>
         </Card>
       </div>

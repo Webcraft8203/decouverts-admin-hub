@@ -1200,7 +1200,7 @@ export default function Invoices() {
                             {format(new Date(invoice.created_at), "dd MMM yyyy")}
                           </TableCell>
                           <TableCell>
-                            {invoice.order && getPaymentTypeBadge(invoice)}
+                            {getPaymentTypeBadge(invoice)}
                           </TableCell>
                           <TableCell className="text-right font-semibold">
                             {formatCurrency(invoice.total_amount)}
@@ -1373,7 +1373,7 @@ export default function Invoices() {
                               }
                             </TableCell>
                             <TableCell>
-                              {invoice.order && getPaymentTypeBadge(invoice)}
+                              {getPaymentTypeBadge(invoice)}
                             </TableCell>
                             <TableCell>
                               <Badge variant="outline" className={paymentStatus.color}>

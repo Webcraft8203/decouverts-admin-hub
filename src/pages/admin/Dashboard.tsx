@@ -46,16 +46,29 @@ export default function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invoices")
-        .select("total_amount, created_at")
+        .select("total_amount, created_at, payment_status")
         .is("order_id", null);
       if (error) throw error;
       const list = data || [];
       const now = new Date();
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
       const totalValue = list.reduce((s: number, i: any) => s + Number(i.total_amount || 0), 0);
+      const paid = list.filter((i: any) => i.payment_status === "paid");
+      const unpaid = list.filter((i: any) => i.payment_status !== "paid");
+      const paidValue = paid.reduce((s: number, i: any) => s + Number(i.total_amount || 0), 0);
+      const unpaidValue = unpaid.reduce((s: number, i: any) => s + Number(i.total_amount || 0), 0);
       const thisMonth = list.filter((i: any) => new Date(i.created_at) >= monthStart);
       const thisMonthValue = thisMonth.reduce((s: number, i: any) => s + Number(i.total_amount || 0), 0);
-      return { count: list.length, totalValue, monthCount: thisMonth.length, monthValue: thisMonthValue };
+      return {
+        count: list.length,
+        totalValue,
+        monthCount: thisMonth.length,
+        monthValue: thisMonthValue,
+        paidCount: paid.length,
+        paidValue,
+        unpaidCount: unpaid.length,
+        unpaidValue,
+      };
     },
   });
 
@@ -279,7 +292,7 @@ export default function Dashboard() {
             <FileText className="h-5 w-5 text-primary" />
             Manual Invoices
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card className="border-border hover:shadow-md transition-shadow bg-gradient-to-br from-amber-500/10 to-amber-500/5 border-amber-500/20">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-xs font-medium text-muted-foreground">
@@ -291,22 +304,43 @@ export default function Dashboard() {
                 <div className="text-2xl font-bold text-amber-600">
                   {manualInvoiceStats?.count ?? "..."}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">All time</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {manualInvoiceStats ? formatCurrency(manualInvoiceStats.totalValue) : ""} total
+                </p>
               </CardContent>
             </Card>
 
-            <Card className="border-border hover:shadow-md transition-shadow">
+            <Card className="border-border hover:shadow-md transition-shadow bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-xs font-medium text-muted-foreground">
-                  Total Value
+                  Paid (Manual)
                 </CardTitle>
-                <IndianRupee className="h-4 w-4 text-emerald-600" />
+                <IndianRupee className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-emerald-600">
-                  {manualInvoiceStats ? formatCurrency(manualInvoiceStats.totalValue) : "..."}
+                <div className="text-2xl font-bold text-green-600">
+                  {manualInvoiceStats ? formatCurrency(manualInvoiceStats.paidValue) : "..."}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">Sum of manual invoices</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {manualInvoiceStats?.paidCount ?? 0} invoice{(manualInvoiceStats?.paidCount ?? 0) === 1 ? "" : "s"}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border hover:shadow-md transition-shadow bg-gradient-to-br from-orange-500/10 to-orange-500/5 border-orange-500/20">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  Unpaid (Manual)
+                </CardTitle>
+                <Receipt className="h-4 w-4 text-orange-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-orange-600">
+                  {manualInvoiceStats ? formatCurrency(manualInvoiceStats.unpaidValue) : "..."}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {manualInvoiceStats?.unpaidCount ?? 0} pending payment{(manualInvoiceStats?.unpaidCount ?? 0) === 1 ? "" : "s"}
+                </p>
               </CardContent>
             </Card>
 
