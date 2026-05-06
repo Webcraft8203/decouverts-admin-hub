@@ -1088,6 +1088,345 @@ export function useReportGenerator() {
     }
   }, []);
 
+  // ============ Pending Payments / Receivables Aging ============
+  const generatePendingPaymentsReport = useCallback(async () => {
+    setIsGenerating(true);
+    try {
+      const [{ data: manualUnpaid }, { data: codPending }] = await Promise.all([
+        supabase.from("invoices").select("*").is("order_id", null).eq("is_final", true).neq("payment_status", "paid").order("created_at", { ascending: true }),
+        supabase.from("orders").select("id, order_number, total_amount, created_at, shipping_address, cod_payment_status, status, order_type, payment_id, payment_status").or("order_type.eq.cod,payment_id.like.COD%").order("created_at", { ascending: true }),
+      ]);
+      const codOutstanding = (codPending || []).filter((o: any) =>
+        o.cod_payment_status !== "settled" && o.cod_payment_status !== "received" && o.payment_status !== "paid" && o.status !== "cancelled"
+      );
+      const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      let y = await createReportHeader(doc, {
+        title: "Pending Payments & Receivables",
+        subtitle: "All outstanding amounts with aging analysis",
+        dateRange: format(new Date(), "dd MMM yyyy"),
+        badgeText: "RECEIVABLES",
+        badgeColor: colors.warning,
+      });
+      const now = Date.now();
+      const ageDays = (d: string) => Math.floor((now - new Date(d).getTime()) / 86400000);
+      const all = [
+        ...(manualUnpaid || []).map((i: any) => ({ ref: i.invoice_number, type: "Manual Invoice", client: i.client_name || "Client", amount: Number(i.total_amount || 0), date: i.created_at })),
+        ...codOutstanding.map((o: any) => ({ ref: o.order_number, type: "COD Order", client: (o.shipping_address as any)?.full_name || "Customer", amount: Number(o.total_amount || 0), date: o.created_at })),
+      ];
+      const buckets = { "0-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
+      let total = 0;
+      all.forEach((r) => {
+        const d = ageDays(r.date); total += r.amount;
+        if (d <= 30) buckets["0-30"] += r.amount;
+        else if (d <= 60) buckets["31-60"] += r.amount;
+        else if (d <= 90) buckets["61-90"] += r.amount;
+        else buckets["90+"] += r.amount;
+      });
+      y = createStatCards(doc, [
+        { label: "Total Outstanding", value: formatCurrency(total), color: colors.error },
+        { label: "0-30 Days", value: formatCurrency(buckets["0-30"]), color: colors.success },
+        { label: "31-60 Days", value: formatCurrency(buckets["31-60"]), color: colors.warning },
+        { label: "61-90 Days", value: formatCurrency(buckets["61-90"]), color: colors.orange },
+        { label: "90+ Days", value: formatCurrency(buckets["90+"]), color: colors.error },
+      ], y);
+      if (all.length > 0) {
+        const rows = all.sort((a, b) => ageDays(b.date) - ageDays(a.date)).map((r) => {
+          const d = ageDays(r.date);
+          const bucket = d <= 30 ? "0-30" : d <= 60 ? "31-60" : d <= 90 ? "61-90" : "90+";
+          return [r.ref, r.type, r.client.substring(0, 32), format(new Date(r.date), "dd MMM yy"), `${d}d`, bucket, formatCurrency(r.amount)];
+        });
+        const tr = createDataTable(doc, ["Reference", "Type", "Client", "Date", "Age", "Bucket", "Amount"], rows, y, [40, 32, 60, 28, 22, 30, 38], { valueColumnIndices: [4, 6], statusColumnIndex: 5 });
+        y = tr.nextY;
+      } else {
+        doc.setFontSize(10); doc.setTextColor(...colors.success);
+        doc.text("No outstanding payments. All clear!", 14, y + 10);
+      }
+      const tp = doc.getNumberOfPages();
+      for (let i = 1; i <= tp; i++) { doc.setPage(i); addReportFooter(doc, i, tp); }
+      doc.save(`Pending-Payments-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+      toast.success("Pending payments report downloaded!");
+    } catch (e: any) { console.error(e); toast.error(e?.message || "Failed"); }
+    finally { setIsGenerating(false); }
+  }, []);
+
+  const generateCodReport = useCallback(async (startDate: Date, endDate: Date) => {
+    setIsGenerating(true);
+    try {
+      const { data: orders } = await supabase.from("orders").select("*")
+        .or("order_type.eq.cod,payment_id.like.COD%")
+        .gte("created_at", startDate.toISOString()).lte("created_at", endDate.toISOString())
+        .order("created_at", { ascending: false });
+      const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      const dateRangeStr = `${format(startDate, "dd MMM")} - ${format(endDate, "dd MMM yyyy")}`;
+      let y = await createReportHeader(doc, {
+        title: "COD Collection Report", subtitle: `Cash on Delivery tracking for ${dateRangeStr}`,
+        dateRange: dateRangeStr, badgeText: "COD", badgeColor: colors.warning,
+      });
+      const list = orders || [];
+      const settled = list.filter((o: any) => o.cod_payment_status === "settled" || o.cod_payment_status === "received");
+      const collected = list.filter((o: any) => o.cod_payment_status === "collected_by_courier" || o.cod_payment_status === "awaiting_settlement");
+      const pending = list.filter((o: any) => !o.cod_payment_status || o.cod_payment_status === "pending");
+      const sumAmt = (arr: any[]) => arr.reduce((s, o) => s + Number(o.total_amount || 0), 0);
+      y = createStatCards(doc, [
+        { label: "Total COD", value: String(list.length), color: colors.primary },
+        { label: "Settled", value: `${settled.length} (${formatCurrency(sumAmt(settled))})`, color: colors.success },
+        { label: "In Transit", value: `${collected.length} (${formatCurrency(sumAmt(collected))})`, color: colors.warning },
+        { label: "Pending", value: `${pending.length} (${formatCurrency(sumAmt(pending))})`, color: colors.error },
+      ], y);
+      if (list.length > 0) {
+        const rows = list.map((o: any) => [
+          o.order_number, format(new Date(o.created_at), "dd MMM yy"),
+          ((o.shipping_address as any)?.full_name || "Customer").substring(0, 28),
+          formatCurrency(o.total_amount || 0),
+          (o.status || "").replace(/_/g, " "),
+          (o.cod_payment_status || "pending").replace(/_/g, " "),
+          o.cod_settled_at ? format(new Date(o.cod_settled_at), "dd MMM yy") : "-",
+        ]);
+        const tr = createDataTable(doc, ["Order #", "Date", "Customer", "Amount", "Order Status", "COD Status", "Settled"], rows, y, [32, 24, 50, 32, 30, 38, 30], { valueColumnIndices: [3], statusColumnIndex: 5 });
+        y = tr.nextY;
+      }
+      const tp = doc.getNumberOfPages();
+      for (let i = 1; i <= tp; i++) { doc.setPage(i); addReportFooter(doc, i, tp); }
+      doc.save(`COD-Report-${format(startDate, "yyyy-MM-dd")}.pdf`);
+      toast.success("COD report downloaded!");
+    } catch (e: any) { console.error(e); toast.error(e?.message || "Failed"); }
+    finally { setIsGenerating(false); }
+  }, []);
+
+  const generateTopProductsReport = useCallback(async (startDate: Date, endDate: Date) => {
+    setIsGenerating(true);
+    try {
+      const { data: orders } = await supabase.from("orders")
+        .select("status, order_items(product_id, product_name, quantity, total_price)")
+        .gte("created_at", startDate.toISOString()).lte("created_at", endDate.toISOString())
+        .neq("status", "cancelled");
+      const map: Record<string, { name: string; qty: number; revenue: number }> = {};
+      (orders || []).forEach((o: any) => (o.order_items || []).forEach((it: any) => {
+        const key = it.product_id || it.product_name;
+        if (!map[key]) map[key] = { name: it.product_name || "Unknown", qty: 0, revenue: 0 };
+        map[key].qty += Number(it.quantity || 0);
+        map[key].revenue += Number(it.total_price || 0);
+      }));
+      const ranked = Object.values(map).sort((a, b) => b.revenue - a.revenue);
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const dateRangeStr = `${format(startDate, "dd MMM")} - ${format(endDate, "dd MMM yyyy")}`;
+      let y = await createReportHeader(doc, {
+        title: "Top Products / Best Sellers", subtitle: `Ranked by revenue for ${dateRangeStr}`,
+        dateRange: dateRangeStr, badgeText: "BEST SELLERS", badgeColor: colors.accent,
+      });
+      const totalUnits = ranked.reduce((s, r) => s + r.qty, 0);
+      const totalRev = ranked.reduce((s, r) => s + r.revenue, 0);
+      y = createStatCards(doc, [
+        { label: "Unique Products", value: String(ranked.length), color: colors.primary },
+        { label: "Units Sold", value: String(totalUnits), color: colors.warning },
+        { label: "Total Revenue", value: formatCurrency(totalRev), color: colors.accent },
+        { label: "Top Seller", value: (ranked[0]?.name || "-").substring(0, 14), color: colors.success },
+      ], y);
+      if (ranked.length > 0) {
+        const rows = ranked.slice(0, 50).map((r, idx) => [
+          `#${idx + 1}`, r.name.substring(0, 42), String(r.qty),
+          formatCurrency(r.revenue), `${((r.revenue / (totalRev || 1)) * 100).toFixed(1)}%`,
+        ]);
+        const tr = createDataTable(doc, ["Rank", "Product", "Units", "Revenue", "% Total"], rows, y, [16, 80, 28, 36, 22], { valueColumnIndices: [2, 3, 4] });
+        y = tr.nextY;
+      }
+      const tp = doc.getNumberOfPages();
+      for (let i = 1; i <= tp; i++) { doc.setPage(i); addReportFooter(doc, i, tp); }
+      doc.save(`Top-Products-${format(startDate, "yyyy-MM-dd")}.pdf`);
+      toast.success("Top products report downloaded!");
+    } catch (e: any) { console.error(e); toast.error(e?.message || "Failed"); }
+    finally { setIsGenerating(false); }
+  }, []);
+
+  const generateProfitLossReport = useCallback(async (startDate: Date, endDate: Date) => {
+    setIsGenerating(true);
+    try {
+      const [{ data: orders }, { data: products }, { data: manualInv }] = await Promise.all([
+        supabase.from("orders").select("*, order_items(product_id, quantity, total_price)").gte("created_at", startDate.toISOString()).lte("created_at", endDate.toISOString()),
+        supabase.from("products").select("id, cost_price"),
+        supabase.from("invoices").select("total_amount, payment_status, is_final").is("order_id", null).eq("is_final", true).gte("created_at", startDate.toISOString()).lte("created_at", endDate.toISOString()),
+      ]);
+      const costMap: Record<string, number> = {};
+      (products || []).forEach((p: any) => { costMap[p.id] = Number(p.cost_price || 0); });
+      const realized = (orders || []).filter((o: any) =>
+        o.payment_status === "paid" ||
+        ((o.order_type === "cod" || o.payment_id?.startsWith("COD")) && (o.cod_payment_status === "settled" || o.cod_payment_status === "received"))
+      );
+      const orderRevenue = realized.reduce((s, o) => s + Number(o.total_amount || 0), 0);
+      const orderTax = realized.reduce((s, o) => s + Number(o.tax_amount || 0), 0);
+      let cogs = 0;
+      realized.forEach((o: any) => (o.order_items || []).forEach((it: any) => {
+        if (it.product_id && costMap[it.product_id]) cogs += costMap[it.product_id] * it.quantity;
+      }));
+      const manualPaidRev = (manualInv || []).filter((i: any) => i.payment_status === "paid").reduce((s, i: any) => s + Number(i.total_amount || 0), 0);
+      const totalRevenue = orderRevenue + manualPaidRev;
+      const grossProfit = totalRevenue - cogs;
+      const netProfit = grossProfit - orderTax;
+      const margin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const dateRangeStr = `${format(startDate, "dd MMM")} - ${format(endDate, "dd MMM yyyy")}`;
+      let y = await createReportHeader(doc, {
+        title: "Profit & Loss Statement", subtitle: `Financial summary for ${dateRangeStr}`,
+        dateRange: dateRangeStr, badgeText: "P&L", badgeColor: colors.accent,
+      });
+      y = createStatCards(doc, [
+        { label: "Total Revenue", value: formatCurrency(totalRevenue), color: colors.success },
+        { label: "COGS", value: formatCurrency(cogs), color: colors.error },
+        { label: "Gross Profit", value: formatCurrency(grossProfit), color: colors.accent },
+        { label: "Net Margin", value: `${margin.toFixed(1)}%`, color: margin >= 0 ? colors.success : colors.error },
+      ], y);
+      const rows = [
+        ["Online Order Revenue (Paid)", formatCurrency(orderRevenue)],
+        ["Manual Invoice Revenue (Paid)", formatCurrency(manualPaidRev)],
+        ["TOTAL REVENUE", formatCurrency(totalRevenue)],
+        ["Less: Cost of Goods Sold", formatCurrency(cogs)],
+        ["GROSS PROFIT", formatCurrency(grossProfit)],
+        ["Less: GST (Pass-through)", formatCurrency(orderTax)],
+        ["NET PROFIT (Pre-Expense)", formatCurrency(netProfit)],
+      ];
+      const tr = createDataTable(doc, ["Line Item", "Amount"], rows, y, [120, 60], { valueColumnIndices: [1] });
+      y = tr.nextY;
+      const tp = doc.getNumberOfPages();
+      for (let i = 1; i <= tp; i++) { doc.setPage(i); addReportFooter(doc, i, tp); }
+      doc.save(`PnL-${format(startDate, "yyyy-MM-dd")}-to-${format(endDate, "yyyy-MM-dd")}.pdf`);
+      toast.success("P&L report downloaded!");
+    } catch (e: any) { console.error(e); toast.error(e?.message || "Failed"); }
+    finally { setIsGenerating(false); }
+  }, []);
+
+  const generateLowStockReport = useCallback(async () => {
+    setIsGenerating(true);
+    try {
+      const [{ data: products }, { data: materials }] = await Promise.all([
+        supabase.from("products").select("name, stock_quantity, availability_status").in("availability_status", ["low_stock", "out_of_stock"]),
+        supabase.from("raw_materials").select("name, quantity, min_quantity, unit"),
+      ]);
+      const lowMaterials = (materials || []).filter((m: any) => Number(m.quantity || 0) <= Number(m.min_quantity || 10));
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      let y = await createReportHeader(doc, {
+        title: "Low Stock Alert", subtitle: "Products and raw materials needing reorder",
+        dateRange: format(new Date(), "dd MMM yyyy"), badgeText: "REORDER", badgeColor: colors.error,
+      });
+      y = createStatCards(doc, [
+        { label: "Low Stock Products", value: String((products || []).length), color: colors.warning },
+        { label: "Low Stock Materials", value: String(lowMaterials.length), color: colors.error },
+        { label: "Total to Reorder", value: String((products || []).length + lowMaterials.length), color: colors.accent },
+      ], y);
+      doc.setFontSize(10); doc.setTextColor(...colors.primary); doc.setFont("helvetica", "bold");
+      doc.text("Products", 14, y); y += 5;
+      if ((products || []).length > 0) {
+        const tr = createDataTable(doc, ["Product", "Stock", "Status"], (products || []).map((p: any) => [
+          (p.name || "").substring(0, 50), String(p.stock_quantity || 0), (p.availability_status || "").replace(/_/g, " ")
+        ]), y, [110, 30, 40], { valueColumnIndices: [1], statusColumnIndex: 2 });
+        y = tr.nextY + 4;
+      } else {
+        doc.setFont("helvetica", "italic"); doc.setTextColor(...colors.muted); doc.text("All products in stock.", 14, y); y += 8;
+      }
+      doc.setFontSize(10); doc.setTextColor(...colors.primary); doc.setFont("helvetica", "bold");
+      doc.text("Raw Materials", 14, y); y += 5;
+      if (lowMaterials.length > 0) {
+        const tr = createDataTable(doc, ["Material", "Qty", "Min Qty", "Unit"], lowMaterials.map((m: any) => [
+          (m.name || "").substring(0, 50), String(m.quantity || 0), String(m.min_quantity || 0), m.unit || "pcs"
+        ]), y, [90, 30, 30, 30], { valueColumnIndices: [1, 2] });
+        y = tr.nextY;
+      } else {
+        doc.setFont("helvetica", "italic"); doc.setTextColor(...colors.muted); doc.text("All materials sufficient.", 14, y);
+      }
+      const tp = doc.getNumberOfPages();
+      for (let i = 1; i <= tp; i++) { doc.setPage(i); addReportFooter(doc, i, tp); }
+      doc.save(`Low-Stock-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+      toast.success("Low stock report downloaded!");
+    } catch (e: any) { console.error(e); toast.error(e?.message || "Failed"); }
+    finally { setIsGenerating(false); }
+  }, []);
+
+  const generateCancellationsReport = useCallback(async (startDate: Date, endDate: Date) => {
+    setIsGenerating(true);
+    try {
+      const { data: orders } = await supabase.from("orders").select("*").eq("status", "cancelled")
+        .gte("created_at", startDate.toISOString()).lte("created_at", endDate.toISOString())
+        .order("created_at", { ascending: false });
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const dateRangeStr = `${format(startDate, "dd MMM")} - ${format(endDate, "dd MMM yyyy")}`;
+      let y = await createReportHeader(doc, {
+        title: "Cancellations & Refunds", subtitle: `Cancelled orders during ${dateRangeStr}`,
+        dateRange: dateRangeStr, badgeText: "CANCELLED", badgeColor: colors.error,
+      });
+      const list = orders || [];
+      const totalLost = list.reduce((s, o: any) => s + Number(o.total_amount || 0), 0);
+      const refunded = list.filter((o: any) => o.payment_status === "refunded" || o.payment_status === "paid");
+      y = createStatCards(doc, [
+        { label: "Total Cancelled", value: String(list.length), color: colors.error },
+        { label: "Lost Revenue", value: formatCurrency(totalLost), color: colors.warning },
+        { label: "Refunds Issued", value: String(refunded.length), color: colors.primary },
+      ], y);
+      if (list.length > 0) {
+        const tr = createDataTable(doc, ["Order #", "Date", "Customer", "Amount", "Payment"],
+          list.map((o: any) => [
+            o.order_number, format(new Date(o.created_at), "dd MMM yy"),
+            ((o.shipping_address as any)?.full_name || "Customer").substring(0, 20),
+            formatCurrency(o.total_amount || 0), o.payment_status || "n/a",
+          ]),
+          y, [34, 24, 50, 36, 38], { valueColumnIndices: [3], statusColumnIndex: 4 });
+        y = tr.nextY;
+      }
+      const tp = doc.getNumberOfPages();
+      for (let i = 1; i <= tp; i++) { doc.setPage(i); addReportFooter(doc, i, tp); }
+      doc.save(`Cancellations-${format(startDate, "yyyy-MM-dd")}.pdf`);
+      toast.success("Cancellations report downloaded!");
+    } catch (e: any) { console.error(e); toast.error(e?.message || "Failed"); }
+    finally { setIsGenerating(false); }
+  }, []);
+
+  const generateAttendanceReport = useCallback(async (startDate: Date, endDate: Date) => {
+    setIsGenerating(true);
+    try {
+      const [{ data: employees }, { data: attendance }] = await Promise.all([
+        supabase.from("employees").select("id, employee_name, designation, is_active").eq("is_active", true),
+        supabase.from("employee_attendance").select("employee_id, attendance_date, status")
+          .gte("attendance_date", format(startDate, "yyyy-MM-dd"))
+          .lte("attendance_date", format(endDate, "yyyy-MM-dd")),
+      ]);
+      const summary: Record<string, { present: number; absent: number; leave: number; halfDay: number }> = {};
+      (employees || []).forEach((e: any) => { summary[e.id] = { present: 0, absent: 0, leave: 0, halfDay: 0 }; });
+      (attendance || []).forEach((a: any) => {
+        if (!summary[a.employee_id]) summary[a.employee_id] = { present: 0, absent: 0, leave: 0, halfDay: 0 };
+        const s = (a.status || "").toLowerCase();
+        if (s.includes("half")) summary[a.employee_id].halfDay++;
+        else if (s.includes("present")) summary[a.employee_id].present++;
+        else if (s.includes("absent")) summary[a.employee_id].absent++;
+        else if (s.includes("leave")) summary[a.employee_id].leave++;
+      });
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const dateRangeStr = `${format(startDate, "dd MMM")} - ${format(endDate, "dd MMM yyyy")}`;
+      let y = await createReportHeader(doc, {
+        title: "Employee Attendance Summary", subtitle: `Attendance for ${dateRangeStr}`,
+        dateRange: dateRangeStr, badgeText: "ATTENDANCE", badgeColor: colors.accent,
+      });
+      const totals = Object.values(summary).reduce((acc, v) => ({ p: acc.p + v.present, a: acc.a + v.absent, l: acc.l + v.leave, h: acc.h + v.halfDay }), { p: 0, a: 0, l: 0, h: 0 });
+      y = createStatCards(doc, [
+        { label: "Active Employees", value: String((employees || []).length), color: colors.primary },
+        { label: "Present", value: String(totals.p), color: colors.success },
+        { label: "Absent", value: String(totals.a), color: colors.error },
+        { label: "Leaves", value: String(totals.l), color: colors.warning },
+      ], y);
+      if ((employees || []).length > 0) {
+        const tr = createDataTable(doc, ["Employee", "Designation", "Present", "Absent", "Leave", "Half Day"],
+          (employees || []).map((e: any) => {
+            const s = summary[e.id];
+            return [e.employee_name, e.designation || "-", String(s.present), String(s.absent), String(s.leave), String(s.halfDay)];
+          }),
+          y, [50, 38, 22, 22, 22, 28], { valueColumnIndices: [2, 3, 4, 5] });
+        y = tr.nextY;
+      }
+      const tp = doc.getNumberOfPages();
+      for (let i = 1; i <= tp; i++) { doc.setPage(i); addReportFooter(doc, i, tp); }
+      doc.save(`Attendance-${format(startDate, "yyyy-MM-dd")}.pdf`);
+      toast.success("Attendance report downloaded!");
+    } catch (e: any) { console.error(e); toast.error(e?.message || "Failed"); }
+    finally { setIsGenerating(false); }
+  }, []);
+
   return {
     isGenerating,
     generateTodayOrdersReport,
@@ -1097,5 +1436,12 @@ export function useReportGenerator() {
     generateRawMaterialsReport,
     generateCustomerReport,
     generateInvoiceCollectionReport,
+    generatePendingPaymentsReport,
+    generateCodReport,
+    generateTopProductsReport,
+    generateProfitLossReport,
+    generateLowStockReport,
+    generateCancellationsReport,
+    generateAttendanceReport,
   };
 }
