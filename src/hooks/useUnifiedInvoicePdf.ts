@@ -885,7 +885,7 @@ function renderInvoicePdf(
     doc.setFontSize(7.5);
     doc.setTextColor(...COLORS.accent);
     doc.setFont("helvetica", "bold");
-    doc.text("natashasoni0529-2@okhdfcbank", centerX, qrY + qrSize + 6, { align: "center" });
+    doc.text("7471157242@hdfc", centerX, qrY + qrSize + 6, { align: "center" });
   });
 
   // --- 5. TERMS & CONDITIONS (LEFT) ---
