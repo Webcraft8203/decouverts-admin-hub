@@ -400,19 +400,19 @@ const About = () => {
                 { 
                   name: "Mr. Omprakash Soni", 
                   role: "Chairperson", 
-                  image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=faces",
+                  image: "shadow",
                   bio: "Strategic vision, R&D-first culture, and alignment with national goals." 
                 },
                 { 
-                  name: "Mr. Soni", 
+                  name: "Mr.Shivam Soni", 
                   role: "Director", 
-                  image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=400&fit=crop&crop=faces",
+                  image: "/shivamsoni.png",
                   bio: "Technical leadership driving the development of DFT Series and emerging tech." 
                 },
                 { 
                   name: "Ms. Natasha Soni", 
                   role: "Director", 
-                  image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop&crop=faces",
+                  image: "/natashasoni.png",
                   bio: "Operations, governance, and ensuring scalability with compliance." 
                 }
               ].map((leader, i) => (
@@ -423,15 +423,22 @@ const About = () => {
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
                   whileHover={{ y: -10 }}
-                  className="bg-white rounded-3xl overflow-hidden shadow-lg shadow-slate-200/50 border border-slate-100 group"
+                  className="bg-white rounded-3xl overflow-hidden shadow-lg shadow-slate-200/50 border border-slate-100 group hover:shadow-orange-500/20 hover:border-orange-200 transition-all duration-300"
                 >
                   <div className="h-64 overflow-hidden relative bg-slate-200">
-                    <img 
-                      src={leader.image} 
-                      alt={leader.name} 
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale group-hover:grayscale-0"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent opacity-60"></div>
+                    {leader.image === "shadow" ? (
+                      <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-950 flex items-center justify-center relative overflow-hidden transition-transform duration-700 group-hover:scale-110">
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.2),transparent_70%)]"></div>
+                        <span className="text-6xl font-bold text-slate-700/80 tracking-widest relative z-10">OS</span>
+                      </div>
+                    ) : (
+                      <img 
+                        src={leader.image} 
+                        alt={leader.name} 
+                        className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-110"
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 to-transparent opacity-80"></div>
                     <div className="absolute bottom-0 left-0 p-6 text-white">
                       <p className="text-orange-400 font-bold text-xs uppercase tracking-wider mb-1">{leader.role}</p>
                       <h3 className="text-2xl font-bold">{leader.name}</h3>
