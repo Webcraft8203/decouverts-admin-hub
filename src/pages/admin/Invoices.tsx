@@ -106,7 +106,8 @@ const invoiceStatusConfig = {
   cod_settled: { label: "COD Settled", color: "bg-green-100 text-green-700 border-green-200", icon: CheckCircle },
   
   // Offline payment
-  offline_paid: { label: "Offline Paid", color: "bg-purple-100 text-purple-700 border-purple-200", icon: Banknote },
+  offline_paid: { label: "Paid", color: "bg-green-100 text-green-700 border-green-200", icon: CheckCircle },
+  offline_partial: { label: "Partially Paid", color: "bg-yellow-100 text-yellow-700 border-yellow-200", icon: Banknote },
   offline_unpaid: { label: "Unpaid", color: "bg-orange-100 text-orange-700 border-orange-200", icon: Clock },
   
   failed: { label: "Failed", color: "bg-red-100 text-red-700 border-red-200", icon: AlertCircle },
@@ -145,10 +146,14 @@ export default function Invoices() {
     payment_reference: "",
     payment_date: "",
     payment_notes: "",
+    invoice_type: "proforma" as "proforma" | "final",
+    proforma_status: "draft" as "draft" | "sent" | "accepted" | "rejected" | "converted",
   };
   const [formData, setFormData] = useState(emptyFormData);
   const [items, setItems] = useState<InvoiceItem[]>([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
   const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
+  const [isConverting, setIsConverting] = useState(false);
 
   // Email-invoice state
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
@@ -181,7 +186,8 @@ export default function Invoices() {
         total_amount, subtotal, tax_amount, items, notes, pdf_url, created_at, delivery_date,
         order_id, buyer_state, seller_state, is_igst, cgst_amount, sgst_amount, igst_amount, buyer_gstin,
         category_code, financial_year, serial_number,
-        payment_status, payment_method, payment_reference, payment_date, payment_notes
+        payment_status, payment_method, payment_reference, payment_date, payment_notes,
+        proforma_status, converted_to_invoice_id, source_proforma_id
       `)
       .order("created_at", { ascending: false });
 
@@ -374,36 +380,53 @@ export default function Invoices() {
       serialNumber = row.serial_number;
     }
 
-    const payload: any = {
-      invoice_number: invoiceNumber,
-      invoice_type: "final",
-      is_final: true,
-      client_name: formData.client_name,
-      client_email: formData.client_email || null,
-      client_address: formData.client_address || null,
-      items: JSON.parse(JSON.stringify(invoiceItems)),
-      subtotal: totals.subtotal,
-      tax_amount: totals.totalTax,
-      total_amount: totals.grandTotal,
-      cgst_amount: totals.totalCgst,
-      sgst_amount: totals.totalSgst,
-      igst_amount: totals.totalIgst,
-      is_igst: isInterState,
-      buyer_state: formData.buyer_state,
-      seller_state: COMPANY_SETTINGS.business_state,
-      buyer_gstin: formData.buyer_gstin || null,
-      notes: formData.notes || null,
-      category_code: categoryCode,
-      financial_year: financialYear,
-      serial_number: serialNumber,
-      payment_status: formData.payment_status || "unpaid",
-      payment_method: formData.payment_status === "paid" ? (formData.payment_method || null) : null,
-      payment_reference: formData.payment_status === "paid" ? (formData.payment_reference || null) : null,
-      payment_date: formData.payment_status === "paid"
-        ? (formData.payment_date ? new Date(formData.payment_date).toISOString() : new Date().toISOString())
-        : null,
-      payment_notes: formData.payment_status === "paid" ? (formData.payment_notes || null) : null,
-    };
+    const isFinalType = formData.invoice_type === "final";
+    const isLockedPaid =
+      !!editingInvoice &&
+      (editingInvoice.invoice_type === "final" || editingInvoice.is_final) &&
+      ((editingInvoice as any).payment_status === "paid");
+
+    let payload: any;
+
+    if (isLockedPaid) {
+      // Paid final invoices: only payment notes/reference editable
+      payload = {
+        payment_notes: formData.payment_notes || null,
+        payment_reference: formData.payment_reference || null,
+      };
+    } else {
+      payload = {
+        invoice_number: invoiceNumber,
+        invoice_type: isFinalType ? "final" : "proforma",
+        is_final: isFinalType,
+        client_name: formData.client_name,
+        client_email: formData.client_email || null,
+        client_address: formData.client_address || null,
+        items: JSON.parse(JSON.stringify(invoiceItems)),
+        subtotal: totals.subtotal,
+        tax_amount: totals.totalTax,
+        total_amount: totals.grandTotal,
+        cgst_amount: totals.totalCgst,
+        sgst_amount: totals.totalSgst,
+        igst_amount: totals.totalIgst,
+        is_igst: isInterState,
+        buyer_state: formData.buyer_state,
+        seller_state: COMPANY_SETTINGS.business_state,
+        buyer_gstin: formData.buyer_gstin || null,
+        notes: formData.notes || null,
+        category_code: categoryCode,
+        financial_year: financialYear,
+        serial_number: serialNumber,
+        proforma_status: isFinalType ? null : (formData.proforma_status || "draft"),
+        payment_status: isFinalType ? (formData.payment_status || "unpaid") : "unpaid",
+        payment_method: isFinalType && formData.payment_status === "paid" ? (formData.payment_method || null) : null,
+        payment_reference: isFinalType && formData.payment_status === "paid" ? (formData.payment_reference || null) : null,
+        payment_date: isFinalType && formData.payment_status === "paid"
+          ? (formData.payment_date ? new Date(formData.payment_date).toISOString() : new Date().toISOString())
+          : null,
+        payment_notes: isFinalType && formData.payment_status === "paid" ? (formData.payment_notes || null) : null,
+      };
+    }
 
     let error;
     if (editingInvoiceId) {
@@ -423,6 +446,7 @@ export default function Invoices() {
     });
     setDialogOpen(false);
     setEditingInvoiceId(null);
+    setEditingInvoice(null);
     setFormData(emptyFormData);
     setItems([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
     fetchData();
@@ -434,6 +458,7 @@ export default function Invoices() {
       return;
     }
     setEditingInvoiceId(invoice.id);
+    setEditingInvoice(invoice);
     setFormData({
       client_name: invoice.client_name || "",
       client_email: invoice.client_email || "",
@@ -447,6 +472,8 @@ export default function Invoices() {
       payment_reference: (invoice as any).payment_reference || "",
       payment_date: (invoice as any).payment_date ? String((invoice as any).payment_date).slice(0, 10) : "",
       payment_notes: (invoice as any).payment_notes || "",
+      invoice_type: ((invoice.invoice_type === "final" || invoice.is_final) ? "final" : "proforma"),
+      proforma_status: ((invoice as any).proforma_status || "draft") as any,
     });
     const its = (invoice.items || []).map((it: any) => ({
       description: it.description || "",
@@ -457,6 +484,84 @@ export default function Invoices() {
     }));
     setItems(its.length > 0 ? its : [{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
     setDialogOpen(true);
+  };
+
+  const handleConvertToFinal = async (proforma: Invoice) => {
+    if ((proforma as any).converted_to_invoice_id) {
+      toast({ title: "Already converted", description: "This proforma has already been converted to a final invoice.", variant: "destructive" });
+      return;
+    }
+    const catCode = (proforma as any).category_code;
+    if (!catCode) {
+      toast({ title: "Missing category", description: "Proforma must have an invoice category before conversion.", variant: "destructive" });
+      return;
+    }
+    if (!window.confirm(`Convert ${proforma.invoice_number} to a Final Tax Invoice?\n\nA new final invoice will be generated using all the proforma data.`)) return;
+
+    setIsConverting(true);
+    try {
+      // Generate new structured number for final invoice
+      const { data: numData, error: numErr } = await supabase.rpc(
+        "generate_structured_invoice_number" as any,
+        { _category_code: catCode }
+      );
+      if (numErr || !numData) throw new Error(numErr?.message || "Failed to generate invoice number");
+      const row: any = Array.isArray(numData) ? numData[0] : numData;
+
+      const insertPayload: any = {
+        invoice_number: row.invoice_number,
+        invoice_type: "final",
+        is_final: true,
+        client_name: proforma.client_name,
+        client_email: proforma.client_email || null,
+        client_address: proforma.client_address || null,
+        items: JSON.parse(JSON.stringify(proforma.items || [])),
+        subtotal: proforma.subtotal,
+        tax_amount: proforma.tax_amount,
+        total_amount: proforma.total_amount,
+        cgst_amount: proforma.cgst_amount || 0,
+        sgst_amount: proforma.sgst_amount || 0,
+        igst_amount: proforma.igst_amount || 0,
+        is_igst: proforma.is_igst || false,
+        buyer_state: proforma.buyer_state || null,
+        seller_state: COMPANY_SETTINGS.business_state,
+        buyer_gstin: proforma.buyer_gstin || null,
+        notes: proforma.notes || null,
+        category_code: row.category_code,
+        financial_year: row.financial_year,
+        serial_number: row.serial_number,
+        payment_status: "unpaid",
+        source_proforma_id: proforma.id,
+        created_by: user?.id,
+      };
+
+      const { data: inserted, error: insErr } = await supabase
+        .from("invoices")
+        .insert([insertPayload])
+        .select("id, invoice_number")
+        .single();
+      if (insErr) throw insErr;
+
+      // Mark proforma as converted + link
+      const { error: updErr } = await supabase
+        .from("invoices")
+        .update({
+          proforma_status: "converted",
+          converted_to_invoice_id: inserted!.id,
+        } as any)
+        .eq("id", proforma.id);
+      if (updErr) throw updErr;
+
+      toast({
+        title: "Converted to Final Invoice",
+        description: `${proforma.invoice_number} → ${inserted!.invoice_number}`,
+      });
+      fetchData();
+    } catch (e: any) {
+      toast({ title: "Conversion failed", description: e?.message || "Could not convert proforma.", variant: "destructive" });
+    } finally {
+      setIsConverting(false);
+    }
   };
 
   const openEmailDialog = (invoice: Invoice) => {
@@ -587,7 +692,9 @@ export default function Invoices() {
     // Offline/Manual invoices - based on admin-recorded payment status
     if (isOffline) {
       const manualStatus = (invoice as any).payment_status;
-      return manualStatus === "paid" ? invoiceStatusConfig.offline_paid : invoiceStatusConfig.offline_unpaid;
+      if (manualStatus === "paid") return invoiceStatusConfig.offline_paid;
+      if (manualStatus === "partially_paid") return invoiceStatusConfig.offline_partial;
+      return invoiceStatusConfig.offline_unpaid;
     }
     
     // COD orders
@@ -685,6 +792,7 @@ export default function Invoices() {
             setDialogOpen(open);
             if (!open) {
               setEditingInvoiceId(null);
+              setEditingInvoice(null);
               setFormData(emptyFormData);
               setItems([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
             }
@@ -701,6 +809,76 @@ export default function Invoices() {
               <DialogTitle>{editingInvoiceId ? "Edit Invoice" : "Create New Invoice"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+              {/* Invoice Type Selector */}
+              {(() => {
+                const isLockedPaid =
+                  !!editingInvoice &&
+                  (editingInvoice.invoice_type === "final" || editingInvoice.is_final) &&
+                  ((editingInvoice as any).payment_status === "paid");
+                return (
+                  <>
+                    {isLockedPaid && (
+                      <div className="rounded-md border border-amber-300 bg-amber-50 text-amber-800 px-3 py-2 text-xs">
+                        🔒 This invoice is marked <strong>Paid</strong> and is locked. Only payment notes &amp; reference can be edited.
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      <Label>Invoice Type <span className="text-destructive">*</span></Label>
+                      <div className="flex flex-wrap gap-3">
+                        <label className={`flex items-center gap-2 border rounded-md px-3 py-2 cursor-pointer text-sm ${formData.invoice_type === "proforma" ? "border-primary bg-primary/5" : ""}`}>
+                          <input
+                            type="radio"
+                            name="invoice_type"
+                            value="proforma"
+                            checked={formData.invoice_type === "proforma"}
+                            onChange={() => setFormData({ ...formData, invoice_type: "proforma" })}
+                            disabled={!!editingInvoiceId || isLockedPaid}
+                          />
+                          <Receipt className="w-4 h-4 text-amber-500" />
+                          <span>Proforma Invoice (Quotation)</span>
+                        </label>
+                        <label className={`flex items-center gap-2 border rounded-md px-3 py-2 cursor-pointer text-sm ${formData.invoice_type === "final" ? "border-primary bg-primary/5" : ""}`}>
+                          <input
+                            type="radio"
+                            name="invoice_type"
+                            value="final"
+                            checked={formData.invoice_type === "final"}
+                            onChange={() => setFormData({ ...formData, invoice_type: "final" })}
+                            disabled={!!editingInvoiceId || isLockedPaid}
+                          />
+                          <FileCheck className="w-4 h-4 text-emerald-500" />
+                          <span>Final Tax Invoice</span>
+                        </label>
+                      </div>
+                      {!editingInvoiceId && (
+                        <p className="text-xs text-muted-foreground">
+                          Default is Proforma. You can convert it to a Final Invoice later.
+                        </p>
+                      )}
+                    </div>
+
+                    {formData.invoice_type === "proforma" && !isLockedPaid && (
+                      <div className="space-y-2">
+                        <Label>Proforma Status</Label>
+                        <Select
+                          value={formData.proforma_status}
+                          onValueChange={(value) => setFormData({ ...formData, proforma_status: value as any })}
+                        >
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="draft">Draft</SelectItem>
+                            <SelectItem value="sent">Sent</SelectItem>
+                            <SelectItem value="accepted">Accepted</SelectItem>
+                            <SelectItem value="rejected">Rejected</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+
+
               {/* Invoice Category */}
               <div className="space-y-2">
                 <Label htmlFor="category_code">
@@ -922,7 +1100,8 @@ export default function Invoices() {
                 />
               </div>
 
-              {/* Payment Status (Admin only - manual invoices) */}
+              {/* Payment Status (Admin only - final manual invoices) */}
+              {formData.invoice_type === "final" && (
               <Card className="border-dashed">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm flex items-center gap-2">
@@ -936,66 +1115,76 @@ export default function Invoices() {
                     <Select
                       value={formData.payment_status}
                       onValueChange={(value) => setFormData({ ...formData, payment_status: value })}
+                      disabled={!!editingInvoice && (editingInvoice as any).payment_status === "paid"}
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="unpaid">Unpaid</SelectItem>
+                        <SelectItem value="partially_paid">Partially Paid</SelectItem>
                         <SelectItem value="paid">Paid</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  {formData.payment_status === "paid" && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label>Payment Method *</Label>
-                        <Select
-                          value={formData.payment_method}
-                          onValueChange={(value) => setFormData({ ...formData, payment_method: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select method" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="cash">Cash</SelectItem>
-                            <SelectItem value="upi">UPI</SelectItem>
-                            <SelectItem value="bank_transfer">Bank Transfer / NEFT / RTGS</SelectItem>
-                            <SelectItem value="cheque">Cheque</SelectItem>
-                            <SelectItem value="card">Card</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
+                  {(formData.payment_status === "paid" || formData.payment_status === "partially_paid") && (() => {
+                    const lockBasic =
+                      !!editingInvoice && (editingInvoice as any).payment_status === "paid";
+                    return (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label>Payment Method {formData.payment_status === "paid" && "*"}</Label>
+                          <Select
+                            value={formData.payment_method}
+                            onValueChange={(value) => setFormData({ ...formData, payment_method: value })}
+                            disabled={lockBasic}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select method" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="cash">Cash</SelectItem>
+                              <SelectItem value="upi">UPI</SelectItem>
+                              <SelectItem value="bank_transfer">Bank Transfer / NEFT / RTGS</SelectItem>
+                              <SelectItem value="cheque">Cheque</SelectItem>
+                              <SelectItem value="card">Card</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label>Payment Date</Label>
+                          <Input
+                            type="date"
+                            value={formData.payment_date}
+                            onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })}
+                            disabled={lockBasic}
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label>Reference / Transaction ID</Label>
+                          <Input
+                            value={formData.payment_reference}
+                            onChange={(e) => setFormData({ ...formData, payment_reference: e.target.value })}
+                            placeholder="e.g. UTR, UPI ref, Cheque No."
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label>Payment Notes / Remarks</Label>
+                          <Textarea
+                            value={formData.payment_notes}
+                            onChange={(e) => setFormData({ ...formData, payment_notes: e.target.value })}
+                            placeholder="Bank name, branch, remarks..."
+                            rows={2}
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <Label>Payment Date</Label>
-                        <Input
-                          type="date"
-                          value={formData.payment_date}
-                          onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })}
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <Label>Reference / Transaction ID</Label>
-                        <Input
-                          value={formData.payment_reference}
-                          onChange={(e) => setFormData({ ...formData, payment_reference: e.target.value })}
-                          placeholder="e.g. UTR, UPI ref, Cheque No."
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <Label>Payment Notes</Label>
-                        <Textarea
-                          value={formData.payment_notes}
-                          onChange={(e) => setFormData({ ...formData, payment_notes: e.target.value })}
-                          placeholder="Bank name, branch, remarks..."
-                          rows={2}
-                        />
-                      </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </CardContent>
               </Card>
+              )}
+
 
               <Button type="submit" className="w-full">{editingInvoiceId ? "Update Invoice" : "Create Invoice"}</Button>
             </form>
@@ -1181,13 +1370,24 @@ export default function Invoices() {
                         <TableHead>Order #</TableHead>
                         <TableHead>Customer</TableHead>
                         <TableHead>Date</TableHead>
+                        <TableHead>Status</TableHead>
                         <TableHead>Payment</TableHead>
                         <TableHead className="text-right">Amount</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredInvoices.map((invoice) => (
+                      {filteredInvoices.map((invoice) => {
+                        const pStatus = ((invoice as any).proforma_status || "draft") as string;
+                        const isConverted = pStatus === "converted" || !!(invoice as any).converted_to_invoice_id;
+                        const statusColors: Record<string, string> = {
+                          draft: "bg-slate-100 text-slate-700 border-slate-200",
+                          sent: "bg-blue-100 text-blue-700 border-blue-200",
+                          accepted: "bg-green-100 text-green-700 border-green-200",
+                          rejected: "bg-red-100 text-red-700 border-red-200",
+                          converted: "bg-purple-100 text-purple-700 border-purple-200",
+                        };
+                        return (
                         <TableRow key={invoice.id}>
                           <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
                           <TableCell>
@@ -1198,6 +1398,15 @@ export default function Invoices() {
                           <TableCell>{invoice.client_name}</TableCell>
                           <TableCell className="text-muted-foreground">
                             {format(new Date(invoice.created_at), "dd MMM yyyy")}
+                          </TableCell>
+                          <TableCell>
+                            {invoice.order_id ? (
+                              <Badge variant="outline" className="bg-slate-100 text-slate-600 border-slate-200">Auto</Badge>
+                            ) : (
+                              <Badge variant="outline" className={statusColors[pStatus] || statusColors.draft}>
+                                {pStatus.charAt(0).toUpperCase() + pStatus.slice(1)}
+                              </Badge>
+                            )}
                           </TableCell>
                           <TableCell>
                             {getPaymentTypeBadge(invoice)}
@@ -1239,9 +1448,22 @@ export default function Invoices() {
                                     size="icon"
                                     onClick={() => handleEdit(invoice)}
                                     title="Edit"
+                                    disabled={isConverted}
                                   >
                                     <Pencil className="w-4 h-4" />
                                   </Button>
+                                  {!isConverted && (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleConvertToFinal(invoice)}
+                                      disabled={isConverting}
+                                      title="Convert to Final Invoice"
+                                      className="text-emerald-600 hover:text-emerald-700"
+                                    >
+                                      <FileCheck className="w-4 h-4" />
+                                    </Button>
+                                  )}
                                 </>
                               )}
                               <Button
@@ -1256,7 +1478,8 @@ export default function Invoices() {
                             </div>
                           </TableCell>
                         </TableRow>
-                      ))}
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
@@ -1423,15 +1646,22 @@ export default function Invoices() {
                                     </Button>
                                   </>
                                  )}
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleDelete(invoice)}
-                                  className="text-destructive hover:text-destructive"
-                                  title="Delete"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
+                                {(invoice as any).payment_status !== "paid" && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleDelete(invoice)}
+                                    className="text-destructive hover:text-destructive"
+                                    title="Delete"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                )}
+                                {(invoice as any).payment_status === "paid" && (
+                                  <span title="Paid invoices are locked" className="inline-flex items-center justify-center h-10 w-10 text-muted-foreground/40">
+                                    🔒
+                                  </span>
+                                )}
                                </div>
                             </TableCell>
                           </TableRow>

@@ -1194,6 +1194,7 @@ export type Database = {
           client_address: string | null
           client_email: string | null
           client_name: string
+          converted_to_invoice_id: string | null
           created_at: string
           created_by: string | null
           delivery_date: string | null
@@ -1216,9 +1217,11 @@ export type Database = {
           pdf_url: string | null
           platform_fee: number | null
           platform_fee_tax: number | null
+          proforma_status: string | null
           seller_state: string | null
           serial_number: number | null
           sgst_amount: number | null
+          source_proforma_id: string | null
           subtotal: number
           tax_amount: number
           total_amount: number
@@ -1232,6 +1235,7 @@ export type Database = {
           client_address?: string | null
           client_email?: string | null
           client_name: string
+          converted_to_invoice_id?: string | null
           created_at?: string
           created_by?: string | null
           delivery_date?: string | null
@@ -1254,9 +1258,11 @@ export type Database = {
           pdf_url?: string | null
           platform_fee?: number | null
           platform_fee_tax?: number | null
+          proforma_status?: string | null
           seller_state?: string | null
           serial_number?: number | null
           sgst_amount?: number | null
+          source_proforma_id?: string | null
           subtotal?: number
           tax_amount?: number
           total_amount?: number
@@ -1270,6 +1276,7 @@ export type Database = {
           client_address?: string | null
           client_email?: string | null
           client_name?: string
+          converted_to_invoice_id?: string | null
           created_at?: string
           created_by?: string | null
           delivery_date?: string | null
@@ -1292,9 +1299,11 @@ export type Database = {
           pdf_url?: string | null
           platform_fee?: number | null
           platform_fee_tax?: number | null
+          proforma_status?: string | null
           seller_state?: string | null
           serial_number?: number | null
           sgst_amount?: number | null
+          source_proforma_id?: string | null
           subtotal?: number
           tax_amount?: number
           total_amount?: number
@@ -1302,10 +1311,24 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "invoices_converted_to_invoice_id_fkey"
+            columns: ["converted_to_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "invoices_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_source_proforma_id_fkey"
+            columns: ["source_proforma_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
         ]
