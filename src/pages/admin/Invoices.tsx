@@ -1097,7 +1097,8 @@ export default function Invoices() {
                 />
               </div>
 
-              {/* Payment Status (Admin only - manual invoices) */}
+              {/* Payment Status (Admin only - final manual invoices) */}
+              {formData.invoice_type === "final" && (
               <Card className="border-dashed">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm flex items-center gap-2">
@@ -1111,66 +1112,76 @@ export default function Invoices() {
                     <Select
                       value={formData.payment_status}
                       onValueChange={(value) => setFormData({ ...formData, payment_status: value })}
+                      disabled={!!editingInvoice && (editingInvoice as any).payment_status === "paid"}
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="unpaid">Unpaid</SelectItem>
+                        <SelectItem value="partially_paid">Partially Paid</SelectItem>
                         <SelectItem value="paid">Paid</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  {formData.payment_status === "paid" && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label>Payment Method *</Label>
-                        <Select
-                          value={formData.payment_method}
-                          onValueChange={(value) => setFormData({ ...formData, payment_method: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select method" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="cash">Cash</SelectItem>
-                            <SelectItem value="upi">UPI</SelectItem>
-                            <SelectItem value="bank_transfer">Bank Transfer / NEFT / RTGS</SelectItem>
-                            <SelectItem value="cheque">Cheque</SelectItem>
-                            <SelectItem value="card">Card</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
+                  {(formData.payment_status === "paid" || formData.payment_status === "partially_paid") && (() => {
+                    const lockBasic =
+                      !!editingInvoice && (editingInvoice as any).payment_status === "paid";
+                    return (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label>Payment Method {formData.payment_status === "paid" && "*"}</Label>
+                          <Select
+                            value={formData.payment_method}
+                            onValueChange={(value) => setFormData({ ...formData, payment_method: value })}
+                            disabled={lockBasic}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select method" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="cash">Cash</SelectItem>
+                              <SelectItem value="upi">UPI</SelectItem>
+                              <SelectItem value="bank_transfer">Bank Transfer / NEFT / RTGS</SelectItem>
+                              <SelectItem value="cheque">Cheque</SelectItem>
+                              <SelectItem value="card">Card</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label>Payment Date</Label>
+                          <Input
+                            type="date"
+                            value={formData.payment_date}
+                            onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })}
+                            disabled={lockBasic}
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label>Reference / Transaction ID</Label>
+                          <Input
+                            value={formData.payment_reference}
+                            onChange={(e) => setFormData({ ...formData, payment_reference: e.target.value })}
+                            placeholder="e.g. UTR, UPI ref, Cheque No."
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label>Payment Notes / Remarks</Label>
+                          <Textarea
+                            value={formData.payment_notes}
+                            onChange={(e) => setFormData({ ...formData, payment_notes: e.target.value })}
+                            placeholder="Bank name, branch, remarks..."
+                            rows={2}
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <Label>Payment Date</Label>
-                        <Input
-                          type="date"
-                          value={formData.payment_date}
-                          onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })}
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <Label>Reference / Transaction ID</Label>
-                        <Input
-                          value={formData.payment_reference}
-                          onChange={(e) => setFormData({ ...formData, payment_reference: e.target.value })}
-                          placeholder="e.g. UTR, UPI ref, Cheque No."
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <Label>Payment Notes</Label>
-                        <Textarea
-                          value={formData.payment_notes}
-                          onChange={(e) => setFormData({ ...formData, payment_notes: e.target.value })}
-                          placeholder="Bank name, branch, remarks..."
-                          rows={2}
-                        />
-                      </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </CardContent>
               </Card>
+              )}
+
 
               <Button type="submit" className="w-full">{editingInvoiceId ? "Update Invoice" : "Create Invoice"}</Button>
             </form>
