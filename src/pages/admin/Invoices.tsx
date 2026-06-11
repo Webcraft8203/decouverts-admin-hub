@@ -1367,13 +1367,24 @@ export default function Invoices() {
                         <TableHead>Order #</TableHead>
                         <TableHead>Customer</TableHead>
                         <TableHead>Date</TableHead>
+                        <TableHead>Status</TableHead>
                         <TableHead>Payment</TableHead>
                         <TableHead className="text-right">Amount</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredInvoices.map((invoice) => (
+                      {filteredInvoices.map((invoice) => {
+                        const pStatus = ((invoice as any).proforma_status || "draft") as string;
+                        const isConverted = pStatus === "converted" || !!(invoice as any).converted_to_invoice_id;
+                        const statusColors: Record<string, string> = {
+                          draft: "bg-slate-100 text-slate-700 border-slate-200",
+                          sent: "bg-blue-100 text-blue-700 border-blue-200",
+                          accepted: "bg-green-100 text-green-700 border-green-200",
+                          rejected: "bg-red-100 text-red-700 border-red-200",
+                          converted: "bg-purple-100 text-purple-700 border-purple-200",
+                        };
+                        return (
                         <TableRow key={invoice.id}>
                           <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
                           <TableCell>
@@ -1384,6 +1395,15 @@ export default function Invoices() {
                           <TableCell>{invoice.client_name}</TableCell>
                           <TableCell className="text-muted-foreground">
                             {format(new Date(invoice.created_at), "dd MMM yyyy")}
+                          </TableCell>
+                          <TableCell>
+                            {invoice.order_id ? (
+                              <Badge variant="outline" className="bg-slate-100 text-slate-600 border-slate-200">Auto</Badge>
+                            ) : (
+                              <Badge variant="outline" className={statusColors[pStatus] || statusColors.draft}>
+                                {pStatus.charAt(0).toUpperCase() + pStatus.slice(1)}
+                              </Badge>
+                            )}
                           </TableCell>
                           <TableCell>
                             {getPaymentTypeBadge(invoice)}
@@ -1425,9 +1445,22 @@ export default function Invoices() {
                                     size="icon"
                                     onClick={() => handleEdit(invoice)}
                                     title="Edit"
+                                    disabled={isConverted}
                                   >
                                     <Pencil className="w-4 h-4" />
                                   </Button>
+                                  {!isConverted && (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleConvertToFinal(invoice)}
+                                      disabled={isConverting}
+                                      title="Convert to Final Invoice"
+                                      className="text-emerald-600 hover:text-emerald-700"
+                                    >
+                                      <FileCheck className="w-4 h-4" />
+                                    </Button>
+                                  )}
                                 </>
                               )}
                               <Button
@@ -1442,7 +1475,8 @@ export default function Invoices() {
                             </div>
                           </TableCell>
                         </TableRow>
-                      ))}
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
