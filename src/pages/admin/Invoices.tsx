@@ -789,6 +789,7 @@ export default function Invoices() {
             setDialogOpen(open);
             if (!open) {
               setEditingInvoiceId(null);
+              setEditingInvoice(null);
               setFormData(emptyFormData);
               setItems([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
             }
@@ -805,6 +806,76 @@ export default function Invoices() {
               <DialogTitle>{editingInvoiceId ? "Edit Invoice" : "Create New Invoice"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+              {/* Invoice Type Selector */}
+              {(() => {
+                const isLockedPaid =
+                  !!editingInvoice &&
+                  (editingInvoice.invoice_type === "final" || editingInvoice.is_final) &&
+                  ((editingInvoice as any).payment_status === "paid");
+                return (
+                  <>
+                    {isLockedPaid && (
+                      <div className="rounded-md border border-amber-300 bg-amber-50 text-amber-800 px-3 py-2 text-xs">
+                        🔒 This invoice is marked <strong>Paid</strong> and is locked. Only payment notes &amp; reference can be edited.
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      <Label>Invoice Type <span className="text-destructive">*</span></Label>
+                      <div className="flex flex-wrap gap-3">
+                        <label className={`flex items-center gap-2 border rounded-md px-3 py-2 cursor-pointer text-sm ${formData.invoice_type === "proforma" ? "border-primary bg-primary/5" : ""}`}>
+                          <input
+                            type="radio"
+                            name="invoice_type"
+                            value="proforma"
+                            checked={formData.invoice_type === "proforma"}
+                            onChange={() => setFormData({ ...formData, invoice_type: "proforma" })}
+                            disabled={!!editingInvoiceId || isLockedPaid}
+                          />
+                          <Receipt className="w-4 h-4 text-amber-500" />
+                          <span>Proforma Invoice (Quotation)</span>
+                        </label>
+                        <label className={`flex items-center gap-2 border rounded-md px-3 py-2 cursor-pointer text-sm ${formData.invoice_type === "final" ? "border-primary bg-primary/5" : ""}`}>
+                          <input
+                            type="radio"
+                            name="invoice_type"
+                            value="final"
+                            checked={formData.invoice_type === "final"}
+                            onChange={() => setFormData({ ...formData, invoice_type: "final" })}
+                            disabled={!!editingInvoiceId || isLockedPaid}
+                          />
+                          <FileCheck className="w-4 h-4 text-emerald-500" />
+                          <span>Final Tax Invoice</span>
+                        </label>
+                      </div>
+                      {!editingInvoiceId && (
+                        <p className="text-xs text-muted-foreground">
+                          Default is Proforma. You can convert it to a Final Invoice later.
+                        </p>
+                      )}
+                    </div>
+
+                    {formData.invoice_type === "proforma" && !isLockedPaid && (
+                      <div className="space-y-2">
+                        <Label>Proforma Status</Label>
+                        <Select
+                          value={formData.proforma_status}
+                          onValueChange={(value) => setFormData({ ...formData, proforma_status: value as any })}
+                        >
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="draft">Draft</SelectItem>
+                            <SelectItem value="sent">Sent</SelectItem>
+                            <SelectItem value="accepted">Accepted</SelectItem>
+                            <SelectItem value="rejected">Rejected</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+
+
               {/* Invoice Category */}
               <div className="space-y-2">
                 <Label htmlFor="category_code">
