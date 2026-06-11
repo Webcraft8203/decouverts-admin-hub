@@ -438,6 +438,7 @@ export default function Invoices() {
       return;
     }
     setEditingInvoiceId(invoice.id);
+    setEditingInvoice(invoice);
     setFormData({
       client_name: invoice.client_name || "",
       client_email: invoice.client_email || "",
@@ -451,6 +452,8 @@ export default function Invoices() {
       payment_reference: (invoice as any).payment_reference || "",
       payment_date: (invoice as any).payment_date ? String((invoice as any).payment_date).slice(0, 10) : "",
       payment_notes: (invoice as any).payment_notes || "",
+      invoice_type: ((invoice.invoice_type === "final" || invoice.is_final) ? "final" : "proforma"),
+      proforma_status: ((invoice as any).proforma_status || "draft") as any,
     });
     const its = (invoice.items || []).map((it: any) => ({
       description: it.description || "",
