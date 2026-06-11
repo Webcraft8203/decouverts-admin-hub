@@ -94,22 +94,6 @@ const fetchLogoAsBase64 = async (): Promise<string | null> => {
   }
 };
 
-const fetchUpiQr = async (): Promise<string | null> => {
-  try {
-    const res = await fetch('/upiqr.png');
-    if (!res.ok) return null;
-    const blob = await res.blob();
-    return await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return null;
-  }
-};
-
 const fetchSignature = async (): Promise<string | null> => {
   try {
     const res = await fetch('/signature.png');
@@ -258,7 +242,6 @@ function renderInvoicePdf(
   totalSgst: number,
   totalIgst: number,
   logoBase64: string | null,
-  qrBase64: string | null,
   signatureBase64: string | null
 ) {
   const isManual = !invoice.order_id;
@@ -684,7 +667,6 @@ function renderInvoicePdf(
   const rightBoxH = 10 + (pfLines * 5) + (taxLines * 5) + 6 + 12 + 6;
 
   // ==================== TWO-COLUMN RESPONSIVE LAYOUT ====================
-  const upiBlockHeight = 54;
 
   doc.setFontSize(5.5);
   const termsLines: string[] = [];
@@ -863,20 +845,21 @@ function renderInvoicePdf(
     });
   });
 
-  // --- 3.5 SIGNATURE (RIGHT) ---
-  const sigBlockHeight = 22;
+  // --- 4. SIGNATURE (RIGHT) ---
+  const sigBlockHeight = 45;
   renderRight(sigBlockHeight, (startY) => {
     const rx = M + sumLeftW + 10;
     const centerX = rx + (sumRightW / 2);
-    let sy = startY + 2.5; // ~10px margin above signature
+    let sy = startY + 12; // Pushed down to comfortably occupy the remaining space
 
     if (signatureBase64) {
       try {
         // Passing 0 for height auto-scales the height, preserving aspect ratio perfectly
-        doc.addImage(signatureBase64, "PNG", centerX - 16, sy, 32, 0);
+        // Increased width to 45mm (~170px)
+        doc.addImage(signatureBase64, "PNG", centerX - 22.5, sy, 45, 0);
       } catch { /* ignore */ }
     }
-    sy += 13.5; // Account for approx image height + 5px margin below
+    sy += 18; // Account for approx image height + 5px margin below
 
     doc.setFontSize(7.5);
     doc.setTextColor(...COLORS.primary);
@@ -887,48 +870,6 @@ function renderInvoicePdf(
     doc.setTextColor(...COLORS.muted);
     doc.setFont("helvetica", "normal");
     doc.text("For DECOUVERTES FUTURE TECH PRIVATE LIMITED", centerX, sy, { align: "center" });
-  });
-
-  // --- 4. UPI PAYMENT (RIGHT) ---
-  renderRight(upiBlockHeight, (startY) => {
-    const rx = M + sumLeftW + 10;
-    const centerX = rx + (sumRightW / 2);
-
-    doc.setFontSize(7.5);
-    doc.setTextColor(...COLORS.primary);
-    doc.setFont("helvetica", "bold");
-    doc.text("Scan to Pay via UPI", centerX, startY + 6, { align: "center" });
-
-    let uy = startY + 10;
-    doc.setFontSize(6.5);
-    doc.setTextColor(...COLORS.muted);
-    doc.setFont("helvetica", "normal");
-    doc.text("Maximum of 1 lakh can", centerX, uy, { align: "center" });
-    uy += 3.5;
-    doc.text("be transferred via UPI in a", centerX, uy, { align: "center" });
-    uy += 3.5;
-    doc.text("single day", centerX, uy, { align: "center" });
-
-    const qrSize = 26;
-    const qrX = centerX - (qrSize / 2);
-    const qrY = uy + 6;
-
-    doc.setDrawColor(...COLORS.border);
-    doc.setLineWidth(0.2);
-    if (qrBase64) {
-      try {
-        doc.addImage(qrBase64, "PNG", qrX, qrY, qrSize, qrSize);
-      } catch {
-        doc.roundedRect(qrX, qrY, qrSize, qrSize, 2, 2, "S");
-      }
-    } else {
-      doc.roundedRect(qrX, qrY, qrSize, qrSize, 2, 2, "S");
-    }
-
-    doc.setFontSize(7.5);
-    doc.setTextColor(...COLORS.accent);
-    doc.setFont("helvetica", "bold");
-    doc.text("7471157242@hdfc", centerX, qrY + qrSize + 6, { align: "center" });
   });
 
   // --- 5. TERMS & CONDITIONS (LEFT) ---
@@ -983,9 +924,8 @@ export function useUnifiedInvoicePdf() {
     }
 
     const logoBase64 = await fetchLogoAsBase64();
-    const qrBase64 = await fetchUpiQr();
     const signatureBase64 = await fetchSignature();
-    renderInvoicePdf(doc, invoice, items, isIgst, totalCgst, totalSgst, totalIgst, logoBase64, qrBase64, signatureBase64);
+    renderInvoicePdf(doc, invoice, items, isIgst, totalCgst, totalSgst, totalIgst, logoBase64, signatureBase64);
     return doc.output("blob");
   }, []);
 

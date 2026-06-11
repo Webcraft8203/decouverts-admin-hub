@@ -1940,10 +1940,10 @@ export default function Invoices() {
                           <p className="text-[10px] text-muted-foreground leading-relaxed">4. Warranty as per product terms and conditions.</p>
                         </div>
                       </div>
-                      <div className="text-right flex flex-col items-end shrink-0 pt-[10px]">
-                        <img src="/signature.png" alt="Signature" className="w-[120px] h-auto object-contain mb-[5px]" onError={(e) => e.currentTarget.style.display = 'none'} />
-                        <p className="text-xs font-bold text-foreground">Authorized Signatory</p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">For DECOUVERTES FUTURE TECH PRIVATE LIMITED</p>
+                      <div className="flex flex-col items-center shrink-0 pt-[10px]">
+                        <img src="/signature.png" alt="Signature" className="w-[160px] h-auto object-contain mb-[5px]" onError={(e) => e.currentTarget.style.display = 'none'} />
+                        <p className="text-xs font-bold text-foreground text-center">Authorized Signatory</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5 text-center">For DECOUVERTES FUTURE TECH PRIVATE LIMITED</p>
                       </div>
                   </div>
                 </div>
