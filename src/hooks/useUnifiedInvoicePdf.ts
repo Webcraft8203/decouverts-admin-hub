@@ -43,7 +43,7 @@ const COMPANY = {
   },
   terms: [
     "1. Goods once sold will only be taken back or exchanged as per company policy.",
-    "2. Payment is due within 30 days of invoice date unless otherwise specified.",
+    "2. Payment is due within 7 days of the invoice date. A 5% late fee will be charged on overdue payments.",
     "3. All disputes are subject to Pune jurisdiction.",
     "4. Warranty as per product terms and conditions.",
   ],
