@@ -1927,15 +1927,24 @@ export default function Invoices() {
                   </div>
                 </div>
 
-                {/* ── Terms ── */}
-                <div className="px-8 pb-2">
+                  {/* ── Terms & Signature ── */}
+                  <div className="px-8 pb-4">
                   <Separator className="mb-3" />
-                  <h4 className="text-[11px] font-bold text-foreground mb-1.5">Terms & Conditions</h4>
-                  <div className="space-y-0.5">
-                    <p className="text-[10px] text-muted-foreground leading-relaxed">1. Goods once sold will only be taken back or exchanged as per company policy.</p>
-                    <p className="text-[10px] text-muted-foreground leading-relaxed">2. Payment is due within 30 days of invoice date unless otherwise specified.</p>
-                    <p className="text-[10px] text-muted-foreground leading-relaxed">3. All disputes are subject to Pune jurisdiction.</p>
-                    <p className="text-[10px] text-muted-foreground leading-relaxed">4. Warranty as per product terms and conditions.</p>
+                    <div className="flex justify-between items-end gap-4">
+                      <div>
+                        <h4 className="text-[11px] font-bold text-foreground mb-1.5">Terms & Conditions</h4>
+                        <div className="space-y-0.5">
+                          <p className="text-[10px] text-muted-foreground leading-relaxed">1. Goods once sold will only be taken back or exchanged as per company policy.</p>
+                          <p className="text-[10px] text-muted-foreground leading-relaxed">2. Payment is due within 7 days of the invoice date. A 5% late fee will be charged on overdue payments.</p>
+                          <p className="text-[10px] text-muted-foreground leading-relaxed">3. All disputes are subject to Pune jurisdiction.</p>
+                          <p className="text-[10px] text-muted-foreground leading-relaxed">4. Warranty as per product terms and conditions.</p>
+                        </div>
+                      </div>
+                      <div className="text-right flex flex-col items-end shrink-0 pt-[10px]">
+                        <img src="/signature.png" alt="Signature" className="w-[120px] h-auto object-contain mb-[5px]" onError={(e) => e.currentTarget.style.display = 'none'} />
+                        <p className="text-xs font-bold text-foreground">Authorized Signatory</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">For DECOUVERTES FUTURE TECH PRIVATE LIMITED</p>
+                      </div>
                   </div>
                 </div>
 

@@ -110,6 +110,22 @@ const fetchUpiQr = async (): Promise<string | null> => {
   }
 };
 
+const fetchSignature = async (): Promise<string | null> => {
+  try {
+    const res = await fetch('/signature.png');
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+};
+
 export interface InvoiceItem {
   description?: string;
   name?: string;
@@ -242,7 +258,8 @@ function renderInvoicePdf(
   totalSgst: number,
   totalIgst: number,
   logoBase64: string | null,
-  qrBase64: string | null
+  qrBase64: string | null,
+  signatureBase64: string | null
 ) {
   const isManual = !invoice.order_id;
   const { width: pw, height: ph, margin: M } = PAGE;
@@ -846,6 +863,32 @@ function renderInvoicePdf(
     });
   });
 
+  // --- 3.5 SIGNATURE (RIGHT) ---
+  const sigBlockHeight = 22;
+  renderRight(sigBlockHeight, (startY) => {
+    const rx = M + sumLeftW + 10;
+    const centerX = rx + (sumRightW / 2);
+    let sy = startY + 2.5; // ~10px margin above signature
+
+    if (signatureBase64) {
+      try {
+        // Passing 0 for height auto-scales the height, preserving aspect ratio perfectly
+        doc.addImage(signatureBase64, "PNG", centerX - 16, sy, 32, 0);
+      } catch { /* ignore */ }
+    }
+    sy += 13.5; // Account for approx image height + 5px margin below
+
+    doc.setFontSize(7.5);
+    doc.setTextColor(...COLORS.primary);
+    doc.setFont("helvetica", "bold");
+    doc.text("Authorized Signatory", centerX, sy, { align: "center" });
+    sy += 3.5;
+    doc.setFontSize(5.5);
+    doc.setTextColor(...COLORS.muted);
+    doc.setFont("helvetica", "normal");
+    doc.text("For DECOUVERTES FUTURE TECH PRIVATE LIMITED", centerX, sy, { align: "center" });
+  });
+
   // --- 4. UPI PAYMENT (RIGHT) ---
   renderRight(upiBlockHeight, (startY) => {
     const rx = M + sumLeftW + 10;
@@ -941,7 +984,8 @@ export function useUnifiedInvoicePdf() {
 
     const logoBase64 = await fetchLogoAsBase64();
     const qrBase64 = await fetchUpiQr();
-    renderInvoicePdf(doc, invoice, items, isIgst, totalCgst, totalSgst, totalIgst, logoBase64, qrBase64);
+    const signatureBase64 = await fetchSignature();
+    renderInvoicePdf(doc, invoice, items, isIgst, totalCgst, totalSgst, totalIgst, logoBase64, qrBase64, signatureBase64);
     return doc.output("blob");
   }, []);
 
