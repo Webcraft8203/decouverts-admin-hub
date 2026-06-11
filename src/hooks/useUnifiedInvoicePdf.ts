@@ -846,7 +846,7 @@ function renderInvoicePdf(
   });
 
   // --- 4. SIGNATURE (RIGHT) ---
-  const sigBlockHeight = 60;
+  const sigBlockHeight = 45;
   renderRight(sigBlockHeight, (startY) => {
     const rx = M + sumLeftW + 10;
     const centerX = rx + (sumRightW / 2);
@@ -854,15 +854,20 @@ function renderInvoicePdf(
 
     if (signatureBase64) {
       try {
-        // Passing 0 for height auto-scales the height, preserving aspect ratio perfectly
-        // Width 40mm (~150px) to match the HTML preview
-        doc.addImage(signatureBase64, "PNG", centerX - 20, sy, 40, 0);
-      } catch { /* ignore */ }
+        const imgProps = doc.getImageProperties(signatureBase64);
+        const imgWidth = 26.5; // ~100px
+        const imgHeight = (imgProps.height / imgProps.width) * imgWidth;
+        doc.addImage(signatureBase64, "PNG", centerX - (imgWidth / 2), sy, imgWidth, imgHeight);
+        sy += imgHeight;
+      } catch {
+        doc.addImage(signatureBase64, "PNG", centerX - 13.25, sy, 26.5, 0);
+        sy += 20;
+      }
     }
-    sy += 40; // Accommodate company stamp and signature
+    sy += 4; // ~15px gap
 
     doc.setFontSize(7);
-    doc.setTextColor(60, 60, 60);
+    doc.setTextColor(85, 85, 85); // #555
     doc.setFont("helvetica", "normal");
     doc.text("Authorized Signatory", centerX, sy, { align: "center" });
 
