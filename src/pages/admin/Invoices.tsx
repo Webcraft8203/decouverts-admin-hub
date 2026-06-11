@@ -185,7 +185,8 @@ export default function Invoices() {
         total_amount, subtotal, tax_amount, items, notes, pdf_url, created_at, delivery_date,
         order_id, buyer_state, seller_state, is_igst, cgst_amount, sgst_amount, igst_amount, buyer_gstin,
         category_code, financial_year, serial_number,
-        payment_status, payment_method, payment_reference, payment_date, payment_notes
+        payment_status, payment_method, payment_reference, payment_date, payment_notes,
+        proforma_status, converted_to_invoice_id, source_proforma_id
       `)
       .order("created_at", { ascending: false });
 
