@@ -106,7 +106,8 @@ const invoiceStatusConfig = {
   cod_settled: { label: "COD Settled", color: "bg-green-100 text-green-700 border-green-200", icon: CheckCircle },
   
   // Offline payment
-  offline_paid: { label: "Offline Paid", color: "bg-purple-100 text-purple-700 border-purple-200", icon: Banknote },
+  offline_paid: { label: "Paid", color: "bg-green-100 text-green-700 border-green-200", icon: CheckCircle },
+  offline_partial: { label: "Partially Paid", color: "bg-yellow-100 text-yellow-700 border-yellow-200", icon: Banknote },
   offline_unpaid: { label: "Unpaid", color: "bg-orange-100 text-orange-700 border-orange-200", icon: Clock },
   
   failed: { label: "Failed", color: "bg-red-100 text-red-700 border-red-200", icon: AlertCircle },
