@@ -485,6 +485,84 @@ export default function Invoices() {
     setDialogOpen(true);
   };
 
+  const handleConvertToFinal = async (proforma: Invoice) => {
+    if ((proforma as any).converted_to_invoice_id) {
+      toast({ title: "Already converted", description: "This proforma has already been converted to a final invoice.", variant: "destructive" });
+      return;
+    }
+    const catCode = (proforma as any).category_code;
+    if (!catCode) {
+      toast({ title: "Missing category", description: "Proforma must have an invoice category before conversion.", variant: "destructive" });
+      return;
+    }
+    if (!window.confirm(`Convert ${proforma.invoice_number} to a Final Tax Invoice?\n\nA new final invoice will be generated using all the proforma data.`)) return;
+
+    setIsConverting(true);
+    try {
+      // Generate new structured number for final invoice
+      const { data: numData, error: numErr } = await supabase.rpc(
+        "generate_structured_invoice_number" as any,
+        { _category_code: catCode }
+      );
+      if (numErr || !numData) throw new Error(numErr?.message || "Failed to generate invoice number");
+      const row: any = Array.isArray(numData) ? numData[0] : numData;
+
+      const insertPayload: any = {
+        invoice_number: row.invoice_number,
+        invoice_type: "final",
+        is_final: true,
+        client_name: proforma.client_name,
+        client_email: proforma.client_email || null,
+        client_address: proforma.client_address || null,
+        items: JSON.parse(JSON.stringify(proforma.items || [])),
+        subtotal: proforma.subtotal,
+        tax_amount: proforma.tax_amount,
+        total_amount: proforma.total_amount,
+        cgst_amount: proforma.cgst_amount || 0,
+        sgst_amount: proforma.sgst_amount || 0,
+        igst_amount: proforma.igst_amount || 0,
+        is_igst: proforma.is_igst || false,
+        buyer_state: proforma.buyer_state || null,
+        seller_state: COMPANY_SETTINGS.business_state,
+        buyer_gstin: proforma.buyer_gstin || null,
+        notes: proforma.notes || null,
+        category_code: row.category_code,
+        financial_year: row.financial_year,
+        serial_number: row.serial_number,
+        payment_status: "unpaid",
+        source_proforma_id: proforma.id,
+        created_by: user?.id,
+      };
+
+      const { data: inserted, error: insErr } = await supabase
+        .from("invoices")
+        .insert([insertPayload])
+        .select("id, invoice_number")
+        .single();
+      if (insErr) throw insErr;
+
+      // Mark proforma as converted + link
+      const { error: updErr } = await supabase
+        .from("invoices")
+        .update({
+          proforma_status: "converted",
+          converted_to_invoice_id: inserted!.id,
+        } as any)
+        .eq("id", proforma.id);
+      if (updErr) throw updErr;
+
+      toast({
+        title: "Converted to Final Invoice",
+        description: `${proforma.invoice_number} → ${inserted!.invoice_number}`,
+      });
+      fetchData();
+    } catch (e: any) {
+      toast({ title: "Conversion failed", description: e?.message || "Could not convert proforma.", variant: "destructive" });
+    } finally {
+      setIsConverting(false);
+    }
+  };
+
   const openEmailDialog = (invoice: Invoice) => {
     setEmailTarget(invoice);
     setEmailRecipient(invoice.client_email || "");
