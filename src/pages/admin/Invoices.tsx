@@ -1643,15 +1643,22 @@ export default function Invoices() {
                                     </Button>
                                   </>
                                  )}
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleDelete(invoice)}
-                                  className="text-destructive hover:text-destructive"
-                                  title="Delete"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
+                                {(invoice as any).payment_status !== "paid" && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleDelete(invoice)}
+                                    className="text-destructive hover:text-destructive"
+                                    title="Delete"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                )}
+                                {(invoice as any).payment_status === "paid" && (
+                                  <span title="Paid invoices are locked" className="inline-flex items-center justify-center h-10 w-10 text-muted-foreground/40">
+                                    🔒
+                                  </span>
+                                )}
                                </div>
                             </TableCell>
                           </TableRow>
