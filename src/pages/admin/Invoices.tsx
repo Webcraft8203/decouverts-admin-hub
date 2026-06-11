@@ -378,36 +378,53 @@ export default function Invoices() {
       serialNumber = row.serial_number;
     }
 
-    const payload: any = {
-      invoice_number: invoiceNumber,
-      invoice_type: "final",
-      is_final: true,
-      client_name: formData.client_name,
-      client_email: formData.client_email || null,
-      client_address: formData.client_address || null,
-      items: JSON.parse(JSON.stringify(invoiceItems)),
-      subtotal: totals.subtotal,
-      tax_amount: totals.totalTax,
-      total_amount: totals.grandTotal,
-      cgst_amount: totals.totalCgst,
-      sgst_amount: totals.totalSgst,
-      igst_amount: totals.totalIgst,
-      is_igst: isInterState,
-      buyer_state: formData.buyer_state,
-      seller_state: COMPANY_SETTINGS.business_state,
-      buyer_gstin: formData.buyer_gstin || null,
-      notes: formData.notes || null,
-      category_code: categoryCode,
-      financial_year: financialYear,
-      serial_number: serialNumber,
-      payment_status: formData.payment_status || "unpaid",
-      payment_method: formData.payment_status === "paid" ? (formData.payment_method || null) : null,
-      payment_reference: formData.payment_status === "paid" ? (formData.payment_reference || null) : null,
-      payment_date: formData.payment_status === "paid"
-        ? (formData.payment_date ? new Date(formData.payment_date).toISOString() : new Date().toISOString())
-        : null,
-      payment_notes: formData.payment_status === "paid" ? (formData.payment_notes || null) : null,
-    };
+    const isFinalType = formData.invoice_type === "final";
+    const isLockedPaid =
+      !!editingInvoice &&
+      (editingInvoice.invoice_type === "final" || editingInvoice.is_final) &&
+      ((editingInvoice as any).payment_status === "paid");
+
+    let payload: any;
+
+    if (isLockedPaid) {
+      // Paid final invoices: only payment notes/reference editable
+      payload = {
+        payment_notes: formData.payment_notes || null,
+        payment_reference: formData.payment_reference || null,
+      };
+    } else {
+      payload = {
+        invoice_number: invoiceNumber,
+        invoice_type: isFinalType ? "final" : "proforma",
+        is_final: isFinalType,
+        client_name: formData.client_name,
+        client_email: formData.client_email || null,
+        client_address: formData.client_address || null,
+        items: JSON.parse(JSON.stringify(invoiceItems)),
+        subtotal: totals.subtotal,
+        tax_amount: totals.totalTax,
+        total_amount: totals.grandTotal,
+        cgst_amount: totals.totalCgst,
+        sgst_amount: totals.totalSgst,
+        igst_amount: totals.totalIgst,
+        is_igst: isInterState,
+        buyer_state: formData.buyer_state,
+        seller_state: COMPANY_SETTINGS.business_state,
+        buyer_gstin: formData.buyer_gstin || null,
+        notes: formData.notes || null,
+        category_code: categoryCode,
+        financial_year: financialYear,
+        serial_number: serialNumber,
+        proforma_status: isFinalType ? null : (formData.proforma_status || "draft"),
+        payment_status: isFinalType ? (formData.payment_status || "unpaid") : "unpaid",
+        payment_method: isFinalType && formData.payment_status === "paid" ? (formData.payment_method || null) : null,
+        payment_reference: isFinalType && formData.payment_status === "paid" ? (formData.payment_reference || null) : null,
+        payment_date: isFinalType && formData.payment_status === "paid"
+          ? (formData.payment_date ? new Date(formData.payment_date).toISOString() : new Date().toISOString())
+          : null,
+        payment_notes: isFinalType && formData.payment_status === "paid" ? (formData.payment_notes || null) : null,
+      };
+    }
 
     let error;
     if (editingInvoiceId) {
@@ -427,6 +444,7 @@ export default function Invoices() {
     });
     setDialogOpen(false);
     setEditingInvoiceId(null);
+    setEditingInvoice(null);
     setFormData(emptyFormData);
     setItems([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
     fetchData();
