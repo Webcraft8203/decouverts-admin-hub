@@ -145,10 +145,14 @@ export default function Invoices() {
     payment_reference: "",
     payment_date: "",
     payment_notes: "",
+    invoice_type: "proforma" as "proforma" | "final",
+    proforma_status: "draft" as "draft" | "sent" | "accepted" | "rejected" | "converted",
   };
   const [formData, setFormData] = useState(emptyFormData);
   const [items, setItems] = useState<InvoiceItem[]>([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
   const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
+  const [isConverting, setIsConverting] = useState(false);
 
   // Email-invoice state
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
