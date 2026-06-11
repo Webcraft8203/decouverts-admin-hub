@@ -1940,14 +1940,15 @@ export default function Invoices() {
                           <p className="text-[10px] text-muted-foreground leading-relaxed">4. Warranty as per product terms and conditions.</p>
                         </div>
                       </div>
-                      <div className="flex flex-col items-center shrink-0 min-w-[120px]">
+                      <div className="flex flex-col items-center shrink-0 min-w-[130px]">
                         <img 
                           src="/signature.png" 
                           alt="Signature" 
-                          className="block w-[100px] h-auto object-contain" 
+                          className="block w-[125px] h-auto object-contain" 
                           onError={(e) => e.currentTarget.style.display = 'none'} 
                         />
-                        <span className="mt-[12px] text-[9px] font-normal text-[#555555] text-center leading-none">
+                        <div className="h-3" />
+                        <span className="text-[9px] font-normal text-[#555555] text-center leading-none">
                           Authorized Signatory
                         </span>
                       </div>

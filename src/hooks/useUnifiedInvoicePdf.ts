@@ -846,7 +846,7 @@ function renderInvoicePdf(
   });
 
   // --- 4. SIGNATURE (RIGHT) ---
-  const sigBlockHeight = 45;
+  const sigBlockHeight = 50;
   renderRight(sigBlockHeight, (startY) => {
     const rx = M + sumLeftW + 10;
     const centerX = rx + (sumRightW / 2);
@@ -855,12 +855,12 @@ function renderInvoicePdf(
     if (signatureBase64) {
       try {
         const imgProps = doc.getImageProperties(signatureBase64);
-        const imgWidth = 26.5; // ~100px
+        const imgWidth = 33; // ~125px
         const imgHeight = (imgProps.height / imgProps.width) * imgWidth;
         doc.addImage(signatureBase64, "PNG", centerX - (imgWidth / 2), sy, imgWidth, imgHeight);
         sy += imgHeight;
       } catch {
-        doc.addImage(signatureBase64, "PNG", centerX - 13.25, sy, 26.5, 0);
+        doc.addImage(signatureBase64, "PNG", centerX - 16.5, sy, 33, 0);
         sy += 20;
       }
     }
