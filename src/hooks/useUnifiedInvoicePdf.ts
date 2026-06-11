@@ -878,11 +878,6 @@ function renderInvoicePdf(
     doc.setFont("helvetica", "normal");
     doc.text("CEO", centerX, sy, { align: "center" });
 
-    sy += 4.5; // ~4px spacing + line height
-    doc.setFontSize(7); // matches ~10px
-    doc.setTextColor(102, 102, 102); // #666
-    doc.setFont("helvetica", "normal");
-    doc.text("DECOUVERTES FUTURE TECH PRIVATE LIMITED", centerX, sy, { align: "center" });
   });
 
   // --- 5. TERMS & CONDITIONS (LEFT) ---
