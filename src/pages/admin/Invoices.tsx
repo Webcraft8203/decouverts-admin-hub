@@ -1940,10 +1940,12 @@ export default function Invoices() {
                           <p className="text-[10px] text-muted-foreground leading-relaxed">4. Warranty as per product terms and conditions.</p>
                         </div>
                       </div>
-                      <div className="flex flex-col items-center shrink-0 pt-[10px]">
-                        <img src="/signature.png" alt="Signature" className="w-[160px] h-auto object-contain mb-[5px]" onError={(e) => e.currentTarget.style.display = 'none'} />
-                        <p className="text-xs font-bold text-foreground text-center">Authorized Signatory</p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5 text-center">For DECOUVERTES FUTURE TECH PRIVATE LIMITED</p>
+                      <div className="flex flex-col items-center shrink-0 min-w-[150px]">
+                        <img src="/signature.png" alt="Signature" className="w-[150px] h-auto object-contain mb-[10px]" onError={(e) => e.currentTarget.style.display = 'none'} />
+                        <p className="text-[13px] font-[700] text-[#000] text-center mb-[5px] leading-tight">Authorized Signatory</p>
+                        <p className="text-[12px] font-[600] text-[#111] text-center mb-[3px] leading-tight">Mr. Shivam Soni</p>
+                        <p className="text-[11px] font-[500] text-[#444] text-center mb-[2px] leading-tight">CEO</p>
+                        <p className="text-[10px] font-[500] text-[#666] text-center leading-tight">DECOUVERTES FUTURE TECH PRIVATE LIMITED</p>
                       </div>
                   </div>
                 </div>

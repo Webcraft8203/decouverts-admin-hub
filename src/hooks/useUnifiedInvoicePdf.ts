@@ -850,26 +850,39 @@ function renderInvoicePdf(
   renderRight(sigBlockHeight, (startY) => {
     const rx = M + sumLeftW + 10;
     const centerX = rx + (sumRightW / 2);
-    let sy = startY + 12; // Pushed down to comfortably occupy the remaining space
+    let sy = startY + 7;
 
     if (signatureBase64) {
       try {
         // Passing 0 for height auto-scales the height, preserving aspect ratio perfectly
-        // Increased width to 45mm (~170px)
-        doc.addImage(signatureBase64, "PNG", centerX - 22.5, sy, 45, 0);
+        // Width 40mm (~150px) to match the HTML preview
+        doc.addImage(signatureBase64, "PNG", centerX - 20, sy, 40, 0);
       } catch { /* ignore */ }
     }
-    sy += 18; // Account for approx image height + 5px margin below
+    sy += 15; // Fixed image height allocation + 10px spacing above "Authorized Signatory"
 
-    doc.setFontSize(7.5);
-    doc.setTextColor(...COLORS.primary);
+    doc.setFontSize(8);
+    doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "bold");
     doc.text("Authorized Signatory", centerX, sy, { align: "center" });
-    sy += 3.5;
-    doc.setFontSize(5.5);
-    doc.setTextColor(...COLORS.muted);
+    
+    sy += 4.5; // ~5px spacing + line height
+    doc.setFontSize(7);
+    doc.setTextColor(17, 17, 17); // #111
+    doc.setFont("helvetica", "bold");
+    doc.text("Mr. Shivam Soni", centerX, sy, { align: "center" });
+    
+    sy += 3.5; // ~3px spacing + line height
+    doc.setFontSize(6.5);
+    doc.setTextColor(68, 68, 68); // #444
     doc.setFont("helvetica", "normal");
-    doc.text("For DECOUVERTES FUTURE TECH PRIVATE LIMITED", centerX, sy, { align: "center" });
+    doc.text("CEO", centerX, sy, { align: "center" });
+
+    sy += 3.2; // ~2px spacing + line height
+    doc.setFontSize(5.5);
+    doc.setTextColor(102, 102, 102); // #666
+    doc.setFont("helvetica", "normal");
+    doc.text("DECOUVERTES FUTURE TECH PRIVATE LIMITED", centerX, sy, { align: "center" });
   });
 
   // --- 5. TERMS & CONDITIONS (LEFT) ---
