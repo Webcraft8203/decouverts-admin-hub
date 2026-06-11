@@ -692,7 +692,9 @@ export default function Invoices() {
     // Offline/Manual invoices - based on admin-recorded payment status
     if (isOffline) {
       const manualStatus = (invoice as any).payment_status;
-      return manualStatus === "paid" ? invoiceStatusConfig.offline_paid : invoiceStatusConfig.offline_unpaid;
+      if (manualStatus === "paid") return invoiceStatusConfig.offline_paid;
+      if (manualStatus === "partially_paid") return invoiceStatusConfig.offline_partial;
+      return invoiceStatusConfig.offline_unpaid;
     }
     
     // COD orders
