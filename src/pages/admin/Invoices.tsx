@@ -901,7 +901,7 @@ export default function Invoices() {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  Determines invoice number format: <code>DFT/&lt;FY&gt;/&lt;CATEGORY&gt;/###</code>
+                  Determines invoice number format: <code>DFT&lt;FY&gt;&lt;CATEGORY&gt;###</code>
                   {editingInvoiceId && " (locked when editing)"}
                 </p>
               </div>
