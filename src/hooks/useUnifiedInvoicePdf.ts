@@ -110,22 +110,6 @@ const fetchSignature = async (): Promise<string | null> => {
   }
 };
 
-const fetchCompanyStamp = async (): Promise<string | null> => {
-  try {
-    const res = await fetch('/company-stamp.png');
-    if (!res.ok) return null;
-    const blob = await res.blob();
-    return await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return null;
-  }
-};
-
 export interface InvoiceItem {
   description?: string;
   name?: string;
@@ -258,8 +242,7 @@ function renderInvoicePdf(
   totalSgst: number,
   totalIgst: number,
   logoBase64: string | null,
-  signatureBase64: string | null,
-  stampBase64: string | null
+  signatureBase64: string | null
 ) {
   const isManual = !invoice.order_id;
   const { width: pw, height: ph, margin: M } = PAGE;
@@ -863,19 +846,11 @@ function renderInvoicePdf(
   });
 
   // --- 4. SIGNATURE (RIGHT) ---
-  const sigBlockHeight = 100;
+  const sigBlockHeight = 60;
   renderRight(sigBlockHeight, (startY) => {
     const rx = M + sumLeftW + 10;
     const centerX = rx + (sumRightW / 2);
     let sy = startY + 5;
-
-    if (stampBase64) {
-      try {
-        // Width 32mm (~120px) to match the HTML preview
-        doc.addImage(stampBase64, "PNG", centerX - 16, sy, 32, 0);
-      } catch { /* ignore */ }
-      sy += 37; // 32mm image height + 5mm (~20px) spacing
-    }
 
     if (signatureBase64) {
       try {
@@ -963,8 +938,7 @@ export function useUnifiedInvoicePdf() {
 
     const logoBase64 = await fetchLogoAsBase64();
     const signatureBase64 = await fetchSignature();
-    const stampBase64 = await fetchCompanyStamp();
-    renderInvoicePdf(doc, invoice, items, isIgst, totalCgst, totalSgst, totalIgst, logoBase64, signatureBase64, stampBase64);
+    renderInvoicePdf(doc, invoice, items, isIgst, totalCgst, totalSgst, totalIgst, logoBase64, signatureBase64);
     return doc.output("blob");
   }, []);
 
