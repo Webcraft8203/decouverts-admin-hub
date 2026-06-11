@@ -859,24 +859,12 @@ function renderInvoicePdf(
         doc.addImage(signatureBase64, "PNG", centerX - 20, sy, 40, 0);
       } catch { /* ignore */ }
     }
-    sy += 25; // Allocating sufficient image height to avoid overlap + 15px spacing above "Authorized Signatory"
+    sy += 40; // Accommodate company stamp and signature
 
-    doc.setFontSize(10); // matches ~14px
-    doc.setTextColor(0, 0, 0);
-    doc.setFont("helvetica", "bold");
-    doc.text("Authorized Signatory", centerX, sy, { align: "center" });
-    
-    sy += 5; // ~8px spacing + line height
-    doc.setFontSize(9); // matches ~13px
-    doc.setTextColor(17, 17, 17); // #111
-    doc.setFont("helvetica", "bold");
-    doc.text("Mr. Shivam Soni", centerX, sy, { align: "center" });
-    
-    sy += 4.5; // ~4px spacing + line height
-    doc.setFontSize(8.5); // matches ~12px
-    doc.setTextColor(68, 68, 68); // #444
+    doc.setFontSize(7);
+    doc.setTextColor(60, 60, 60);
     doc.setFont("helvetica", "normal");
-    doc.text("CEO", centerX, sy, { align: "center" });
+    doc.text("Authorized Signatory", centerX, sy, { align: "center" });
 
   });
 

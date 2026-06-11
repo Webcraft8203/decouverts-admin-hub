@@ -1942,10 +1942,7 @@ export default function Invoices() {
                       </div>
                       <div className="flex flex-col items-center shrink-0 min-w-[150px] min-h-[240px]">
                         <img src="/signature.png" alt="Signature" className="w-[150px] h-auto object-contain mb-[15px]" onError={(e) => e.currentTarget.style.display = 'none'} />
-                        <p className="text-[14px] font-[700] text-[#000] text-center mb-[8px] leading-none">Authorized Signatory</p>
-                        <p className="text-[13px] font-[600] text-[#111] text-center mb-[4px] leading-none">Mr. Shivam Soni</p>
-                        <p className="text-[12px] font-[500] text-[#444] text-center mb-[4px] leading-none">CEO</p>
-                        <p className="text-[10px] font-[500] text-[#666] text-center leading-none">DECOUVERTES FUTURE TECH PRIVATE LIMITED</p>
+                        <p className="text-[11px] font-normal text-[#3c3c3c] text-center mt-[25px] leading-none">Authorized Signatory</p>
                       </div>
                   </div>
                 </div>
