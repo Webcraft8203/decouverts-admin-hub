@@ -137,10 +137,10 @@ export default function CustomerMaster() {
     setDetails(c);
     setDetailsOpen(true);
     setHistoryLoading(true);
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("invoices")
       .select("id, invoice_number, invoice_type, is_final, total_amount, payment_status, created_at")
-      .eq("customer_id" as any, c.id)
+      .eq("customer_id", c.id)
       .order("created_at", { ascending: false });
     setHistory((data as InvoiceLite[]) || []);
     setHistoryLoading(false);
