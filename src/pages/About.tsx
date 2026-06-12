@@ -7,7 +7,7 @@ import {
   Check, Target, Cpu, BookOpen, Rocket, Shield, Globe, 
   Lightbulb, Award, Zap, Users, ArrowRight, CheckCircle2,
   Microscope, Factory, ShieldCheck, BadgeCheck,
-  Printer, Plane, PenTool, Search, Hammer, Package, Layers, Settings
+  Printer, Plane, PenTool, Search, Hammer, Package, Layers, Settings, Download, FileText
 } from "lucide-react";
 import { motion, useInView, animate } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -215,6 +215,93 @@ const About = () => {
                 </motion.div>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Company Profile Download */}
+        <section className="py-24 px-4 bg-white border-t border-slate-100">
+          <div className="max-w-6xl mx-auto">
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7 }}
+              className="bg-white rounded-3xl p-8 md:p-12 shadow-xl shadow-slate-200/50 border border-slate-100 relative overflow-hidden"
+            >
+              {/* Decorative Background Elements */}
+              <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-orange-50 to-transparent pointer-events-none"></div>
+              <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-orange-100/50 rounded-full blur-3xl pointer-events-none"></div>
+              
+              <div className="grid md:grid-cols-2 gap-12 items-center relative z-10">
+                <div>
+                  <span className="inline-block py-1 px-3 rounded-full bg-orange-50 text-orange-600 text-xs font-bold tracking-widest uppercase mb-6 border border-orange-100">
+                    Corporate Profile
+                  </span>
+                  <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 tracking-tight">
+                    Download Our <br className="hidden md:block" />
+                    Company Profile
+                  </h2>
+                  <p className="text-lg text-slate-600 leading-relaxed mb-8">
+                    Explore our complete company profile featuring our vision, engineering capabilities, manufacturing expertise, R&D initiatives, products, leadership team, and future roadmap.
+                  </p>
+                  
+                  <ul className="space-y-3 mb-8">
+                    {[
+                      "Company Overview",
+                      "Products & Solutions",
+                      "Engineering Capabilities",
+                      "Leadership Team",
+                      "Future Roadmap"
+                    ].map((feature, i) => (
+                      <li key={i} className="flex items-center gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-orange-500 flex-shrink-0" />
+                        <span className="font-medium text-slate-700">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <a href="/CompanyProfile.pdf" download="Decouvertes-Company-Profile.pdf" className="inline-block w-full sm:w-auto">
+                      <Button className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white h-12 rounded-xl px-8 shadow-lg shadow-slate-900/20 group transition-all">
+                        <Download className="w-4 h-4 mr-2 group-hover:-translate-y-0.5 transition-transform" />
+                        Download Company Profile
+                      </Button>
+                    </a>
+                    <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
+                      <FileText className="w-4 h-4 text-slate-400" />
+                      PDF Document
+                    </div>
+                  </div>
+                </div>
+
+                <div className="hidden md:flex justify-center relative">
+                  {/* Floating Document Illustration */}
+                  <motion.div 
+                    whileHover={{ y: -10 }}
+                    className="relative w-full max-w-sm aspect-[3/4] bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 flex flex-col"
+                  >
+                    <div className="w-full h-48 bg-slate-50 rounded-xl mb-6 flex items-center justify-center relative overflow-hidden border border-slate-100">
+                      <Globe className="w-16 h-16 text-slate-300" />
+                    </div>
+                    <div className="space-y-4 flex-1">
+                      <div className="h-4 w-3/4 bg-slate-100 rounded-full"></div>
+                      <div className="h-4 w-1/2 bg-slate-100 rounded-full"></div>
+                      <div className="h-4 w-5/6 bg-slate-100 rounded-full"></div>
+                    </div>
+                    <div className="mt-auto pt-6 border-t border-slate-100 flex items-center justify-between">
+                      <div className="h-8 w-24 bg-orange-50 rounded-lg border border-orange-100"></div>
+                      <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center">
+                        <ArrowRight className="w-4 h-4 text-slate-400" />
+                      </div>
+                    </div>
+                    {/* Badge on top */}
+                    <div className="absolute -right-6 -top-6 w-20 h-20 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg shadow-orange-500/30 rotate-12 border-4 border-white text-sm">
+                      PDF
+                    </div>
+                  </motion.div>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </section>
 
