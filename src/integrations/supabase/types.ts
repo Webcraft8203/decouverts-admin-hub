@@ -235,6 +235,84 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_master: {
+        Row: {
+          alternate_mobile: string | null
+          billing_address: string | null
+          city: string | null
+          company_name: string | null
+          contact_person: string | null
+          country: string | null
+          created_at: string
+          created_by: string | null
+          customer_name: string
+          customer_type: string
+          email: string | null
+          gst_number: string | null
+          id: string
+          last_invoice_date: string | null
+          mobile_number: string | null
+          notes: string | null
+          pan_number: string | null
+          pincode: string | null
+          shipping_address: string | null
+          source: string
+          state: string | null
+          total_invoices_count: number
+          updated_at: string
+        }
+        Insert: {
+          alternate_mobile?: string | null
+          billing_address?: string | null
+          city?: string | null
+          company_name?: string | null
+          contact_person?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_name: string
+          customer_type?: string
+          email?: string | null
+          gst_number?: string | null
+          id?: string
+          last_invoice_date?: string | null
+          mobile_number?: string | null
+          notes?: string | null
+          pan_number?: string | null
+          pincode?: string | null
+          shipping_address?: string | null
+          source?: string
+          state?: string | null
+          total_invoices_count?: number
+          updated_at?: string
+        }
+        Update: {
+          alternate_mobile?: string | null
+          billing_address?: string | null
+          city?: string | null
+          company_name?: string | null
+          contact_person?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_name?: string
+          customer_type?: string
+          email?: string | null
+          gst_number?: string | null
+          id?: string
+          last_invoice_date?: string | null
+          mobile_number?: string | null
+          notes?: string | null
+          pan_number?: string | null
+          pincode?: string | null
+          shipping_address?: string | null
+          source?: string
+          state?: string | null
+          total_invoices_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       customer_reviews: {
         Row: {
           company_name: string
@@ -1197,6 +1275,7 @@ export type Database = {
           converted_to_invoice_id: string | null
           created_at: string
           created_by: string | null
+          customer_id: string | null
           delivery_date: string | null
           financial_year: string | null
           gst_breakdown: Json | null
@@ -1238,6 +1317,7 @@ export type Database = {
           converted_to_invoice_id?: string | null
           created_at?: string
           created_by?: string | null
+          customer_id?: string | null
           delivery_date?: string | null
           financial_year?: string | null
           gst_breakdown?: Json | null
@@ -1279,6 +1359,7 @@ export type Database = {
           converted_to_invoice_id?: string | null
           created_at?: string
           created_by?: string | null
+          customer_id?: string | null
           delivery_date?: string | null
           financial_year?: string | null
           gst_breakdown?: Json | null
@@ -1315,6 +1396,13 @@ export type Database = {
             columns: ["converted_to_invoice_id"]
             isOneToOne: false
             referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_master"
             referencedColumns: ["id"]
           },
           {
@@ -1389,6 +1477,7 @@ export type Database = {
       }
       newsletter_subscribers: {
         Row: {
+          customer_id: string | null
           email: string
           id: string
           is_active: boolean
@@ -1396,6 +1485,7 @@ export type Database = {
           unsubscribed_at: string | null
         }
         Insert: {
+          customer_id?: string | null
           email: string
           id?: string
           is_active?: boolean
@@ -1403,13 +1493,22 @@ export type Database = {
           unsubscribed_at?: string | null
         }
         Update: {
+          customer_id?: string | null
           email?: string
           id?: string
           is_active?: boolean
           subscribed_at?: string
           unsubscribed_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_subscribers_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_master"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       order_items: {
         Row: {
