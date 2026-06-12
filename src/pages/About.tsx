@@ -400,7 +400,7 @@ const About = () => {
                 { 
                   name: "Mr. Omprakash Soni", 
                   role: "Chairperson", 
-                  image: "shadow",
+                  image: "/OmprakashSoni.png",
                   bio: "Strategic vision, R&D-first culture, and alignment with national goals." 
                 },
                 { 
