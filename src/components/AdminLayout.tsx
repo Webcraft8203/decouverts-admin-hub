@@ -45,6 +45,7 @@ const navItems: NavItem[] = [
   { to: "/admin/salary-reports", icon: Activity, label: "Salary Reports", permissions: ["view_salary_info", "view_accounting"] },
   { to: "/admin/reports", icon: FileBarChart, label: "Reports", permissions: ["view_accounting", "view_revenue", "download_financials"] },
   { to: "/admin/customers", icon: Users, label: "Customers", permissions: ["view_customers"] },
+  { to: "/admin/customer-master", icon: Briefcase, label: "Customer Master", permissions: ["view_customers"] },
   { to: "/admin/employees", icon: Shield, label: "Employees", superAdminOnly: true },
   { to: "/admin/homepage-settings", icon: Home, label: "Homepage Settings", permissions: ["manage_homepage"] },
   { to: "/admin/homepage-images", icon: ImageIcon, label: "Homepage Images", permissions: ["manage_homepage"] },

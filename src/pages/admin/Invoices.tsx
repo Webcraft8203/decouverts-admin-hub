@@ -21,6 +21,7 @@ import { useReportGenerator } from "@/hooks/useReportGenerator";
 import { Plus, Trash2, Download, FileText, Eye, X, Search, Filter, Calendar, CreditCard, Banknote, CheckCircle, Clock, AlertCircle, Receipt, FileCheck, FileDown, Loader2, Mail, Pencil } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { INDIAN_STATES } from "@/constants/indianStates";
+import { CustomerAutocomplete } from "@/components/admin/CustomerAutocomplete";
 import { format } from "date-fns";
 
 // Invoice item interface - standardized
@@ -914,11 +915,19 @@ export default function Invoices() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="client_name">Client Name *</Label>
-                    <Input
+                    <Label htmlFor="client_name">Client Name * <span className="text-xs text-muted-foreground font-normal">(type to search existing customers)</span></Label>
+                    <CustomerAutocomplete
                       id="client_name"
                       value={formData.client_name}
-                      onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
+                      onChange={(v) => setFormData({ ...formData, client_name: v })}
+                      onSelect={(c) => setFormData({
+                        ...formData,
+                        client_name: c.customer_name,
+                        client_email: c.email || formData.client_email,
+                        buyer_gstin: c.gst_number || formData.buyer_gstin,
+                        client_address: c.billing_address || formData.client_address,
+                        buyer_state: c.state || formData.buyer_state,
+                      })}
                       required
                     />
                   </div>
