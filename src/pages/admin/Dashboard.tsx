@@ -80,7 +80,7 @@ export default function Dashboard() {
     }).format(amount);
   };
 
-  const { isSuperAdmin, isEmployee, employeeInfo } = usePermissions();
+  const { isSuperAdmin } = usePermissions();
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -91,12 +91,10 @@ export default function Dashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground">
-            {isEmployee && employeeInfo 
-              ? `Welcome, ${employeeInfo.employee_name.split(' ')[0]}` 
-              : "Analytics Dashboard"}
+            Analytics Dashboard
           </h1>
           <p className="text-muted-foreground mt-1">
-            {isSuperAdmin 
+            {isSuperAdmin
               ? "Business performance overview for Decouverts Plus"
               : "Your personalized admin dashboard"}
           </p>
@@ -113,8 +111,6 @@ export default function Dashboard() {
         </Button>
       </div>
 
-      {/* Permissions Info Card for Employees */}
-      {isEmployee && <PermissionsInfoCard />}
 
       {/* Key Metrics - Row 1 */}
       <PermissionGate permission={["view_orders", "view_revenue", "view_accounting", "manage_products", "view_customers"]}>
