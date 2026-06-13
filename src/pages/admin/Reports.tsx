@@ -12,11 +12,11 @@ import { Badge } from "@/components/ui/badge";
 import {
   Download, Calendar, ShoppingCart, TrendingUp, Users, Package, Boxes, Receipt,
   Loader2, Shield, BarChart3, Search, AlertTriangle, Truck, Trophy, PieChart,
-  XCircle, CalendarCheck, Wallet,
+  XCircle, Wallet,
 } from "lucide-react";
 import { format, startOfMonth, endOfMonth, subMonths, startOfYear, endOfYear, subDays } from "date-fns";
 
-type ReportCategory = "quick" | "financial" | "operations" | "inventory" | "hr";
+type ReportCategory = "quick" | "financial" | "operations" | "inventory";
 
 interface ReportDef {
   id: string;
@@ -116,11 +116,8 @@ export default function Reports() {
       color: "text-amber-600", bgColor: "bg-amber-500/10", borderColor: "border-amber-500/20",
       run: () => r.generateRawMaterialsReport() },
 
-    // HR
-    { id: "attendance", title: "Employee Attendance", description: "Per-employee attendance summary for the period", icon: CalendarCheck, category: "hr", needsDateRange: true,
-      color: "text-indigo-600", bgColor: "bg-indigo-500/10", borderColor: "border-indigo-500/20",
-      run: ({ start, end }) => r.generateAttendanceReport(start, end) },
   ], [r]);
+
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -216,7 +213,6 @@ export default function Reports() {
     { value: "financial", label: "Financial", filter: (rep) => rep.category === "financial" },
     { value: "operations", label: "Operations", filter: (rep) => rep.category === "operations" },
     { value: "inventory", label: "Inventory", filter: (rep) => rep.category === "inventory" },
-    { value: "hr", label: "HR & Payroll", filter: (rep) => rep.category === "hr" },
   ];
 
   return (

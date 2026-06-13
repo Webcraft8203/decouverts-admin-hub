@@ -8,7 +8,6 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { AdminLayout } from "@/components/AdminLayout";
-import { PermissionProtectedRoute } from "@/components/admin/PermissionProtectedRoute";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { SiteSchema } from "@/components/SEOSchemas";
@@ -21,7 +20,6 @@ import ProductDetail from "./pages/ProductDetail";
 import Checkout from "./pages/Checkout";
 import CustomerAuth from "./pages/CustomerAuth";
 import Auth from "./pages/Auth";
-import EmployeeAuth from "./pages/EmployeeAuth";
 import Blogs from "./pages/Blogs";
 import BlogDetail from "./pages/BlogDetail";
 import UserDashboard from "./pages/user/Dashboard";
@@ -35,7 +33,6 @@ import UserWishlist from "./pages/user/Wishlist";
 import UserDesignRequests from "./pages/user/DesignRequests";
 import UserDesignRequestDetail from "./pages/user/DesignRequestDetail";
 import CustomPrintRequest from "./pages/user/CustomPrintRequest";
-import EmployeePortal from "./pages/user/EmployeePortal";
 import Dashboard from "./pages/admin/Dashboard";
 import Products from "./pages/admin/Products";
 import Categories from "./pages/admin/Categories";
@@ -61,13 +58,7 @@ import Partners from "./pages/admin/Partners";
 import ShopSlides from "./pages/admin/ShopSlides";
 import BlogSlides from "./pages/admin/BlogSlides";
 import BlogPosts from "./pages/admin/BlogPosts";
-import Employees from "./pages/admin/Employees";
-import EmployeeDetail from "./pages/admin/EmployeeDetail";
 import Accounting from "./pages/admin/Accounting";
-import Attendance from "./pages/admin/Attendance";
-import LeaveManagement from "./pages/admin/LeaveManagement";
-import Payslips from "./pages/admin/Payslips";
-import SalaryReports from "./pages/admin/SalaryReports";
 import Reports from "./pages/admin/Reports";
 import Newsletter from "./pages/admin/Newsletter";
 import VerifyOrder from "./pages/VerifyOrder";
@@ -75,14 +66,9 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Helper component that wraps admin routes with permission protection
 const AdminRoute = ({ children }: { children: React.ReactNode }) => (
   <ProtectedRoute requireAdmin>
-    <AdminLayout>
-      <PermissionProtectedRoute>
-        {children}
-      </PermissionProtectedRoute>
-    </AdminLayout>
+    <AdminLayout>{children}</AdminLayout>
   </ProtectedRoute>
 );
 
@@ -110,7 +96,6 @@ const App = () => (
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/login" element={<CustomerAuth />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/employee-login" element={<EmployeeAuth />} />
               <Route path="/verify-order" element={<VerifyOrder />} />
 
               {/* Protected Customer Routes */}
@@ -126,9 +111,8 @@ const App = () => (
               <Route path="/dashboard/design-requests" element={<ProtectedRoute><UserDesignRequests /></ProtectedRoute>} />
               <Route path="/dashboard/design-requests/:id" element={<ProtectedRoute><UserDesignRequestDetail /></ProtectedRoute>} />
               <Route path="/dashboard/custom-print" element={<ProtectedRoute><CustomPrintRequest /></ProtectedRoute>} />
-              <Route path="/dashboard/employee-portal" element={<ProtectedRoute><EmployeePortal /></ProtectedRoute>} />
 
-              {/* Admin Routes - All wrapped with permission protection */}
+              {/* Admin Routes - super admin only */}
               <Route path="/admin" element={<AdminRoute><Dashboard /></AdminRoute>} />
               <Route path="/admin/products" element={<AdminRoute><Products /></AdminRoute>} />
               <Route path="/admin/categories" element={<AdminRoute><Categories /></AdminRoute>} />
@@ -152,13 +136,7 @@ const App = () => (
               <Route path="/admin/shop-slides" element={<AdminRoute><ShopSlides /></AdminRoute>} />
               <Route path="/admin/blog-slides" element={<AdminRoute><BlogSlides /></AdminRoute>} />
               <Route path="/admin/blog-posts" element={<AdminRoute><BlogPosts /></AdminRoute>} />
-              <Route path="/admin/employees" element={<AdminRoute><Employees /></AdminRoute>} />
-              <Route path="/admin/employees/:id" element={<AdminRoute><EmployeeDetail /></AdminRoute>} />
               <Route path="/admin/accounting" element={<AdminRoute><Accounting /></AdminRoute>} />
-              <Route path="/admin/attendance" element={<AdminRoute><Attendance /></AdminRoute>} />
-              <Route path="/admin/leave-management" element={<AdminRoute><LeaveManagement /></AdminRoute>} />
-              <Route path="/admin/payslips" element={<AdminRoute><Payslips /></AdminRoute>} />
-              <Route path="/admin/salary-reports" element={<AdminRoute><SalaryReports /></AdminRoute>} />
               <Route path="/admin/reports" element={<AdminRoute><Reports /></AdminRoute>} />
               <Route path="/admin/newsletter" element={<AdminRoute><Newsletter /></AdminRoute>} />
 

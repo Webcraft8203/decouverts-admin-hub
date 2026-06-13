@@ -1378,55 +1378,6 @@ export function useReportGenerator() {
     finally { setIsGenerating(false); }
   }, []);
 
-  const generateAttendanceReport = useCallback(async (startDate: Date, endDate: Date) => {
-    setIsGenerating(true);
-    try {
-      const [{ data: employees }, { data: attendance }] = await Promise.all([
-        supabase.from("employees").select("id, employee_name, designation, is_active").eq("is_active", true),
-        supabase.from("employee_attendance").select("employee_id, attendance_date, status")
-          .gte("attendance_date", format(startDate, "yyyy-MM-dd"))
-          .lte("attendance_date", format(endDate, "yyyy-MM-dd")),
-      ]);
-      const summary: Record<string, { present: number; absent: number; leave: number; halfDay: number }> = {};
-      (employees || []).forEach((e: any) => { summary[e.id] = { present: 0, absent: 0, leave: 0, halfDay: 0 }; });
-      (attendance || []).forEach((a: any) => {
-        if (!summary[a.employee_id]) summary[a.employee_id] = { present: 0, absent: 0, leave: 0, halfDay: 0 };
-        const s = (a.status || "").toLowerCase();
-        if (s.includes("half")) summary[a.employee_id].halfDay++;
-        else if (s.includes("present")) summary[a.employee_id].present++;
-        else if (s.includes("absent")) summary[a.employee_id].absent++;
-        else if (s.includes("leave")) summary[a.employee_id].leave++;
-      });
-      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const dateRangeStr = `${format(startDate, "dd MMM")} - ${format(endDate, "dd MMM yyyy")}`;
-      let y = await createReportHeader(doc, {
-        title: "Employee Attendance Summary", subtitle: `Attendance for ${dateRangeStr}`,
-        dateRange: dateRangeStr, badgeText: "ATTENDANCE", badgeColor: colors.accent,
-      });
-      const totals = Object.values(summary).reduce((acc, v) => ({ p: acc.p + v.present, a: acc.a + v.absent, l: acc.l + v.leave, h: acc.h + v.halfDay }), { p: 0, a: 0, l: 0, h: 0 });
-      y = createStatCards(doc, [
-        { label: "Active Employees", value: String((employees || []).length), color: colors.primary },
-        { label: "Present", value: String(totals.p), color: colors.success },
-        { label: "Absent", value: String(totals.a), color: colors.error },
-        { label: "Leaves", value: String(totals.l), color: colors.warning },
-      ], y);
-      if ((employees || []).length > 0) {
-        const tr = createDataTable(doc, ["Employee", "Designation", "Present", "Absent", "Leave", "Half Day"],
-          (employees || []).map((e: any) => {
-            const s = summary[e.id];
-            return [e.employee_name, e.designation || "-", String(s.present), String(s.absent), String(s.leave), String(s.halfDay)];
-          }),
-          y, [50, 38, 22, 22, 22, 28], { valueColumnIndices: [2, 3, 4, 5] });
-        y = tr.nextY;
-      }
-      const tp = doc.getNumberOfPages();
-      for (let i = 1; i <= tp; i++) { doc.setPage(i); addReportFooter(doc, i, tp); }
-      doc.save(`Attendance-${format(startDate, "yyyy-MM-dd")}.pdf`);
-      toast.success("Attendance report downloaded!");
-    } catch (e: any) { console.error(e); toast.error(e?.message || "Failed"); }
-    finally { setIsGenerating(false); }
-  }, []);
-
   return {
     isGenerating,
     generateTodayOrdersReport,
@@ -1442,6 +1393,6 @@ export function useReportGenerator() {
     generateProfitLossReport,
     generateLowStockReport,
     generateCancellationsReport,
-    generateAttendanceReport,
   };
 }
+

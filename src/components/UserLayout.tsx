@@ -1,10 +1,9 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode } from "react";
 import { PublicNavbar } from "./PublicNavbar";
 import { PublicFooter } from "./PublicFooter";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { ShoppingBag, MapPin, FileText, User, ShoppingCart, Heart, Palette, PenTool, Briefcase } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { ShoppingBag, MapPin, FileText, User, ShoppingCart, Heart, Palette, PenTool } from "lucide-react";
 
 interface UserLayoutProps {
   children: ReactNode;
@@ -14,16 +13,14 @@ interface NavItem {
   title: string;
   href: string;
   icon: React.ElementType;
-  employeeOnly?: boolean;
 }
 
-const baseNavItems: NavItem[] = [
+const userNavItems: NavItem[] = [
   { title: "My Orders", href: "/dashboard/orders", icon: ShoppingBag },
   { title: "My Cart", href: "/dashboard/cart", icon: ShoppingCart },
   { title: "Wishlist", href: "/dashboard/wishlist", icon: Heart },
   { title: "Design Requests", href: "/dashboard/design-requests", icon: Palette },
   { title: "Custom Print", href: "/dashboard/custom-print", icon: PenTool },
-  { title: "Employee Portal", href: "/dashboard/employee-portal", icon: Briefcase, employeeOnly: true },
   { title: "Addresses", href: "/dashboard/addresses", icon: MapPin },
   { title: "Invoices", href: "/dashboard/invoices", icon: FileText },
   { title: "Profile", href: "/dashboard/profile", icon: User },
@@ -31,35 +28,14 @@ const baseNavItems: NavItem[] = [
 
 export const UserLayout = ({ children }: UserLayoutProps) => {
   const location = useLocation();
-  const [isEmployee, setIsEmployee] = useState(false);
-
-  useEffect(() => {
-    const checkEmployeeStatus = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const { data } = await supabase
-          .from('employees')
-          .select('id')
-          .eq('user_id', session.user.id)
-          .eq('is_active', true)
-          .maybeSingle();
-        setIsEmployee(!!data);
-      }
-    };
-    checkEmployeeStatus();
-  }, []);
-
-  // Filter nav items based on employee status
-  const userNavItems = baseNavItems.filter(item => !item.employeeOnly || isEmployee);
 
   return (
     <div className="min-h-screen flex flex-col">
       <PublicNavbar />
-      
+
       <main className="flex-1 pt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* Sidebar Navigation */}
             <aside className="lg:w-64 flex-shrink-0">
               <nav className="bg-card border border-border rounded-xl p-4 sticky top-24">
                 <h2 className="font-semibold text-foreground mb-4 px-3">My Account</h2>
@@ -84,10 +60,7 @@ export const UserLayout = ({ children }: UserLayoutProps) => {
               </nav>
             </aside>
 
-            {/* Main Content */}
-            <div className="flex-1 min-w-0">
-              {children}
-            </div>
+            <div className="flex-1 min-w-0">{children}</div>
           </div>
         </div>
       </main>
