@@ -330,6 +330,15 @@ export default function Invoices() {
       return;
     }
 
+    // Validate Indian phone (10 digits, optional +91 / leading 0)
+    const phoneDigits = (formData.client_phone || "").replace(/\D/g, "");
+    const normalizedPhone = phoneDigits.length > 10 ? phoneDigits.slice(-10) : phoneDigits;
+    if (!normalizedPhone || normalizedPhone.length !== 10 || !/^[6-9]\d{9}$/.test(normalizedPhone)) {
+      toast({ title: "Invalid phone", description: "Enter a valid 10-digit Indian mobile number (with or without +91).", variant: "destructive" });
+      return;
+    }
+    formData.client_phone = normalizedPhone;
+
     // Validate HSN codes
     const invalidHsn = items.some(item => !item.hsn_code || !/^[a-zA-Z0-9]{4,10}$/.test(item.hsn_code.trim()));
     if (invalidHsn) {
