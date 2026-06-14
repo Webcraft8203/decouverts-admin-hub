@@ -403,6 +403,7 @@ export default function Invoices() {
         is_final: isFinalType,
         client_name: formData.client_name,
         client_email: formData.client_email || null,
+        client_phone: formData.client_phone || null,
         client_address: formData.client_address || null,
         items: JSON.parse(JSON.stringify(invoiceItems)),
         subtotal: totals.subtotal,
