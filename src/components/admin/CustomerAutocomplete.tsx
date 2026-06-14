@@ -13,6 +13,7 @@ export interface CustomerMasterLite {
   billing_address: string | null;
   state: string | null;
   city: string | null;
+  pincode?: string | null;
   customer_type: string | null;
 }
 

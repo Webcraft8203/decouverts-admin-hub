@@ -258,6 +258,7 @@ export type Database = {
           shipping_address: string | null
           source: string
           state: string | null
+          subscriber_id: string | null
           total_invoices_count: number
           updated_at: string
         }
@@ -283,6 +284,7 @@ export type Database = {
           shipping_address?: string | null
           source?: string
           state?: string | null
+          subscriber_id?: string | null
           total_invoices_count?: number
           updated_at?: string
         }
@@ -308,10 +310,19 @@ export type Database = {
           shipping_address?: string | null
           source?: string
           state?: string | null
+          subscriber_id?: string | null
           total_invoices_count?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "customer_master_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       customer_reviews: {
         Row: {
@@ -732,6 +743,7 @@ export type Database = {
           client_address: string | null
           client_email: string | null
           client_name: string
+          client_phone: string | null
           converted_to_invoice_id: string | null
           created_at: string
           created_by: string | null
@@ -774,6 +786,7 @@ export type Database = {
           client_address?: string | null
           client_email?: string | null
           client_name: string
+          client_phone?: string | null
           converted_to_invoice_id?: string | null
           created_at?: string
           created_by?: string | null
@@ -816,6 +829,7 @@ export type Database = {
           client_address?: string | null
           client_email?: string | null
           client_name?: string
+          client_phone?: string | null
           converted_to_invoice_id?: string | null
           created_at?: string
           created_by?: string | null

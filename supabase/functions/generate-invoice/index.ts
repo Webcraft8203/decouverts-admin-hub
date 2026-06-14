@@ -108,6 +108,8 @@ function renderInvoicePdf(
     is_final: boolean;
     client_name: string;
     client_address: string;
+    client_phone?: string | null;
+    client_email?: string | null;
     buyer_state: string;
     buyer_gstin?: string | null;
     subtotal: number;
@@ -255,6 +257,8 @@ function renderInvoicePdf(
 
   const clientName = (invoiceData.client_name || "Customer").toUpperCase();
   const billedToLines = [clientName];
+  if (invoiceData.client_phone) billedToLines.push(`Phone: ${invoiceData.client_phone}`);
+  if (invoiceData.client_email) billedToLines.push(`Email: ${invoiceData.client_email}`);
   if (invoiceData.client_address) {
     const addrParts = invoiceData.client_address.split(", ").filter(Boolean);
     billedToLines.push(...addrParts.slice(0, 3));
@@ -697,11 +701,13 @@ serve(async (req) => {
       ? `${shippingAddress.address_line1}${shippingAddress.address_line2 ? ", " + shippingAddress.address_line2 : ""}, ${shippingAddress.city}, ${shippingAddress.state} - ${shippingAddress.postal_code}`
       : "";
 
+    const clientPhone = (shippingAddress as any)?.phone || (profile as any)?.phone_number || null;
+
     const { data: invoice, error: invoiceError } = await supabase.from("invoices").insert({
       invoice_number: invoiceNumber, invoice_type: invoiceType, is_final: isFinalInvoice,
       order_id: orderId, delivery_date: isFinalInvoice ? order.delivered_at : null,
       client_name: shippingAddress?.full_name || profile?.full_name || "Customer",
-      client_email: profile?.email || null, client_address: clientAddress, items: items,
+      client_email: profile?.email || null, client_phone: clientPhone, client_address: clientAddress, items: items,
       subtotal: order.subtotal, tax_amount: order.tax_amount, total_amount: order.total_amount,
       cgst_amount: totalCgst, sgst_amount: totalSgst, igst_amount: totalIgst, is_igst: isIgst,
       platform_fee: platformFee, platform_fee_tax: platformFeeTax,
@@ -730,6 +736,8 @@ serve(async (req) => {
       is_final: isFinalInvoice,
       client_name: shippingAddress?.full_name || profile?.full_name || "Customer",
       client_address: clientAddress,
+      client_phone: clientPhone,
+      client_email: profile?.email || null,
       buyer_state: buyerState,
       buyer_gstin: order.buyer_gstin,
       subtotal: order.subtotal,
@@ -738,6 +746,7 @@ serve(async (req) => {
       platform_fee_tax: platformFeeTax,
       order_number: order.order_number,
     }, items, isIgst, totalCgst, totalSgst, totalIgst, logoBase64);
+
 
     const pdfArrayBuffer = doc.output("arraybuffer");
     const pdfUint8Array = new Uint8Array(pdfArrayBuffer);

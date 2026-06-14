@@ -137,6 +137,7 @@ export default function Invoices() {
   const emptyFormData = {
     client_name: "",
     client_email: "",
+    client_phone: "",
     client_address: "",
     notes: "",
     buyer_state: "Maharashtra",
@@ -183,7 +184,7 @@ export default function Invoices() {
     const { data } = await supabase
       .from("invoices")
       .select(`
-        id, invoice_number, invoice_type, is_final, client_name, client_email, client_address, 
+        id, invoice_number, invoice_type, is_final, client_name, client_email, client_phone, client_address, 
         total_amount, subtotal, tax_amount, items, notes, pdf_url, created_at, delivery_date,
         order_id, buyer_state, seller_state, is_igst, cgst_amount, sgst_amount, igst_amount, buyer_gstin,
         category_code, financial_year, serial_number,
@@ -329,6 +330,15 @@ export default function Invoices() {
       return;
     }
 
+    // Validate Indian phone (10 digits, optional +91 / leading 0)
+    const phoneDigits = (formData.client_phone || "").replace(/\D/g, "");
+    const normalizedPhone = phoneDigits.length > 10 ? phoneDigits.slice(-10) : phoneDigits;
+    if (!normalizedPhone || normalizedPhone.length !== 10 || !/^[6-9]\d{9}$/.test(normalizedPhone)) {
+      toast({ title: "Invalid phone", description: "Enter a valid 10-digit Indian mobile number (with or without +91).", variant: "destructive" });
+      return;
+    }
+    formData.client_phone = normalizedPhone;
+
     // Validate HSN codes
     const invalidHsn = items.some(item => !item.hsn_code || !/^[a-zA-Z0-9]{4,10}$/.test(item.hsn_code.trim()));
     if (invalidHsn) {
@@ -402,6 +412,7 @@ export default function Invoices() {
         is_final: isFinalType,
         client_name: formData.client_name,
         client_email: formData.client_email || null,
+        client_phone: formData.client_phone || null,
         client_address: formData.client_address || null,
         items: JSON.parse(JSON.stringify(invoiceItems)),
         subtotal: totals.subtotal,
@@ -463,6 +474,7 @@ export default function Invoices() {
     setFormData({
       client_name: invoice.client_name || "",
       client_email: invoice.client_email || "",
+      client_phone: (invoice as any).client_phone || "",
       client_address: invoice.client_address || "",
       notes: invoice.notes || "",
       buyer_state: invoice.buyer_state || "Maharashtra",
@@ -515,6 +527,7 @@ export default function Invoices() {
         is_final: true,
         client_name: proforma.client_name,
         client_email: proforma.client_email || null,
+        client_phone: (proforma as any).client_phone || null,
         client_address: proforma.client_address || null,
         items: JSON.parse(JSON.stringify(proforma.items || [])),
         subtotal: proforma.subtotal,
@@ -924,6 +937,7 @@ export default function Invoices() {
                         ...formData,
                         client_name: c.customer_name,
                         client_email: c.email || formData.client_email,
+                        client_phone: c.mobile_number || formData.client_phone,
                         buyer_gstin: c.gst_number || formData.buyer_gstin,
                         client_address: c.billing_address || formData.client_address,
                         buyer_state: c.state || formData.buyer_state,
@@ -939,6 +953,19 @@ export default function Invoices() {
                       value={formData.client_email}
                       onChange={(e) => setFormData({ ...formData, client_email: e.target.value })}
                     />
+                  </div>
+                  <div>
+                    <Label htmlFor="client_phone">Customer Phone Number *</Label>
+                    <Input
+                      id="client_phone"
+                      type="tel"
+                      inputMode="tel"
+                      value={formData.client_phone}
+                      onChange={(e) => setFormData({ ...formData, client_phone: e.target.value })}
+                      placeholder="+91 9876543210"
+                      required
+                    />
+                    <p className="text-[11px] text-muted-foreground mt-1">10-digit Indian mobile (with or without +91)</p>
                   </div>
                   <div>
                     <Label htmlFor="buyer_state">Buyer State *</Label>
@@ -1782,8 +1809,9 @@ export default function Invoices() {
                     </div>
                     <div className="px-4 py-3 space-y-0.5">
                       <p className="text-xs font-bold text-foreground">{inv.client_name}</p>
+                      {(inv as any).client_phone && <p className="text-[11px] text-muted-foreground">Phone: {(inv as any).client_phone}</p>}
+                      {inv.client_email && <p className="text-[11px] text-muted-foreground">Email: {inv.client_email}</p>}
                       {inv.client_address && <p className="text-[11px] text-muted-foreground leading-relaxed break-words whitespace-pre-wrap">{inv.client_address}</p>}
-                      {inv.client_email && <p className="text-[11px] text-muted-foreground">{inv.client_email}</p>}
                       {inv.buyer_state && <p className="text-[11px] text-muted-foreground">State: {inv.buyer_state}</p>}
                       {inv.buyer_gstin && <p className="text-[11px] font-semibold text-[#D4AF37] pt-0.5">GSTIN: {inv.buyer_gstin}</p>}
                     </div>
