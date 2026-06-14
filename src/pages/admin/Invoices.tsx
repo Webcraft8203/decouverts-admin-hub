@@ -137,6 +137,7 @@ export default function Invoices() {
   const emptyFormData = {
     client_name: "",
     client_email: "",
+    client_phone: "",
     client_address: "",
     notes: "",
     buyer_state: "Maharashtra",
