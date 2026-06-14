@@ -1809,8 +1809,9 @@ export default function Invoices() {
                     </div>
                     <div className="px-4 py-3 space-y-0.5">
                       <p className="text-xs font-bold text-foreground">{inv.client_name}</p>
+                      {(inv as any).client_phone && <p className="text-[11px] text-muted-foreground">Phone: {(inv as any).client_phone}</p>}
+                      {inv.client_email && <p className="text-[11px] text-muted-foreground">Email: {inv.client_email}</p>}
                       {inv.client_address && <p className="text-[11px] text-muted-foreground leading-relaxed break-words whitespace-pre-wrap">{inv.client_address}</p>}
-                      {inv.client_email && <p className="text-[11px] text-muted-foreground">{inv.client_email}</p>}
                       {inv.buyer_state && <p className="text-[11px] text-muted-foreground">State: {inv.buyer_state}</p>}
                       {inv.buyer_gstin && <p className="text-[11px] font-semibold text-[#D4AF37] pt-0.5">GSTIN: {inv.buyer_gstin}</p>}
                     </div>
