@@ -465,6 +465,7 @@ export default function Invoices() {
     setFormData({
       client_name: invoice.client_name || "",
       client_email: invoice.client_email || "",
+      client_phone: (invoice as any).client_phone || "",
       client_address: invoice.client_address || "",
       notes: invoice.notes || "",
       buyer_state: invoice.buyer_state || "Maharashtra",
