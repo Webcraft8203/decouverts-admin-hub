@@ -257,6 +257,8 @@ function renderInvoicePdf(
 
   const clientName = (invoiceData.client_name || "Customer").toUpperCase();
   const billedToLines = [clientName];
+  if (invoiceData.client_phone) billedToLines.push(`Phone: ${invoiceData.client_phone}`);
+  if (invoiceData.client_email) billedToLines.push(`Email: ${invoiceData.client_email}`);
   if (invoiceData.client_address) {
     const addrParts = invoiceData.client_address.split(", ").filter(Boolean);
     billedToLines.push(...addrParts.slice(0, 3));
