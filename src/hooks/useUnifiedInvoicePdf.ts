@@ -136,6 +136,7 @@ export interface Invoice {
   is_final: boolean;
   client_name: string;
   client_email?: string | null;
+  client_phone?: string | null;
   client_address?: string | null;
   total_amount: number;
   subtotal: number;
