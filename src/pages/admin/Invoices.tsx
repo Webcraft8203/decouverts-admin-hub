@@ -936,6 +936,7 @@ export default function Invoices() {
                         ...formData,
                         client_name: c.customer_name,
                         client_email: c.email || formData.client_email,
+                        client_phone: c.mobile_number || formData.client_phone,
                         buyer_gstin: c.gst_number || formData.buyer_gstin,
                         client_address: c.billing_address || formData.client_address,
                         buyer_state: c.state || formData.buyer_state,
@@ -951,6 +952,19 @@ export default function Invoices() {
                       value={formData.client_email}
                       onChange={(e) => setFormData({ ...formData, client_email: e.target.value })}
                     />
+                  </div>
+                  <div>
+                    <Label htmlFor="client_phone">Customer Phone Number *</Label>
+                    <Input
+                      id="client_phone"
+                      type="tel"
+                      inputMode="tel"
+                      value={formData.client_phone}
+                      onChange={(e) => setFormData({ ...formData, client_phone: e.target.value })}
+                      placeholder="+91 9876543210"
+                      required
+                    />
+                    <p className="text-[11px] text-muted-foreground mt-1">10-digit Indian mobile (with or without +91)</p>
                   </div>
                   <div>
                     <Label htmlFor="buyer_state">Buyer State *</Label>
