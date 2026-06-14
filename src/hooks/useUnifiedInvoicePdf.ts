@@ -415,11 +415,12 @@ function renderInvoicePdf(
   // Prepare Billed To lines with proper address parsing
   const clientName = (invoice.client_name || "Customer").toUpperCase();
   const billedToContentLines = [clientName];
+  if (invoice.client_phone) billedToContentLines.push(`Phone: ${invoice.client_phone}`);
+  if (invoice.client_email) billedToContentLines.push(`Email: ${invoice.client_email}`);
   if (invoice.client_address) {
     const addressLines = parseAddress(invoice.client_address);
     billedToContentLines.push(...addressLines);
   }
-  if (invoice.client_email) billedToContentLines.push(`Email: ${invoice.client_email}`);
   if (invoice.buyer_state) billedToContentLines.push(`State: ${invoice.buyer_state}`);
   if (invoice.buyer_gstin) billedToContentLines.push(`GSTIN: ${invoice.buyer_gstin}`);
 
