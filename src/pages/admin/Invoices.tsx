@@ -527,6 +527,7 @@ export default function Invoices() {
         is_final: true,
         client_name: proforma.client_name,
         client_email: proforma.client_email || null,
+        client_phone: (proforma as any).client_phone || null,
         client_address: proforma.client_address || null,
         items: JSON.parse(JSON.stringify(proforma.items || [])),
         subtotal: proforma.subtotal,
