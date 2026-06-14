@@ -108,6 +108,8 @@ function renderInvoicePdf(
     is_final: boolean;
     client_name: string;
     client_address: string;
+    client_phone?: string | null;
+    client_email?: string | null;
     buyer_state: string;
     buyer_gstin?: string | null;
     subtotal: number;
