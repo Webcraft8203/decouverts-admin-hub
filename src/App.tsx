@@ -44,6 +44,7 @@ import AdminPromoCodes from "./pages/admin/PromoCodes";
 import Invoices from "./pages/admin/Invoices";
 import Customers from "./pages/admin/Customers";
 import CustomerMaster from "./pages/admin/CustomerMaster";
+import ProductMaster from "./pages/admin/ProductMaster";
 import AdminDesignRequests from "./pages/admin/DesignRequests";
 import AdminDesignRequestDetail from "./pages/admin/DesignRequestDetail";
 import HomepageSettings from "./pages/admin/HomepageSettings";
