@@ -22,6 +22,7 @@ import { Plus, Trash2, Download, FileText, Eye, X, Search, Filter, Calendar, Cre
 import { toast as sonnerToast } from "sonner";
 import { INDIAN_STATES } from "@/constants/indianStates";
 import { CustomerAutocomplete } from "@/components/admin/CustomerAutocomplete";
+import { ProductAutocomplete } from "@/components/admin/ProductAutocomplete";
 import { format } from "date-fns";
 
 // Invoice item interface - standardized
