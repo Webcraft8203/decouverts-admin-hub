@@ -671,6 +671,63 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_product_usage: {
+        Row: {
+          created_at: string
+          description: string | null
+          gst_rate: number | null
+          hsn_code: string | null
+          id: string
+          invoice_id: string
+          line_index: number | null
+          product_id: string
+          quantity: number
+          rate: number
+          total: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          gst_rate?: number | null
+          hsn_code?: string | null
+          id?: string
+          invoice_id: string
+          line_index?: number | null
+          product_id: string
+          quantity?: number
+          rate?: number
+          total?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          gst_rate?: number | null
+          hsn_code?: string | null
+          id?: string
+          invoice_id?: string
+          line_index?: number | null
+          product_id?: string
+          quantity?: number
+          rate?: number
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_product_usage_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_product_usage_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_master"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_settings: {
         Row: {
           business_address: string
@@ -1521,6 +1578,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      products_master: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string | null
+          default_gst_rate: number
+          default_unit_price: number
+          description: string | null
+          hsn_code: string
+          id: string
+          invoice_count: number
+          last_used_at: string | null
+          product_name: string
+          product_name_norm: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          default_gst_rate?: number
+          default_unit_price?: number
+          description?: string | null
+          hsn_code: string
+          id?: string
+          invoice_count?: number
+          last_used_at?: string | null
+          product_name: string
+          product_name_norm?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          default_gst_rate?: number
+          default_unit_price?: number
+          description?: string | null
+          hsn_code?: string
+          id?: string
+          invoice_count?: number
+          last_used_at?: string | null
+          product_name?: string
+          product_name_norm?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {

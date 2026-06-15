@@ -22,6 +22,7 @@ import { Plus, Trash2, Download, FileText, Eye, X, Search, Filter, Calendar, Cre
 import { toast as sonnerToast } from "sonner";
 import { INDIAN_STATES } from "@/constants/indianStates";
 import { CustomerAutocomplete } from "@/components/admin/CustomerAutocomplete";
+import { ProductAutocomplete } from "@/components/admin/ProductAutocomplete";
 import { format } from "date-fns";
 
 // Invoice item interface - standardized
@@ -1020,10 +1021,21 @@ export default function Invoices() {
                     <div className="grid grid-cols-12 gap-2 items-end">
                       <div className="col-span-12 md:col-span-3">
                         <Label>Description <span className="text-destructive">*</span></Label>
-                        <Input
+                        <ProductAutocomplete
                           value={item.description}
-                          onChange={(e) => updateItem(i, "description", e.target.value)}
-                          placeholder="Product or service"
+                          onChange={(val) => updateItem(i, "description", val)}
+                          onSelect={(p) => {
+                            const next = [...items];
+                            next[i] = {
+                              ...next[i],
+                              description: p.product_name,
+                              hsn_code: p.hsn_code,
+                              price: Number(p.default_unit_price) || next[i].price,
+                              gst_rate: Number(p.default_gst_rate) || next[i].gst_rate,
+                            };
+                            setItems(next);
+                          }}
+                          placeholder="Type to search or add new product"
                           required
                         />
                       </div>
