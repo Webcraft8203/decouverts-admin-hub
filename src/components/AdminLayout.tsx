@@ -35,6 +35,7 @@ const navItems: NavItem[] = [
   { to: "/admin/reports", icon: FileBarChart, label: "Reports" },
   { to: "/admin/customers", icon: Users, label: "Customers" },
   { to: "/admin/customer-master", icon: Briefcase, label: "Customer Master" },
+  { to: "/admin/product-master", icon: Package, label: "Product Master" },
   { to: "/admin/homepage-settings", icon: Home, label: "Homepage Settings" },
   { to: "/admin/homepage-images", icon: ImageIcon, label: "Homepage Images" },
   { to: "/admin/contact-requests", icon: MessageSquare, label: "Contact Requests" },
