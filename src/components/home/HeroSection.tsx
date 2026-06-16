@@ -462,7 +462,7 @@ export const HeroSection = () => {
                   badgeIcon={<Plane className="w-5 h-5" strokeWidth={2.2} />}
                   title={<>Drone<br/>Technology</>}
                   description="Advanced drone solutions for every industry."
-                  ctaColorOverride={undefined as any}
+                  
                   illustration={<DroneArt />}
                   onClick={() => navigate("/manufacturing")}
                   className="h-full min-h-[250px]"
