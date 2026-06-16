@@ -1,27 +1,21 @@
-import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowRight, Cog, ChevronDown, Layers } from "lucide-react";
-import { useRef, useEffect, useState } from "react";
+import { ArrowRight, ShoppingCart, Box, Plane, Layers, Check, ChevronDown } from "lucide-react";
+import { useEffect, useState } from "react";
 import logo from "@/assets/logo.png";
 import { FloatingSocials } from "./FloatingSocials";
 
-// Intro Animation Overlay
+// ---------- Intro Animation ----------
 const IntroAnimation = ({ onComplete }: { onComplete: () => void }) => {
   const [isVisible, setIsVisible] = useState(true);
-
   useEffect(() => {
-    // Sequence timing: 1.7s visible + 0.5s exit = ~2.2s total
-    const totalDuration = 2200; 
-    
-    const timer = setTimeout(() => {
+    const t = setTimeout(() => {
       setIsVisible(false);
-      // Wait for exit animation to finish before unmounting/showing content
-      setTimeout(onComplete, 500); // Wait for exit animation
+      setTimeout(onComplete, 500);
     }, 1700);
-
-    return () => clearTimeout(timer);
+    return () => clearTimeout(t);
   }, [onComplete]);
 
   return (
@@ -33,74 +27,29 @@ const IntroAnimation = ({ onComplete }: { onComplete: () => void }) => {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
         >
-          {/* Background Design */}
           <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-[#f8f9fa] to-slate-100" />
-          
-          {/* Subtle Accents */}
-          <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,0.03),transparent_70%)]" />
-          <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-[radial-gradient(circle_at_bottom_left,rgba(71,85,105,0.03),transparent_70%)]" />
-
-          {/* Technical Grid & Arcs */}
-          <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#000_1px,transparent_1px),linear-gradient(to_bottom,#000_1px,transparent_1px)] bg-[size:60px_60px]" />
-            <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-              <path d="M0 100 Q 30 70 100 0" stroke="currentColor" strokeWidth="0.5" fill="none" />
-            </svg>
-          </div>
-
           <div className="relative flex flex-col items-center z-10">
-            {/* Logo Container - Mathematically Centered */}
             <div className="relative flex items-center justify-center w-32 h-32 md:w-40 md:h-40">
-               {/* Precision Ring Animation */}
-               <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
-                  <motion.circle
-                    cx="50"
-                    cy="50"
-                    r="46"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="0.8"
-                    className="text-orange-500"
-                    initial={{ pathLength: 0, opacity: 0 }}
-                    animate={{ pathLength: 1, opacity: 0.3 }}
-                    transition={{ 
-                      duration: 0.6, 
-                      ease: "easeOut",
-                      delay: 0.2 
-                    }}
-                  />
-               </svg>
-
-               {/* Logo */}
-               <motion.img
-                 src={logo}
-                 alt="Decouvertes"
-                 className="w-20 h-20 md:w-24 md:h-24 object-contain relative z-10"
-                 initial={{ opacity: 0, scale: 0.96 }}
-                 animate={{ opacity: 1, scale: 1 }}
-                 transition={{ duration: 0.4, ease: "easeOut" }}
-               />
+              <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
+                <motion.circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="0.8" className="text-orange-500"
+                  initial={{ pathLength: 0, opacity: 0 }} animate={{ pathLength: 1, opacity: 0.3 }}
+                  transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }} />
+              </svg>
+              <motion.img src={logo} alt="Decouvertes" className="w-20 h-20 md:w-24 md:h-24 object-contain relative z-10"
+                initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, ease: "easeOut" }} />
             </div>
-
-            {/* Text Container - Absolute to prevent layout shift */}
             <div className="absolute top-full mt-4 flex flex-col items-center whitespace-nowrap">
-              <motion.h1
-                className="text-2xl md:text-3xl font-bold text-slate-900 tracking-[0.15em] uppercase"
+              <motion.h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-[0.15em] uppercase"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, ease: "easeOut", delay: 0.5 }}
-              >
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: "easeOut", delay: 0.5 }}>
                 DECOUVERTES
               </motion.h1>
-              
-              <motion.p
-                className="text-xs md:text-sm text-primary font-medium tracking-wider mt-2"
+              <motion.p className="text-xs md:text-sm text-primary font-medium tracking-wider mt-2"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, ease: "easeOut", delay: 0.7 }}
-              >
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, ease: "easeOut", delay: 0.7 }}>
                 Discovering Future Technologies
               </motion.p>
             </div>
@@ -111,595 +60,470 @@ const IntroAnimation = ({ onComplete }: { onComplete: () => void }) => {
   );
 };
 
-// --- Card Illustrations ---
-
-// 1. E-Commerce Illustration
-const EcommerceIllustration = ({ isHovered }: { isHovered: boolean }) => (
-  <div className="absolute inset-0 flex items-center justify-center overflow-hidden opacity-10">
-    {/* Abstract Logistics Grid */}
-    <div className="absolute inset-0 bg-[linear-gradient(to_right,#f9731610_1px,transparent_1px),linear-gradient(to_bottom,#f9731610_1px,transparent_1px)] bg-[size:24px_24px]" />
-    
-    {/* Flow Lines */}
-    <svg className="absolute inset-0 w-full h-full pointer-events-none">
-      <motion.path
-        d="M -50 100 Q 150 50 350 100 T 750 100"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        className="text-orange-500/40"
-        strokeDasharray="6 6"
-        animate={{ strokeDashoffset: [0, -24] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-      />
-      <motion.path
-        d="M -50 150 Q 150 200 350 150 T 750 150"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        className="text-orange-500/20"
-        strokeDasharray="6 6"
-        animate={{ strokeDashoffset: [0, 24] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-      />
-    </svg>
+// ---------- Decorative SVGs (placeholders for premium 3D renders) ----------
+const BlueprintBg = ({ color }: { color: string }) => (
+  <div className="absolute inset-0 pointer-events-none overflow-hidden">
+    <div
+      className="absolute inset-0 opacity-[0.06]"
+      style={{
+        backgroundImage: `linear-gradient(to right, ${color} 1px, transparent 1px), linear-gradient(to bottom, ${color} 1px, transparent 1px)`,
+        backgroundSize: "28px 28px",
+      }}
+    />
   </div>
 );
 
-// 2. Engineering Illustration
-const EngineeringIllustration = ({ isHovered }: { isHovered: boolean }) => (
-  <div className="absolute inset-0 flex items-center justify-center overflow-hidden opacity-10">
-    {/* Technical Schematic Background */}
-    <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000008_1px,transparent_1px),linear-gradient(to_bottom,#00000008_1px,transparent_1px)] bg-[size:20px_20px]" />
+const Pedestal = ({ color }: { color: string }) => (
+  <svg viewBox="0 0 220 60" className="w-[80%] max-w-[260px]" aria-hidden>
+    <defs>
+      <radialGradient id={`ped-${color}`} cx="50%" cy="40%" r="60%">
+        <stop offset="0%" stopColor={color} stopOpacity="0.35" />
+        <stop offset="100%" stopColor={color} stopOpacity="0" />
+      </radialGradient>
+    </defs>
+    <ellipse cx="110" cy="30" rx="100" ry="22" fill={`url(#ped-${color})`} />
+    <ellipse cx="110" cy="28" rx="80" ry="16" fill="#ffffff" stroke="#e5e7eb" strokeWidth="1" />
+    <ellipse cx="110" cy="26" rx="80" ry="16" fill="#fafafa" />
+  </svg>
+);
 
-    {/* Rotating Schematic Elements */}
-    <motion.div
-      className="absolute"
-      animate={{ rotate: 360 }}
-      transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-    >
-      <div className="w-48 h-48 rounded-full border border-dashed border-foreground/30" />
-    </motion.div>
-    <motion.div
-      className="absolute"
-      animate={{ rotate: -360 }}
-      transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-    >
-      <Cog className="w-32 h-32 text-foreground/10 stroke-[0.5]" />
-    </motion.div>
+const ShoppingCartArt = () => (
+  <div className="relative w-full h-full flex items-end justify-center pb-4">
+    <div className="absolute bottom-2 flex flex-col items-center">
+      <motion.div
+        initial={{ y: 8, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="relative z-10 mb-[-12px]"
+      >
+        <div className="relative">
+          <div className="absolute -inset-6 bg-[#ff7a00]/20 blur-2xl rounded-full" />
+          <ShoppingCart className="relative w-28 h-28 md:w-32 md:h-32 text-[#ff7a00] drop-shadow-[0_8px_16px_rgba(255,122,0,0.35)]" strokeWidth={1.4} />
+        </div>
+      </motion.div>
+      <Pedestal color="#ff7a00" />
+    </div>
+    {/* floating dots */}
+    {[...Array(5)].map((_, i) => (
+      <motion.span
+        key={i}
+        className="absolute w-1.5 h-1.5 rounded-full bg-[#ff7a00]/70"
+        style={{ left: `${15 + i * 16}%`, top: `${20 + (i % 3) * 18}%` }}
+        animate={{ y: [0, -8, 0], opacity: [0.4, 1, 0.4] }}
+        transition={{ duration: 2.5 + i * 0.3, repeat: Infinity, ease: "easeInOut", delay: i * 0.2 }}
+      />
+    ))}
   </div>
 );
 
-// 3. Manufacturing Illustration
-const ManufacturingIllustration = ({ isHovered }: { isHovered: boolean }) => (
-  <div className="absolute inset-0 flex flex-col items-center justify-center opacity-10">
-    {/* Layered Construction Animation */}
-    <div className="flex flex-col-reverse gap-2 items-center">
-       {[...Array(4)].map((_, i) => (
-         <motion.div
-           key={i}
-           className="h-1 bg-foreground/20 rounded-sm"
-           style={{ width: 80 + i * 20 }}
-           initial={{ opacity: 0.2 }}
-           animate={{ 
-             opacity: [0.2, 0.6, 0.2],
-             scaleX: [0.98, 1.02, 0.98]
-           }}
-           transition={{ 
-             duration: 3, 
-             delay: i * 0.4, 
-             repeat: Infinity,
-             ease: "easeInOut"
-           }}
-         />
-       ))}
+const CADComponentArt = () => (
+  <div className="relative w-full h-full flex items-center justify-center">
+    <motion.svg
+      viewBox="0 0 240 240"
+      className="w-[78%] max-w-[320px] drop-shadow-[0_20px_30px_rgba(79,140,255,0.25)]"
+      animate={{ rotate: [0, 4, 0, -4, 0] }}
+      transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+      aria-hidden
+    >
+      <defs>
+        <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#cfe0ff" />
+          <stop offset="55%" stopColor="#7aa6e8" />
+          <stop offset="100%" stopColor="#3b5b8c" />
+        </linearGradient>
+        <linearGradient id="metal2" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#e9f0fb" />
+          <stop offset="100%" stopColor="#9bb7df" />
+        </linearGradient>
+      </defs>
+      {/* triangle-ish mechanical body */}
+      <path d="M120 30 L210 180 L30 180 Z" fill="url(#metal)" stroke="#3b5b8c" strokeWidth="1.2" />
+      <path d="M120 30 L210 180 L30 180 Z" fill="url(#metal2)" opacity="0.5" />
+      {/* bolt holes */}
+      <circle cx="120" cy="80" r="26" fill="#1f3457" />
+      <circle cx="120" cy="80" r="18" fill="#0f1f3a" />
+      <circle cx="60" cy="160" r="20" fill="#1f3457" />
+      <circle cx="60" cy="160" r="14" fill="#0f1f3a" />
+      <circle cx="180" cy="160" r="20" fill="#1f3457" />
+      <circle cx="180" cy="160" r="14" fill="#0f1f3a" />
+      {/* highlight */}
+      <path d="M120 36 L196 174" stroke="#ffffff" strokeOpacity="0.5" strokeWidth="2" />
+    </motion.svg>
+  </div>
+);
+
+const DroneArt = () => (
+  <div className="relative w-full h-full flex items-center justify-center">
+    <motion.svg
+      viewBox="0 0 260 180"
+      className="w-[82%] max-w-[300px] drop-shadow-[0_18px_24px_rgba(139,92,246,0.3)]"
+      animate={{ y: [0, -8, 0] }}
+      transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+      aria-hidden
+    >
+      <defs>
+        <linearGradient id="dronebody" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#3a3a3a" />
+          <stop offset="100%" stopColor="#0a0a0a" />
+        </linearGradient>
+      </defs>
+      {/* arms */}
+      <line x1="60" y1="60" x2="130" y2="95" stroke="#1a1a1a" strokeWidth="8" strokeLinecap="round" />
+      <line x1="200" y1="60" x2="130" y2="95" stroke="#1a1a1a" strokeWidth="8" strokeLinecap="round" />
+      <line x1="60" y1="130" x2="130" y2="95" stroke="#1a1a1a" strokeWidth="8" strokeLinecap="round" />
+      <line x1="200" y1="130" x2="130" y2="95" stroke="#1a1a1a" strokeWidth="8" strokeLinecap="round" />
+      {/* body */}
+      <ellipse cx="130" cy="95" rx="34" ry="22" fill="url(#dronebody)" />
+      <circle cx="130" cy="95" r="8" fill="#8b5cf6" />
+      {/* rotors */}
+      {[{cx:60,cy:60},{cx:200,cy:60},{cx:60,cy:130},{cx:200,cy:130}].map((p,i)=>(
+        <g key={i}>
+          <circle cx={p.cx} cy={p.cy} r="22" fill="#8b5cf6" opacity="0.12" />
+          <motion.ellipse cx={p.cx} cy={p.cy} rx="22" ry="2.5" fill="#222"
+            animate={{ rotate: 360 }}
+            transform={`rotate(0 ${p.cx} ${p.cy})`}
+            style={{ originX: `${p.cx}px`, originY: `${p.cy}px` }}
+            // @ts-ignore framer rotates via style
+            />
+          <circle cx={p.cx} cy={p.cy} r="4" fill="#0a0a0a" />
+        </g>
+      ))}
+    </motion.svg>
+    {/* shadow ring */}
+    <div className="absolute bottom-6 w-40 h-3 rounded-full bg-[#8b5cf6]/25 blur-md" />
+  </div>
+);
+
+const LatticeArt = () => (
+  <div className="relative w-full h-full flex items-end justify-center pb-4">
+    <div className="flex flex-col items-center">
+      <motion.svg
+        viewBox="0 0 200 200"
+        className="w-[60%] max-w-[200px] mb-[-10px] drop-shadow-[0_14px_22px_rgba(103,194,58,0.3)]"
+        animate={{ rotate: [0, 8, 0, -8, 0] }}
+        transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+        aria-hidden
+      >
+        <defs>
+          <linearGradient id="lat" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#bfe6a6" />
+            <stop offset="100%" stopColor="#67c23a" />
+          </linearGradient>
+        </defs>
+        {/* tetrahedron lattice */}
+        <g stroke="url(#lat)" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="100,20 180,170 20,170" />
+          <polygon points="100,20 100,170 180,170" opacity="0.7" />
+          <polygon points="100,20 100,170 20,170" opacity="0.7" />
+          <line x1="60" y1="95" x2="140" y2="95" />
+          <line x1="40" y1="135" x2="160" y2="135" />
+          <line x1="100" y1="20" x2="100" y2="170" opacity="0.5" />
+        </g>
+      </motion.svg>
+      <Pedestal color="#67c23a" />
     </div>
   </div>
 );
 
-// Hero Card Component - Replaces DomainItem
-const HeroCard = ({ 
-  illustration: Illustration, 
-  title, 
-  subtitle,
-  features,
-  badge,
-  onClick,
-  delay = 0,
-  variant = "manufacturing",
-}: { 
-  illustration: (props: { isHovered: boolean }) => JSX.Element;
-  title: string;
-  subtitle: string;
-  features: string[];
-  badge: string;
+// ---------- Announcement Ticker ----------
+const AnnouncementTicker = () => {
+  const items = [
+    { icon: "🚀", text: "New services launching soon" },
+    { icon: "📦", text: "Orders dispatching daily" },
+    { icon: "🛠", text: "Engineering services coming shortly" },
+  ];
+  const loop = [...items, ...items, ...items];
+  return (
+    <div className="relative w-full bg-white border-y border-slate-200/80 overflow-hidden">
+      <div className="flex whitespace-nowrap py-3">
+        <motion.div
+          className="flex shrink-0 gap-12 px-6"
+          animate={{ x: ["0%", "-50%"] }}
+          transition={{ duration: 35, repeat: Infinity, ease: "linear" }}
+        >
+          {loop.map((it, i) => (
+            <span key={i} className="flex items-center gap-2 text-sm font-medium text-slate-600">
+              <span className="text-base">{it.icon}</span>
+              <span>{it.text}</span>
+              <span className="ml-12 h-3 w-px bg-slate-300" aria-hidden />
+            </span>
+          ))}
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+// ---------- Hero Card ----------
+type CardProps = {
+  badgeIcon: React.ReactNode;
+  badgeBg: string;
+  title: React.ReactNode;
+  description: string;
+  features?: string[];
+  ctaColor: string;
+  illustration: React.ReactNode;
   onClick: () => void;
   delay?: number;
-  variant?: "ecommerce" | "engineering" | "manufacturing";
-}) => {
-  const [isHovered, setIsHovered] = useState(false);
-
-  const variantStyles = {
-    ecommerce: {
-      bg: "from-orange-50/50 to-white/5",
-      accent: "bg-orange-500",
-      text: "group-hover:text-orange-600",
-      border: "group-hover:border-orange-500/20",
-      bullet: "bg-orange-500/60",
-      grid: "text-orange-900/10"
-    },
-    engineering: {
-      bg: "from-blue-50/50 to-white/5",
-      accent: "bg-blue-600",
-      text: "group-hover:text-blue-700",
-      border: "group-hover:border-blue-500/20",
-      bullet: "bg-blue-500/60",
-      grid: "text-blue-900/10"
-    },
-    manufacturing: {
-      bg: "from-gray-50/50 to-white/5",
-      accent: "bg-gray-600",
-      text: "group-hover:text-gray-800",
-      border: "group-hover:border-gray-500/20",
-      bullet: "bg-gray-500/60",
-      grid: "text-gray-900/10"
-    }
-  };
-
-  const styles = variantStyles[variant];
-
-  return (
-    <motion.div
-      className="relative h-full"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay, ease: "easeOut" }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={onClick}
-    >
-      <motion.div
-        className={`group relative h-full min-h-[280px] flex flex-col bg-white rounded-xl shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] border border-border/60 overflow-hidden cursor-pointer transition-all duration-500 hover:shadow-[0_12px_24px_-8px_rgba(0,0,0,0.12)] hover:-translate-y-2 ${styles.border}`}
-        whileTap={{ scale: 0.99 }}
-      >
-        {/* Accent Line */}
-        <motion.div 
-          className={`absolute top-0 left-0 right-0 h-1 ${styles.accent} origin-left z-20`}
-          initial={{ scaleX: 0.3, opacity: 0.6 }}
-          animate={{ 
-            scaleX: isHovered ? 1 : 0.3,
-            opacity: isHovered ? 1 : 0.6
-          }}
-          transition={{ duration: 0.4, ease: "easeInOut" }}
-        />
-
-        {/* 1. Background Grid & Tint */}
-        <div className={`absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 bg-gradient-to-br ${styles.bg}`} />
-        
-        <div className={`absolute inset-0 z-0 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-500 pointer-events-none ${styles.grid}`}>
-             <div className="absolute inset-0 bg-[linear-gradient(to_right,currentColor_1px,transparent_1px),linear-gradient(to_bottom,currentColor_1px,transparent_1px)] bg-[size:24px_24px]" />
-        </div>
-
-        {/* 2. Animation Layer */}
-        <div className="absolute inset-0 z-10 opacity-30 group-hover:opacity-50 transition-opacity duration-500 pointer-events-none overflow-hidden mix-blend-multiply">
-          <Illustration isHovered={isHovered} />
-        </div>
-
-        {/* Badge */}
-        <div className="absolute top-4 right-4 z-20">
-          <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70 bg-white/90 border border-border/40 rounded shadow-sm backdrop-blur-sm">
-            {badge}
-          </span>
-        </div>
-
-        {/* 3. Content Layer */}
-        <div className="relative z-30 p-6 flex flex-col h-full">
-          <div className="mt-auto flex flex-col gap-2">
-            <h3 className={`text-xl font-bold text-foreground tracking-tight transition-colors duration-300 ${styles.text}`}>
-              {title}
-            </h3>
-            <p className="text-sm text-muted-foreground/80 font-medium leading-relaxed">
-              {subtitle}
-            </p>
-            
-            <div className={`h-px w-12 ${styles.bullet} opacity-30 my-3`} />
-
-            <ul className="space-y-2 mb-4">
-              {features.map((feature, i) => (
-                <li key={i} className="flex items-center text-xs text-muted-foreground font-medium">
-                  <div className={`w-1.5 h-1.5 ${styles.bullet} rounded-full mr-2.5`} />
-                  {feature}
-                </li>
-              ))}
-            </ul>
-            
-            <div className={`flex items-center text-xs font-bold uppercase tracking-wider text-foreground/60 transition-colors mt-2 ${styles.text}`}>
-              Explore <ArrowRight className="w-3.5 h-3.5 ml-2 group-hover:translate-x-1 transition-transform" />
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
+  className?: string;
+  contentClassName?: string;
+  tone: string; // hex color for accents
 };
 
-// Abstract Engineering Shapes Background
-const AbstractShapes = ({ mouseX, mouseY }: { mouseX: any; mouseY: any }) => {
-  // Parallax effect
-  const moveX = useTransform(mouseX, [0, 1], [-15, 15]);
-  const moveY = useTransform(mouseY, [0, 1], [-15, 15]);
-  const rotate = useTransform(mouseX, [0, 1], [-5, 5]);
-
-  return (
-    <motion.div
-      className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0"
-      style={{ x: moveX, y: moveY }}
-    >
-      {/* Large Outline Circle - Top Right */}
-      <motion.div 
-        className="absolute -top-[10%] -right-[5%] w-[600px] h-[600px] md:w-[800px] md:h-[800px] rounded-full border border-slate-200/60"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
-      />
-      
-      {/* Dashed Arc - Bottom Left */}
-      <motion.div 
-        className="absolute top-[60%] -left-[10%] w-[500px] h-[500px] md:w-[700px] md:h-[700px] rounded-full border border-dashed border-slate-300/40"
-        style={{ borderRightColor: 'transparent', borderBottomColor: 'transparent' }}
-        animate={{ rotate: -360 }}
-        transition={{ duration: 150, repeat: Infinity, ease: "linear" }}
-      />
-      
-      {/* Dotted Ring - Center/Background */}
-      <motion.div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] md:w-[1200px] md:h-[1200px] rounded-full border border-dotted border-slate-300/30"
-        style={{ rotate }}
-        animate={{ scale: [1, 1.02, 1], opacity: [0.2, 0.4, 0.2] }}
-        transition={{ 
-          scale: { duration: 8, repeat: Infinity, ease: "easeInOut" },
-          opacity: { duration: 5, repeat: Infinity, ease: "easeInOut" }
-        }}
-      />
-
-      {/* Orange Accent Wash */}
-      <div className="absolute top-[20%] left-[15%] w-[400px] h-[400px] bg-orange-500/5 blur-[100px] rounded-full mix-blend-multiply" />
-      
-      {/* Blue Accent Wash */}
-      <div className="absolute bottom-[10%] right-[10%] w-[500px] h-[500px] bg-blue-500/5 blur-[100px] rounded-full mix-blend-multiply" />
-    </motion.div>
-  );
-};
-
-// Hover Label Component
-const HoverLabel = ({ text, isVisible }: { text: string; isVisible: boolean }) => (
-  <AnimatePresence>
-    {isVisible && (
-      <motion.div
-        className="absolute -top-10 left-1/2 -translate-x-1/2 px-4 py-2 bg-foreground/90 text-background text-sm font-medium rounded-lg shadow-lg whitespace-nowrap z-30"
-        initial={{ opacity: 0, y: 10, scale: 0.9 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 10, scale: 0.9 }}
-        transition={{ duration: 0.2 }}
-      >
-        {text}
-        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground/90 rotate-45" />
-      </motion.div>
-    )}
-  </AnimatePresence>
-);
-
-// Mobile tap hint
-const MobileTapHint = () => (
-  <motion.div
-    className="md:hidden flex items-center justify-center gap-2 text-muted-foreground text-sm mt-4"
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    transition={{ delay: 1.2 }}
+const BentoCard = ({
+  badgeIcon, badgeBg, title, description, features, ctaColor,
+  illustration, onClick, delay = 0, className = "", contentClassName = "", tone,
+}: CardProps) => (
+  <motion.button
+    type="button"
+    onClick={onClick}
+    initial={{ opacity: 0, y: 24 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, margin: "-80px" }}
+    transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
+    whileHover={{ y: -6 }}
+    className={`group relative text-left overflow-hidden rounded-[24px] border border-slate-200/70 bg-white/90 backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_60px_rgba(0,0,0,0.10)] transition-shadow duration-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${className}`}
+    style={{ ['--tone' as any]: tone }}
+    aria-label={typeof title === "string" ? title : undefined}
   >
-    <motion.div
-      animate={{ scale: [1, 1.2, 1] }}
-      transition={{ duration: 1.5, repeat: Infinity }}
-    >
-      <div className="w-6 h-6 rounded-full border-2 border-primary/40 flex items-center justify-center">
-        <div className="w-2 h-2 rounded-full bg-primary/60" />
+    <BlueprintBg color={tone} />
+    {/* radial wash */}
+    <div
+      className="absolute inset-0 opacity-60 pointer-events-none"
+      style={{ background: `radial-gradient(120% 80% at 100% 0%, ${tone}14, transparent 60%)` }}
+    />
+
+    <div className={`relative z-10 flex flex-col h-full p-6 md:p-7 ${contentClassName}`}>
+      <div
+        className="inline-flex items-center justify-center w-11 h-11 rounded-xl text-white shadow-md mb-5"
+        style={{ background: badgeBg }}
+      >
+        {badgeIcon}
       </div>
-    </motion.div>
-    <span>Tap to explore</span>
-  </motion.div>
+
+      <h3 className="text-2xl md:text-[26px] font-bold text-slate-900 leading-tight tracking-tight">
+        {title}
+      </h3>
+      <p className="mt-3 text-[15px] leading-relaxed text-slate-600 max-w-[36ch]">
+        {description}
+      </p>
+
+      <div className="mt-4 h-[3px] w-12 rounded-full" style={{ background: tone, opacity: 0.7 }} />
+
+      {features && (
+        <ul className="mt-5 space-y-2.5">
+          {features.map((f) => (
+            <li key={f} className="flex items-center gap-2.5 text-[14px] text-slate-700">
+              <span
+                className="inline-flex items-center justify-center w-[18px] h-[18px] rounded-full text-white"
+                style={{ background: tone }}
+              >
+                <Check className="w-3 h-3" strokeWidth={3} />
+              </span>
+              {f}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <span
+        className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold"
+        style={{ color: ctaColor }}
+      >
+        Explore Solutions
+        <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+      </span>
+
+      {/* illustration area */}
+      <div className="relative mt-4 flex-1 min-h-[140px] md:min-h-[180px]">
+        {illustration}
+      </div>
+    </div>
+  </motion.button>
 );
 
-// Ripple effect component
-const RippleEffect = ({ x, y, onComplete }: { x: number; y: number; onComplete: () => void }) => (
-  <motion.div
-    className="absolute pointer-events-none z-50"
-    style={{ left: x - 50, top: y - 50 }}
-    initial={{ scale: 0, opacity: 0.5 }}
-    animate={{ scale: 2, opacity: 0 }}
-    transition={{ duration: 0.6 }}
-    onAnimationComplete={onComplete}
-  >
-    <div className="w-24 h-24 rounded-full border-2 border-primary/40" />
-  </motion.div>
-);
-
+// ---------- Main ----------
 export const HeroSection = () => {
   const navigate = useNavigate();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const mouseX = useMotionValue(0.5);
-  const mouseY = useMotionValue(0.5);
-  const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
-  
-  // Initialize state based on session storage to ensure intro only plays once per session
+
   const [showIntro, setShowIntro] = useState(() => {
-    try {
-      const hasPlayed = sessionStorage.getItem("introPlayed");
-      return !hasPlayed;
-    } catch {
-      return true;
-    }
+    try { return !sessionStorage.getItem("introPlayed"); } catch { return true; }
   });
-  
   const [contentReady, setContentReady] = useState(() => !showIntro);
 
-  // Handle intro animation completion
   const handleIntroComplete = () => {
-    try {
-      sessionStorage.setItem("introPlayed", "true");
-    } catch {}
+    try { sessionStorage.setItem("introPlayed", "true"); } catch {}
     setShowIntro(false);
-    // Small delay before showing content for smooth transition
     setTimeout(() => setContentReady(true), 100);
   };
 
-  // Track mouse position for parallax
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      mouseX.set((e.clientX - rect.left) / rect.width);
-      mouseY.set((e.clientY - rect.top) / rect.height);
-    };
-
-    const container = containerRef.current;
-    if (container) {
-      container.addEventListener("mousemove", handleMouseMove);
-    }
-
-    return () => {
-      if (container) {
-        container.removeEventListener("mousemove", handleMouseMove);
-      }
-    };
-  }, [mouseX, mouseY]);
-
-  // Handle ripple effect on click
-  const handleRipple = (e: React.MouseEvent) => {
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const id = Date.now();
-    setRipples(prev => [...prev, { id, x, y }]);
-  };
-
-  const removeRipple = (id: number) => {
-    setRipples(prev => prev.filter(r => r.id !== id));
-  };
-
-  // Fetch section visibility from database
   const { data: sections } = useQuery({
     queryKey: ["homepage-sections"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("homepage_sections")
-        .select("*")
-        .order("display_order");
+      const { data, error } = await supabase.from("homepage_sections").select("*").order("display_order");
       if (error) throw error;
       return data;
     },
   });
-
-  // Check visibility for each section
-  const isVisible = (key: string) => {
-    const section = sections?.find((s) => s.section_key === key);
-    return section?.is_visible ?? true;
-  };
-
+  const isVisible = (key: string) => sections?.find((s) => s.section_key === key)?.is_visible ?? true;
   const ecommerceVisible = isVisible("ecommerce");
   const engineeringVisible = isVisible("engineering");
   const manufacturingVisible = isVisible("manufacturing");
 
-  const visibleCount = [ecommerceVisible, engineeringVisible, manufacturingVisible].filter(Boolean).length;
-
   return (
     <>
       <FloatingSocials />
-      {/* Intro Animation */}
       <AnimatePresence>
         {showIntro && <IntroAnimation onComplete={handleIntroComplete} />}
       </AnimatePresence>
 
-      <section
-        ref={containerRef}
-        className="relative min-h-[60vh] bg-gradient-to-br from-[#F9FBFF] to-[#EEF2F7] overflow-hidden flex flex-col pt-8 pb-16 justify-center"
-        onClick={handleRipple}
-      >
-        {/* Blueprint Grid Pattern - Enhanced */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#94a3b80a_1px,transparent_1px),linear-gradient(to_bottom,#94a3b80a_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black_60%,transparent_100%)]" />
-        </div>
+      {/* Ticker bar sits directly below the navbar */}
+      <AnnouncementTicker />
 
-        {/* Abstract Shapes */}
-        {contentReady && <AbstractShapes mouseX={mouseX} mouseY={mouseY} />}
+      <section className="relative bg-white overflow-hidden pt-6 md:pt-10 pb-16 md:pb-24">
+        {/* soft gray gradient + blueprint grid background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white via-slate-50/60 to-white pointer-events-none" />
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.45]"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, rgba(15,23,42,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(15,23,42,0.05) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+            maskImage: "radial-gradient(ellipse at center, black 55%, transparent 100%)",
+            WebkitMaskImage: "radial-gradient(ellipse at center, black 55%, transparent 100%)",
+          }}
+        />
+        {/* slow rotating engineering grid accent */}
+        <motion.div
+          className="absolute -top-40 -right-40 w-[640px] h-[640px] rounded-full border border-slate-200/70 pointer-events-none"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 160, repeat: Infinity, ease: "linear" }}
+        />
+        <motion.div
+          className="absolute -bottom-52 -left-40 w-[560px] h-[560px] rounded-full border border-dashed border-slate-200/70 pointer-events-none"
+          animate={{ rotate: -360 }}
+          transition={{ duration: 200, repeat: Infinity, ease: "linear" }}
+        />
 
-        {/* Ripple Effects */}
-        {ripples.map(ripple => (
-          <RippleEffect
-            key={ripple.id}
-            x={ripple.x}
-            y={ripple.y}
-            onComplete={() => removeRipple(ripple.id)}
-          />
-        ))}
-
-        {/* Main Content */}
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col items-center">
-          <div className="flex flex-col items-center w-full max-w-5xl mx-auto">
-              <motion.div
-                className="text-center w-full"
-                initial={{ opacity: 0, y: 30 }}
-                animate={contentReady ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-              >
-            {/* Main Heading */}
-            <motion.h1 
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight mb-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <motion.span 
-                className="text-foreground inline-block"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-              >
-                Engineering the Future
-              </motion.span>
-              <br />
-              <motion.span
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
-              >
-                <span className="text-foreground">Through </span>
-                <span className="text-primary relative inline-block cursor-default">
-                  Innovation
-                  <motion.span 
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
-                    animate={{ x: ["-100%", "100%"] }}
-                    transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 3 }}
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          {/* ====== Bento Card Grid ====== */}
+          <motion.div
+            className="mx-auto max-w-[1240px]"
+            initial={{ opacity: 0, y: 30 }}
+            animate={contentReady ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          >
+            <div className="grid gap-4 md:gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-12 lg:auto-rows-[1fr]">
+              {/* Card 1 — E-Commerce (left, 25%) */}
+              {ecommerceVisible && (
+                <div className="lg:col-span-3 lg:row-span-2">
+                  <BentoCard
+                    delay={0.05}
+                    tone="#ff7a00"
+                    ctaColor="#ff7a00"
+                    badgeBg="linear-gradient(135deg,#ff944d,#ff7a00)"
+                    badgeIcon={<ShoppingCart className="w-5 h-5" strokeWidth={2.2} />}
+                    title={<>E-Commerce<br/>Solutions</>}
+                    description="Industrial component sourcing made simple and reliable."
+                    features={["Global Logistics", "Bulk Procurement", "Verified Suppliers"]}
+                    illustration={<ShoppingCartArt />}
+                    onClick={() => navigate("/shop")}
+                    className="h-full min-h-[520px]"
                   />
-                </span>
-              </motion.span>
-              <br />
-              <motion.span
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.5 }}
-              >
-                <span className="text-foreground">& </span>
-                <span className="text-primary relative inline-block cursor-default">
-                  Manufacturing
-                  <motion.span 
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
-                    animate={{ x: ["-100%", "100%"] }}
-                    transition={{ duration: 2.5, delay: 1.5, repeat: Infinity, repeatDelay: 3 }}
-                  />
-                </span>
-              </motion.span>
-            </motion.h1>
-            
-            {/* Subline */}
-            <motion.p 
-              className="text-base md:text-lg lg:text-xl text-muted-foreground mb-6 max-w-2xl mx-auto"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.6 }}
-            >
-              Design • Build • Manufacture • Deliver
-            </motion.p>
+                </div>
+              )}
 
-            {/* Mobile Tap Hint */}
-            <MobileTapHint />
+              {/* Card 2 — Engineering Services (center, 35%, largest) */}
+              {engineeringVisible && (
+                <div className="lg:col-span-5 lg:row-span-2">
+                  <BentoCard
+                    delay={0.15}
+                    tone="#4f8cff"
+                    ctaColor="#4f8cff"
+                    badgeBg="linear-gradient(135deg,#7aa8ff,#4f8cff)"
+                    badgeIcon={<Box className="w-5 h-5" strokeWidth={2.2} />}
+                    title={<>Engineering<br/>Services</>}
+                    description="End-to-end product development that drives innovation."
+                    features={["CAD/CAM Design", "FEA Simulation", "Rapid Prototyping"]}
+                    illustration={<CADComponentArt />}
+                    onClick={() => navigate("/engineering")}
+                    className="h-full min-h-[520px]"
+                  />
+                </div>
+              )}
+
+              {/* Card 3 — Drone Technology (top right) */}
+              <div className="lg:col-span-4 lg:row-span-1">
+                <BentoCard
+                  delay={0.25}
+                  tone="#8b5cf6"
+                  ctaColor="#8b5cf6"
+                  badgeBg="linear-gradient(135deg,#a78bfa,#8b5cf6)"
+                  badgeIcon={<Plane className="w-5 h-5" strokeWidth={2.2} />}
+                  title={<>Drone<br/>Technology</>}
+                  description="Advanced drone solutions for every industry."
+                  ctaColorOverride={undefined as any}
+                  illustration={<DroneArt />}
+                  onClick={() => navigate("/manufacturing")}
+                  className="h-full min-h-[250px]"
+                  contentClassName="md:flex-row md:items-stretch md:gap-4"
+                />
+              </div>
+
+              {/* Card 4 — 3D Printing Solutions (bottom right) */}
+              {manufacturingVisible && (
+                <div className="lg:col-span-4 lg:row-span-1">
+                  <BentoCard
+                    delay={0.35}
+                    tone="#67c23a"
+                    ctaColor="#3f9b1a"
+                    badgeBg="linear-gradient(135deg,#86d65a,#67c23a)"
+                    badgeIcon={<Layers className="w-5 h-5" strokeWidth={2.2} />}
+                    title={<>3D Printing<br/>Solutions</>}
+                    description="Precision. Prototyping. Possibilities."
+                    illustration={<LatticeArt />}
+                    onClick={() => navigate("/manufacturing")}
+                    className="h-full min-h-[250px]"
+                    contentClassName="md:flex-row md:items-stretch md:gap-4"
+                  />
+                </div>
+              )}
+            </div>
           </motion.div>
 
-          {/* Three Domains - Below Hero Text */}
-          {visibleCount > 0 && (
-            <motion.div
-              className="mt-8 w-full max-w-5xl px-4 relative"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.7 }}
-            >
-              {/* Card Glow/Shadow Backdrop */}
-              <div className="absolute inset-0 -z-10 bg-gradient-to-b from-white/40 to-white/0 blur-3xl transform scale-110 opacity-60" />
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-                {ecommerceVisible && (
-                  <HeroCard
-                    illustration={EcommerceIllustration}
-                    title="E-Commerce"
-                    subtitle="Industrial Component Sourcing"
-                    features={["Global Logistics", "Bulk Procurement", "Verified Suppliers"]}
-                    badge="Global Supply"
-                    onClick={() => navigate("/shop")}
-                    delay={0.8}
-                    variant="ecommerce"
-                  />
-                )}
-                {engineeringVisible && (
-                  <HeroCard
-                    illustration={EngineeringIllustration}
-                    title="Engineering Services"
-                    subtitle="End-to-End Product Development"
-                    features={["CAD/CAM Design", "FEA Simulation", "Rapid Prototyping"]}
-                    badge="R&D Driven"
-                    onClick={() => navigate("/engineering")}
-                    delay={0.9}
-                    variant="engineering"
-                  />
-                )}
-                {manufacturingVisible && (
-                  <HeroCard
-                    illustration={ManufacturingIllustration}
-                    title="Manufacturing"
-                    subtitle="Precision Production at Scale"
-                    features={["Decoverts DFT Series 3D printers", "Drone Systems", "Quality Assurance"]}
-                    badge="Industrial Grade"
-                    onClick={() => navigate("/manufacturing")}
-                    delay={1.0}
-                    variant="manufacturing"
-                  />
-                )}
-              </div>
-            </motion.div>
-          )}
-          </div>
+          {/* ====== Headline below grid ====== */}
+          <motion.div
+            className="text-center mt-14 md:mt-20 max-w-4xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={contentReady ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.7, delay: 0.4, ease: "easeOut" }}
+          >
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.05] text-[#0b1f3a]">
+              Engineering the Future
+              <br />
+              <span>Through </span>
+              <span style={{ color: "#ff7a00" }}>Innovation</span>
+              <span> & </span>
+              <span style={{ color: "#ff7a00" }}>Manufacturing</span>
+            </h1>
+            <p className="mt-6 text-base md:text-lg text-slate-500 tracking-wide">
+              Design <span className="mx-2 text-slate-400">•</span> Build
+              <span className="mx-2 text-slate-400">•</span> Manufacture
+              <span className="mx-2 text-slate-400">•</span> Deliver
+            </p>
+          </motion.div>
         </div>
 
-      {/* Scroll Indicator - Enhanced */}
-      <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.5 }}
-      >
-        <motion.span
-          className="text-xs text-muted-foreground hidden md:block"
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          Scroll to explore
-        </motion.span>
+        {/* Scroll indicator */}
         <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          className="hidden md:flex absolute bottom-6 left-1/2 -translate-x-1/2 flex-col items-center gap-1.5 text-slate-400"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }}
         >
-          <div className="w-8 h-12 rounded-full border-2 border-foreground/20 flex items-start justify-center p-2">
-            <motion.div
-              className="w-1.5 h-1.5 bg-primary rounded-full"
-              animate={{ y: [0, 16, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-            />
-          </div>
+          <span className="text-xs">Scroll to explore</span>
+          <motion.div animate={{ y: [0, 6, 0] }} transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}>
+            <ChevronDown className="w-5 h-5" />
+          </motion.div>
         </motion.div>
-        <motion.div
-          animate={{ y: [0, 4, 0], opacity: [0.3, 0.7, 0.3] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-        >
-          <ChevronDown className="w-5 h-5 text-muted-foreground" />
-        </motion.div>
-      </motion.div>
       </section>
     </>
   );
