@@ -48,7 +48,7 @@ export const OurCustomers = () => {
 
   if (isLoading) {
     return (
-      <section className="py-20 md:py-28 section-dark relative">
+      <section className="py-16 md:py-20 section-dark relative">
         <div className="container mx-auto px-4">
           <div className="text-center">
             <div className="animate-pulse h-8 bg-dark-elevated rounded w-48 mx-auto mb-4" />
@@ -96,7 +96,7 @@ export const OurCustomers = () => {
   };
 
   return (
-    <section className="py-20 md:py-28 section-dark relative overflow-hidden">
+    <section className="py-16 md:py-20 section-dark relative overflow-hidden">
       {/* Background patterns */}
       <div className="absolute inset-0 bg-grid-dark opacity-30" />
       <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-primary/5 to-transparent" />
