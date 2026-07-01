@@ -1259,6 +1259,7 @@ export type Database = {
           id: string
           image_description: string
           image_title: string
+          is_featured: boolean
           logo_url: string
           partner_name: string
           status: string
@@ -1271,6 +1272,7 @@ export type Database = {
           id?: string
           image_description: string
           image_title: string
+          is_featured?: boolean
           logo_url: string
           partner_name: string
           status?: string
@@ -1283,6 +1285,7 @@ export type Database = {
           id?: string
           image_description?: string
           image_title?: string
+          is_featured?: boolean
           logo_url?: string
           partner_name?: string
           status?: string
