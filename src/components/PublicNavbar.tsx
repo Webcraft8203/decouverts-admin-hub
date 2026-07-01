@@ -250,13 +250,6 @@ export const PublicNavbar = () => {
 
                 {!isShopPage && (
                   <>
-                    <Link
-                      to="/drone-configuration"
-                      className="block text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:translate-x-2 font-medium py-3 px-4 rounded-lg"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Drones
-                    </Link>
                     <button
                       onClick={() => scrollToSection("gallery-section")}
                       className="block w-full text-left text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:translate-x-2 font-medium py-3 px-4 rounded-lg"
