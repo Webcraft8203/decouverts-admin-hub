@@ -29,7 +29,7 @@ const legalContent: Record<PolicyKey, PolicyData> = {
       },
       {
         heading: "1. Service Usage",
-        content: ["Our services, including 3D printing, engineering, and drone configuration, are provided for professional and educational use. You agree to use these services only for lawful purposes and in accordance with all applicable laws and regulations."],
+        content: ["Our drone technology services are provided for professional and educational use. You agree to use these services only for lawful purposes and in accordance with all applicable laws and regulations."],
       },
       {
         heading: "2. Intellectual Property",
