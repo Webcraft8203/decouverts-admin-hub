@@ -10,6 +10,7 @@ import { StatsCounter } from "@/components/home/StatsCounter";
 import { FeaturedProducts } from "@/components/home/FeaturedProducts";
 import { ProductCategories } from "@/components/home/ProductCategories";
 import { LatestInsights } from "@/components/home/LatestInsights";
+import { CertificationsSection } from "@/components/home/CertificationsSection";
 import { HomepageGallery } from "@/components/home/HomepageGallery";
 import { ContactSection } from "@/components/home/ContactSection";
 import { OurCustomers } from "@/components/home/OurCustomers";
@@ -81,6 +82,8 @@ const Home = () => {
         <HomepageGallery />
 
         <ContactSection />
+
+        <CertificationsSection />
 
         <LatestInsights />
       </main>
