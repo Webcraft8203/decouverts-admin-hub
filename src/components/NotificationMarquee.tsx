@@ -24,7 +24,7 @@ export const NotificationMarquee = () => {
   if (!notification || isDismissed) return null;
 
   return (
-    <div className="fixed top-16 md:top-20 left-0 right-0 z-40 bg-gradient-to-r from-primary via-accent to-primary py-2.5 overflow-hidden shadow-md">
+    <div className="fixed top-[88px] md:top-[90px] left-0 right-0 z-40 bg-gradient-to-r from-primary via-accent to-primary py-2.5 overflow-hidden shadow-md">
       <div className="marquee-container">
         <div className="marquee-content animate-marquee hover:pause-animation">
           {[1, 2, 3].map((i) => (
