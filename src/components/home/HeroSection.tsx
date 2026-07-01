@@ -184,16 +184,16 @@ export const HeroSection = () => {
           <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(15,23,42,0.045)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.045)_1px,transparent_1px)] bg-[size:56px_56px] [mask-image:radial-gradient(ellipse_at_center,black_45%,transparent_100%)]" />
           <div className="absolute -top-40 -right-40 w-[720px] h-[720px] rounded-full bg-[radial-gradient(circle,rgba(249,115,22,0.16),transparent_60%)]" />
           <div className="absolute -bottom-40 -left-40 w-[720px] h-[720px] rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.10),transparent_60%)]" />
-          <svg className="absolute inset-0 w-full h-full opacity-40" preserveAspectRatio="none">
+          <svg className="absolute inset-0 w-full h-full opacity-40" viewBox="0 0 100 100" preserveAspectRatio="none">
             <motion.path
-              d="M 0 80% Q 30% 30%, 60% 55% T 100% 25%"
-              stroke="hsl(var(--primary))" strokeWidth="1" strokeDasharray="4 8" fill="none"
+              d="M 0 80 Q 30 30, 60 55 T 100 25"
+              stroke="hsl(var(--primary))" strokeWidth="0.15" strokeDasharray="0.6 1.2" fill="none" vectorEffect="non-scaling-stroke"
               initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
               transition={{ duration: 3, delay: 0.5, ease: "easeInOut" }}
             />
             <motion.path
-              d="M 0 20% Q 40% 55%, 70% 30% T 100% 60%"
-              stroke="hsl(var(--primary))" strokeOpacity="0.4" strokeWidth="1" strokeDasharray="2 10" fill="none"
+              d="M 0 20 Q 40 55, 70 30 T 100 60"
+              stroke="hsl(var(--primary))" strokeOpacity="0.4" strokeWidth="0.15" strokeDasharray="0.3 1.5" fill="none" vectorEffect="non-scaling-stroke"
               initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
               transition={{ duration: 3.5, delay: 1, ease: "easeInOut" }}
             />
