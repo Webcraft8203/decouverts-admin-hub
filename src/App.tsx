@@ -19,6 +19,7 @@ import Checkout from "./pages/Checkout";
 import CustomerAuth from "./pages/CustomerAuth";
 import Auth from "./pages/Auth";
 import Blogs from "./pages/Blogs";
+import CategoryPage from "./pages/CategoryPage";
 import BlogDetail from "./pages/BlogDetail";
 import UserDashboard from "./pages/user/Dashboard";
 import UserCart from "./pages/user/Cart";
@@ -86,6 +87,7 @@ const App = () => (
               <Route path="/blogs/:slug" element={<BlogDetail />} />
               
               <Route path="/shop" element={<Shop />} />
+              <Route path="/categories/:slug" element={<CategoryPage />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/login" element={<CustomerAuth />} />
               <Route path="/auth" element={<Auth />} />
