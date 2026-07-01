@@ -112,15 +112,19 @@ export const PublicNavbar = () => {
     </button>
   );
 
+  const isActive = (path: string) => location.pathname === path;
+
   return (
     <nav
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-shadow duration-300 bg-white border-b border-border",
-        isScrolled ? "shadow-soft" : "shadow-none"
+        "fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-300",
+        isScrolled
+          ? "top-3 w-[min(1240px,calc(100%-1.5rem))] rounded-2xl bg-white/85 backdrop-blur-xl shadow-[0_10px_40px_-12px_rgba(15,23,42,0.18)] border border-slate-200/70"
+          : "top-0 w-full bg-white border-b border-slate-200/70"
       )}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 md:h-20">
+      <div className={cn("mx-auto px-4 sm:px-6 lg:px-8", isScrolled ? "max-w-none" : "max-w-7xl")}>
+        <div className="flex items-center justify-between h-[68px] md:h-[76px]">
           {/* Logo */}
           <div
             onClick={handleLogoClick}
