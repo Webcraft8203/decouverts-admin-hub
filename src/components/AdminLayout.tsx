@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Package, Layers, Warehouse, Box, FileText, LogOut, Menu, X, Shield,
   ShoppingBag, Star, Ticket, Users, Activity, Palette, Home, MessageCircle,
   Handshake, Image as ImageIcon, MessageSquare, SlidersHorizontal, FileText as BlogIcon,
-  Newspaper, Briefcase, FileBarChart, Mail,
+  Newspaper, Briefcase, FileBarChart, Mail, Rocket,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -25,6 +25,7 @@ const navItems: NavItem[] = [
   { to: "/admin/design-requests", icon: Palette, label: "Design Requests" },
   { to: "/admin/products", icon: Package, label: "Products" },
   { to: "/admin/categories", icon: Layers, label: "Categories" },
+  { to: "/admin/hero-slides", icon: Rocket, label: "Hero Slider" },
   { to: "/admin/shop-slides", icon: SlidersHorizontal, label: "Shop Slider" },
   { to: "/admin/promo-codes", icon: Ticket, label: "Promo Codes" },
   { to: "/admin/reviews", icon: Star, label: "Reviews" },
