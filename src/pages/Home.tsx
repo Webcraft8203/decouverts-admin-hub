@@ -81,6 +81,8 @@ const Home = () => {
         <HomepageGallery />
 
         <ContactSection />
+
+        <LatestInsights />
       </main>
 
       <PublicFooter />
