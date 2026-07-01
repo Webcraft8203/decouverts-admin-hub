@@ -89,8 +89,8 @@ export const HeroSection = () => {
       </AnimatePresence>
 
       <section
-        className="relative w-full bg-slate-950 overflow-hidden"
-        style={{ height: "100vh", minHeight: 620 }}
+        className="relative w-full bg-[#080c14] overflow-hidden"
+        style={{ height: "95vh", minHeight: 620 }}
       >
         {slides.length > 0 ? (
           <HeroSlider slides={slides} />
