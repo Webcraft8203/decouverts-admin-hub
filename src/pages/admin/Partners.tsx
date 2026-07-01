@@ -21,6 +21,7 @@ interface Partner {
   website_url: string | null;
   display_order: number;
   status: string;
+  is_featured?: boolean;
   created_at: string;
 }
 
@@ -31,6 +32,7 @@ interface PartnerFormData {
   website_url: string;
   status: string;
   display_order: string;
+  is_featured: boolean;
 }
 
 const Partners = () => {
@@ -46,6 +48,7 @@ const Partners = () => {
     website_url: "",
     status: "draft",
     display_order: "0",
+    is_featured: false,
   });
 
   const { data: partners, isLoading } = useQuery({
@@ -95,7 +98,8 @@ const Partners = () => {
         website_url: data.website_url || null,
         status: data.status,
         display_order: parseInt(data.display_order) || 0,
-      });
+        is_featured: data.is_featured,
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -121,7 +125,8 @@ const Partners = () => {
           website_url: data.website_url || null,
           status: data.status,
           display_order: parseInt(data.display_order) || 0,
-        })
+          is_featured: data.is_featured,
+        } as any)
         .eq("id", data.id);
       if (error) throw error;
     },
@@ -156,6 +161,7 @@ const Partners = () => {
       website_url: "",
       status: "draft",
       display_order: "0",
+      is_featured: false,
     });
     setLogoUrl(null);
     setEditingPartner(null);
@@ -170,6 +176,7 @@ const Partners = () => {
       website_url: partner.website_url || "",
       status: partner.status,
       display_order: partner.display_order.toString(),
+      is_featured: !!partner.is_featured,
     });
     setLogoUrl(partner.logo_url);
     setIsDialogOpen(true);
@@ -295,6 +302,19 @@ const Partners = () => {
                   />
                 </div>
               </div>
+
+              <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-muted/50">
+                <input
+                  type="checkbox"
+                  checked={formData.is_featured}
+                  onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
+                  className="h-4 w-4"
+                />
+                <div>
+                  <div className="text-sm font-medium">Featured Partner</div>
+                  <div className="text-xs text-muted-foreground">Featured partners appear larger with an orange pulsing ring on the homepage.</div>
+                </div>
+              </label>
 
               <div className="flex justify-end gap-2 pt-4">
                 <Button type="button" variant="outline" onClick={() => { setIsDialogOpen(false); resetForm(); }}>
