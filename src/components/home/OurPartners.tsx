@@ -34,9 +34,13 @@ export const OurPartners = () => {
   const dragStartScroll = useRef(0);
 
   // Auto-scroll with rAF for smooth infinite marquee
+  // Only enable infinite marquee when we have enough partners that the
+  // cloned set will remain off-screen; otherwise show a single centered row.
+  const shouldLoop = (partners?.length ?? 0) >= 6;
+
   useEffect(() => {
     const track = trackRef.current;
-    if (!track || !partners?.length) return;
+    if (!track || !partners?.length || !shouldLoop) return;
 
     let rafId: number;
     let lastTime = performance.now();
@@ -54,7 +58,7 @@ export const OurPartners = () => {
     };
     rafId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafId);
-  }, [partners, isPaused, isDragging]);
+  }, [partners, isPaused, isDragging, shouldLoop]);
 
   if (isLoading) {
     return (
@@ -69,8 +73,10 @@ export const OurPartners = () => {
 
   if (!partners || partners.length === 0) return null;
 
-  // Duplicate for seamless loop
-  const loop = [...partners, ...partners];
+  // Duplicate ONLY when looping (clones are needed for seamless scroll and
+  // stay off-screen). Small lists render exactly once, centered.
+  const displayList = shouldLoop ? [...partners, ...partners] : partners;
+
 
   const onPointerDown = (e: React.PointerEvent) => {
     const track = trackRef.current;
