@@ -51,6 +51,7 @@ import ContactRequests from "./pages/admin/ContactRequests";
 import CustomerReviews from "./pages/admin/CustomerReviews";
 import Partners from "./pages/admin/Partners";
 import ShopSlides from "./pages/admin/ShopSlides";
+import HeroSlides from "./pages/admin/HeroSlides";
 import BlogSlides from "./pages/admin/BlogSlides";
 import BlogPosts from "./pages/admin/BlogPosts";
 import Accounting from "./pages/admin/Accounting";
@@ -126,6 +127,7 @@ const App = () => (
               <Route path="/admin/customer-reviews" element={<AdminRoute><CustomerReviews /></AdminRoute>} />
               <Route path="/admin/partners" element={<AdminRoute><Partners /></AdminRoute>} />
               <Route path="/admin/shop-slides" element={<AdminRoute><ShopSlides /></AdminRoute>} />
+              <Route path="/admin/hero-slides" element={<AdminRoute><HeroSlides /></AdminRoute>} />
               <Route path="/admin/blog-slides" element={<AdminRoute><BlogSlides /></AdminRoute>} />
               <Route path="/admin/blog-posts" element={<AdminRoute><BlogPosts /></AdminRoute>} />
               <Route path="/admin/accounting" element={<AdminRoute><Accounting /></AdminRoute>} />

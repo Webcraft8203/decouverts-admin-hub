@@ -42,6 +42,8 @@ interface Product {
   images: string[] | null;
   video_url: string | null;
   is_highlighted: boolean;
+  is_featured?: boolean;
+  featured_order?: number;
   gst_percentage: number;
   sku: string | null;
   hsn_code: string | null;
@@ -58,7 +60,7 @@ export default function Products() {
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [formData, setFormData] = useState({ name: "", description: "", price: "", cost_price: "", category_id: "", stock_quantity: "", availability_status: "in_stock", is_highlighted: false, video_url: "", gst_percentage: "18", hsn_code: "" });
+  const [formData, setFormData] = useState({ name: "", description: "", price: "", cost_price: "", category_id: "", stock_quantity: "", availability_status: "in_stock", is_highlighted: false, is_featured: false, featured_order: "0", video_url: "", gst_percentage: "18", hsn_code: "" });
   const [productImages, setProductImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [videoUrlError, setVideoUrlError] = useState("");
@@ -135,9 +137,11 @@ export default function Products() {
       images: productImages.length > 0 ? productImages : null,
       video_url: formData.video_url?.trim() || null,
       is_highlighted: formData.is_highlighted,
+      is_featured: formData.is_featured,
+      featured_order: parseInt(formData.featured_order) || 0,
       gst_percentage: parseFloat(formData.gst_percentage) || 18,
       hsn_code: formData.hsn_code?.trim() || null
-    };
+    } as any;
     
     if (editingProduct) {
       const { error } = await supabase.from("products").update(data).eq("id", editingProduct.id);
@@ -196,7 +200,7 @@ export default function Products() {
   };
 
   const resetForm = () => { 
-    setFormData({ name: "", description: "", price: "", cost_price: "", category_id: "", stock_quantity: "", availability_status: "in_stock", is_highlighted: false, video_url: "", gst_percentage: "18", hsn_code: "" });
+    setFormData({ name: "", description: "", price: "", cost_price: "", category_id: "", stock_quantity: "", availability_status: "in_stock", is_highlighted: false, is_featured: false, featured_order: "0", video_url: "", gst_percentage: "18", hsn_code: "" });
     setEditingProduct(null);
     setProductImages([]);
     setVideoUrlError("");
@@ -213,6 +217,8 @@ export default function Products() {
       stock_quantity: String(product.stock_quantity), 
       availability_status: product.availability_status,
       is_highlighted: product.is_highlighted,
+      is_featured: (product as any).is_featured ?? false,
+      featured_order: String((product as any).featured_order ?? 0),
       video_url: product.video_url || "",
       gst_percentage: String(product.gst_percentage ?? 18),
       hsn_code: product.hsn_code || ""
@@ -296,6 +302,31 @@ export default function Products() {
                   onCheckedChange={(checked) => setFormData({ ...formData, is_highlighted: checked })} 
                 />
               </div>
+
+              {/* Featured on Homepage */}
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
+                <div className="flex items-center gap-3">
+                  <Star className="h-5 w-5 text-primary" />
+                  <div>
+                    <Label className="text-base">Featured on Homepage</Label>
+                    <p className="text-sm text-muted-foreground">Show in the "Featured Products" section on the home page</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Input
+                    type="number"
+                    className="w-20"
+                    value={formData.featured_order}
+                    onChange={(e) => setFormData({ ...formData, featured_order: e.target.value })}
+                    placeholder="Order"
+                  />
+                  <Switch
+                    checked={formData.is_featured}
+                    onCheckedChange={(checked) => setFormData({ ...formData, is_featured: checked })}
+                  />
+                </div>
+              </div>
+
               
               {/* Image Upload Section */}
               <div className="space-y-3">

@@ -467,6 +467,66 @@ export type Database = {
         }
         Relationships: []
       }
+      hero_slides: {
+        Row: {
+          background_image_url: string | null
+          badge_label: string | null
+          created_at: string
+          description: string | null
+          display_order: number
+          glow_color: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          primary_cta_label: string | null
+          primary_cta_link: string | null
+          secondary_cta_label: string | null
+          secondary_cta_link: string | null
+          subtitle: string | null
+          title: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          background_image_url?: string | null
+          badge_label?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          glow_color?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          primary_cta_label?: string | null
+          primary_cta_link?: string | null
+          secondary_cta_label?: string | null
+          secondary_cta_link?: string | null
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          background_image_url?: string | null
+          badge_label?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          glow_color?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          primary_cta_label?: string | null
+          primary_cta_link?: string | null
+          secondary_cta_label?: string | null
+          secondary_cta_link?: string | null
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       homepage_images: {
         Row: {
           alt_text: string | null
@@ -1260,10 +1320,12 @@ export type Database = {
           cost_price: number | null
           created_at: string
           description: string | null
+          featured_order: number
           gst_percentage: number
           hsn_code: string | null
           id: string
           images: string[] | null
+          is_featured: boolean
           is_highlighted: boolean
           name: string
           price: number
@@ -1279,10 +1341,12 @@ export type Database = {
           cost_price?: number | null
           created_at?: string
           description?: string | null
+          featured_order?: number
           gst_percentage?: number
           hsn_code?: string | null
           id?: string
           images?: string[] | null
+          is_featured?: boolean
           is_highlighted?: boolean
           name: string
           price?: number
@@ -1298,10 +1362,12 @@ export type Database = {
           cost_price?: number | null
           created_at?: string
           description?: string | null
+          featured_order?: number
           gst_percentage?: number
           hsn_code?: string | null
           id?: string
           images?: string[] | null
+          is_featured?: boolean
           is_highlighted?: boolean
           name?: string
           price?: number
