@@ -170,7 +170,7 @@ export const useProductSEO = (product: ProductSEOData | null | undefined, review
 
     // Cleanup on unmount
     return () => {
-      document.title = "Decouvertes | Engineering, 3D Printing & Industrial Products India";
+      document.title = "Decouvertes | Indigenous Drone Technology Company India";
       document.getElementById("product-jsonld")?.remove();
       document.querySelector('link[rel="canonical"]')?.remove();
     };

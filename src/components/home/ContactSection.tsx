@@ -156,7 +156,7 @@ export function ContactSection() {
             Contact <span className="text-primary">Us</span>
           </h2>
           <p className="text-slate-600 text-lg max-w-2xl mx-auto leading-relaxed">
-            Reach out for business inquiries, engineering projects, or strategic partnerships.
+            Reach out for drone inquiries, mission planning, or strategic partnerships.
           </p>
         </motion.div>
 
@@ -169,10 +169,10 @@ export function ContactSection() {
             viewport={{ once: true }}
           >
             <div className="mb-8">
-              <h3 className="text-2xl font-bold text-slate-900 mb-4">Let's Build Something Amazing</h3>
+              <h3 className="text-2xl font-bold text-slate-900 mb-4">Let's Take Flight Together</h3>
               <p className="text-slate-600 leading-relaxed">
-                Whether you're looking for custom 3D printing solutions, engineering consultation, 
-                or manufacturing support, our team is here to help bring your ideas to life.
+                Whether you need a surveillance UAV, a custom payload integration, or a fleet for
+                mission-critical operations, our drone team is here to help bring your program to life.
               </p>
             </div>
             
@@ -199,9 +199,7 @@ export function ContactSection() {
 
             <div className="pt-8 flex items-center gap-3 text-slate-500 text-sm font-medium">
               <Building2 className="w-5 h-5 text-primary/60" />
-              <p>
-                Serving industrial & engineering clients across India.
-              </p>
+              <p>Serving drone operators and defence customers across India.</p>
             </div>
           </motion.div>
 

@@ -44,7 +44,7 @@ export const OrganizationSchema = () => {
       url: SITE_URL,
       logo: `${SITE_URL}/logo.png`,
       description:
-        "Indigenous R&D-driven technology company specializing in 3D printers, drone systems, engineering services, and industrial products. Made in India.",
+        "Indigenous R&D-driven drone technology company. We design and manufacture next-generation UAV platforms in India.",
       foundingDate: "2023",
       address: {
         "@type": "PostalAddress",

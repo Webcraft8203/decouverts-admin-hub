@@ -11,7 +11,7 @@ interface StatItem {
 const stats: StatItem[] = [
   { value: 150, suffix: "+", label: "Projects Delivered", description: "Across industries" },
   { value: 50, suffix: "+", label: "Happy Clients", description: "Globally trusted" },
-  { value: 5, suffix: "+", label: "Years Experience", description: "In R&D & manufacturing" },
+  { value: 5, suffix: "+", label: "Years Experience", description: "In drone R&D & flight ops" },
   { value: 99, suffix: "%", label: "Quality Rate", description: "Precision engineered" },
 ];
 
