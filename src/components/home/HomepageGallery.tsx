@@ -97,7 +97,7 @@ export function HomepageGallery() {
   return (
     <section id="gallery-section" className="py-16 md:py-20 px-4 bg-slate-50 relative overflow-hidden">
       {/* Subtle Background Pattern */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb22_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb22_1px,transparent_1px)] bg-[size:40px_40px]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(255,107,0,0.05),transparent_60%)]" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
