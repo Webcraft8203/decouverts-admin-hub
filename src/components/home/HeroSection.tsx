@@ -155,22 +155,24 @@ export const HeroSection = () => {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
                 <Button
                   size="lg"
-                  onClick={() => navigate("/drone-configuration")}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground h-12 px-8 rounded-xl shadow-lg shadow-primary/20 group"
+                  onClick={() => {
+                    const el = document.getElementById("gallery-section");
+                    el?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground h-12 px-8 rounded-xl shadow-lg shadow-primary/20"
                 >
-                  Configure Your Drone
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  View Our Fleet
                 </Button>
                 <Button
                   size="lg"
                   variant="outline"
                   onClick={() => {
-                    const el = document.getElementById("gallery-section");
+                    const el = document.getElementById("contact-section");
                     el?.scrollIntoView({ behavior: "smooth" });
                   }}
                   className="h-12 px-8 rounded-xl border-slate-300"
                 >
-                  View Our Fleet
+                  Contact Us
                 </Button>
               </div>
             </motion.div>
