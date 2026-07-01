@@ -1,6 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { ArrowRight, ChevronDown, Plane, Radio, ShieldCheck, Cpu } from "lucide-react";
+import { ChevronDown, Plane, Radio, ShieldCheck, Cpu } from "lucide-react";
 import { useEffect, useState } from "react";
 import logo from "@/assets/logo.png";
 import { FloatingSocials } from "./FloatingSocials";
