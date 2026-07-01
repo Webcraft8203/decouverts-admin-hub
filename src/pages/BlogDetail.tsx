@@ -22,7 +22,9 @@ import {
   Twitter, 
   Linkedin,
   Copy,
-  Check
+  Check,
+  ArrowRight
+
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -92,6 +94,38 @@ export default function BlogDetail() {
     },
     enabled: !!post?.id,
   });
+
+  // Prev / Next navigation (across all published posts, by publish date)
+  const { data: adjacent } = useQuery({
+    queryKey: ["adjacent-posts", post?.id, post?.publish_date, post?.created_at],
+    queryFn: async () => {
+      const anchor = post?.publish_date || post?.created_at;
+      if (!anchor || !post?.id) return { prev: null, next: null };
+      const [{ data: prev }, { data: next }] = await Promise.all([
+        supabase
+          .from("blog_posts")
+          .select("id, title, slug, feature_image")
+          .eq("status", "published")
+          .lt("publish_date", anchor)
+          .neq("id", post.id)
+          .order("publish_date", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from("blog_posts")
+          .select("id, title, slug, feature_image")
+          .eq("status", "published")
+          .gt("publish_date", anchor)
+          .neq("id", post.id)
+          .order("publish_date", { ascending: true })
+          .limit(1)
+          .maybeSingle(),
+      ]);
+      return { prev: prev || null, next: next || null };
+    },
+    enabled: !!post?.id,
+  });
+
 
   const blogUrl = `/blogs/${slug}`;
 
@@ -340,6 +374,58 @@ export default function BlogDetail() {
           </div>
         </div>
       </article>
+
+      {/* Prev / Next Navigation */}
+      {(adjacent?.prev || adjacent?.next) && (
+        <section className="pb-12">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid md:grid-cols-2 gap-4">
+              {adjacent?.prev ? (
+                <Link
+                  to={`/blogs/${adjacent.prev.slug}`}
+                  className="group flex items-center gap-4 p-5 rounded-2xl border border-border bg-card hover:border-primary/40 hover:shadow-lg transition-all"
+                >
+                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted shrink-0">
+                    {adjacent.prev.feature_image && (
+                      <img src={adjacent.prev.feature_image} alt="" className="w-full h-full object-cover" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
+                      <ArrowLeft className="w-3 h-3" /> Previous
+                    </span>
+                    <p className="font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+                      {adjacent.prev.title}
+                    </p>
+                  </div>
+                </Link>
+              ) : <div />}
+              {adjacent?.next ? (
+                <Link
+                  to={`/blogs/${adjacent.next.slug}`}
+                  className="group flex items-center gap-4 p-5 rounded-2xl border border-border bg-card hover:border-primary/40 hover:shadow-lg transition-all md:text-right md:flex-row-reverse"
+                >
+                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted shrink-0">
+                    {adjacent.next.feature_image && (
+                      <img src={adjacent.next.feature_image} alt="" className="w-full h-full object-cover" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="flex items-center gap-1.5 md:justify-end text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
+                      Next <ArrowRight className="w-3 h-3" />
+                    </span>
+                    <p className="font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+                      {adjacent.next.title}
+                    </p>
+                  </div>
+                </Link>
+              ) : <div />}
+            </div>
+          </div>
+        </section>
+      )}
+
+
 
       {/* Related Posts */}
       {relatedPosts && relatedPosts.length > 0 && (

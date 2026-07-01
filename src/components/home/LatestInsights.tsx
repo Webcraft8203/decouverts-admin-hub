@@ -100,15 +100,31 @@ export function LatestInsights() {
     };
   }, [loop.length, applyTransform, measure]);
 
+  const DRAG_THRESHOLD = 6;
+  const pointerDownXRef = useRef(0);
+  const pointerDownYRef = useRef(0);
+
   const onPointerDown = (e: React.PointerEvent) => {
-    draggingRef.current = true;
-    setIsDragging(true);
+    // Do NOT capture on down — we only capture once we detect a real drag,
+    // otherwise pointer capture on the parent swallows the click on child <Link>.
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    pointerDownXRef.current = e.clientX;
+    pointerDownYRef.current = e.clientY;
     dragStartXRef.current = e.clientX;
     dragStartOffsetRef.current = offsetRef.current;
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
   const onPointerMove = (e: React.PointerEvent) => {
-    if (!draggingRef.current) return;
+    const dxTotal = e.clientX - pointerDownXRef.current;
+    const dyTotal = e.clientY - pointerDownYRef.current;
+    if (!draggingRef.current) {
+      // Start drag only after horizontal threshold is crossed
+      if (Math.abs(dxTotal) < DRAG_THRESHOLD || Math.abs(dxTotal) < Math.abs(dyTotal)) return;
+      draggingRef.current = true;
+      setIsDragging(true);
+      try {
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      } catch {}
+    }
     const dx = e.clientX - dragStartXRef.current;
     let next = dragStartOffsetRef.current - dx;
     const w = halfWidthRef.current || 1;
@@ -119,11 +135,13 @@ export function LatestInsights() {
   const endDrag = (e: React.PointerEvent) => {
     if (!draggingRef.current) return;
     draggingRef.current = false;
-    setIsDragging(false);
+    // Delay clearing dragging state so an accidental click that follows a drag is suppressed
+    setTimeout(() => setIsDragging(false), 0);
     try {
       (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
     } catch {}
   };
+
 
   return (
     <section
