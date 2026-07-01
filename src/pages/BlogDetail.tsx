@@ -22,7 +22,9 @@ import {
   Twitter, 
   Linkedin,
   Copy,
-  Check
+  Check,
+  ArrowRight
+
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
