@@ -144,7 +144,7 @@ export function ContactSection() {
 
       <div className="max-w-7xl mx-auto relative z-10">
         <motion.div
-          className="text-center mb-20"
+          className="text-center mb-12"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
