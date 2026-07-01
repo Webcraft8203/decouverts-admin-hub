@@ -172,7 +172,7 @@ export default function DroneConfiguration() {
 
       await recordSubmission(true);
       toast.success("Drone configuration request submitted successfully!");
-      navigate("/manufacturing");
+      navigate("/");
     } catch (error) {
       console.error("Error submitting configuration:", error);
       await recordSubmission(false);
