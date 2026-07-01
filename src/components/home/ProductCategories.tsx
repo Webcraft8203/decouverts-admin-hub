@@ -5,10 +5,9 @@ import { CATEGORIES } from "@/data/categories";
 
 export const ProductCategories = () => {
   return (
-    <section className="relative py-24 md:py-32 bg-white overflow-hidden">
-      {/* Ambient background */}
-      <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(to_right,rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.035)_1px,transparent_1px)] bg-[size:72px_72px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_100%)]" />
-      <div className="absolute -bottom-40 left-1/2 -translate-x-1/2 w-[820px] h-[440px] rounded-full bg-[radial-gradient(ellipse,rgba(255,107,0,0.08),transparent_70%)]" />
+    <section className="relative py-16 md:py-20 bg-[#0b1220] overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,rgba(255,107,0,0.08),transparent_60%)]" />
+      <div className="absolute -bottom-40 left-1/2 -translate-x-1/2 w-[820px] h-[440px] rounded-full bg-[radial-gradient(ellipse,rgba(255,107,0,0.10),transparent_70%)]" />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Header */}
@@ -17,20 +16,20 @@ export const ProductCategories = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="mx-auto text-center mb-16 md:mb-20"
+          className="mx-auto text-center mb-12 md:mb-14"
           style={{ maxWidth: 700 }}
         >
-          <span className="inline-flex items-center gap-2 py-1.5 px-3.5 rounded-full bg-primary/8 text-primary text-[10px] font-bold tracking-[0.24em] uppercase mb-5 border border-primary/20">
+          <span className="inline-flex items-center gap-2 py-1.5 px-3.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold tracking-[0.24em] uppercase mb-5 border border-primary/30">
             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             Capabilities
           </span>
           <h2
-            className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 leading-[1.05] tracking-tight"
+            className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-[1.05] tracking-tight"
             style={{ fontFamily: "'Montserrat', sans-serif" }}
           >
             Built for Every Mission.
           </h2>
-          <p className="mt-5 text-base md:text-lg text-slate-600 leading-relaxed">
+          <p className="mt-5 text-base md:text-lg text-slate-300 leading-relaxed">
             From precision agriculture to defence operations, discover purpose-built drone platforms engineered for every industry.
           </p>
         </motion.div>

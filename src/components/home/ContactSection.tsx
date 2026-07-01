@@ -98,9 +98,9 @@ export function ContactSection() {
 
   if (isSubmitted) {
     return (
-      <section className="py-24 px-4 bg-slate-50 relative overflow-hidden" id="contact-section">
+      <section className="py-16 md:py-20 px-4 bg-white relative overflow-hidden" id="contact-section">
         {/* Technical Grid Background */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+        <div className="absolute inset-0 " />
         <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_50%_200px,rgba(255,255,255,0.8),transparent)]" />
 
         <div className="max-w-2xl mx-auto text-center relative z-10">
@@ -137,14 +137,14 @@ export function ContactSection() {
   }
 
   return (
-    <section className="py-24 px-4 bg-slate-50 relative overflow-hidden" id="contact-section">
+    <section className="py-16 md:py-20 px-4 bg-white relative overflow-hidden" id="contact-section">
       {/* Technical Grid Background */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+      <div className="absolute inset-0 " />
       <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_100%_0px,rgba(255,255,255,0.8),transparent)]" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         <motion.div
-          className="text-center mb-20"
+          className="text-center mb-12"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}

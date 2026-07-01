@@ -35,10 +35,8 @@ export const FeaturedProducts = () => {
   if (!products || products.length === 0) return null;
 
   return (
-    <section className="relative py-20 md:py-24 bg-[hsl(210,20%,98%)] overflow-hidden">
-      {/* Subtle blueprint grid */}
-      <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(to_right,rgba(15,23,42,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.04)_1px,transparent_1px)] bg-[size:56px_56px] [mask-image:radial-gradient(ellipse_at_center,black_50%,transparent_100%)]" />
-      <div className="absolute -top-40 right-0 w-[560px] h-[560px] rounded-full bg-[radial-gradient(circle,rgba(249,115,22,0.10),transparent_65%)] pointer-events-none" />
+    <section className="relative py-16 md:py-20 bg-[hsl(210,20%,98%)] overflow-hidden">
+      <div className="absolute -top-40 right-0 w-[560px] h-[560px] rounded-full bg-[radial-gradient(circle,rgba(249,115,22,0.06),transparent_65%)] pointer-events-none" />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
         <motion.div
@@ -46,7 +44,7 @@ export const FeaturedProducts = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.7 }}
-          className="text-center max-w-2xl mx-auto mb-14"
+          className="text-center max-w-2xl mx-auto mb-10 md:mb-12"
         >
           <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/8 text-primary text-[10px] font-bold tracking-[0.22em] uppercase mb-4 border border-primary/20">
             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />

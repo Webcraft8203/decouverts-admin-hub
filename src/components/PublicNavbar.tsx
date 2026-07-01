@@ -78,18 +78,24 @@ export const PublicNavbar = () => {
     setIsMenuOpen(false);
   };
 
-  const NavItem = ({ children, className, ...props }: React.ComponentProps<typeof Link>) => (
-    <Link
-      className={cn(
-        "relative text-sm font-medium transition-colors hover:text-primary",
-        "after:absolute after:left-0 after:bottom-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all hover:after:w-full",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </Link>
-  );
+  const NavItem = ({ children, className, to, ...props }: React.ComponentProps<typeof Link>) => {
+    const active = typeof to === "string" && location.pathname === to;
+    return (
+      <Link
+        to={to}
+        className={cn(
+          "relative text-[13px] font-semibold tracking-wide transition-colors py-1.5",
+          active ? "text-primary" : "text-slate-700 hover:text-primary",
+          "after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:bg-primary after:transition-all after:duration-300 after:ease-out",
+          active ? "after:w-full" : "after:w-0 hover:after:w-full",
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </Link>
+    );
+  };
 
   const NavButton = ({
     children,
@@ -103,8 +109,8 @@ export const PublicNavbar = () => {
     <button
       onClick={onClick}
       className={cn(
-        "relative text-sm font-medium transition-colors hover:text-primary",
-        "after:absolute after:left-0 after:bottom-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all hover:after:w-full",
+        "relative text-[13px] font-semibold tracking-wide text-slate-700 hover:text-primary transition-colors py-1.5",
+        "after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
         className
       )}
     >
@@ -112,15 +118,19 @@ export const PublicNavbar = () => {
     </button>
   );
 
+  const isActive = (path: string) => location.pathname === path;
+
   return (
     <nav
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-shadow duration-300 bg-white border-b border-border",
-        isScrolled ? "shadow-soft" : "shadow-none"
+        "fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-300",
+        isScrolled
+          ? "top-3 w-[min(1240px,calc(100%-1.5rem))] rounded-2xl bg-white/85 backdrop-blur-xl shadow-[0_10px_40px_-12px_rgba(15,23,42,0.18)] border border-slate-200/70"
+          : "top-0 w-full bg-white border-b border-slate-200/70"
       )}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 md:h-20">
+      <div className={cn("mx-auto px-4 sm:px-6 lg:px-8", isScrolled ? "max-w-none" : "max-w-7xl")}>
+        <div className="flex items-center justify-between h-[68px] md:h-[76px]">
           {/* Logo */}
           <div
             onClick={handleLogoClick}
@@ -166,6 +176,16 @@ export const PublicNavbar = () => {
 
             {isEcommerceEnabled && (
               <NavItem to="/shop" className="text-foreground/80">Shop</NavItem>
+            )}
+
+            {!isShopPage && (
+              <button
+                onClick={() => scrollToSection("contact-section")}
+                className="ml-2 group relative inline-flex items-center gap-1.5 h-10 px-5 rounded-full bg-primary text-primary-foreground text-[12px] font-bold tracking-[0.14em] uppercase shadow-[0_10px_24px_-10px_hsl(var(--primary)/0.7)] hover:shadow-[0_14px_30px_-8px_hsl(var(--primary)/0.85)] hover:-translate-y-0.5 transition-all duration-300 ease-out overflow-hidden"
+              >
+                <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/25 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                <span className="relative">Get a Quote</span>
+              </button>
             )}
 
             {showCartAndAccount && (
