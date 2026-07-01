@@ -113,7 +113,7 @@ export const PublicNavbar = () => {
               className="text-[8px] md:text-[9px] lg:text-[10px] font-medium tracking-wider leading-tight mt-0.5 text-primary"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
-              Drone Technology
+              Discovering Future Technologies
             </span>
           </div>
         </div>
