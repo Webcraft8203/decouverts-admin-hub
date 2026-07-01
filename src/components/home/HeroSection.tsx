@@ -1,6 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { ArrowRight, ChevronDown, Plane, Radio, ShieldCheck, Cpu } from "lucide-react";
+import { ChevronDown, Plane, Radio, ShieldCheck, Cpu } from "lucide-react";
 import { useEffect, useState } from "react";
 import logo from "@/assets/logo.png";
 import { FloatingSocials } from "./FloatingSocials";
@@ -90,7 +89,7 @@ const capabilities = [
 ];
 
 export const HeroSection = () => {
-  const navigate = useNavigate();
+
 
   const [showIntro, setShowIntro] = useState(() => {
     try {
@@ -156,22 +155,24 @@ export const HeroSection = () => {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
                 <Button
                   size="lg"
-                  onClick={() => navigate("/drone-configuration")}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground h-12 px-8 rounded-xl shadow-lg shadow-primary/20 group"
+                  onClick={() => {
+                    const el = document.getElementById("gallery-section");
+                    el?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground h-12 px-8 rounded-xl shadow-lg shadow-primary/20"
                 >
-                  Configure Your Drone
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  View Our Fleet
                 </Button>
                 <Button
                   size="lg"
                   variant="outline"
                   onClick={() => {
-                    const el = document.getElementById("gallery-section");
+                    const el = document.getElementById("contact-section");
                     el?.scrollIntoView({ behavior: "smooth" });
                   }}
                   className="h-12 px-8 rounded-xl border-slate-300"
                 >
-                  View Our Fleet
+                  Contact Us
                 </Button>
               </div>
             </motion.div>
@@ -186,9 +187,8 @@ export const HeroSection = () => {
               {capabilities.map((cap, i) => (
                 <motion.div
                   key={cap.title}
-                  className="group bg-white/70 backdrop-blur-sm border border-slate-200/70 rounded-2xl p-5 text-left hover:border-primary/30 hover:shadow-lg transition-all cursor-pointer"
+                  className="group bg-white/70 backdrop-blur-sm border border-slate-200/70 rounded-2xl p-5 text-left hover:border-primary/30 hover:shadow-lg transition-all"
                   whileHover={{ y: -4 }}
-                  onClick={() => navigate("/drone-configuration")}
                   initial={{ opacity: 0, y: 10 }}
                   animate={contentReady ? { opacity: 1, y: 0 } : {}}
                   transition={{ delay: 0.5 + i * 0.08 }}

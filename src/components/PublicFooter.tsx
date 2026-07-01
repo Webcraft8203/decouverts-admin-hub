@@ -15,7 +15,6 @@ import { cn } from "@/lib/utils";
 
 const quickLinks = [
   { label: "Shop Products", href: "/shop" },
-  { label: "Configure Your Drone", href: "/drone-configuration" },
   { label: "Blogs & News", href: "/blogs" },
   { label: "About Us", href: "/about" },
   { label: "Request Custom Quote", href: "#contact-section" },

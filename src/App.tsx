@@ -48,8 +48,6 @@ import AdminDesignRequestDetail from "./pages/admin/DesignRequestDetail";
 import HomepageSettings from "./pages/admin/HomepageSettings";
 import HomepageImages from "./pages/admin/HomepageImages";
 import ContactRequests from "./pages/admin/ContactRequests";
-import DroneConfiguration from "./pages/DroneConfiguration";
-import DroneConfigurations from "./pages/admin/DroneConfigurations";
 import CustomerReviews from "./pages/admin/CustomerReviews";
 import Partners from "./pages/admin/Partners";
 import ShopSlides from "./pages/admin/ShopSlides";
@@ -85,7 +83,7 @@ const App = () => (
               <Route path="/about" element={<About />} />
               <Route path="/blogs" element={<Blogs />} />
               <Route path="/blogs/:slug" element={<BlogDetail />} />
-              <Route path="/drone-configuration" element={<DroneConfiguration />} />
+              
               <Route path="/shop" element={<Shop />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/login" element={<CustomerAuth />} />
@@ -124,7 +122,7 @@ const App = () => (
               <Route path="/admin/homepage-settings" element={<AdminRoute><HomepageSettings /></AdminRoute>} />
               <Route path="/admin/homepage-images" element={<AdminRoute><HomepageImages /></AdminRoute>} />
               <Route path="/admin/contact-requests" element={<AdminRoute><ContactRequests /></AdminRoute>} />
-              <Route path="/admin/drone-configurations" element={<AdminRoute><DroneConfigurations /></AdminRoute>} />
+              
               <Route path="/admin/customer-reviews" element={<AdminRoute><CustomerReviews /></AdminRoute>} />
               <Route path="/admin/partners" element={<AdminRoute><Partners /></AdminRoute>} />
               <Route path="/admin/shop-slides" element={<AdminRoute><ShopSlides /></AdminRoute>} />

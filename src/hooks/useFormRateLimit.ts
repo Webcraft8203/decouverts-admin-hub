@@ -2,7 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-type FormType = "contact" | "printer_config" | "drone_config";
+type FormType = "contact";
 
 export function useFormRateLimit(formType: FormType) {
   const [isChecking, setIsChecking] = useState(false);
