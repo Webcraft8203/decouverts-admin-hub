@@ -98,8 +98,8 @@ const Partners = () => {
         website_url: data.website_url || null,
         status: data.status,
         display_order: parseInt(data.display_order) || 0,
-      });
-      if (error) throw error;
+        is_featured: data.is_featured,
+      } as any);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-partners"] });
