@@ -373,6 +373,58 @@ export default function BlogDetail() {
         </div>
       </article>
 
+      {/* Prev / Next Navigation */}
+      {(adjacent?.prev || adjacent?.next) && (
+        <section className="pb-12">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid md:grid-cols-2 gap-4">
+              {adjacent?.prev ? (
+                <Link
+                  to={`/blogs/${adjacent.prev.slug}`}
+                  className="group flex items-center gap-4 p-5 rounded-2xl border border-border bg-card hover:border-primary/40 hover:shadow-lg transition-all"
+                >
+                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted shrink-0">
+                    {adjacent.prev.feature_image && (
+                      <img src={adjacent.prev.feature_image} alt="" className="w-full h-full object-cover" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
+                      <ArrowLeft className="w-3 h-3" /> Previous
+                    </span>
+                    <p className="font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+                      {adjacent.prev.title}
+                    </p>
+                  </div>
+                </Link>
+              ) : <div />}
+              {adjacent?.next ? (
+                <Link
+                  to={`/blogs/${adjacent.next.slug}`}
+                  className="group flex items-center gap-4 p-5 rounded-2xl border border-border bg-card hover:border-primary/40 hover:shadow-lg transition-all md:text-right md:flex-row-reverse"
+                >
+                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted shrink-0">
+                    {adjacent.next.feature_image && (
+                      <img src={adjacent.next.feature_image} alt="" className="w-full h-full object-cover" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="flex items-center gap-1.5 md:justify-end text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
+                      Next <ArrowRight className="w-3 h-3" />
+                    </span>
+                    <p className="font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+                      {adjacent.next.title}
+                    </p>
+                  </div>
+                </Link>
+              ) : <div />}
+            </div>
+          </div>
+        </section>
+      )}
+
+
+
       {/* Related Posts */}
       {relatedPosts && relatedPosts.length > 0 && (
         <section className="py-16 bg-muted/30">
