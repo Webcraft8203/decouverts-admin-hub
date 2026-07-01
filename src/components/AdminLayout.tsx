@@ -4,7 +4,7 @@ import { PermissionsProvider } from "@/hooks/useEmployeePermissions";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Package, Layers, Warehouse, Box, FileText, LogOut, Menu, X, Shield,
-  ShoppingBag, Star, Ticket, Users, Activity, Palette, Home, Plane, MessageCircle,
+  ShoppingBag, Star, Ticket, Users, Activity, Palette, Home, MessageCircle,
   Handshake, Image as ImageIcon, MessageSquare, SlidersHorizontal, FileText as BlogIcon,
   Newspaper, Briefcase, FileBarChart, Mail,
 } from "lucide-react";
