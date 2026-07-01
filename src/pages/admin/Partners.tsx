@@ -100,6 +100,7 @@ const Partners = () => {
         display_order: parseInt(data.display_order) || 0,
         is_featured: data.is_featured,
       } as any);
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-partners"] });
@@ -124,7 +125,8 @@ const Partners = () => {
           website_url: data.website_url || null,
           status: data.status,
           display_order: parseInt(data.display_order) || 0,
-        })
+          is_featured: data.is_featured,
+        } as any)
         .eq("id", data.id);
       if (error) throw error;
     },
