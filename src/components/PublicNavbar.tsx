@@ -109,8 +109,8 @@ export const PublicNavbar = () => {
     <button
       onClick={onClick}
       className={cn(
-        "relative text-sm font-medium transition-colors hover:text-primary",
-        "after:absolute after:left-0 after:bottom-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all hover:after:w-full",
+        "relative text-[13px] font-semibold tracking-wide text-slate-700 hover:text-primary transition-colors py-1.5",
+        "after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
         className
       )}
     >
