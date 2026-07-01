@@ -128,30 +128,15 @@ export function LatestInsights() {
   return (
     <section
       id="latest-insights"
-      className="relative overflow-hidden bg-white py-28 lg:py-36"
+      className="relative overflow-hidden bg-white py-16 md:py-20"
     >
-      {/* Engineering grid @ 3% */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(15,23,42,1) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,1) 1px, transparent 1px)",
-          backgroundSize: "64px 64px",
-          opacity: 0.03,
-          maskImage:
-            "radial-gradient(ellipse at 50% 40%, black 45%, transparent 85%)",
-          WebkitMaskImage:
-            "radial-gradient(ellipse at 50% 40%, black 45%, transparent 85%)",
-        }}
-      />
       {/* Soft orange radial glow */}
       <div
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-0 h-[700px] w-[1100px] -translate-x-1/2 -translate-y-1/3 rounded-full"
+        className="pointer-events-none absolute left-1/2 top-0 h-[500px] w-[900px] -translate-x-1/2 -translate-y-1/3 rounded-full"
         style={{
           background:
-            "radial-gradient(circle, rgba(255,107,0,0.10) 0%, rgba(255,107,0,0) 70%)",
+            "radial-gradient(circle, rgba(255,107,0,0.07) 0%, rgba(255,107,0,0) 70%)",
         }}
       />
 
