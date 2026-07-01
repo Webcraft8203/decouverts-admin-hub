@@ -67,9 +67,9 @@ const Home = () => {
         <OurCustomers />
         <OurPartners />
         <HomepageGallery />
-        <ContactSection />
         <CertificationsSection />
         <LatestInsights />
+        <ContactSection />
       </main>
 
       <PublicFooter />
