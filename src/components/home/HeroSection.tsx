@@ -89,7 +89,7 @@ const capabilities = [
 ];
 
 export const HeroSection = () => {
-  const navigate = useNavigate();
+
 
   const [showIntro, setShowIntro] = useState(() => {
     try {
