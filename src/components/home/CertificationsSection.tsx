@@ -82,21 +82,9 @@ export const CertificationsSection = () => {
   if (!certs.length) return null;
 
   return (
-    <section className="relative bg-white py-24 overflow-hidden">
-      {/* thin divider */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
-      {/* engineering grid */}
-      <div
-        className="absolute inset-0 opacity-[0.035] pointer-events-none"
-        style={{
-          backgroundImage:
-            "linear-gradient(#0f172a 1px, transparent 1px), linear-gradient(90deg, #0f172a 1px, transparent 1px)",
-          backgroundSize: "56px 56px",
-        }}
-      />
-      {/* orange glow */}
+    <section className="relative bg-[hsl(210,20%,98%)] py-16 md:py-20 overflow-hidden">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(255,107,0,0.07) 0%, transparent 60%)" }}
+        style={{ background: "radial-gradient(circle, rgba(255,107,0,0.05) 0%, transparent 60%)" }}
       />
 
       <div className="relative container mx-auto px-4">
