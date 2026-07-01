@@ -150,7 +150,7 @@ export const CertificationsSection = () => {
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="flex flex-wrap justify-center gap-6">
           {filtered.map((cert, i) => (
             <motion.button
               key={cert.id}
@@ -163,7 +163,7 @@ export const CertificationsSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.5, delay: Math.min(i, 6) * 0.05 }}
-              className="group relative text-left bg-white rounded-2xl border border-slate-200 overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_24px_48px_-16px_rgba(255,107,0,0.25)] hover:border-orange-400/70"
+              className="group relative text-left bg-white rounded-2xl border border-slate-200 overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_24px_48px_-16px_rgba(255,107,0,0.25)] hover:border-orange-400/70 w-full max-w-[320px] md:w-[calc(50%-12px)] md:max-w-none lg:w-[calc(25%-18px)]"
             >
               {/* Image */}
               <div className="relative aspect-[4/3] bg-slate-50 overflow-hidden">
