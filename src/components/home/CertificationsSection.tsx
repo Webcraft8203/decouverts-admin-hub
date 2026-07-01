@@ -89,7 +89,7 @@ export const CertificationsSection = () => {
 
       <div className="relative container mx-auto px-4">
         {/* Header */}
-        <div className="max-w-3xl mx-auto text-center mb-14">
+        <div className="max-w-3xl mx-auto text-center mb-10">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
