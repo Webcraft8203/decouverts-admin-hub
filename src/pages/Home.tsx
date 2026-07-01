@@ -59,7 +59,12 @@ const Home = () => {
       <main className={`flex-1 ${hasNotification ? "pt-24 md:pt-28" : "pt-16 md:pt-20"}`}>
         <HeroSection />
 
+        {/* Soft gradient fade between hero and stats */}
+        <div className="h-16 md:h-20 bg-gradient-to-b from-white via-white to-[hsl(210,20%,98%)]" />
+
         <StatsCounter />
+
+        <FeaturedProducts />
 
         <SectionDivider variant="wave" from="fill-[hsl(210,20%,98%)]" to="fill-slate-50" />
 
