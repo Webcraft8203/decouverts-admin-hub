@@ -16,7 +16,7 @@ import { ContactSection } from "@/components/home/ContactSection";
 import { OurCustomers } from "@/components/home/OurCustomers";
 import { OurPartners } from "@/components/home/OurPartners";
 import { BackToTop } from "@/components/home/BackToTop";
-import { SectionDivider } from "@/components/home/SectionDivider";
+
 import { OrganizationSchema } from "@/components/SEOSchemas";
 import { usePageSEO } from "@/hooks/usePageSEO";
 
