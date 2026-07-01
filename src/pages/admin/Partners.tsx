@@ -161,6 +161,7 @@ const Partners = () => {
       website_url: "",
       status: "draft",
       display_order: "0",
+      is_featured: false,
     });
     setLogoUrl(null);
     setEditingPartner(null);
@@ -175,6 +176,7 @@ const Partners = () => {
       website_url: partner.website_url || "",
       status: partner.status,
       display_order: partner.display_order.toString(),
+      is_featured: !!partner.is_featured,
     });
     setLogoUrl(partner.logo_url);
     setIsDialogOpen(true);
