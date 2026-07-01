@@ -303,6 +303,19 @@ const Partners = () => {
                 </div>
               </div>
 
+              <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-muted/50">
+                <input
+                  type="checkbox"
+                  checked={formData.is_featured}
+                  onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
+                  className="h-4 w-4"
+                />
+                <div>
+                  <div className="text-sm font-medium">Featured Partner</div>
+                  <div className="text-xs text-muted-foreground">Featured partners appear larger with an orange pulsing ring on the homepage.</div>
+                </div>
+              </label>
+
               <div className="flex justify-end gap-2 pt-4">
                 <Button type="button" variant="outline" onClick={() => { setIsDialogOpen(false); resetForm(); }}>
                   Cancel
