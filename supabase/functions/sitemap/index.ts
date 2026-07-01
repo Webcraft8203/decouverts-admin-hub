@@ -75,11 +75,6 @@ Deno.serve(async (req) => {
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>${baseUrl}/drone-configuration</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>${baseUrl}/login</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
