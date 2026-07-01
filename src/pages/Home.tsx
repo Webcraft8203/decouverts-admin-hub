@@ -7,6 +7,7 @@ import { PublicFooter } from "@/components/PublicFooter";
 import { NotificationMarquee } from "@/components/NotificationMarquee";
 import { HeroSection } from "@/components/home/HeroSection";
 import { StatsCounter } from "@/components/home/StatsCounter";
+import { FeaturedProducts } from "@/components/home/FeaturedProducts";
 import { HomepageGallery } from "@/components/home/HomepageGallery";
 import { ContactSection } from "@/components/home/ContactSection";
 import { OurCustomers } from "@/components/home/OurCustomers";
