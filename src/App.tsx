@@ -48,8 +48,6 @@ import AdminDesignRequestDetail from "./pages/admin/DesignRequestDetail";
 import HomepageSettings from "./pages/admin/HomepageSettings";
 import HomepageImages from "./pages/admin/HomepageImages";
 import ContactRequests from "./pages/admin/ContactRequests";
-import DroneConfiguration from "./pages/DroneConfiguration";
-import DroneConfigurations from "./pages/admin/DroneConfigurations";
 import CustomerReviews from "./pages/admin/CustomerReviews";
 import Partners from "./pages/admin/Partners";
 import ShopSlides from "./pages/admin/ShopSlides";
