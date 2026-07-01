@@ -78,7 +78,7 @@ export function HomepageGallery() {
 
   if (isLoading) {
     return (
-      <section className="py-24 px-4 bg-slate-50">
+      <section className="py-16 md:py-20 px-4 bg-slate-50">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -95,7 +95,7 @@ export function HomepageGallery() {
   }
 
   return (
-    <section id="gallery-section" className="py-24 px-4 bg-slate-50 relative overflow-hidden">
+    <section id="gallery-section" className="py-16 md:py-20 px-4 bg-slate-50 relative overflow-hidden">
       {/* Subtle Background Pattern */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb22_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb22_1px,transparent_1px)] bg-[size:40px_40px]" />
 
