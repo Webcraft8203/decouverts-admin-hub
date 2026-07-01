@@ -44,7 +44,7 @@ export const FeaturedProducts = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.7 }}
-          className="text-center max-w-2xl mx-auto mb-14"
+          className="text-center max-w-2xl mx-auto mb-10 md:mb-12"
         >
           <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/8 text-primary text-[10px] font-bold tracking-[0.22em] uppercase mb-4 border border-primary/20">
             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
