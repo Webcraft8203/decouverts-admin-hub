@@ -21,8 +21,6 @@ interface GalleryItem {
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  manufacturing: "Manufacturing",
-  "3d-printing": "3D Printing",
   drone: "Drone",
   rd: "R&D",
   prototyping: "Prototyping",
@@ -110,13 +108,13 @@ export function HomepageGallery() {
           viewport={{ once: true }}
         >
           <span className="inline-block px-4 py-1.5 mb-6 text-xs font-semibold tracking-widest uppercase text-primary bg-primary/10 rounded-full">
-            Engineering Portfolio
+            Drone Fleet
           </span>
           <h2 className="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight mb-6">
             Our Work
           </h2>
           <p className="text-slate-600 text-lg max-w-2xl mx-auto leading-relaxed">
-            Explore our engineering projects, prototypes, and manufacturing capabilities.
+            Explore our drone platforms, prototypes, and flight-test missions.
           </p>
         </motion.div>
 

@@ -10,7 +10,7 @@ interface PageSEOConfig {
 }
 
 const BRAND = "Decouvertes";
-const DEFAULT_TITLE = `${BRAND} | Engineering, 3D Printing & Industrial Products India`;
+const DEFAULT_TITLE = `${BRAND} | Indigenous Drone Technology Company India`;
 const SITE_URL = "https://www.decouvertes.in";
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
 

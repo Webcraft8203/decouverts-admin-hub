@@ -15,11 +15,9 @@ import { cn } from "@/lib/utils";
 
 const quickLinks = [
   { label: "Shop Products", href: "/shop" },
-  { label: "Engineering Services", href: "/engineering" },
-  { label: "Industrial Solutions", href: "/manufacturing" },
+  { label: "Configure Your Drone", href: "/drone-configuration" },
   { label: "Blogs & News", href: "/blogs" },
   { label: "About Us", href: "/about" },
-  { label: "Configure 3D Printer", href: "/printer-configuration" },
   { label: "Request Custom Quote", href: "#contact-section" },
   { label: "Careers", action: "careers", href: "#" },
 ];
@@ -144,8 +142,8 @@ export const PublicFooter = () => {
             </div>
             
             <p className="text-slate-400 text-sm leading-relaxed max-w-sm">
-              Engineering the future through innovation. We specialize in advanced 3D printing, 
-              drone technology, and new product development for enterprises worldwide.
+              Building the future of flight. Decouvertes designs indigenous drone platforms
+              for surveillance, industrial, and mission-critical operations across India.
             </p>
 
             {/* Trust Badges */}
@@ -260,7 +258,7 @@ export const PublicFooter = () => {
             <div className="bg-white/5 rounded-2xl p-6 border border-white/10 backdrop-blur-sm">
               <h3 className="font-bold text-white mb-2">Stay Updated</h3>
               <p className="text-slate-400 text-xs mb-4 leading-relaxed">
-                Get the latest updates on new products, research, and industrial innovations.
+                Get the latest updates on new drone platforms, missions, and R&D milestones.
               </p>
               
               <form onSubmit={handleSubscribe} className="space-y-3">

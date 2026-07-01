@@ -52,7 +52,7 @@ const Counter = ({ from, to, suffix = "" }: { from: number; to: number; suffix?:
 const About = () => {
   usePageSEO({
     title: "About Us | Decouvertes",
-    description: "Learn about Decouvertes, India's R&D-driven technology company for 3D printing, drone systems, engineering services and manufacturing.",
+    description: "Learn about Decouvertes, India's R&D-driven drone technology company designing next-generation UAV platforms.",
     path: "/about",
   });
 

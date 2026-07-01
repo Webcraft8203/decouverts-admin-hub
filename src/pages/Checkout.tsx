@@ -96,7 +96,7 @@ const Checkout = () => {
   const navigate = useNavigate();
   usePageSEO({
     title: "Checkout | Decouvertes India",
-    description: "Complete your purchase securely on Decouvertes. Pay online or choose Cash on Delivery for industrial 3D printers, drone systems & products.",
+    description: "Complete your purchase securely on Decouvertes. Pay online or choose Cash on Delivery for drone systems, components & accessories.",
     path: "/checkout",
   });
   const { user } = useAuth();

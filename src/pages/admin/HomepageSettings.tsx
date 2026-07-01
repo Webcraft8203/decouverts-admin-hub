@@ -9,12 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { ShoppingBag, Cog, Factory, Bell, Save, Eye, EyeOff } from "lucide-react";
+import { ShoppingBag, Bell, Save, Eye, EyeOff } from "lucide-react";
 
 const sectionIcons = {
   ecommerce: ShoppingBag,
-  engineering: Cog,
-  manufacturing: Factory,
 };
 
 const HomepageSettings = () => {

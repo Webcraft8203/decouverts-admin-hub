@@ -71,8 +71,6 @@ interface GalleryItem {
 }
 
 const CATEGORIES = [
-  { value: "manufacturing", label: "Manufacturing" },
-  { value: "3d-printing", label: "3D Printing" },
   { value: "drone", label: "Drone" },
   { value: "rd", label: "R&D" },
   { value: "prototyping", label: "Prototyping" },
@@ -374,7 +372,7 @@ export default function HomepageImages() {
           <div>
             <h1 className="text-3xl font-bold">Gallery Manager</h1>
             <p className="text-muted-foreground">
-              Manage your engineering portfolio gallery items
+              Manage your drone fleet gallery items
             </p>
           </div>
           <Dialog
@@ -449,7 +447,7 @@ export default function HomepageImages() {
                     Project Title <span className="text-destructive">*</span>
                   </Label>
                   <Input
-                    placeholder="e.g., Industrial Drone Prototype v2"
+                    placeholder="e.g., Surveillance Drone Prototype v2"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   />

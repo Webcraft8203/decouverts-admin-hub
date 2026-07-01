@@ -24,7 +24,7 @@ export default function Blogs() {
 
   usePageSEO({
     title: "Blog | Decouvertes",
-    description: "Read Decouvertes blog insights on 3D printing India, industrial 3D printers, drone technology and engineering services.",
+    description: "Read Decouvertes blog insights on drone technology, UAV design, autonomous flight, and defence-grade drone systems in India.",
     path: "/blogs",
   });
 

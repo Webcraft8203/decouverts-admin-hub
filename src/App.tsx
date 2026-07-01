@@ -13,8 +13,6 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import { SiteSchema } from "@/components/SEOSchemas";
 import Home from "./pages/Home";
 import About from "./pages/About";
-import Engineering from "./pages/Engineering";
-import Manufacturing from "./pages/Manufacturing";
 import Shop from "./pages/Shop";
 import ProductDetail from "./pages/ProductDetail";
 import Checkout from "./pages/Checkout";
@@ -50,8 +48,6 @@ import AdminDesignRequestDetail from "./pages/admin/DesignRequestDetail";
 import HomepageSettings from "./pages/admin/HomepageSettings";
 import HomepageImages from "./pages/admin/HomepageImages";
 import ContactRequests from "./pages/admin/ContactRequests";
-import PrinterConfiguration from "./pages/PrinterConfiguration";
-import PrinterConfigurations from "./pages/admin/PrinterConfigurations";
 import DroneConfiguration from "./pages/DroneConfiguration";
 import DroneConfigurations from "./pages/admin/DroneConfigurations";
 import CustomerReviews from "./pages/admin/CustomerReviews";
@@ -89,9 +85,6 @@ const App = () => (
               <Route path="/about" element={<About />} />
               <Route path="/blogs" element={<Blogs />} />
               <Route path="/blogs/:slug" element={<BlogDetail />} />
-              <Route path="/engineering" element={<Engineering />} />
-              <Route path="/manufacturing" element={<Manufacturing />} />
-              <Route path="/printer-configuration" element={<PrinterConfiguration />} />
               <Route path="/drone-configuration" element={<DroneConfiguration />} />
               <Route path="/shop" element={<Shop />} />
               <Route path="/product/:id" element={<ProductDetail />} />
@@ -131,7 +124,6 @@ const App = () => (
               <Route path="/admin/homepage-settings" element={<AdminRoute><HomepageSettings /></AdminRoute>} />
               <Route path="/admin/homepage-images" element={<AdminRoute><HomepageImages /></AdminRoute>} />
               <Route path="/admin/contact-requests" element={<AdminRoute><ContactRequests /></AdminRoute>} />
-              <Route path="/admin/printer-configurations" element={<AdminRoute><PrinterConfigurations /></AdminRoute>} />
               <Route path="/admin/drone-configurations" element={<AdminRoute><DroneConfigurations /></AdminRoute>} />
               <Route path="/admin/customer-reviews" element={<AdminRoute><CustomerReviews /></AdminRoute>} />
               <Route path="/admin/partners" element={<AdminRoute><Partners /></AdminRoute>} />

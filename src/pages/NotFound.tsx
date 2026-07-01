@@ -7,7 +7,7 @@ const NotFound = () => {
 
   usePageSEO({
     title: "Page Not Found | Decouvertes",
-    description: "The page you are looking for does not exist. Return to Decouvertes homepage for engineering, 3D printing & industrial products.",
+    description: "The page you are looking for does not exist. Return to Decouvertes homepage for indigenous drone technology.",
     path: location.pathname,
   });
 

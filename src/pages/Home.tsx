@@ -7,9 +7,6 @@ import { PublicFooter } from "@/components/PublicFooter";
 import { NotificationMarquee } from "@/components/NotificationMarquee";
 import { HeroSection } from "@/components/home/HeroSection";
 import { StatsCounter } from "@/components/home/StatsCounter";
-import { WhatDrivesUs } from "@/components/home/WhatDrivesUs";
-import { ServicesSection } from "@/components/home/ServicesSection";
-import { IndustrySolutions } from "@/components/home/IndustrySolutions";
 import { HomepageGallery } from "@/components/home/HomepageGallery";
 import { ContactSection } from "@/components/home/ContactSection";
 import { OurCustomers } from "@/components/home/OurCustomers";
@@ -21,13 +18,13 @@ import { usePageSEO } from "@/hooks/usePageSEO";
 
 const Home = () => {
   usePageSEO({
-    title: "Decouvertes | Engineering, 3D Printing & Industrial Products India",
-    description: "India's indigenous R&D technology company. Shop industrial 3D printers, drone systems, engineering services & premium products. Made in India.",
+    title: "Decouvertes | Indigenous Drone Technology Company India",
+    description:
+      "Decouvertes designs and manufactures next-generation drone systems in India. Configure custom UAVs, explore our fleet, and partner with an R&D-driven drone technology company.",
     path: "/",
   });
   const location = useLocation();
 
-  // Handle scroll navigation from other pages
   useEffect(() => {
     if (location.state?.scrollTo) {
       const sectionId = location.state.scrollTo;
@@ -58,47 +55,21 @@ const Home = () => {
       <PublicNavbar />
       <NotificationMarquee />
 
-      <main className={`flex-1 ${hasNotification ? 'pt-24 md:pt-28' : 'pt-16 md:pt-20'}`}>
-        {/* 1. Hero Section */}
+      <main className={`flex-1 ${hasNotification ? "pt-24 md:pt-28" : "pt-16 md:pt-20"}`}>
         <HeroSection />
-        
-        {/* 2. Animated Stats Counter */}
+
         <StatsCounter />
-        
-        {/* Divider: light → dark */}
-        <SectionDivider variant="wave" from="fill-[hsl(210,20%,98%)]" to="fill-[hsl(222,47%,11%)]" />
-        
-        {/* 3. What Drives Us */}
-        <WhatDrivesUs />
-        
-        {/* Divider: dark → light */}
-        <SectionDivider variant="curve" from="fill-[hsl(222,47%,11%)]" to="fill-[hsl(210,20%,98%)]" />
-        
-        {/* 4. Services Section */}
-        <ServicesSection />
-        
-        {/* Divider: light → slate */}
-        <SectionDivider variant="angle" from="fill-[hsl(210,20%,98%)]" to="fill-slate-50" />
-        
-        {/* 5. Industry Solutions */}
-        <IndustrySolutions />
-        
-        {/* Divider: slate → dark */}
-        <SectionDivider variant="wave" from="fill-slate-50" to="fill-[hsl(222,47%,11%)]" />
-        
-        {/* 6. Our Customers (Testimonials) */}
+
+        <SectionDivider variant="wave" from="fill-[hsl(210,20%,98%)]" to="fill-slate-50" />
+
         <OurCustomers />
-        
-        {/* Divider: dark → light */}
-        <SectionDivider variant="curve" from="fill-[hsl(222,47%,11%)]" to="fill-slate-50" />
-        
-        {/* 7. Our Partners */}
+
+        <SectionDivider variant="curve" from="fill-slate-50" to="fill-[hsl(210,20%,98%)]" />
+
         <OurPartners />
-        
-        {/* 8. Homepage Gallery */}
+
         <HomepageGallery />
-        
-        {/* 9. Contact Us Section */}
+
         <ContactSection />
       </main>
 

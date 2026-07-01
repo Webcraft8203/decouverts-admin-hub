@@ -4,7 +4,7 @@ import { PermissionsProvider } from "@/hooks/useEmployeePermissions";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Package, Layers, Warehouse, Box, FileText, LogOut, Menu, X, Shield,
-  ShoppingBag, Star, Ticket, Users, Activity, Palette, Home, Printer, Plane, MessageCircle,
+  ShoppingBag, Star, Ticket, Users, Activity, Palette, Home, Plane, MessageCircle,
   Handshake, Image as ImageIcon, MessageSquare, SlidersHorizontal, FileText as BlogIcon,
   Newspaper, Briefcase, FileBarChart, Mail,
 } from "lucide-react";
@@ -39,7 +39,7 @@ const navItems: NavItem[] = [
   { to: "/admin/homepage-settings", icon: Home, label: "Homepage Settings" },
   { to: "/admin/homepage-images", icon: ImageIcon, label: "Homepage Images" },
   { to: "/admin/contact-requests", icon: MessageSquare, label: "Contact Requests" },
-  { to: "/admin/printer-configurations", icon: Printer, label: "Printer Configs" },
+  
   { to: "/admin/drone-configurations", icon: Plane, label: "Drone Configs" },
   { to: "/admin/customer-reviews", icon: MessageCircle, label: "Customer Reviews" },
   { to: "/admin/partners", icon: Handshake, label: "Partners" },
