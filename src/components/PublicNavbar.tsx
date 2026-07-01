@@ -17,8 +17,8 @@ export const PublicNavbar = () => {
   const location = useLocation();
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -78,267 +78,298 @@ export const PublicNavbar = () => {
     setIsMenuOpen(false);
   };
 
-  const NavItem = ({ children, className, to, ...props }: React.ComponentProps<typeof Link>) => {
-    const active = typeof to === "string" && location.pathname === to;
-    return (
-      <Link
-        to={to}
-        className={cn(
-          "relative text-[13px] font-semibold tracking-wide transition-colors py-1.5",
-          active ? "text-primary" : "text-slate-700 hover:text-primary",
-          "after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:bg-primary after:transition-all after:duration-300 after:ease-out",
-          active ? "after:w-full" : "after:w-0 hover:after:w-full",
-          className
-        )}
-        {...props}
-      >
-        {children}
-      </Link>
-    );
-  };
-
-  const NavButton = ({
-    children,
-    onClick,
-    className,
-  }: {
-    children: React.ReactNode;
-    onClick: () => void;
-    className?: string;
-  }) => (
-    <button
-      onClick={onClick}
-      className={cn(
-        "relative text-[13px] font-semibold tracking-wide text-slate-700 hover:text-primary transition-colors py-1.5",
-        "after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
-        className
-      )}
-    >
-      {children}
-    </button>
-  );
-
   const isActive = (path: string) => location.pathname === path;
 
   return (
     <nav
       className={cn(
-        "fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-300",
+        "fixed top-0 left-0 w-full z-50",
+        "h-[88px] md:h-[90px]",
+        "transition-[background-color,box-shadow,backdrop-filter] duration-[250ms] ease-out",
         isScrolled
-          ? "top-3 w-[min(1240px,calc(100%-1.5rem))] rounded-2xl bg-white/85 backdrop-blur-xl shadow-[0_10px_40px_-12px_rgba(15,23,42,0.18)] border border-slate-200/70"
-          : "top-0 w-full bg-white border-b border-slate-200/70"
+          ? "bg-white/[0.97] shadow-[0_1px_3px_rgba(0,0,0,0.06)] backdrop-blur-[6px]"
+          : "bg-white"
       )}
     >
-      <div className={cn("mx-auto px-4 sm:px-6 lg:px-8", isScrolled ? "max-w-none" : "max-w-7xl")}>
-        <div className="flex items-center justify-between h-[68px] md:h-[76px]">
-          {/* Logo */}
-          <div
-            onClick={handleLogoClick}
-            className="flex items-center gap-2 cursor-pointer select-none group"
-          >
-            <img
-              src={logo}
-              alt="Decouvertes Logo"
-              className="h-9 md:h-11 lg:h-12 w-auto object-contain transition-transform group-hover:scale-105"
-            />
-            <div className="flex flex-col justify-center">
-              <span
-                className="text-base md:text-lg lg:text-xl font-bold tracking-[0.15em] uppercase leading-none text-foreground"
-                style={{ fontFamily: "'Montserrat', sans-serif" }}
-              >
-                DECOUVERTES
-              </span>
-              <span
-                className="text-[8px] md:text-[9px] lg:text-[10px] font-medium tracking-wider leading-tight mt-0.5 text-primary"
-                style={{ fontFamily: "'Montserrat', sans-serif" }}
-              >
-                Drone Technology
-              </span>
-            </div>
-          </div>
-
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6 lg:gap-8">
-            <NavItem to="/" className="text-foreground/80">Home</NavItem>
-
-            {!isShopPage && (
-              <>
-                <NavButton onClick={() => scrollToSection("gallery-section")} className="text-foreground/80">
-                  Gallery
-                </NavButton>
-                <NavItem to="/blogs" className="text-foreground/80">Blogs</NavItem>
-                <NavItem to="/about" className="text-foreground/80">About</NavItem>
-                <NavButton onClick={() => scrollToSection("contact-section")} className="text-foreground/80">
-                  Contact
-                </NavButton>
-              </>
-            )}
-
-            {isEcommerceEnabled && (
-              <NavItem to="/shop" className="text-foreground/80">Shop</NavItem>
-            )}
-
-            {!isShopPage && (
-              <button
-                onClick={() => scrollToSection("contact-section")}
-                className="ml-2 group relative inline-flex items-center gap-1.5 h-10 px-5 rounded-full bg-primary text-primary-foreground text-[12px] font-bold tracking-[0.14em] uppercase shadow-[0_10px_24px_-10px_hsl(var(--primary)/0.7)] hover:shadow-[0_14px_30px_-8px_hsl(var(--primary)/0.85)] hover:-translate-y-0.5 transition-all duration-300 ease-out overflow-hidden"
-              >
-                <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/25 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                <span className="relative">Get a Quote</span>
-              </button>
-            )}
-
-            {showCartAndAccount && (
-              <>
-                {user ? (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate("/dashboard/cart")}
-                      className="relative text-foreground/80 hover:text-primary hover:bg-primary/5"
-                    >
-                      <ShoppingCart className="w-5 h-5" />
-                      {cartCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold shadow-glow">
-                          {cartCount > 99 ? "99+" : cartCount}
-                        </span>
-                      )}
-                    </Button>
-                    <Button
-                      onClick={() => navigate("/dashboard")}
-                      className="bg-dark hover:bg-dark-elevated text-white shadow-lg"
-                    >
-                      <User className="w-4 h-4 mr-2" />
-                      Account
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    onClick={() => navigate("/login")}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
-                  >
-                    <User className="w-4 h-4 mr-2" />
-                    Login
-                  </Button>
-                )}
-              </>
-            )}
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center gap-2">
-            {showCartAndAccount && user && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/dashboard/cart")}
-                className="relative text-foreground/80 hover:text-primary"
-              >
-                <ShoppingCart className="w-5 h-5" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
-                    {cartCount > 99 ? "99+" : cartCount}
-                  </span>
-                )}
-              </Button>
-            )}
-            <button
-              className="p-2 text-foreground rounded-lg hover:bg-secondary transition-colors"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label="Toggle menu"
+      <div className="mx-auto h-full max-w-[1440px] px-6 md:px-10 lg:px-20 flex items-center justify-between relative">
+        {/* Left — Logo + Brand */}
+        <div
+          onClick={handleLogoClick}
+          className="flex items-center gap-3 cursor-pointer select-none group flex-shrink-0"
+        >
+          <img
+            src={logo}
+            alt="Decouvertes Logo"
+            className="h-9 md:h-11 lg:h-12 w-auto object-contain transition-transform group-hover:scale-105"
+          />
+          <div className="flex flex-col justify-center">
+            <span
+              className="text-base md:text-lg lg:text-xl font-bold tracking-[0.15em] uppercase leading-none text-foreground"
+              style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
-              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+              DECOUVERTES
+            </span>
+            <span
+              className="text-[8px] md:text-[9px] lg:text-[10px] font-medium tracking-wider leading-tight mt-0.5 text-primary"
+              style={{ fontFamily: "'Montserrat', sans-serif" }}
+            >
+              Drone Technology
+            </span>
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden border-t border-border bg-white/95 backdrop-blur-xl rounded-b-2xl shadow-lg overflow-hidden">
-            <div className="py-6 max-h-[calc(100vh-4rem)] overflow-y-auto">
-              <div className="flex flex-col gap-1 px-2">
-                <Link
-                  to="/"
-                  className="block text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:translate-x-2 font-medium py-3 px-4 rounded-lg"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Home
-                </Link>
+        {/* Center — Navigation */}
+        <div className="hidden md:flex items-center gap-10 absolute left-1/2 -translate-x-1/2">
+          <Link
+            to="/"
+            className={cn(
+              "relative text-[13px] font-semibold tracking-wide transition-colors duration-200 py-1",
+              "after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:bg-primary after:transition-all after:duration-300 after:ease-out",
+              isActive("/")
+                ? "text-primary after:w-full"
+                : "text-slate-700 hover:text-primary after:w-0 hover:after:w-full"
+            )}
+          >
+            Home
+          </Link>
 
-                {!isShopPage && (
-                  <>
-                    <button
-                      onClick={() => scrollToSection("gallery-section")}
-                      className="block w-full text-left text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:translate-x-2 font-medium py-3 px-4 rounded-lg"
-                    >
-                      Gallery
-                    </button>
-                    <Link
-                      to="/blogs"
-                      className="block text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:translate-x-2 font-medium py-3 px-4 rounded-lg"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Blogs
-                    </Link>
-                    <Link
-                      to="/about"
-                      className="block text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:translate-x-2 font-medium py-3 px-4 rounded-lg"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      About
-                    </Link>
-                    <button
-                      onClick={() => scrollToSection("contact-section")}
-                      className="block w-full text-left text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:translate-x-2 font-medium py-3 px-4 rounded-lg"
-                    >
-                      Contact
-                    </button>
-                  </>
+          {!isShopPage && (
+            <>
+              <button
+                onClick={() => scrollToSection("gallery-section")}
+                className={cn(
+                  "relative text-[13px] font-semibold tracking-wide transition-colors duration-200 py-1",
+                  "after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:bg-primary after:transition-all after:duration-300 after:ease-out after:w-0 hover:after:w-full",
+                  "text-slate-700 hover:text-primary"
                 )}
+              >
+                Gallery
+              </button>
+              <Link
+                to="/blogs"
+                className={cn(
+                  "relative text-[13px] font-semibold tracking-wide transition-colors duration-200 py-1",
+                  "after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:bg-primary after:transition-all after:duration-300 after:ease-out",
+                  isActive("/blogs")
+                    ? "text-primary after:w-full"
+                    : "text-slate-700 hover:text-primary after:w-0 hover:after:w-full"
+                )}
+              >
+                Blogs
+              </Link>
+              <Link
+                to="/about"
+                className={cn(
+                  "relative text-[13px] font-semibold tracking-wide transition-colors duration-200 py-1",
+                  "after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:bg-primary after:transition-all after:duration-300 after:ease-out",
+                  isActive("/about")
+                    ? "text-primary after:w-full"
+                    : "text-slate-700 hover:text-primary after:w-0 hover:after:w-full"
+                )}
+              >
+                About
+              </Link>
+              <button
+                onClick={() => scrollToSection("contact-section")}
+                className={cn(
+                  "relative text-[13px] font-semibold tracking-wide transition-colors duration-200 py-1",
+                  "after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:bg-primary after:transition-all after:duration-300 after:ease-out after:w-0 hover:after:w-full",
+                  "text-slate-700 hover:text-primary"
+                )}
+              >
+                Contact
+              </button>
+            </>
+          )}
 
-                {isEcommerceEnabled && (
+          {isEcommerceEnabled && (
+            <Link
+              to="/shop"
+              className={cn(
+                "relative text-[13px] font-semibold tracking-wide transition-colors duration-200 py-1",
+                "after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:bg-primary after:transition-all after:duration-300 after:ease-out",
+                isActive("/shop")
+                  ? "text-primary after:w-full"
+                  : "text-slate-700 hover:text-primary after:w-0 hover:after:w-full"
+              )}
+            >
+              Shop
+            </Link>
+          )}
+        </div>
+
+        {/* Right — CTA / Account */}
+        <div className="hidden md:flex items-center gap-4 flex-shrink-0">
+          {!isShopPage && (
+            <button
+              onClick={() => scrollToSection("contact-section")}
+              className="inline-flex items-center justify-center h-11 px-[18px] rounded-[14px] bg-primary text-primary-foreground text-[13px] font-semibold tracking-wide shadow-[0_4px_14px_rgba(249,115,22,0.25)] hover:shadow-[0_6px_20px_rgba(249,115,22,0.35)] hover:-translate-y-[1px] hover:bg-[hsl(24,95%,47%)] transition-all duration-200"
+            >
+              Get a Quote
+            </button>
+          )}
+
+          {showCartAndAccount && (
+            <>
+              {user ? (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => navigate("/dashboard/cart")}
+                    className="relative text-slate-700 hover:text-primary hover:bg-primary/5"
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    {cartCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
+                        {cartCount > 99 ? "99+" : cartCount}
+                      </span>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={() => navigate("/dashboard")}
+                    className="bg-slate-900 hover:bg-slate-800 text-white shadow-sm h-10 px-4 rounded-[14px]"
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Account
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  onClick={() => navigate("/login")}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm h-10 px-4 rounded-[14px]"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Login
+                </Button>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Mobile Menu Button */}
+        <div className="md:hidden flex items-center gap-2">
+          {showCartAndAccount && user && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/dashboard/cart")}
+              className="relative text-slate-700 hover:text-primary"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
+                  {cartCount > 99 ? "99+" : cartCount}
+                </span>
+              )}
+            </Button>
+          )}
+          <button
+            className="p-2 text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Navigation */}
+      {isMenuOpen && (
+        <div className="md:hidden absolute top-full left-0 w-full bg-white/98 backdrop-blur-[6px] border-t border-slate-100 shadow-lg overflow-hidden">
+          <div className="py-6 max-h-[calc(100vh-5.5rem)] overflow-y-auto">
+            <div className="flex flex-col gap-1 px-6">
+              <Link
+                to="/"
+                className="block text-slate-700 hover:text-primary hover:bg-primary/5 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Home
+              </Link>
+
+              {!isShopPage && (
+                <>
+                  <button
+                    onClick={() => scrollToSection("gallery-section")}
+                    className="block w-full text-left text-slate-700 hover:text-primary hover:bg-primary/5 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
+                  >
+                    Gallery
+                  </button>
                   <Link
-                    to="/shop"
-                    className="block text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:translate-x-2 font-medium py-3 px-4 rounded-lg"
+                    to="/blogs"
+                    className="block text-slate-700 hover:text-primary hover:bg-primary/5 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Shop
+                    Blogs
                   </Link>
-                )}
+                  <Link
+                    to="/about"
+                    className="block text-slate-700 hover:text-primary hover:bg-primary/5 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    About
+                  </Link>
+                  <button
+                    onClick={() => scrollToSection("contact-section")}
+                    className="block w-full text-left text-slate-700 hover:text-primary hover:bg-primary/5 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
+                  >
+                    Contact
+                  </button>
+                </>
+              )}
 
-                {showCartAndAccount && (
-                  <div className="pt-4 px-4">
-                    {user ? (
-                      <Button
-                        onClick={() => {
-                          navigate("/dashboard");
-                          setIsMenuOpen(false);
-                        }}
-                        className="w-full bg-dark hover:bg-dark-elevated text-white"
-                      >
-                        <User className="w-4 h-4 mr-2" />
-                        My Account
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={() => {
-                          navigate("/login");
-                          setIsMenuOpen(false);
-                        }}
-                        className="w-full bg-primary hover:bg-primary/90"
-                      >
-                        <User className="w-4 h-4 mr-2" />
-                        Login
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </div>
+              {isEcommerceEnabled && (
+                <Link
+                  to="/shop"
+                  className="block text-slate-700 hover:text-primary hover:bg-primary/5 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Shop
+                </Link>
+              )}
+
+              {!isShopPage && (
+                <div className="pt-4 px-4">
+                  <button
+                    onClick={() => scrollToSection("contact-section")}
+                    className="w-full inline-flex items-center justify-center h-11 px-[18px] rounded-[14px] bg-primary text-primary-foreground text-[13px] font-semibold tracking-wide shadow-[0_4px_14px_rgba(249,115,22,0.25)]"
+                  >
+                    Get a Quote
+                  </button>
+                </div>
+              )}
+
+              {showCartAndAccount && (
+                <div className="pt-4 px-4">
+                  {user ? (
+                    <Button
+                      onClick={() => {
+                        navigate("/dashboard");
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full bg-slate-900 hover:bg-slate-800 text-white h-11 rounded-[14px]"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      My Account
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => {
+                        navigate("/login");
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full bg-primary hover:bg-primary/90 h-11 rounded-[14px]"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Login
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </nav>
   );
 };

@@ -59,7 +59,7 @@ const Home = () => {
       <PublicNavbar />
       <NotificationMarquee />
 
-      <main className={`flex-1 ${hasNotification ? "pt-24 md:pt-28" : "pt-16 md:pt-20"}`}>
+      <main className={`flex-1 ${hasNotification ? "pt-[132px] md:pt-[138px]" : "pt-[88px] md:pt-[90px]"}`}>
         <HeroSection />
         <StatsCounter />
         <FeaturedProducts />
