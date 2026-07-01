@@ -60,8 +60,7 @@ const Home = () => {
       <main className={`flex-1 ${hasNotification ? "pt-24 md:pt-28" : "pt-16 md:pt-20"}`}>
         <HeroSection />
 
-        {/* Cinematic fade from dark hero into light content */}
-        <div className="h-20 md:h-24 bg-gradient-to-b from-slate-950 via-slate-900/40 to-white" />
+
 
 
         <StatsCounter />
