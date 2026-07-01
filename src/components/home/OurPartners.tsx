@@ -66,23 +66,21 @@ export const OurPartners = () => {
   };
 
   return (
-    <section className="py-20 md:py-28 bg-gradient-to-b from-slate-50 to-white relative overflow-hidden">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:24px_24px]" />
-      
+    <section className="py-14 md:py-16 bg-white relative overflow-hidden">
       <div className="container mx-auto px-4 relative z-10">
         <motion.div 
-          className="text-center mb-14"
+          className="text-center mb-10"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <span className="inline-block px-4 py-2 mb-4 text-xs font-bold tracking-[0.2em] uppercase rounded-full bg-primary/10 text-primary border border-primary/20">
+          <span className="inline-block px-4 py-1.5 mb-4 text-[10px] font-bold tracking-[0.24em] uppercase rounded-full bg-primary/10 text-primary border border-primary/20">
             Trusted Network
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
             Our <span className="text-primary">Partners</span>
           </h2>
-          <p className="text-slate-600 text-lg max-w-2xl mx-auto">
+          <p className="text-slate-600 text-base max-w-2xl mx-auto">
             Collaborating with industry leaders to deliver excellence.
           </p>
         </motion.div>
