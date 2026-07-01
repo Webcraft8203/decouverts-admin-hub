@@ -40,7 +40,6 @@ const navItems: NavItem[] = [
   { to: "/admin/homepage-images", icon: ImageIcon, label: "Homepage Images" },
   { to: "/admin/contact-requests", icon: MessageSquare, label: "Contact Requests" },
   
-  { to: "/admin/drone-configurations", icon: Plane, label: "Drone Configs" },
   { to: "/admin/customer-reviews", icon: MessageCircle, label: "Customer Reviews" },
   { to: "/admin/partners", icon: Handshake, label: "Partners" },
   { to: "/admin/blog-posts", icon: Newspaper, label: "Blog Posts" },
