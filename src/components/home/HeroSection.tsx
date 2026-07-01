@@ -187,9 +187,8 @@ export const HeroSection = () => {
               {capabilities.map((cap, i) => (
                 <motion.div
                   key={cap.title}
-                  className="group bg-white/70 backdrop-blur-sm border border-slate-200/70 rounded-2xl p-5 text-left hover:border-primary/30 hover:shadow-lg transition-all cursor-pointer"
+                  className="group bg-white/70 backdrop-blur-sm border border-slate-200/70 rounded-2xl p-5 text-left hover:border-primary/30 hover:shadow-lg transition-all"
                   whileHover={{ y: -4 }}
-                  onClick={() => navigate("/drone-configuration")}
                   initial={{ opacity: 0, y: 10 }}
                   animate={contentReady ? { opacity: 1, y: 0 } : {}}
                   transition={{ delay: 0.5 + i * 0.08 }}
