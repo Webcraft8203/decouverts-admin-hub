@@ -58,6 +58,7 @@ import BlogPosts from "./pages/admin/BlogPosts";
 import Accounting from "./pages/admin/Accounting";
 import Reports from "./pages/admin/Reports";
 import Newsletter from "./pages/admin/Newsletter";
+import AdminCertifications from "./pages/admin/Certifications";
 import VerifyOrder from "./pages/VerifyOrder";
 import NotFound from "./pages/NotFound";
 
@@ -135,6 +136,7 @@ const App = () => (
               <Route path="/admin/accounting" element={<AdminRoute><Accounting /></AdminRoute>} />
               <Route path="/admin/reports" element={<AdminRoute><Reports /></AdminRoute>} />
               <Route path="/admin/newsletter" element={<AdminRoute><Newsletter /></AdminRoute>} />
+              <Route path="/admin/certifications" element={<AdminRoute><AdminCertifications /></AdminRoute>} />
 
               {/* 404 */}
               <Route path="*" element={<NotFound />} />

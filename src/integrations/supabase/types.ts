@@ -202,6 +202,63 @@ export type Database = {
         }
         Relationships: []
       }
+      certifications: {
+        Row: {
+          category: string
+          certificate_number: string | null
+          created_at: string
+          description: string | null
+          display_order: number
+          expiry_date: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          is_featured: boolean
+          issue_date: string | null
+          issuing_authority: string
+          pdf_url: string | null
+          status_label: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          certificate_number?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          expiry_date?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_featured?: boolean
+          issue_date?: string | null
+          issuing_authority: string
+          pdf_url?: string | null
+          status_label?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          certificate_number?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          expiry_date?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_featured?: boolean
+          issue_date?: string | null
+          issuing_authority?: string
+          pdf_url?: string | null
+          status_label?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contact_requests: {
         Row: {
           created_at: string

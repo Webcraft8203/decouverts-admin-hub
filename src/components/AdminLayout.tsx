@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Package, Layers, Warehouse, Box, FileText, LogOut, Menu, X, Shield,
   ShoppingBag, Star, Ticket, Users, Activity, Palette, Home, MessageCircle,
   Handshake, Image as ImageIcon, MessageSquare, SlidersHorizontal, FileText as BlogIcon,
-  Newspaper, Briefcase, FileBarChart, Mail, Rocket,
+  Newspaper, Briefcase, FileBarChart, Mail, Rocket, Award,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -46,6 +46,7 @@ const navItems: NavItem[] = [
   { to: "/admin/blog-posts", icon: Newspaper, label: "Blog Posts" },
   { to: "/admin/blog-slides", icon: BlogIcon, label: "Blog Slider" },
   { to: "/admin/newsletter", icon: Mail, label: "Newsletter" },
+  { to: "/admin/certifications", icon: Award, label: "Certifications" },
 ];
 
 interface AdminLayoutProps {
