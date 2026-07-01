@@ -21,6 +21,7 @@ interface Partner {
   website_url: string | null;
   display_order: number;
   status: string;
+  is_featured?: boolean;
   created_at: string;
 }
 
@@ -31,6 +32,7 @@ interface PartnerFormData {
   website_url: string;
   status: string;
   display_order: string;
+  is_featured: boolean;
 }
 
 const Partners = () => {
@@ -46,6 +48,7 @@ const Partners = () => {
     website_url: "",
     status: "draft",
     display_order: "0",
+    is_featured: false,
   });
 
   const { data: partners, isLoading } = useQuery({
