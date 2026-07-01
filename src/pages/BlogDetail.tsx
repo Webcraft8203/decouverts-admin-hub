@@ -93,6 +93,38 @@ export default function BlogDetail() {
     enabled: !!post?.id,
   });
 
+  // Prev / Next navigation (across all published posts, by publish date)
+  const { data: adjacent } = useQuery({
+    queryKey: ["adjacent-posts", post?.id, post?.publish_date, post?.created_at],
+    queryFn: async () => {
+      const anchor = post?.publish_date || post?.created_at;
+      if (!anchor || !post?.id) return { prev: null, next: null };
+      const [{ data: prev }, { data: next }] = await Promise.all([
+        supabase
+          .from("blog_posts")
+          .select("id, title, slug, feature_image")
+          .eq("status", "published")
+          .lt("publish_date", anchor)
+          .neq("id", post.id)
+          .order("publish_date", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from("blog_posts")
+          .select("id, title, slug, feature_image")
+          .eq("status", "published")
+          .gt("publish_date", anchor)
+          .neq("id", post.id)
+          .order("publish_date", { ascending: true })
+          .limit(1)
+          .maybeSingle(),
+      ]);
+      return { prev: prev || null, next: next || null };
+    },
+    enabled: !!post?.id,
+  });
+
+
   const blogUrl = `/blogs/${slug}`;
 
   usePageSEO({
