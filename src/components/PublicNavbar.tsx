@@ -178,6 +178,16 @@ export const PublicNavbar = () => {
               <NavItem to="/shop" className="text-foreground/80">Shop</NavItem>
             )}
 
+            {!isShopPage && (
+              <button
+                onClick={() => scrollToSection("contact-section")}
+                className="ml-2 group relative inline-flex items-center gap-1.5 h-10 px-5 rounded-full bg-primary text-primary-foreground text-[12px] font-bold tracking-[0.14em] uppercase shadow-[0_10px_24px_-10px_hsl(var(--primary)/0.7)] hover:shadow-[0_14px_30px_-8px_hsl(var(--primary)/0.85)] hover:-translate-y-0.5 transition-all duration-300 ease-out overflow-hidden"
+              >
+                <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/25 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                <span className="relative">Get a Quote</span>
+              </button>
+            )}
+
             {showCartAndAccount && (
               <>
                 {user ? (
