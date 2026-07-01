@@ -8,6 +8,7 @@ import { NotificationMarquee } from "@/components/NotificationMarquee";
 import { HeroSection } from "@/components/home/HeroSection";
 import { StatsCounter } from "@/components/home/StatsCounter";
 import { FeaturedProducts } from "@/components/home/FeaturedProducts";
+import { ProductCategories } from "@/components/home/ProductCategories";
 import { HomepageGallery } from "@/components/home/HomepageGallery";
 import { ContactSection } from "@/components/home/ContactSection";
 import { OurCustomers } from "@/components/home/OurCustomers";
@@ -66,7 +67,9 @@ const Home = () => {
 
         <FeaturedProducts />
 
-        <SectionDivider variant="wave" from="fill-[hsl(210,20%,98%)]" to="fill-slate-50" />
+        <ProductCategories />
+
+        <SectionDivider variant="wave" from="fill-white" to="fill-slate-50" />
 
         <OurCustomers />
 
