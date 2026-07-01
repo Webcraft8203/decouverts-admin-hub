@@ -1,59 +1,91 @@
-## Goal
-Refocus the entire product on Drone Technology. Remove Engineering Services, Manufacturing, 3D Printer Configuration, and generic Industry Solutions features from the public site, admin panel, database, and code.
+# Premium Hero Redesign + Featured Products
 
-## Public site
+Full scope, no backend logic changes to existing systems. Only additions: 1 new table for hero slides, plus reuse of existing `products.is_featured` (or add flag if missing).
 
-**Navigation (`PublicNavbar.tsx`)**
-- Remove "Services" and "Solutions" dropdowns entirely.
-- Remove links to `/engineering`, `/manufacturing`, `/printer-configuration`, and the `services-section` / `industry-solutions` scroll targets.
-- Final desktop + mobile nav order: Home · Drones · Gallery · Blogs · About · Contact · Shop.
-- "Drones" links to `/drone-configuration`; Gallery/Contact scroll to their homepage sections.
+## 1. Database (additions only)
 
-**Home page (`pages/Home.tsx` + `components/home/*`)**
-- Remove sections: `ServicesSection`, `IndustrySolutions`, `BusinessSections`, `HomepageSection`, `WhatDrivesUs` (engineering/manufacturing pillars), `FeaturedProduct` engineering copy, and any Manufacturing Process block.
-- Rewrite `HeroSection`, `AboutSection`, `StatsCounter`, and `ContactSection` so all copy speaks about drones only (no "engineering", "manufacturing", "industrial solutions").
-- Keep: Hero, Stats, About/Drone pillars, Gallery, Customers, Partners, Contact.
+New table `hero_slides` (CMS-driven, no hardcoded content):
+- `title`, `subtitle`, `description`, `badge_label`
+- `image_url`, `background_image_url`, `video_url`
+- `primary_cta_label`, `primary_cta_link`, `secondary_cta_label`, `secondary_cta_link`
+- `glow_color` (hex), `display_order` (int), `is_active` (bool)
+- Standard RLS: public read active, admins full write. GRANTs to anon (select active) + authenticated + service_role.
 
-**Pages / routes removed**
-- Delete files: `pages/Engineering.tsx`, `pages/Manufacturing.tsx`, `pages/PrinterConfiguration.tsx`.
-- Delete routes `/engineering`, `/manufacturing`, `/printer-configuration` from `App.tsx`.
-- Update `pages/About.tsx`, `pages/Blogs.tsx`, `pages/Shop.tsx`, `pages/NotFound.tsx`, `components/LegalModal.tsx`, `components/SupportDialogs.tsx`, `components/PublicFooter.tsx`, `hooks/usePageSEO.ts`, `hooks/useProductSEO.ts`, `components/SEOSchemas.tsx` so no remaining copy or links reference engineering/manufacturing/3D printing/industrial-solutions.
+Products: verify `is_featured` + `display_order` exist on `products` table. If missing, add them (non-breaking, default false/0).
 
-## Admin panel
+Storage: reuse existing product/homepage bucket for uploads (no new bucket unless needed).
 
-**Sidebar (`AdminLayout.tsx`)**
-- Remove "Printer Configs" menu item.
-- Keep Drone Configs and all e-commerce/invoicing/reporting items.
+## 2. Hero Section Redesign (`src/components/home/HeroSection.tsx`)
 
-**Pages / routes removed**
-- Delete `pages/admin/PrinterConfigurations.tsx`.
-- Remove `/admin/printer-configurations` route from `App.tsx`.
-- Purge any "engineering / manufacturing / industrial solutions / service categories" strings, filters, or copy from remaining admin pages (`Dashboard`, `HomepageSettings`, `HomepageImages`, `BlogPosts`, `Products`, `Invoices`, `Newsletter`, `RawMaterialUsage`).
-- Homepage Settings: remove the "engineering" and "manufacturing" section toggles; keep only the drone/e-commerce toggles.
+Split layout:
+- **Left 45%**: Badge, large heading, description, dual CTA (magnetic hover), 3 mini animated stat counters.
+- **Right 55%**: Cinematic slider — Apple-style. Center slide large; prev/next peek at ~85% scale, 40% opacity behind. Fade+scale transition via Framer Motion `AnimatePresence`. Auto-advance 6s, pause on hover. Arrow keys + swipe (framer drag).
+- Floating drone: `y` float loop, subtle rotate, orange radial glow, mouse parallax (motion values), soft shadow.
+- Slide info overlay: category badge, heading, subtitle, description, primary+secondary buttons, slide counter "01 / 05".
+- **Right-edge vertical thumbnails**: small rounded cards w/ drone thumb + name; active = orange border + scale.
+- **Bottom glass strip**: 4 feature cards (Precision, Endurance, Autonomy, Made in India — pulled from CMS-style constants OR keep as static presentational since feature strip wasn't listed as CMS-managed). Animated icons, hover lift, orange accent.
 
-## Database cleanup
+Background layers (all subtle, GPU-only transforms/opacity):
+- Blueprint grid (CSS bg-image)
+- Radial orange + blue gradients
+- Noise texture (svg data-uri)
+- Faint flight paths (SVG dashed curves, motion path-draw)
+- Radar rings pulsing behind drone
+- Scanning line sweep
+- Tiny floating particles (framer motion loop)
 
-Single migration:
-- `DROP TABLE IF EXISTS public.printer_configurations CASCADE;`
-- `DELETE FROM public.homepage_sections WHERE section_key IN ('engineering','manufacturing');`
-- Remove any homepage-image `section` rows tied to engineering/manufacturing.
-- No `engineering_services`, `manufacturing_services`, `solutions`, `industry_solutions`, or `service_categories` tables exist today, so nothing else to drop.
-- Storage: no dedicated buckets for these modules exist; nothing to delete.
+## 3. Section Divider (Hero → Stats)
 
-## Code / asset cleanup
+Soft gradient fade + wave SVG. Update `SectionDivider` usage in `Home.tsx`.
 
-- Delete now-unused home components: `ServicesSection.tsx`, `IndustrySolutions.tsx`, `BusinessSections.tsx`, `HomepageSection.tsx`, `WhatDrivesUs.tsx` (or trim to drone-only), plus any engineering/manufacturing-only assets they import.
-- Remove unused icons/imports across touched files.
-- Update memory: none of the removed features are referenced by existing memory entries (Industrial Configs entry stays because Drone Configuration remains).
+## 4. Featured Products Section (new component `FeaturedProducts.tsx`)
 
-## Verification
+Placed under `StatsCounter` in `Home.tsx`.
+- Title: "Featured Products" / Subtitle: "Designed, Built and Ready for Mission."
+- Query `products` where `is_featured=true` and `is_visible=true`, order by `display_order`, limit configurable (default 4).
+- If empty → renders `null`.
+- Grid: 1 / 2 / 4 cols. Card: image (zoom on hover), name, category, price, stock badge, Quick View, Add to Cart, View Product. Orange glow + lift on hover.
 
-- Typecheck the project (`tsgo`) — no dangling imports.
-- Load `/` and `/admin` in Playwright, confirm no console errors and the new nav renders.
-- Confirm removed routes return the 404 page.
+## 5. Admin Panel
 
-## Out of scope / preserved
+New page `src/pages/admin/HeroSlides.tsx`:
+- List with drag-reorder (or up/down buttons — keep simple: order input)
+- Add / Edit / Delete slide
+- Fields: badge, heading, subtitle, description, image upload, background image upload, video URL, primary/secondary CTA label+link, glow color picker, display order, active toggle
+- Uses existing storage bucket for uploads
 
-- Drone Configuration (public + admin) stays.
-- Invoice category codes (which may include strings like "PRD-3DP") remain — invoice numbering logic is untouched.
-- Blog posts / raw-material data authored by the user are not auto-deleted; only schema and hard-coded UI go.
+Register route in `App.tsx` under admin. Add sidebar link in `AdminLayout.tsx` ("Hero Slides", Rocket icon).
+
+Products admin: add "Featured" toggle + display order column in existing `ProductMaster.tsx` / `Products.tsx` (small addition, no logic change).
+
+## 6. Performance
+
+- Framer Motion only (already installed)
+- `loading="lazy"` on non-first slide images, `fetchpriority="high"` on first
+- All animations on `transform`/`opacity`
+- Slider uses `AnimatePresence mode="wait"` to avoid overlap cost
+
+## 7. Files touched
+
+New:
+- `supabase/migrations/<ts>_hero_slides.sql`
+- `src/components/home/HeroSlider.tsx` (cinematic slider)
+- `src/components/home/HeroFeatureStrip.tsx`
+- `src/components/home/FeaturedProducts.tsx`
+- `src/pages/admin/HeroSlides.tsx`
+
+Edited:
+- `src/components/home/HeroSection.tsx` (rewrite)
+- `src/components/home/SectionDivider.tsx` (gradient variant)
+- `src/pages/Home.tsx` (add FeaturedProducts, divider tweak)
+- `src/App.tsx` (admin route)
+- `src/components/AdminLayout.tsx` (nav item)
+- `src/pages/admin/ProductMaster.tsx` or `Products.tsx` (featured toggle) — minimal
+
+Untouched: auth, DB (except additions), APIs, routing (except new admin route), forms, business logic.
+
+## Confirm before I build
+
+1. OK to add `hero_slides` table and (if missing) `products.is_featured` + `products.display_order` columns?
+2. Feature strip (4 cards under hero) — keep static in code, or also CMS-managed? Your spec listed slider as CMS but not the strip explicitly.
+3. Featured products limit — hard cap at 4, or admin-configurable via a homepage setting?
