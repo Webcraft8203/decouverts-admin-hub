@@ -142,7 +142,7 @@ export function LatestInsights() {
 
       <div className="relative">
         {/* Header */}
-        <div className="mx-auto mb-20 max-w-4xl px-6 text-center">
+        <div className="mx-auto mb-12 max-w-4xl px-6 text-center">
           <span
             className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.24em]"
             style={{
