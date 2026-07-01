@@ -212,17 +212,23 @@ export const OurPartners = () => {
 
         <div
           ref={trackRef}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={onPointerUp}
-          className="flex items-start overflow-x-hidden py-6 cursor-grab active:cursor-grabbing"
+          onPointerDown={shouldLoop ? onPointerDown : undefined}
+          onPointerMove={shouldLoop ? onPointerMove : undefined}
+          onPointerUp={shouldLoop ? onPointerUp : undefined}
+          onPointerCancel={shouldLoop ? onPointerUp : undefined}
+          className={[
+            "flex items-start py-6",
+            shouldLoop
+              ? "overflow-x-hidden cursor-grab active:cursor-grabbing"
+              : "justify-center flex-wrap gap-y-8 overflow-hidden",
+          ].join(" ")}
           style={{ touchAction: "pan-y" }}
         >
-          {loop.map((partner, i) => (
+          {displayList.map((partner, i) => (
             <PartnerNode key={`${partner.id}-${i}`} partner={partner} />
           ))}
         </div>
+
       </div>
     </section>
   );
