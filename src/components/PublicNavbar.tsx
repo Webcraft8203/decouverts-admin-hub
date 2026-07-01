@@ -78,18 +78,24 @@ export const PublicNavbar = () => {
     setIsMenuOpen(false);
   };
 
-  const NavItem = ({ children, className, ...props }: React.ComponentProps<typeof Link>) => (
-    <Link
-      className={cn(
-        "relative text-sm font-medium transition-colors hover:text-primary",
-        "after:absolute after:left-0 after:bottom-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all hover:after:w-full",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </Link>
-  );
+  const NavItem = ({ children, className, to, ...props }: React.ComponentProps<typeof Link>) => {
+    const active = typeof to === "string" && location.pathname === to;
+    return (
+      <Link
+        to={to}
+        className={cn(
+          "relative text-[13px] font-semibold tracking-wide transition-colors py-1.5",
+          active ? "text-primary" : "text-slate-700 hover:text-primary",
+          "after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:bg-primary after:transition-all after:duration-300 after:ease-out",
+          active ? "after:w-full" : "after:w-0 hover:after:w-full",
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </Link>
+    );
+  };
 
   const NavButton = ({
     children,
