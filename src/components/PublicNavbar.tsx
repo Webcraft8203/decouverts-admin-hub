@@ -155,7 +155,6 @@ export const PublicNavbar = () => {
 
             {!isShopPage && (
               <>
-                <NavItem to="/drone-configuration" className="text-foreground/80">Drones</NavItem>
                 <NavButton onClick={() => scrollToSection("gallery-section")} className="text-foreground/80">
                   Gallery
                 </NavButton>
