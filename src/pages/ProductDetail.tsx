@@ -16,6 +16,7 @@ import { Product3DViewer } from "@/components/product/Product3DViewer";
 import { Product360Spin } from "@/components/product/Product360Spin";
 import { ProductTimeline } from "@/components/product/ProductTimeline";
 import { ProductCertifications } from "@/components/product/ProductCertifications";
+import { ProductAccessories } from "@/components/product/ProductAccessories";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -534,7 +535,7 @@ const ProductDetail = () => {
           )}
 
           {/* 360 Spin */}
-          {product?.id && <Product360Spin productId={product.id} />}
+          {product?.id && <Product360Spin productId={product.id} fallbackFrames={(product as any).gallery_360} />}
 
           {/* Key Features */}
           {product?.id && <ProductFeatures productId={product.id} />}
@@ -553,6 +554,9 @@ const ProductDetail = () => {
 
           {/* Downloads */}
           {product?.id && <ProductDownloads productId={product.id} />}
+
+          {/* Accessories & Loadout */}
+          {product?.id && <ProductAccessories productId={product.id} />}
 
 
           {/* Reviews */}

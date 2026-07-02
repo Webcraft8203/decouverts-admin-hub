@@ -20,6 +20,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { ApplicationsPicker } from "@/components/admin/products/ApplicationsPicker";
 import { DownloadsManager } from "@/components/admin/products/DownloadsManager";
 import { RelatedProductsPicker } from "@/components/admin/products/RelatedProductsPicker";
+import { AccessoriesPicker } from "@/components/admin/products/AccessoriesPicker";
 import { ChildTableRepeater } from "@/components/admin/products/ChildTableRepeater";
 
 const isValidYouTubeUrl = (url: string): boolean => {
@@ -73,6 +74,7 @@ interface Product {
 const defaultForm = {
   name: "", short_description: "", long_description: "", description: "",
   brand: "", series: "", model_number: "",
+  mission_type: "", model_3d_url: "",
   price: "", cost_price: "", category_id: "", stock_quantity: "",
   availability_status: "in_stock",
   is_highlighted: false, is_featured: false, featured_order: "0",
@@ -161,6 +163,8 @@ export default function Products() {
       brand: formData.brand || null,
       series: formData.series || null,
       model_number: formData.model_number || null,
+      mission_type: formData.mission_type || null,
+      model_3d_url: formData.model_3d_url || null,
       price: parseFloat(formData.price) || 0,
       cost_price: parseFloat(formData.cost_price) || 0,
       category_id: formData.category_id || null,
@@ -234,6 +238,8 @@ export default function Products() {
       brand: product.brand || "",
       series: product.series || "",
       model_number: product.model_number || "",
+      mission_type: (product as any).mission_type || "",
+      model_3d_url: (product as any).model_3d_url || "",
       price: String(product.price),
       cost_price: String(product.cost_price || 0),
       category_id: product.category_id || "",
@@ -304,7 +310,7 @@ export default function Products() {
               </DialogHeader>
 
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid grid-cols-5 md:grid-cols-10 w-full h-auto">
+                <TabsList className="grid grid-cols-5 md:grid-cols-13 w-full h-auto">
                   <TabsTrigger value="general">General</TabsTrigger>
                   <TabsTrigger value="badges">
                     Badges {badgeCount > 0 && <Badge variant="secondary" className="ml-1 h-4 text-[10px]">{badgeCount}</Badge>}
@@ -317,6 +323,9 @@ export default function Products() {
                   <TabsTrigger value="highlights" disabled={!editingProduct}>Highlights</TabsTrigger>
                   <TabsTrigger value="downloads" disabled={!editingProduct}>Downloads</TabsTrigger>
                   <TabsTrigger value="related" disabled={!editingProduct}>Related</TabsTrigger>
+                  <TabsTrigger value="certs" disabled={!editingProduct}>Certs</TabsTrigger>
+                  <TabsTrigger value="timeline" disabled={!editingProduct}>Timeline</TabsTrigger>
+                  <TabsTrigger value="accessories" disabled={!editingProduct}>Accessories</TabsTrigger>
                 </TabsList>
 
                 {/* General + Badges + Media + Apps + SEO share the main form */}
@@ -327,6 +336,10 @@ export default function Products() {
                       <div><Label>Brand</Label><Input value={formData.brand} onChange={(e) => setFormData({ ...formData, brand: e.target.value })} placeholder="Decouvertes" /></div>
                       <div><Label>Series</Label><Input value={formData.series} onChange={(e) => setFormData({ ...formData, series: e.target.value })} placeholder="Enterprise" /></div>
                       <div><Label>Model Number</Label><Input value={formData.model_number} onChange={(e) => setFormData({ ...formData, model_number: e.target.value })} placeholder="DP-X10" /></div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div><Label>Mission Type</Label><Input value={formData.mission_type} onChange={(e) => setFormData({ ...formData, mission_type: e.target.value })} placeholder="Defence UAV, Agriculture, Surveillance…" /></div>
+                      <div><Label>3D Model File Path <span className="text-xs text-muted-foreground">(product-3d-models bucket)</span></Label><Input value={formData.model_3d_url} onChange={(e) => setFormData({ ...formData, model_3d_url: e.target.value })} placeholder="drone-x10.glb" /></div>
                     </div>
                     <div><Label>Short Description</Label><Textarea rows={2} value={formData.short_description} onChange={(e) => setFormData({ ...formData, short_description: e.target.value })} placeholder="One-liner shown on cards & meta description." /></div>
                     <div><Label>Long Description</Label><Textarea rows={5} value={formData.long_description} onChange={(e) => setFormData({ ...formData, long_description: e.target.value })} placeholder="Full storytelling description shown on product page." /></div>
@@ -560,6 +573,43 @@ export default function Products() {
                 </TabsContent>
                 <TabsContent value="related" className="mt-4">
                   {editingProduct && <RelatedProductsPicker productId={editingProduct.id} />}
+                </TabsContent>
+                <TabsContent value="certs" className="mt-4">
+                  {editingProduct && (
+                    <ChildTableRepeater
+                      table="product_certifications"
+                      productId={editingProduct.id}
+                      title="Certifications"
+                      emptyItem={{ cert_name: "", cert_type: "", issued_by: "", icon_name: "" }}
+                      fields={[
+                        { key: "cert_name", label: "Certification Name", placeholder: "DGCA Type Certified" },
+                        { key: "cert_type", label: "Type / Category", placeholder: "Regulatory" },
+                        { key: "issued_by", label: "Issued By", placeholder: "Ministry of Civil Aviation" },
+                        { key: "icon_name", label: "Icon (lucide, optional)", placeholder: "ShieldCheck" },
+                      ]}
+                    />
+                  )}
+                </TabsContent>
+                <TabsContent value="timeline" className="mt-4">
+                  {editingProduct && (
+                    <ChildTableRepeater
+                      table="product_timeline"
+                      productId={editingProduct.id}
+                      title="Development Timeline"
+                      emptyItem={{ stage: "", title: "", description: "", event_date: "" }}
+                      fields={[
+                        { key: "stage", label: "Stage", placeholder: "Prototype / Field Trial / Launch" },
+                        { key: "title", label: "Title", placeholder: "First tethered flight" },
+                        { key: "description", label: "Description", type: "textarea", placeholder: "Short milestone summary." },
+                        { key: "event_date", label: "Date (YYYY-MM-DD)", placeholder: "2024-08-15" },
+                      ]}
+                    />
+                  )}
+                </TabsContent>
+                <TabsContent value="accessories" className="mt-4">
+                  {editingProduct && (
+                    <AccessoriesPicker productId={editingProduct.id} />
+                  )}
                 </TabsContent>
               </Tabs>
             </DialogContent>

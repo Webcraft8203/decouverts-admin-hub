@@ -6,10 +6,11 @@ import { motion } from "framer-motion";
 
 interface Props {
   productId: string;
+  fallbackFrames?: string[] | null;
 }
 
-export function Product360Spin({ productId }: Props) {
-  const { data: frames } = useQuery({
+export function Product360Spin({ productId, fallbackFrames }: Props) {
+  const { data: framesFromTable } = useQuery({
     queryKey: ["product-360", productId],
     queryFn: async () => {
       const { data } = await supabase
@@ -21,6 +22,11 @@ export function Product360Spin({ productId }: Props) {
     },
     enabled: !!productId,
   });
+
+  const frames =
+    framesFromTable && framesFromTable.length > 0
+      ? framesFromTable
+      : fallbackFrames || [];
 
   const [idx, setIdx] = useState(0);
   const dragRef = useRef<{ x: number; startIdx: number } | null>(null);
