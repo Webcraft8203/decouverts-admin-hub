@@ -12,6 +12,8 @@ import { WishlistButton } from "@/components/WishlistButton";
 import { ShareMenu } from "@/components/ShareMenu";
 import { ShopHeroSlider } from "@/components/shop/ShopHeroSlider";
 import { CategoriesRail } from "@/components/shop/CategoriesRail";
+import { QuickViewModal } from "@/components/shop/QuickViewModal";
+
 import { 
   ShoppingCart, 
   Package, 
