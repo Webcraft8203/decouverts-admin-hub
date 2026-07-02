@@ -17,6 +17,7 @@ import { Product360Spin } from "@/components/product/Product360Spin";
 import { ProductTimeline } from "@/components/product/ProductTimeline";
 import { ProductCertifications } from "@/components/product/ProductCertifications";
 import { ProductAccessories } from "@/components/product/ProductAccessories";
+import { ProductEngineeringFiles } from "@/components/product/ProductEngineeringFiles";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -533,6 +534,15 @@ const ProductDetail = () => {
               productName={product.name}
             />
           )}
+
+          {/* Engineering Files (STEP / STL) */}
+          <ProductEngineeringFiles
+            stepUrl={(product as any)?.step_file_url}
+            stlUrl={(product as any)?.stl_file_url}
+            productName={product.name}
+          />
+
+
 
           {/* 360 Spin */}
           {product?.id && <Product360Spin productId={product.id} fallbackFrames={(product as any).gallery_360} />}

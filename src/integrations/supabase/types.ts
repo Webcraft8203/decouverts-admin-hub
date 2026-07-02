@@ -1748,6 +1748,8 @@ export type Database = {
           short_description: string | null
           sku: string | null
           slug: string | null
+          step_file_url: string | null
+          stl_file_url: string | null
           stock_quantity: number
           updated_at: string
           video_url: string | null
@@ -1797,6 +1799,8 @@ export type Database = {
           short_description?: string | null
           sku?: string | null
           slug?: string | null
+          step_file_url?: string | null
+          stl_file_url?: string | null
           stock_quantity?: number
           updated_at?: string
           video_url?: string | null
@@ -1846,6 +1850,8 @@ export type Database = {
           short_description?: string | null
           sku?: string | null
           slug?: string | null
+          step_file_url?: string | null
+          stl_file_url?: string | null
           stock_quantity?: number
           updated_at?: string
           video_url?: string | null

@@ -22,6 +22,7 @@ import { DownloadsManager } from "@/components/admin/products/DownloadsManager";
 import { RelatedProductsPicker } from "@/components/admin/products/RelatedProductsPicker";
 import { AccessoriesPicker } from "@/components/admin/products/AccessoriesPicker";
 import { ChildTableRepeater } from "@/components/admin/products/ChildTableRepeater";
+import { ModelFilesUploader } from "@/components/admin/products/ModelFilesUploader";
 
 const isValidYouTubeUrl = (url: string): boolean => {
   if (!url) return true;
@@ -74,7 +75,7 @@ interface Product {
 const defaultForm = {
   name: "", short_description: "", long_description: "", description: "",
   brand: "", series: "", model_number: "",
-  mission_type: "", model_3d_url: "",
+  mission_type: "", model_3d_url: "", step_file_url: "", stl_file_url: "",
   price: "", cost_price: "", category_id: "", stock_quantity: "",
   availability_status: "in_stock",
   is_highlighted: false, is_featured: false, featured_order: "0",
@@ -165,6 +166,8 @@ export default function Products() {
       model_number: formData.model_number || null,
       mission_type: formData.mission_type || null,
       model_3d_url: formData.model_3d_url || null,
+      step_file_url: formData.step_file_url || null,
+      stl_file_url: formData.stl_file_url || null,
       price: parseFloat(formData.price) || 0,
       cost_price: parseFloat(formData.cost_price) || 0,
       category_id: formData.category_id || null,
@@ -240,6 +243,8 @@ export default function Products() {
       model_number: product.model_number || "",
       mission_type: (product as any).mission_type || "",
       model_3d_url: (product as any).model_3d_url || "",
+      step_file_url: (product as any).step_file_url || "",
+      stl_file_url: (product as any).stl_file_url || "",
       price: String(product.price),
       cost_price: String(product.cost_price || 0),
       category_id: product.category_id || "",
@@ -339,7 +344,20 @@ export default function Products() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div><Label>Mission Type</Label><Input value={formData.mission_type} onChange={(e) => setFormData({ ...formData, mission_type: e.target.value })} placeholder="Defence UAV, Agriculture, Surveillance…" /></div>
-                      <div><Label>3D Model File Path <span className="text-xs text-muted-foreground">(product-3d-models bucket)</span></Label><Input value={formData.model_3d_url} onChange={(e) => setFormData({ ...formData, model_3d_url: e.target.value })} placeholder="drone-x10.glb" /></div>
+                    </div>
+                    <div className="pt-2">
+                      <ModelFilesUploader
+                        productId={editingProduct?.id}
+                        glbUrl={formData.model_3d_url}
+                        stepUrl={formData.step_file_url}
+                        stlUrl={formData.stl_file_url}
+                        onChange={(patch) => setFormData((f) => ({
+                          ...f,
+                          ...(patch.glb_model_url !== undefined ? { model_3d_url: patch.glb_model_url ?? "" } : {}),
+                          ...(patch.step_file_url !== undefined ? { step_file_url: patch.step_file_url ?? "" } : {}),
+                          ...(patch.stl_file_url !== undefined ? { stl_file_url: patch.stl_file_url ?? "" } : {}),
+                        }))}
+                      />
                     </div>
                     <div><Label>Short Description</Label><Textarea rows={2} value={formData.short_description} onChange={(e) => setFormData({ ...formData, short_description: e.target.value })} placeholder="One-liner shown on cards & meta description." /></div>
                     <div><Label>Long Description</Label><Textarea rows={5} value={formData.long_description} onChange={(e) => setFormData({ ...formData, long_description: e.target.value })} placeholder="Full storytelling description shown on product page." /></div>
