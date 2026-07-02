@@ -40,6 +40,28 @@ export function RelatedProducts({ categoryId, currentProductId }: RelatedProduct
   const { data: products, isLoading } = useQuery({
     queryKey: ["related-products", categoryId, currentProductId],
     queryFn: async () => {
+      // Prefer manually-linked related products from product_related
+      const { data: manual } = await supabase
+        .from("product_related")
+        .select("related_product_id, display_order")
+        .eq("product_id", currentProductId)
+        .order("display_order", { ascending: true });
+
+      if (manual && manual.length > 0) {
+        const ids = manual.map((m: any) => m.related_product_id);
+        const { data: manualProducts } = await supabase
+          .from("products")
+          .select("*, categories(name)")
+          .in("id", ids);
+        if (manualProducts && manualProducts.length > 0) {
+          // Preserve order
+          const ordered = ids
+            .map((id) => manualProducts.find((p: any) => p.id === id))
+            .filter(Boolean);
+          return ordered as Product[];
+        }
+      }
+
       let query = supabase
         .from("products")
         .select("*, categories(name)")
@@ -53,8 +75,7 @@ export function RelatedProducts({ categoryId, currentProductId }: RelatedProduct
 
       const { data, error } = await query;
       if (error) throw error;
-      
-      // If not enough related products, fetch some random ones to fill
+
       if (!data || data.length < 4) {
          const { data: randomProducts } = await supabase
             .from("products")
@@ -62,7 +83,7 @@ export function RelatedProducts({ categoryId, currentProductId }: RelatedProduct
             .neq("id", currentProductId)
             .gt("stock_quantity", 0)
             .limit(10);
-            
+
          return randomProducts as Product[];
       }
 
@@ -70,6 +91,7 @@ export function RelatedProducts({ categoryId, currentProductId }: RelatedProduct
     },
     enabled: !!currentProductId,
   });
+
 
   const addToCartMutation = useMutation({
     mutationFn: async (productId: string) => {
