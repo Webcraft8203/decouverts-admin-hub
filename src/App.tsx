@@ -14,6 +14,8 @@ import { SiteSchema } from "@/components/SEOSchemas";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Shop from "./pages/Shop";
+import Downloads from "./pages/Downloads";
+
 import ProductDetail from "./pages/ProductDetail";
 import Checkout from "./pages/Checkout";
 import CustomerAuth from "./pages/CustomerAuth";
