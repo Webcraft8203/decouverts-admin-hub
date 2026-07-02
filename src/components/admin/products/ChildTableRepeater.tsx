@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Save, Loader2 } from "lucide-react";
 
 interface Props {
-  table: "product_features" | "product_highlights";
+  table: "product_features" | "product_highlights" | "product_certifications" | "product_timeline";
   productId: string;
   title: string;
   fields: RepeaterField[];
