@@ -7,7 +7,12 @@ import { PublicNavbar } from "@/components/PublicNavbar";
 import { PublicFooter } from "@/components/PublicFooter";
 import { ProductMediaGallery } from "@/components/ProductMediaGallery";
 import { ProductSpecifications } from "@/components/product/ProductSpecifications";
+import { ProductFeatures } from "@/components/product/ProductFeatures";
+import { ProductHighlights } from "@/components/product/ProductHighlights";
+import { ProductDownloads } from "@/components/product/ProductDownloads";
+import { ProductApplications } from "@/components/product/ProductApplications";
 import { RelatedProducts } from "@/components/product/RelatedProducts";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -231,7 +236,9 @@ const ProductDetail = () => {
     );
   }
 
-  const isLongDescription = (product.description?.length || 0) > 300;
+  const displayDescription = (product as any).long_description || product.description;
+  const isLongDescription = (displayDescription?.length || 0) > 300;
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -284,8 +291,10 @@ const ProductDetail = () => {
               transition={{ duration: 0.4, delay: 0.1 }}
             >
               {/* Brand & Category */}
-              <div className="flex items-center gap-2.5 mb-3">
-                <span className="text-primary font-bold text-[11px] uppercase tracking-[0.2em]">DECOUVERTES</span>
+              <div className="flex items-center gap-2.5 mb-3 flex-wrap">
+                <span className="text-primary font-bold text-[11px] uppercase tracking-[0.2em]">
+                  {(product as any).brand || "DECOUVERTES"}
+                </span>
                 {(product.categories as any)?.name && (
                   <>
                     <span className="w-1 h-1 rounded-full bg-border" />
@@ -294,12 +303,50 @@ const ProductDetail = () => {
                     </span>
                   </>
                 )}
+                {(product as any).series && (
+                  <>
+                    <span className="w-1 h-1 rounded-full bg-border" />
+                    <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">
+                      {(product as any).series}
+                    </span>
+                  </>
+                )}
               </div>
 
+              {/* Badges */}
+              {(() => {
+                const p: any = product;
+                const badges: { label: string; cls: string }[] = [];
+                if (p.is_new_arrival) badges.push({ label: "NEW", cls: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" });
+                if (p.is_bestseller) badges.push({ label: "BESTSELLER", cls: "bg-amber-500/10 text-amber-600 border-amber-500/20" });
+                if (p.is_coming_soon) badges.push({ label: "COMING SOON", cls: "bg-sky-500/10 text-sky-600 border-sky-500/20" });
+                if (p.is_pre_order) badges.push({ label: "PRE-ORDER", cls: "bg-violet-500/10 text-violet-600 border-violet-500/20" });
+                if (p.is_discontinued) badges.push({ label: "DISCONTINUED", cls: "bg-muted text-muted-foreground border-border" });
+                if (p.made_in_india) badges.push({ label: "MADE IN INDIA", cls: "bg-orange-500/10 text-orange-600 border-orange-500/20" });
+                if (badges.length === 0) return null;
+                return (
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {badges.map((b) => (
+                      <span key={b.label} className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${b.cls}`}>
+                        {b.label}
+                      </span>
+                    ))}
+                  </div>
+                );
+              })()}
+
               {/* Title */}
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight tracking-tight mb-3">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight tracking-tight mb-2">
                 {product.name}
               </h1>
+
+              {/* Short Description */}
+              {(product as any).short_description && (
+                <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
+                  {(product as any).short_description}
+                </p>
+              )}
+
 
               {/* Rating */}
               {approvedReviews.length > 0 && (
@@ -350,11 +397,11 @@ const ProductDetail = () => {
               </div>
 
               {/* Description */}
-              {product.description && (
+              {displayDescription && (
                 <div className="mb-6">
                   <div
                     className={cn(
-                      "text-sm text-muted-foreground leading-relaxed overflow-hidden relative transition-all duration-300",
+                      "text-sm text-muted-foreground leading-relaxed overflow-hidden relative transition-all duration-300 whitespace-pre-line",
                       isLongDescription && !isDescriptionExpanded && "max-h-24"
                     )}
                     style={{
@@ -366,8 +413,9 @@ const ProductDetail = () => {
                         : "none"
                     }}
                   >
-                    {product.description}
+                    {displayDescription}
                   </div>
+
                   {isLongDescription && (
                     <button
                       onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
@@ -470,8 +518,21 @@ const ProductDetail = () => {
             </motion.div>
           </div>
 
+          {/* Highlights strip */}
+          {product?.id && <ProductHighlights productId={product.id} />}
+
+          {/* Key Features */}
+          {product?.id && <ProductFeatures productId={product.id} />}
+
           {/* Specifications */}
           {product?.id && <ProductSpecifications productId={product.id} />}
+
+          {/* Applications */}
+          <ProductApplications applications={(product as any).applications} />
+
+          {/* Downloads */}
+          {product?.id && <ProductDownloads productId={product.id} />}
+
 
           {/* Reviews */}
           <section id="reviews" className="mt-12 lg:mt-16 border-t border-border/30 pt-8 lg:pt-10">
