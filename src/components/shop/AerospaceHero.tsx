@@ -88,13 +88,21 @@ export function AerospaceHero() {
               transition={{ duration: 0.55, delay: 0.05 }}
               className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground tracking-tight leading-[1.02]"
             >
-              Engineering India's{" "}
-              <span className="relative inline-block">
-                <span className="relative z-10 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
-                  Next Generation
+              {heroTitle ? (
+                <span className="bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
+                  {heroTitle}
                 </span>
-              </span>{" "}
-              UAV Platforms.
+              ) : (
+                <>
+                  Engineering India's{" "}
+                  <span className="relative inline-block">
+                    <span className="relative z-10 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
+                      Next Generation
+                    </span>
+                  </span>{" "}
+                  UAV Platforms.
+                </>
+              )}
             </motion.h1>
 
             <motion.p
@@ -103,9 +111,10 @@ export function AerospaceHero() {
               transition={{ duration: 0.5, delay: 0.15 }}
               className="mt-6 text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed"
             >
-              Purpose-built aerial systems for Defence, Agriculture, Industrial
-              Inspection and Advanced Research. Precision engineered. Mission tested.
+              {heroDescription ||
+                "Purpose-built aerial systems for Defence, Agriculture, Industrial Inspection and Advanced Research. Precision engineered. Mission tested."}
             </motion.p>
+
 
             <motion.div
               initial={{ opacity: 0, y: 12 }}
