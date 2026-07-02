@@ -90,6 +90,8 @@ const Shop = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("newest");
   const [gridView, setGridView] = useState<"grid" | "large">("grid");
+  const [quickViewId, setQuickViewId] = useState<string | null>(null);
+
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
   const [quickFilter, setQuickFilter] = useState<"all" | "new" | "bestseller" | "made_in_india">("all");
