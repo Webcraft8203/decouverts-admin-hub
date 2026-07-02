@@ -135,6 +135,8 @@ const Shop = () => {
     return [Math.min(...prices), Math.max(...prices)];
   }, [products]);
 
+  const activePreset = MISSION_PRESETS.find((p) => p.id === missionPreset) || MISSION_PRESETS[0];
+
   const filteredProducts = useMemo(() => {
     return (products || [])
       .filter((p) => {
@@ -149,13 +151,14 @@ const Shop = () => {
           p.sku?.toLowerCase().includes(q);
         const matchesCategory = !selectedCategory || p.category_id === selectedCategory;
         const matchesMission = missionFilter === "all" || p.mission_type === missionFilter;
+        const matchesPreset = matchesMissionPreset(activePreset, p);
         const matchesAvail =
           availability === "all" ||
           (availability === "in_stock" && p.stock_quantity > 0 && !p.is_coming_soon && !p.is_pre_order) ||
           (availability === "coming_soon" && p.is_coming_soon) ||
           (availability === "pre_order" && p.is_pre_order);
         const matchesPrice = !priceRange || (p.price >= priceRange[0] && p.price <= priceRange[1]);
-        return matchesSearch && matchesCategory && matchesMission && matchesAvail && matchesPrice;
+        return matchesSearch && matchesCategory && matchesMission && matchesPreset && matchesAvail && matchesPrice;
       })
       .sort((a, b) => {
         switch (sortBy) {
@@ -165,7 +168,15 @@ const Shop = () => {
           default: return 0;
         }
       });
-  }, [products, searchQuery, selectedCategory, missionFilter, availability, priceRange, sortBy]);
+  }, [products, searchQuery, selectedCategory, missionFilter, availability, priceRange, sortBy, activePreset]);
+
+  const presetCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    MISSION_PRESETS.forEach((preset) => {
+      counts[preset.id] = (products || []).filter((p) => matchesMissionPreset(preset, p)).length;
+    });
+    return counts;
+  }, [products]);
 
   const selectedCategoryName = selectedCategory
     ? categories?.find((c) => c.id === selectedCategory)?.name
@@ -219,6 +230,9 @@ const Shop = () => {
         <AerospaceHero />
         <FeatureBar />
         <AerospaceCategories selectedId={selectedCategory} onSelect={setSelectedCategory} />
+
+        <MissionPresets active={missionPreset} onChange={setMissionPreset} counts={presetCounts} />
+
 
         <CommandCenterSearch
           searchQuery={searchQuery}
