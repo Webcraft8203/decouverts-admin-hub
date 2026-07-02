@@ -1,91 +1,181 @@
-# Premium Hero Redesign + Featured Products
+# Shop Module — Full Redesign Plan
 
-Full scope, no backend logic changes to existing systems. Only additions: 1 new table for hero slides, plus reuse of existing `products.is_featured` (or add flag if missing).
+Scope is large. Below is the concrete build broken into phases. Everything is backward compatible — existing products keep working. New fields default to null/empty; the UI gracefully falls back to legacy data (`description`, `images`, `video_url`, `product_parameters`).
 
-## 1. Database (additions only)
+---
 
-New table `hero_slides` (CMS-driven, no hardcoded content):
-- `title`, `subtitle`, `description`, `badge_label`
-- `image_url`, `background_image_url`, `video_url`
-- `primary_cta_label`, `primary_cta_link`, `secondary_cta_label`, `secondary_cta_link`
-- `glow_color` (hex), `display_order` (int), `is_active` (bool)
-- Standard RLS: public read active, admins full write. GRANTs to anon (select active) + authenticated + service_role.
+## Phase 0 — Audit findings (current state)
 
-Products: verify `is_featured` + `display_order` exist on `products` table. If missing, add them (non-breaking, default false/0).
+**Shop page (`Shop.tsx`, 634 lines):** monolithic; generic grid; weak filters (only category + price); no sort variety, no application/badge filter; card is basic; no quick view, compare, or quote; no hero/story sections.
 
-Storage: reuse existing product/homepage bucket for uploads (no new bucket unless needed).
+**Product page (`ProductDetail.tsx`, 680 lines):** basic gallery, no zoom/360, no sticky purchase card, no applications/features/highlights sections, no downloads, no FAQ, no timeline; SEO minimal.
 
-## 2. Hero Section Redesign (`src/components/home/HeroSection.tsx`)
+**Admin (`Products.tsx`, `ProductMaster.tsx`):** covers name/price/stock/images/video/params only. Missing: brand, series, model, short/long desc split, badges (bestseller, new, coming-soon, pre-order, made-in-india), applications, features, highlights, downloads, SEO fields, manual related products, brochure/manual/CAD files.
 
-Split layout:
-- **Left 45%**: Badge, large heading, description, dual CTA (magnetic hover), 3 mini animated stat counters.
-- **Right 55%**: Cinematic slider — Apple-style. Center slide large; prev/next peek at ~85% scale, 40% opacity behind. Fade+scale transition via Framer Motion `AnimatePresence`. Auto-advance 6s, pause on hover. Arrow keys + swipe (framer drag).
-- Floating drone: `y` float loop, subtle rotate, orange radial glow, mouse parallax (motion values), soft shadow.
-- Slide info overlay: category badge, heading, subtitle, description, primary+secondary buttons, slide counter "01 / 05".
-- **Right-edge vertical thumbnails**: small rounded cards w/ drone thumb + name; active = orange border + scale.
-- **Bottom glass strip**: 4 feature cards (Precision, Endurance, Autonomy, Made in India — pulled from CMS-style constants OR keep as static presentational since feature strip wasn't listed as CMS-managed). Animated icons, hover lift, orange accent.
+**DB (`products` table):** has id/name/description/price/category/images/video_url/sku/hsn/slug/is_featured/featured_order. Missing everything above.
 
-Background layers (all subtle, GPU-only transforms/opacity):
-- Blueprint grid (CSS bg-image)
-- Radial orange + blue gradients
-- Noise texture (svg data-uri)
-- Faint flight paths (SVG dashed curves, motion path-draw)
-- Radar rings pulsing behind drone
-- Scanning line sweep
-- Tiny floating particles (framer motion loop)
+**Perf/SEO:** no per-product schema.org, no OG, no breadcrumbs, no lazy image priority hints.
 
-## 3. Section Divider (Hero → Stats)
+---
 
-Soft gradient fade + wave SVG. Update `SectionDivider` usage in `Home.tsx`.
+## Phase 1 — Backend (single migration, backward compatible)
 
-## 4. Featured Products Section (new component `FeaturedProducts.tsx`)
+Add new nullable columns to `public.products`:
 
-Placed under `StatsCounter` in `Home.tsx`.
-- Title: "Featured Products" / Subtitle: "Designed, Built and Ready for Mission."
-- Query `products` where `is_featured=true` and `is_visible=true`, order by `display_order`, limit configurable (default 4).
-- If empty → renders `null`.
-- Grid: 1 / 2 / 4 cols. Card: image (zoom on hover), name, category, price, stock badge, Quick View, Add to Cart, View Product. Orange glow + lift on hover.
+```
+short_description text
+long_description  text          -- if null, fall back to description
+brand             text
+series            text
+model_number      text
+made_in_india     boolean default false
+is_bestseller     boolean default false
+is_new_arrival    boolean default false
+is_coming_soon    boolean default false
+is_pre_order      boolean default false
+is_discontinued   boolean default false
+applications      text[] default '{}'
+seo_title         text
+seo_description   text
+seo_keywords      text[] default '{}'
+og_image_url      text
+canonical_url     text
+gallery_360       text[] default '{}'
+```
 
-## 5. Admin Panel
+Three new child tables (all with GRANT + RLS: public SELECT, admin ALL):
 
-New page `src/pages/admin/HeroSlides.tsx`:
-- List with drag-reorder (or up/down buttons — keep simple: order input)
-- Add / Edit / Delete slide
-- Fields: badge, heading, subtitle, description, image upload, background image upload, video URL, primary/secondary CTA label+link, glow color picker, display order, active toggle
-- Uses existing storage bucket for uploads
+- `product_features` — id, product_id, icon, title, description, display_order
+- `product_highlights` — id, product_id, icon, label, value, display_order
+- `product_downloads` — id, product_id, type (brochure/manual/cad/firmware/certificate), title, file_url, file_size, display_order
+- `product_related` — id, product_id, related_product_id, display_order (manual override; auto-related still works via category)
 
-Register route in `App.tsx` under admin. Add sidebar link in `AdminLayout.tsx` ("Hero Slides", Rocket icon).
+No changes to `product_parameters` — dynamic key/value stays exactly as-is.
 
-Products admin: add "Featured" toggle + display order column in existing `ProductMaster.tsx` / `Products.tsx` (small addition, no logic change).
+New storage bucket `product-downloads` (private, signed URLs via existing admin flow) — or reuse `product-images` if the user prefers public downloads. Default: reuse `product-images` for simplicity (public).
 
-## 6. Performance
+**Migration is additive only.** Existing rows keep working; UI treats new fields as optional.
 
-- Framer Motion only (already installed)
-- `loading="lazy"` on non-first slide images, `fetchpriority="high"` on first
-- All animations on `transform`/`opacity`
-- Slider uses `AnimatePresence mode="wait"` to avoid overlap cost
+---
 
-## 7. Files touched
+## Phase 2 — Admin Panel upgrades
 
-New:
-- `supabase/migrations/<ts>_hero_slides.sql`
-- `src/components/home/HeroSlider.tsx` (cinematic slider)
-- `src/components/home/HeroFeatureStrip.tsx`
-- `src/components/home/FeaturedProducts.tsx`
-- `src/pages/admin/HeroSlides.tsx`
+`src/pages/admin/Products.tsx` reorganized into a tabbed editor:
 
-Edited:
-- `src/components/home/HeroSection.tsx` (rewrite)
-- `src/components/home/SectionDivider.tsx` (gradient variant)
-- `src/pages/Home.tsx` (add FeaturedProducts, divider tweak)
-- `src/App.tsx` (admin route)
-- `src/components/AdminLayout.tsx` (nav item)
-- `src/pages/admin/ProductMaster.tsx` or `Products.tsx` (featured toggle) — minimal
+1. **General** — name, short desc, long desc (rich), brand, series, model, category, price, stock, GST, HSN, SKU (auto)
+2. **Badges & Status** — featured, bestseller, new arrival, coming soon, pre-order, discontinued, made-in-india, in-stock
+3. **Media** — images (existing), 360 image set, video URL
+4. **Specifications** — existing `product_parameters` editor (unchanged)
+5. **Features** — repeater (icon picker + title + desc)
+6. **Highlights** — repeater (icon + label + value)
+7. **Applications** — multi-select from a preset list + custom tags
+8. **Downloads** — file uploads categorized by type
+9. **Related Products** — manual picker (auto fallback stays)
+10. **SEO** — title, description, keywords, OG image, canonical
 
-Untouched: auth, DB (except additions), APIs, routing (except new admin route), forms, business logic.
+No existing admin field is removed. Old products load with new sections empty.
 
-## Confirm before I build
+---
 
-1. OK to add `hero_slides` table and (if missing) `products.is_featured` + `products.display_order` columns?
-2. Feature strip (4 cards under hero) — keep static in code, or also CMS-managed? Your spec listed slider as CMS but not the strip explicitly.
-3. Featured products limit — hard cap at 4, or admin-configurable via a homepage setting?
+## Phase 3 — Shop redesign (`Shop.tsx` rewrite)
+
+Sections in order:
+1. **Cinematic hero** (reuses `shop_slides`)
+2. **Categories rail** — horizontal scroll with images
+3. **Featured Collection** — large asymmetric cards
+4. **Product Explorer** — filters (category, application, price, availability, badges) + sort + grid; skeleton loading; framer-motion fade-in per card
+5. **Popular Products** — bestsellers
+6. **Recently Added** — sorted by created_at desc
+7. **Industries** — links into `/categories/:slug`
+8. **Why Decouvertes** — 4 value props
+9. **Downloads Hub** — aggregated latest brochures
+10. **Newsletter CTA**
+
+Filters use URL params so state is shareable. Virtualization only if list > 60 items (keep simple otherwise).
+
+---
+
+## Phase 4 — Premium Product Card
+
+New `src/components/shop/ProductCard.tsx`:
+- Large image with hover zoom + orange glow
+- Badge stack (Featured / Bestseller / New / Made in India / Pre-Order)
+- Application chips (first 3)
+- Hover reveal action bar: Quick View, Compare, Wishlist, Request Quote
+- Primary CTA: Add to Cart / View Product
+- Framer-motion hover lift + shadow
+
+Quick View opens a Dialog with gallery + key specs + Add-to-Cart, no navigation.
+
+Compare uses localStorage list (up to 4); `/shop/compare` page renders side-by-side specs table.
+
+---
+
+## Phase 5 — DJI-style Product Page (`ProductDetail.tsx` rewrite)
+
+Layout:
+- **Sticky sub-nav** (Overview · Specs · Features · Downloads · Reviews)
+- **Hero split** — large gallery left (zoom, thumbnails, 360 toggle, video), sticky purchase card right (price, stock, quantity, Add to Cart, Wishlist, Request Quote, key highlights)
+- **Highlights strip** — animated counter cards
+- **Storytelling sections** — features (icon cards), applications (industry grid)
+- **Specifications** — reuses the redesigned premium spec cards from last turn (already dynamic)
+- **Downloads** — categorized cards with size/type
+- **Timeline** — how it ships / warranty / support (static template, no admin)
+- **Reviews** — existing system, restyled
+- **Related Products** — manual first, else auto by category
+- **Recently Viewed** — localStorage
+- **FAQs** — collapsible (uses existing accordion). Data source: static per-product template initially (admin FAQ table can come later if wanted)
+
+**SEO per page** via `react-helmet-async`: `<title>`, meta description, canonical, OG image, Twitter card, `Product` JSON-LD (name, image, description, sku, brand, offers, aggregateRating).
+
+**Mobile:** sticky bottom Buy bar; drawer filters; swipe gallery.
+
+---
+
+## Phase 6 — Animations & Perf
+
+- Framer Motion: page transition wrapper, section fade-up on intersection, magnetic buttons on primary CTAs
+- Progressive image loading (blur-up), `loading="lazy"` except first hero image (`fetchpriority="high"`)
+- Code-split heavy sections (`React.lazy` for 360 viewer, compare page)
+- Skeleton components for all grids
+
+---
+
+## Files touched
+
+**New**
+- `supabase/migrations/<ts>_shop_upgrade.sql`
+- `src/components/shop/ProductCard.tsx`
+- `src/components/shop/QuickView.tsx`
+- `src/components/shop/CompareBar.tsx`
+- `src/components/shop/ShopHero.tsx` (or reuse existing `ShopHeroSlider`)
+- `src/components/shop/FilterPanel.tsx`
+- `src/components/product/StickyPurchaseCard.tsx`
+- `src/components/product/ProductGallery.tsx` (zoom + 360 + video)
+- `src/components/product/HighlightsStrip.tsx`
+- `src/components/product/FeaturesGrid.tsx`
+- `src/components/product/ApplicationsGrid.tsx`
+- `src/components/product/DownloadsSection.tsx`
+- `src/components/product/ProductFAQ.tsx`
+- `src/components/product/ProductSEO.tsx` (Helmet + JSON-LD)
+- `src/pages/shop/Compare.tsx`
+- `src/pages/admin/ProductFeatures.tsx` etc. — merged as tabs inside existing `Products.tsx`
+
+**Rewritten**
+- `src/pages/Shop.tsx`
+- `src/pages/ProductDetail.tsx`
+- `src/pages/admin/Products.tsx` (tabbed editor)
+
+**Kept as-is**
+- `product_parameters` table + admin editor
+- `cart_items`, `wishlist`, `orders` — no changes
+- Auth, checkout, payments, invoices, categories
+
+---
+
+## What I need to confirm before building
+
+1. **Scope size** — this is a large multi-turn build. OK to proceed in this order: (a) migration + admin editor upgrades, (b) product page rewrite, (c) shop page rewrite, (d) polish (compare, quick view, FAQ, timeline)? Or do you want a specific phase first?
+2. **Downloads bucket** — reuse public `product-images` (simple, files are shareable) or create a private `product-downloads` bucket (signed URLs, more secure)?
+3. **FAQ source** — static per-page template for now, or add a `product_faqs` admin table in the same migration?
+4. **`react-helmet-async`** — OK to add as a dependency for per-product SEO/OG tags?
