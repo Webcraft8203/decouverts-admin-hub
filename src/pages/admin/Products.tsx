@@ -241,6 +241,8 @@ export default function Products() {
       model_number: product.model_number || "",
       mission_type: (product as any).mission_type || "",
       model_3d_url: (product as any).model_3d_url || "",
+      step_file_url: (product as any).step_file_url || "",
+      stl_file_url: (product as any).stl_file_url || "",
       price: String(product.price),
       cost_price: String(product.cost_price || 0),
       category_id: product.category_id || "",
