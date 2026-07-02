@@ -1,6 +1,9 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, PlayCircle, Radar, Gauge, Cpu, Wind, ShieldCheck } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import droneImg from "@/assets/hero-drone.png";
 
 const SPECS = [
@@ -12,6 +15,41 @@ const SPECS = [
 ];
 
 export function AerospaceHero() {
+  const navigate = useNavigate();
+
+  const { data: slide } = useQuery({
+    queryKey: ["shop-hero-slide"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("shop_slides")
+        .select("id,title,description,image_url,product_id,is_visible,display_order")
+        .eq("is_visible", true)
+        .order("display_order", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      return data as {
+        id: string;
+        title: string;
+        description: string | null;
+        image_url: string;
+        product_id: string | null;
+      } | null;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const heroTitle = slide?.title;
+  const heroDescription = slide?.description;
+  const heroImage = slide?.image_url || droneImg;
+
+  const handlePrimary = () => {
+    if (slide?.product_id) {
+      navigate(`/product/${slide.product_id}`);
+    } else {
+      document.getElementById("shop-catalogue")?.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-background via-secondary/20 to-background">
       {/* Engineering grid */}
@@ -50,13 +88,21 @@ export function AerospaceHero() {
               transition={{ duration: 0.55, delay: 0.05 }}
               className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground tracking-tight leading-[1.02]"
             >
-              Engineering India's{" "}
-              <span className="relative inline-block">
-                <span className="relative z-10 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
-                  Next Generation
+              {heroTitle ? (
+                <span className="bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
+                  {heroTitle}
                 </span>
-              </span>{" "}
-              UAV Platforms.
+              ) : (
+                <>
+                  Engineering India's{" "}
+                  <span className="relative inline-block">
+                    <span className="relative z-10 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
+                      Next Generation
+                    </span>
+                  </span>{" "}
+                  UAV Platforms.
+                </>
+              )}
             </motion.h1>
 
             <motion.p
@@ -65,9 +111,10 @@ export function AerospaceHero() {
               transition={{ duration: 0.5, delay: 0.15 }}
               className="mt-6 text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed"
             >
-              Purpose-built aerial systems for Defence, Agriculture, Industrial
-              Inspection and Advanced Research. Precision engineered. Mission tested.
+              {heroDescription ||
+                "Purpose-built aerial systems for Defence, Agriculture, Industrial Inspection and Advanced Research. Precision engineered. Mission tested."}
             </motion.p>
+
 
             <motion.div
               initial={{ opacity: 0, y: 12 }}
@@ -76,12 +123,13 @@ export function AerospaceHero() {
               className="mt-8 flex flex-wrap items-center gap-3"
             >
               <Button
-                onClick={() => document.getElementById("shop-catalogue")?.scrollIntoView({ behavior: "smooth" })}
+                onClick={handlePrimary}
                 className="h-12 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm shadow-lg shadow-primary/30 group"
               >
-                Explore Platforms
+                {slide?.product_id ? "View Featured Platform" : "Explore Platforms"}
                 <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
               </Button>
+
               <Button
                 variant="outline"
                 className="h-12 px-6 rounded-xl border-border/60 bg-card/50 backdrop-blur-sm hover:bg-card font-semibold text-sm"
@@ -175,7 +223,7 @@ export function AerospaceHero() {
 
               {/* Drone image */}
               <motion.img
-                src={droneImg}
+                src={heroImage}
                 alt="Decouvertes UAV platform"
                 className="absolute inset-0 w-full h-full object-contain drop-shadow-[0_30px_50px_rgba(255,106,26,0.25)]"
                 initial={{ opacity: 0, scale: 0.9 }}
