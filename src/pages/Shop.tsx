@@ -689,6 +689,76 @@ const Shop = () => {
                   </div>
                 )}
 
+                {/* Quick Filter Chips */}
+                <div className="flex items-center gap-2 mb-6 overflow-x-auto scrollbar-none -mx-1 px-1">
+                  {[
+                    { id: "all", label: "All", icon: null },
+                    { id: "new", label: "New Arrivals", icon: Sparkles },
+                    { id: "bestseller", label: "Bestsellers", icon: Flame },
+                    { id: "made_in_india", label: "Made in India", icon: MapPin },
+                  ].map((f) => {
+                    const Icon = f.icon;
+                    const active = quickFilter === (f.id as any);
+                    return (
+                      <button
+                        key={f.id}
+                        onClick={() => setQuickFilter(f.id as any)}
+                        className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                          active
+                            ? "bg-primary text-primary-foreground border-primary shadow-sm shadow-primary/20"
+                            : "bg-card border-border/40 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                        }`}
+                      >
+                        {Icon && <Icon className="w-3.5 h-3.5" />}
+                        {f.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* New Arrivals strip */}
+                {newArrivals.length > 0 && !selectedCategory && !searchQuery && quickFilter === "all" && (
+                  <div className="mb-10">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-emerald-500" />
+                        <h2 className="text-sm font-bold text-foreground uppercase tracking-wide">New Arrivals</h2>
+                      </div>
+                      <button
+                        onClick={() => setQuickFilter("new")}
+                        className="text-[11px] font-semibold text-primary hover:text-primary/80"
+                      >View all →</button>
+                    </div>
+                    <div className={`grid gap-3 sm:gap-4 ${
+                      gridView === "large" ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
+                    }`}>
+                      {newArrivals.slice(0, gridView === "large" ? 2 : 4).map((product) => (
+                        <ProductCard key={product.id} product={product} />
+                      ))}
+                    </div>
+                    <Separator className="mt-10" />
+                  </div>
+                )}
+
+                {/* Coming Soon strip */}
+                {comingSoon.length > 0 && !selectedCategory && !searchQuery && quickFilter === "all" && (
+                  <div className="mb-10">
+                    <div className="flex items-center gap-2 mb-4">
+                      <BadgeCheck className="w-4 h-4 text-sky-500" />
+                      <h2 className="text-sm font-bold text-foreground uppercase tracking-wide">Coming Soon</h2>
+                    </div>
+                    <div className={`grid gap-3 sm:gap-4 ${
+                      gridView === "large" ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
+                    }`}>
+                      {comingSoon.slice(0, gridView === "large" ? 2 : 4).map((product) => (
+                        <ProductCard key={product.id} product={product} />
+                      ))}
+                    </div>
+                    <Separator className="mt-10" />
+                  </div>
+                )}
+
+
                 {/* Featured */}
                 {featuredProducts.length > 0 && !selectedCategory && !searchQuery && (
                   <div className="mb-10">
