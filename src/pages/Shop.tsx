@@ -14,6 +14,7 @@ import { CommandCenterSearch } from "@/components/shop/CommandCenterSearch";
 import { EngineeredProductCard } from "@/components/shop/EngineeredProductCard";
 import { CompareDock } from "@/components/shop/CompareDock";
 import { CompareDialog } from "@/components/shop/CompareDialog";
+import { MissionPresets, MISSION_PRESETS, matchesMissionPreset } from "@/components/shop/MissionPresets";
 import { Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -53,9 +54,24 @@ const Shop = () => {
   const [missionFilter, setMissionFilter] = useState("all");
   const [availability, setAvailability] = useState("all");
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
-  const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [compareIds, setCompareIds] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const raw = localStorage.getItem("dec-compare");
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
   const [compareOpen, setCompareOpen] = useState(false);
+  const [missionPreset, setMissionPreset] = useState("all");
   const MAX_COMPARE = 4;
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("dec-compare", JSON.stringify(compareIds));
+    } catch {}
+  }, [compareIds]);
 
   const toggleCompare = (id: string) => {
     setCompareIds((prev) => {
