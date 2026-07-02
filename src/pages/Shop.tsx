@@ -253,7 +253,10 @@ const Shop = () => {
     addToCartMutation.mutate(productId);
   };
 
-  const featuredProducts = products?.filter((p) => p.is_highlighted) || [];
+  const featuredProducts = products?.filter((p) => p.is_highlighted || p.is_bestseller) || [];
+  const newArrivals = products?.filter((p) => p.is_new_arrival) || [];
+  const comingSoon = products?.filter((p) => p.is_coming_soon) || [];
+
 
   const ProductCard = ({ product }: { product: Product }) => (
     <div
