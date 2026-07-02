@@ -166,6 +166,8 @@ export default function Products() {
       model_number: formData.model_number || null,
       mission_type: formData.mission_type || null,
       model_3d_url: formData.model_3d_url || null,
+      step_file_url: formData.step_file_url || null,
+      stl_file_url: formData.stl_file_url || null,
       price: parseFloat(formData.price) || 0,
       cost_price: parseFloat(formData.cost_price) || 0,
       category_id: formData.category_id || null,
