@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { WishlistButton } from "@/components/WishlistButton";
 import { ShareMenu } from "@/components/ShareMenu";
 import { ShopHeroSlider } from "@/components/shop/ShopHeroSlider";
+import { CategoriesRail } from "@/components/shop/CategoriesRail";
 import { 
   ShoppingCart, 
   Package, 
@@ -24,8 +25,14 @@ import {
   Eye,
   ArrowUpDown,
   Loader2,
-  Heart
+  Heart,
+  Sparkles,
+  Flame,
+  MapPin,
+  BadgeCheck
 } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
