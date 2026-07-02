@@ -17,6 +17,7 @@ import { Product360Spin } from "@/components/product/Product360Spin";
 import { ProductTimeline } from "@/components/product/ProductTimeline";
 import { ProductCertifications } from "@/components/product/ProductCertifications";
 import { ProductAccessories } from "@/components/product/ProductAccessories";
+import { ProductEngineeringFiles } from "@/components/product/ProductEngineeringFiles";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
