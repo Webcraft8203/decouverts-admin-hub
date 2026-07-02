@@ -1,181 +1,80 @@
-# Shop Module — Full Redesign Plan
+# Shop Redesign — Aerospace Deep-Tech Experience
 
-Scope is large. Below is the concrete build broken into phases. Everything is backward compatible — existing products keep working. New fields default to null/empty; the UI gracefully falls back to legacy data (`description`, `images`, `video_url`, `product_parameters`).
+Reposition the Shop from an e-commerce grid into an **interactive aerospace product catalogue** modeled after DJI Enterprise / Anduril / Skydio / Apple. All content stays driven by the existing admin panel; backend gets small additive extensions for 3D models, CAD files, and mission metadata.
 
----
-
-## Phase 0 — Audit findings (current state)
-
-**Shop page (`Shop.tsx`, 634 lines):** monolithic; generic grid; weak filters (only category + price); no sort variety, no application/badge filter; card is basic; no quick view, compare, or quote; no hero/story sections.
-
-**Product page (`ProductDetail.tsx`, 680 lines):** basic gallery, no zoom/360, no sticky purchase card, no applications/features/highlights sections, no downloads, no FAQ, no timeline; SEO minimal.
-
-**Admin (`Products.tsx`, `ProductMaster.tsx`):** covers name/price/stock/images/video/params only. Missing: brand, series, model, short/long desc split, badges (bestseller, new, coming-soon, pre-order, made-in-india), applications, features, highlights, downloads, SEO fields, manual related products, brochure/manual/CAD files.
-
-**DB (`products` table):** has id/name/description/price/category/images/video_url/sku/hsn/slug/is_featured/featured_order. Missing everything above.
-
-**Perf/SEO:** no per-product schema.org, no OG, no breadcrumbs, no lazy image priority hints.
+Given the size, I'll deliver this in **5 sequenced phases**. Each phase is shippable on its own — you can approve, review, then say "continue" for the next.
 
 ---
 
-## Phase 1 — Backend (single migration, backward compatible)
+## Design Language (locked across all phases)
 
-Add new nullable columns to `public.products`:
-
-```
-short_description text
-long_description  text          -- if null, fall back to description
-brand             text
-series            text
-model_number      text
-made_in_india     boolean default false
-is_bestseller     boolean default false
-is_new_arrival    boolean default false
-is_coming_soon    boolean default false
-is_pre_order      boolean default false
-is_discontinued   boolean default false
-applications      text[] default '{}'
-seo_title         text
-seo_description   text
-seo_keywords      text[] default '{}'
-og_image_url      text
-canonical_url     text
-gallery_360       text[] default '{}'
-```
-
-Three new child tables (all with GRANT + RLS: public SELECT, admin ALL):
-
-- `product_features` — id, product_id, icon, title, description, display_order
-- `product_highlights` — id, product_id, icon, label, value, display_order
-- `product_downloads` — id, product_id, type (brochure/manual/cad/firmware/certificate), title, file_url, file_size, display_order
-- `product_related` — id, product_id, related_product_id, display_order (manual override; auto-related still works via category)
-
-No changes to `product_parameters` — dynamic key/value stays exactly as-is.
-
-New storage bucket `product-downloads` (private, signed URLs via existing admin flow) — or reuse `product-images` if the user prefers public downloads. Default: reuse `product-images` for simplicity (public).
-
-**Migration is additive only.** Existing rows keep working; UI treats new fields as optional.
+- **Palette:** White base, graphite `#1a1d24`, signal orange `#FF6A1A`, soft glass surfaces
+- **Motifs:** Thin engineering grid, blueprint lines, radar rings, orange glow accents, glassmorphism
+- **Type:** Large display headings (Space Grotesk / Sora), technical mono for specs (JetBrains Mono)
+- **Motion:** Framer Motion everywhere — parallax, scroll reveals, hover lifts, cinematic transitions
+- **Feel:** Engineered, precise, minimal, futuristic — never "shop-y"
 
 ---
 
-## Phase 2 — Admin Panel upgrades
+## Phase 1 — Backend extensions (additive, non-breaking)
 
-`src/pages/admin/Products.tsx` reorganized into a tabbed editor:
+New tables and columns to power 3D models, mission metadata, and richer product data. Existing admin flows keep working.
 
-1. **General** — name, short desc, long desc (rich), brand, series, model, category, price, stock, GST, HSN, SKU (auto)
-2. **Badges & Status** — featured, bestseller, new arrival, coming soon, pre-order, discontinued, made-in-india, in-stock
-3. **Media** — images (existing), 360 image set, video URL
-4. **Specifications** — existing `product_parameters` editor (unchanged)
-5. **Features** — repeater (icon picker + title + desc)
-6. **Highlights** — repeater (icon + label + value)
-7. **Applications** — multi-select from a preset list + custom tags
-8. **Downloads** — file uploads categorized by type
-9. **Related Products** — manual picker (auto fallback stays)
-10. **SEO** — title, description, keywords, OG image, canonical
+- `products` new columns: `mission_type`, `mission_ready_score` (0-100), `readiness_breakdown` (jsonb), `industries` (text[]), `awards` (text[]), `model_3d_url`, `model_3d_format` (glb/gltf/usdz), `blueprint_images` (text[]), `video_urls` (jsonb), `platform_count_label`
+- `categories` new columns: `icon_name`, `tagline`, `mission_label`
+- New table `product_360_images` (product_id, image_url, frame_index)
+- New table `product_certifications` (product_id, cert_name, cert_type, issued_by, icon_name)
+- New table `product_timeline` (product_id, stage, title, description, date, display_order)
+- New table `product_accessories` (product_id, accessory_product_id, accessory_type, display_order)
+- Storage bucket `product-3d-models` (public) for GLB/GLTF/USDZ
+- All tables: proper GRANTs + RLS (public read, admin write)
 
-No existing admin field is removed. Old products load with new sections empty.
+## Phase 2 — Shop page core rebuild
 
----
+- **Cinematic Hero:** Split layout, large heading "Engineering India's Next Generation UAV Platforms", floating 3D drone (model-viewer + fallback image), animated radar rings, particle field, floating spec chips (Range / Payload / Endurance / AI Nav / Mission Ready), CTAs: Explore Platforms + Book Demonstration. Slide transitions animate the whole scene.
+- **Glass Feature Bar:** Mission Ready · Made in India · AI Powered · Enterprise Grade · DGCA Ready · Modular Design — connected by animated orange line
+- **Aerospace Category Cards:** Icon + name + mission label + platform count + arrow. Hover lift, orange glow, animated border, mesh background
+- **Command Center Search:** Glass container with global search, voice icon, category / mission / payload / price / availability filters, sort
+- **Engineered Product Cards:** Blueprint background lines, floating badges (Bestseller, Made in India, category), quick-spec strip (Flight Time / Payload / Range / Motor / Controller), hover: slight rotate + orange under-glow. Buttons: **Explore Platform →** (primary), **Get Quote** (secondary), Compare / 3D View / Wishlist icons. No "Add to Cart" as primary.
 
-## Phase 3 — Shop redesign (`Shop.tsx` rewrite)
+## Phase 3 — Fullscreen Quick View + Compare
 
-Sections in order:
-1. **Cinematic hero** (reuses `shop_slides`)
-2. **Categories rail** — horizontal scroll with images
-3. **Featured Collection** — large asymmetric cards
-4. **Product Explorer** — filters (category, application, price, availability, badges) + sort + grid; skeleton loading; framer-motion fade-in per card
-5. **Popular Products** — bestsellers
-6. **Recently Added** — sorted by created_at desc
-7. **Industries** — links into `/categories/:slug`
-8. **Why Decouvertes** — 4 value props
-9. **Downloads Hub** — aggregated latest brochures
-10. **Newsletter CTA**
+- **Fullscreen Quick View modal:** Large drone image / 3D viewer, 360 spinner, specs, applications, gallery, videos, mission profile, downloads, "Request Demo" CTA
+- **Compare tool:** Floating side panel to add up to 4 products → opens comparison table (Payload / Range / Battery / Weight / Flight Time / Navigation / Mission / Applications / Price)
+- **Sticky Floating Side Panel:** Compare · Recently Viewed · Wishlist · Downloads · Request Quote · Book Demo
 
-Filters use URL params so state is shareable. Virtualization only if list > 60 items (keep simple otherwise).
+## Phase 4 — Product Detail page overhaul
 
----
+- **Left column:** Gallery with 360 viewer, 3D model viewer (`@google/model-viewer`), AR preview button (USDZ/GLB), exploded view toggle, hover zoom, fullscreen
+- **Right column:** Mission type, category, status (Available / Made in India / DGCA Ready), optional price, CTAs: **Request Quote · Download Brochure · Book Demo · Talk to Engineer**
+- **Animated Tabs:** Overview · Specifications · Applications · Downloads · Gallery · Videos · Reviews · FAQ · Accessories · Similar Platforms
+- **Specs Dashboard:** Card grid (not table), expandable groups, mono values, icon per spec
+- **Applications:** Image cards with hover animation
+- **Downloads:** Typed cards (PDF / Manual / Datasheet / CAD / Mission Brief / Certification / Brochure)
+- **Mission Readiness Score:** Animated circular gauge + breakdown (Weather / AI / Navigation / Payload / Reliability)
+- **Certifications strip:** Clickable cards (Made in India / DGCA / ISO / R&D / Defence)
+- **Timeline:** Concept → Prototype → Testing → Production → Deployment (animated)
+- **Technical Drawings gallery:** Blueprint / CAD / exploded diagrams
+- **Accessories ecosystem:** Modular grid (Battery / Payload / Camera / LiDAR / Thermal / Controller / Landing Gear / 3D Printer Parts)
+- **Related Platforms carousel:** Center-focus, perspective animation
 
-## Phase 4 — Premium Product Card
+## Phase 5 — Admin panel extensions + polish
 
-New `src/components/shop/ProductCard.tsx`:
-- Large image with hover zoom + orange glow
-- Badge stack (Featured / Bestseller / New / Made in India / Pre-Order)
-- Application chips (first 3)
-- Hover reveal action bar: Quick View, Compare, Wishlist, Request Quote
-- Primary CTA: Add to Cart / View Product
-- Framer-motion hover lift + shadow
-
-Quick View opens a Dialog with gallery + key specs + Add-to-Cart, no navigation.
-
-Compare uses localStorage list (up to 4); `/shop/compare` page renders side-by-side specs table.
-
----
-
-## Phase 5 — DJI-style Product Page (`ProductDetail.tsx` rewrite)
-
-Layout:
-- **Sticky sub-nav** (Overview · Specs · Features · Downloads · Reviews)
-- **Hero split** — large gallery left (zoom, thumbnails, 360 toggle, video), sticky purchase card right (price, stock, quantity, Add to Cart, Wishlist, Request Quote, key highlights)
-- **Highlights strip** — animated counter cards
-- **Storytelling sections** — features (icon cards), applications (industry grid)
-- **Specifications** — reuses the redesigned premium spec cards from last turn (already dynamic)
-- **Downloads** — categorized cards with size/type
-- **Timeline** — how it ships / warranty / support (static template, no admin)
-- **Reviews** — existing system, restyled
-- **Related Products** — manual first, else auto by category
-- **Recently Viewed** — localStorage
-- **FAQs** — collapsible (uses existing accordion). Data source: static per-product template initially (admin FAQ table can come later if wanted)
-
-**SEO per page** via `react-helmet-async`: `<title>`, meta description, canonical, OG image, Twitter card, `Product` JSON-LD (name, image, description, sku, brand, offers, aggregateRating).
-
-**Mobile:** sticky bottom Buy bar; drawer filters; swipe gallery.
+- Admin Products form: new tabs for **3D Model upload**, **360 Images**, **Mission Metadata**, **Timeline**, **Certifications**, **Accessories**, **Readiness Score builder**, **Blueprint uploads**, **Video links**
+- All existing admin functionality preserved
+- Global scroll animations pass (Framer Motion + optional Lenis smooth scroll)
+- Engineering grid + particle background layer
+- SEO, lazy loading, image optimization, code splitting, full responsive audit
 
 ---
 
-## Phase 6 — Animations & Perf
+## Technical Notes
 
-- Framer Motion: page transition wrapper, section fade-up on intersection, magnetic buttons on primary CTAs
-- Progressive image loading (blur-up), `loading="lazy"` except first hero image (`fetchpriority="high"`)
-- Code-split heavy sections (`React.lazy` for 360 viewer, compare page)
-- Skeleton components for all grids
-
----
-
-## Files touched
-
-**New**
-- `supabase/migrations/<ts>_shop_upgrade.sql`
-- `src/components/shop/ProductCard.tsx`
-- `src/components/shop/QuickView.tsx`
-- `src/components/shop/CompareBar.tsx`
-- `src/components/shop/ShopHero.tsx` (or reuse existing `ShopHeroSlider`)
-- `src/components/shop/FilterPanel.tsx`
-- `src/components/product/StickyPurchaseCard.tsx`
-- `src/components/product/ProductGallery.tsx` (zoom + 360 + video)
-- `src/components/product/HighlightsStrip.tsx`
-- `src/components/product/FeaturesGrid.tsx`
-- `src/components/product/ApplicationsGrid.tsx`
-- `src/components/product/DownloadsSection.tsx`
-- `src/components/product/ProductFAQ.tsx`
-- `src/components/product/ProductSEO.tsx` (Helmet + JSON-LD)
-- `src/pages/shop/Compare.tsx`
-- `src/pages/admin/ProductFeatures.tsx` etc. — merged as tabs inside existing `Products.tsx`
-
-**Rewritten**
-- `src/pages/Shop.tsx`
-- `src/pages/ProductDetail.tsx`
-- `src/pages/admin/Products.tsx` (tabbed editor)
-
-**Kept as-is**
-- `product_parameters` table + admin editor
-- `cart_items`, `wishlist`, `orders` — no changes
-- Auth, checkout, payments, invoices, categories
+- **3D viewer:** `@google/model-viewer` (web component, tiny, supports GLB/GLTF/USDZ + AR out of the box). Falls back to image if no model.
+- **Smooth scroll:** Lenis (optional, gated behind reduced-motion)
+- **Animation:** Framer Motion (already installed). GSAP only if a specific effect needs it.
+- **No breaking changes** to existing cart, wishlist, checkout, or admin flows — CTAs shift emphasis but underlying data model stays.
 
 ---
 
-## What I need to confirm before building
-
-1. **Scope size** — this is a large multi-turn build. OK to proceed in this order: (a) migration + admin editor upgrades, (b) product page rewrite, (c) shop page rewrite, (d) polish (compare, quick view, FAQ, timeline)? Or do you want a specific phase first?
-2. **Downloads bucket** — reuse public `product-images` (simple, files are shareable) or create a private `product-downloads` bucket (signed URLs, more secure)?
-3. **FAQ source** — static per-page template for now, or add a `product_faqs` admin table in the same migration?
-4. **`react-helmet-async`** — OK to add as a dependency for per-product SEO/OG tags?
+Reply **"start phase 1"** (or "start") and I'll begin with the database migration. Or tell me to reorder / drop phases.
