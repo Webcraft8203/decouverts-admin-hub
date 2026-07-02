@@ -397,11 +397,11 @@ const ProductDetail = () => {
               </div>
 
               {/* Description */}
-              {product.description && (
+              {displayDescription && (
                 <div className="mb-6">
                   <div
                     className={cn(
-                      "text-sm text-muted-foreground leading-relaxed overflow-hidden relative transition-all duration-300",
+                      "text-sm text-muted-foreground leading-relaxed overflow-hidden relative transition-all duration-300 whitespace-pre-line",
                       isLongDescription && !isDescriptionExpanded && "max-h-24"
                     )}
                     style={{
@@ -413,8 +413,9 @@ const ProductDetail = () => {
                         : "none"
                     }}
                   >
-                    {product.description}
+                    {displayDescription}
                   </div>
+
                   {isLongDescription && (
                     <button
                       onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
