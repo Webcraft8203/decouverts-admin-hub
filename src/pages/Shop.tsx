@@ -12,6 +12,8 @@ import { WishlistButton } from "@/components/WishlistButton";
 import { ShareMenu } from "@/components/ShareMenu";
 import { ShopHeroSlider } from "@/components/shop/ShopHeroSlider";
 import { CategoriesRail } from "@/components/shop/CategoriesRail";
+import { QuickViewModal } from "@/components/shop/QuickViewModal";
+
 import { 
   ShoppingCart, 
   Package, 
@@ -88,6 +90,8 @@ const Shop = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("newest");
   const [gridView, setGridView] = useState<"grid" | "large">("grid");
+  const [quickViewId, setQuickViewId] = useState<string | null>(null);
+
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
   const [quickFilter, setQuickFilter] = useState<"all" | "new" | "bestseller" | "made_in_india">("all");
@@ -347,7 +351,8 @@ const Shop = () => {
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              navigate(`/product/${product.slug || product.id}`);
+              e.preventDefault();
+              setQuickViewId(product.id);
             }}
             variant="secondary"
             className="w-full bg-card/95 backdrop-blur-md hover:bg-card text-foreground shadow-xl h-9 rounded-lg font-medium text-xs border border-border/20"
@@ -355,6 +360,7 @@ const Shop = () => {
             <Eye className="w-3.5 h-3.5 mr-1.5" />
             Quick View
           </Button>
+
         </div>
       </div>
 
@@ -856,6 +862,13 @@ const Shop = () => {
           </div>
         </section>
       </main>
+
+      <QuickViewModal
+        productId={quickViewId}
+        open={!!quickViewId}
+        onOpenChange={(open) => { if (!open) setQuickViewId(null); }}
+      />
+
 
       <PublicFooter />
     </div>

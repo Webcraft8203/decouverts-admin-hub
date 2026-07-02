@@ -14,6 +14,8 @@ import { SiteSchema } from "@/components/SEOSchemas";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Shop from "./pages/Shop";
+import Downloads from "./pages/Downloads";
+
 import ProductDetail from "./pages/ProductDetail";
 import Checkout from "./pages/Checkout";
 import CustomerAuth from "./pages/CustomerAuth";
@@ -88,6 +90,8 @@ const App = () => (
               <Route path="/blogs/:slug" element={<BlogDetail />} />
               
               <Route path="/shop" element={<Shop />} />
+              <Route path="/downloads" element={<Downloads />} />
+
               <Route path="/categories/:slug" element={<CategoryPage />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/login" element={<CustomerAuth />} />
