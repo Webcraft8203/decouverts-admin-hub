@@ -12,6 +12,10 @@ import { ProductHighlights } from "@/components/product/ProductHighlights";
 import { ProductDownloads } from "@/components/product/ProductDownloads";
 import { ProductApplications } from "@/components/product/ProductApplications";
 import { RelatedProducts } from "@/components/product/RelatedProducts";
+import { Product3DViewer } from "@/components/product/Product3DViewer";
+import { Product360Spin } from "@/components/product/Product360Spin";
+import { ProductTimeline } from "@/components/product/ProductTimeline";
+import { ProductCertifications } from "@/components/product/ProductCertifications";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -521,6 +525,17 @@ const ProductDetail = () => {
           {/* Highlights strip */}
           {product?.id && <ProductHighlights productId={product.id} />}
 
+          {/* 3D Viewer */}
+          {(product as any)?.model_3d_url && (
+            <Product3DViewer
+              modelPath={(product as any).model_3d_url}
+              productName={product.name}
+            />
+          )}
+
+          {/* 360 Spin */}
+          {product?.id && <Product360Spin productId={product.id} />}
+
           {/* Key Features */}
           {product?.id && <ProductFeatures productId={product.id} />}
 
@@ -529,6 +544,12 @@ const ProductDetail = () => {
 
           {/* Applications */}
           <ProductApplications applications={(product as any).applications} />
+
+          {/* Certifications */}
+          {product?.id && <ProductCertifications productId={product.id} />}
+
+          {/* Timeline */}
+          {product?.id && <ProductTimeline productId={product.id} />}
 
           {/* Downloads */}
           {product?.id && <ProductDownloads productId={product.id} />}
