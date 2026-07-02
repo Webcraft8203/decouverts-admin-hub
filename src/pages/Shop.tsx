@@ -6,14 +6,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { PublicFooter } from "@/components/PublicFooter";
 import { Skeleton } from "@/components/ui/skeleton";
-import { QuickViewModal } from "@/components/shop/QuickViewModal";
+import { FullscreenQuickView } from "@/components/shop/FullscreenQuickView";
 import { AerospaceHero } from "@/components/shop/AerospaceHero";
 import { FeatureBar } from "@/components/shop/FeatureBar";
 import { AerospaceCategories } from "@/components/shop/AerospaceCategories";
 import { CommandCenterSearch } from "@/components/shop/CommandCenterSearch";
 import { EngineeredProductCard } from "@/components/shop/EngineeredProductCard";
+import { CompareDock } from "@/components/shop/CompareDock";
+import { CompareDialog } from "@/components/shop/CompareDialog";
 import { Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface Product {
   id: string;
