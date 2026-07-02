@@ -518,8 +518,21 @@ const ProductDetail = () => {
             </motion.div>
           </div>
 
+          {/* Highlights strip */}
+          {product?.id && <ProductHighlights productId={product.id} />}
+
+          {/* Key Features */}
+          {product?.id && <ProductFeatures productId={product.id} />}
+
           {/* Specifications */}
           {product?.id && <ProductSpecifications productId={product.id} />}
+
+          {/* Applications */}
+          <ProductApplications applications={(product as any).applications} />
+
+          {/* Downloads */}
+          {product?.id && <ProductDownloads productId={product.id} />}
+
 
           {/* Reviews */}
           <section id="reviews" className="mt-12 lg:mt-16 border-t border-border/30 pt-8 lg:pt-10">
