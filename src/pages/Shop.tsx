@@ -289,19 +289,44 @@ const Shop = () => {
         )}
         
         {/* Badges */}
-        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 z-10">
-          {product.is_highlighted && (
-            <span className="inline-flex items-center gap-1 bg-foreground text-background text-[10px] font-bold px-2.5 py-1 rounded-md shadow-lg">
-              <Star className="w-2.5 h-2.5 fill-current" />
-              BEST SELLER
+        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 z-10 max-w-[70%]">
+          {product.is_new_arrival && (
+            <span className="inline-flex items-center gap-1 bg-emerald-500 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow-md">
+              <Sparkles className="w-2.5 h-2.5" /> NEW
             </span>
           )}
-          {product.stock_quantity <= 5 && (
-            <span className="inline-flex items-center bg-destructive text-destructive-foreground text-[10px] font-bold px-2.5 py-1 rounded-md shadow-lg">
+          {(product.is_bestseller || product.is_highlighted) && (
+            <span className="inline-flex items-center gap-1 bg-foreground text-background text-[9px] font-bold px-2 py-0.5 rounded shadow-md">
+              <Flame className="w-2.5 h-2.5" /> BESTSELLER
+            </span>
+          )}
+          {product.is_coming_soon && (
+            <span className="inline-flex items-center bg-sky-500 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow-md">
+              COMING SOON
+            </span>
+          )}
+          {product.is_pre_order && (
+            <span className="inline-flex items-center bg-violet-500 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow-md">
+              PRE-ORDER
+            </span>
+          )}
+          {product.made_in_india && (
+            <span className="inline-flex items-center gap-1 bg-orange-500/95 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow-md">
+              <MapPin className="w-2.5 h-2.5" /> INDIA
+            </span>
+          )}
+          {product.stock_quantity > 0 && product.stock_quantity <= 5 && (
+            <span className="inline-flex items-center bg-destructive text-destructive-foreground text-[9px] font-bold px-2 py-0.5 rounded shadow-md">
               Only {product.stock_quantity} left
             </span>
           )}
+          {product.stock_quantity === 0 && !product.is_coming_soon && !product.is_pre_order && (
+            <span className="inline-flex items-center bg-muted text-muted-foreground text-[9px] font-bold px-2 py-0.5 rounded shadow-md">
+              OUT OF STOCK
+            </span>
+          )}
         </div>
+
 
         {/* Hover Actions */}
         <div className="absolute top-2.5 right-2.5 z-10 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-1 group-hover:translate-y-0">
