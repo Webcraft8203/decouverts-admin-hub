@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { BreadcrumbSchema } from "@/components/SEOSchemas";
 import { useQuery } from "@tanstack/react-query";
@@ -6,18 +6,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { PublicFooter } from "@/components/PublicFooter";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FullscreenQuickView } from "@/components/shop/FullscreenQuickView";
-import { AerospaceHero } from "@/components/shop/AerospaceHero";
-import { FeatureBar } from "@/components/shop/FeatureBar";
-import { AerospaceCategories } from "@/components/shop/AerospaceCategories";
-import { CommandCenterSearch } from "@/components/shop/CommandCenterSearch";
-import { EngineeredProductCard } from "@/components/shop/EngineeredProductCard";
-import { CompareDock } from "@/components/shop/CompareDock";
-import { CompareDialog } from "@/components/shop/CompareDialog";
-import { MissionPresets, MISSION_PRESETS, matchesMissionPreset } from "@/components/shop/MissionPresets";
-import { Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { Package } from "lucide-react";
+import { ShopHeroSlider } from "@/components/shop/ShopHeroSlider";
+import { CategoryPills } from "@/components/shop/CategoryPills";
+import { ShopFilterBar } from "@/components/shop/ShopFilterBar";
+import { SimpleProductCard } from "@/components/shop/SimpleProductCard";
 
 interface Product {
   id: string;
@@ -34,72 +28,23 @@ interface Product {
   is_coming_soon: boolean | null;
   is_pre_order: boolean | null;
   is_discontinued: boolean | null;
-  made_in_india: boolean | null;
   brand: string | null;
-  applications: string[] | null;
   categories: { name: string } | null;
   sku: string | null;
   slug: string | null;
-  mission_type: string | null;
-  model_3d_url: string | null;
 }
 
-interface Category { id: string; name: string; description: string | null }
+interface Category {
+  id: string;
+  name: string;
+  description: string | null;
+}
 
 const Shop = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("newest");
-  const [quickViewId, setQuickViewId] = useState<string | null>(null);
-  const [missionFilter, setMissionFilter] = useState("all");
   const [availability, setAvailability] = useState("all");
-  const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
-  const [compareIds, setCompareIds] = useState<string[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const fromUrl = params.get("compare");
-      if (fromUrl) {
-        const ids = fromUrl.split(",").map((s) => s.trim()).filter(Boolean);
-        if (ids.length) return ids.slice(0, 4);
-      }
-      const raw = localStorage.getItem("dec-compare");
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
-  });
-  const [compareOpen, setCompareOpen] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return new URLSearchParams(window.location.search).get("compare") ? true : false;
-  });
-  const [missionPreset, setMissionPreset] = useState("all");
-  const MAX_COMPARE = 4;
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("dec-compare", JSON.stringify(compareIds));
-      const url = new URL(window.location.href);
-      if (compareIds.length > 0) {
-        url.searchParams.set("compare", compareIds.join(","));
-      } else {
-        url.searchParams.delete("compare");
-      }
-      window.history.replaceState({}, "", url.toString());
-    } catch {}
-  }, [compareIds]);
-
-
-  const toggleCompare = (id: string) => {
-    setCompareIds((prev) => {
-      if (prev.includes(id)) return prev.filter((x) => x !== id);
-      if (prev.length >= MAX_COMPARE) {
-        toast.info(`You can compare up to ${MAX_COMPARE} platforms at once.`);
-        return prev;
-      }
-      return [...prev, id];
-    });
-  };
 
   const { data: products, isLoading: productsLoading } = useQuery({
     queryKey: ["public-products"],
@@ -117,42 +62,14 @@ const Shop = () => {
   const { data: categories } = useQuery({
     queryKey: ["public-categories"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("categories").select("*").order("name");
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .order("name");
       if (error) throw error;
       return data as Category[];
     },
   });
-
-  // Batch fetch top 3 highlights per product for quick-spec strip
-  const { data: highlightsMap } = useQuery({
-    queryKey: ["public-product-highlights"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("product_highlights")
-        .select("product_id, label, value, display_order")
-        .order("display_order", { ascending: true });
-      const map = new Map<string, { label: string; value: string }[]>();
-      (data || []).forEach((h: any) => {
-        const arr = map.get(h.product_id) || [];
-        if (arr.length < 3) arr.push({ label: h.label, value: h.value });
-        map.set(h.product_id, arr);
-      });
-      return map;
-    },
-  });
-
-  const missionTypes = useMemo(() => {
-    return Array.from(new Set((products || []).map((p) => p.mission_type).filter(Boolean) as string[])).sort();
-  }, [products]);
-
-  const priceBounds: [number, number] = useMemo(() => {
-    if (!products || products.length === 0) return [0, 100000];
-    const prices = products.map((p) => p.price).filter((p) => p > 0);
-    if (prices.length === 0) return [0, 100000];
-    return [Math.min(...prices), Math.max(...prices)];
-  }, [products]);
-
-  const activePreset = MISSION_PRESETS.find((p) => p.id === missionPreset) || MISSION_PRESETS[0];
 
   const filteredProducts = useMemo(() => {
     return (products || [])
@@ -164,36 +81,32 @@ const Shop = () => {
           p.description?.toLowerCase().includes(q) ||
           p.short_description?.toLowerCase().includes(q) ||
           p.brand?.toLowerCase().includes(q) ||
-          p.mission_type?.toLowerCase().includes(q) ||
           p.sku?.toLowerCase().includes(q);
-        const matchesCategory = !selectedCategory || p.category_id === selectedCategory;
-        const matchesMission = missionFilter === "all" || p.mission_type === missionFilter;
-        const matchesPreset = matchesMissionPreset(activePreset, p);
+        const matchesCategory =
+          !selectedCategory || p.category_id === selectedCategory;
         const matchesAvail =
           availability === "all" ||
-          (availability === "in_stock" && p.stock_quantity > 0 && !p.is_coming_soon && !p.is_pre_order) ||
+          (availability === "in_stock" &&
+            p.stock_quantity > 0 &&
+            !p.is_coming_soon &&
+            !p.is_pre_order) ||
           (availability === "coming_soon" && p.is_coming_soon) ||
           (availability === "pre_order" && p.is_pre_order);
-        const matchesPrice = !priceRange || (p.price >= priceRange[0] && p.price <= priceRange[1]);
-        return matchesSearch && matchesCategory && matchesMission && matchesPreset && matchesAvail && matchesPrice;
+        return matchesSearch && matchesCategory && matchesAvail;
       })
       .sort((a, b) => {
         switch (sortBy) {
-          case "price-low": return a.price - b.price;
-          case "price-high": return b.price - a.price;
-          case "name": return a.name.localeCompare(b.name);
-          default: return 0;
+          case "price-low":
+            return a.price - b.price;
+          case "price-high":
+            return b.price - a.price;
+          case "name":
+            return a.name.localeCompare(b.name);
+          default:
+            return 0;
         }
       });
-  }, [products, searchQuery, selectedCategory, missionFilter, availability, priceRange, sortBy, activePreset]);
-
-  const presetCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    MISSION_PRESETS.forEach((preset) => {
-      counts[preset.id] = (products || []).filter((p) => matchesMissionPreset(preset, p)).length;
-    });
-    return counts;
-  }, [products]);
+  }, [products, searchQuery, selectedCategory, availability, sortBy]);
 
   const selectedCategoryName = selectedCategory
     ? categories?.find((c) => c.id === selectedCategory)?.name
@@ -201,11 +114,11 @@ const Shop = () => {
 
   usePageSEO({
     title: selectedCategoryName
-      ? `${selectedCategoryName} | Platforms | Decouvertes`
-      : "UAV Platforms & Deep-Tech Systems | Decouvertes",
+      ? `${selectedCategoryName} | Shop | Decouvertes`
+      : "Shop | Drones, 3D Printers & Smart Systems | Decouvertes",
     description: selectedCategoryName
-      ? `Explore ${selectedCategoryName} platforms from Decouvertes — engineered in India for defence, agriculture, industrial inspection and research missions.`
-      : "Purpose-built UAVs, defence systems, agriculture drones, industrial inspection platforms and 3D printers — engineered in India by Decouvertes.",
+      ? `Explore ${selectedCategoryName} from Decouvertes — precision engineered products for professionals.`
+      : "Shop drones, 3D printers, agriculture systems and smart devices from Decouvertes — engineered in India.",
     path: "/shop",
   });
 
@@ -214,7 +127,9 @@ const Shop = () => {
     const itemListLd = {
       "@context": "https://schema.org",
       "@type": "ItemList",
-      name: selectedCategoryName ? `${selectedCategoryName} Platforms` : "All Platforms",
+      name: selectedCategoryName
+        ? `${selectedCategoryName} Products`
+        : "All Products",
       numberOfItems: filteredProducts.length,
       itemListElement: filteredProducts.slice(0, 30).map((p, i) => ({
         "@type": "ListItem",
@@ -229,7 +144,9 @@ const Shop = () => {
     script.type = "application/ld+json";
     script.textContent = JSON.stringify(itemListLd);
     document.head.appendChild(script);
-    return () => { document.getElementById("shop-itemlist-jsonld")?.remove(); };
+    return () => {
+      document.getElementById("shop-itemlist-jsonld")?.remove();
+    };
   }, [filteredProducts, selectedCategoryName]);
 
   return (
@@ -238,101 +155,87 @@ const Shop = () => {
         items={[
           { name: "Home", url: "/" },
           { name: "Shop", url: "/shop" },
-          ...(selectedCategoryName ? [{ name: selectedCategoryName, url: "/shop" }] : []),
+          ...(selectedCategoryName
+            ? [{ name: selectedCategoryName, url: "/shop" }]
+            : []),
         ]}
       />
       <PublicNavbar />
 
       <main className="flex-1 pt-16">
-        <AerospaceHero />
-        <FeatureBar />
-        <AerospaceCategories selectedId={selectedCategory} onSelect={setSelectedCategory} />
+        {/* Cinematic hero — admin-managed slides only */}
+        <ShopHeroSlider />
 
-        <MissionPresets active={missionPreset} onChange={setMissionPreset} counts={presetCounts} />
-
-
-        <CommandCenterSearch
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
+        {/* Category pills */}
+        <CategoryPills
           categories={categories || []}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          missionFilter={missionFilter}
-          setMissionFilter={setMissionFilter}
-          availability={availability}
-          setAvailability={setAvailability}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          priceBounds={priceBounds}
-          priceRange={priceRange}
-          setPriceRange={setPriceRange}
-          missionTypes={missionTypes}
-          resultCount={filteredProducts.length}
+          selectedId={selectedCategory}
+          onSelect={setSelectedCategory}
         />
 
         {/* Catalogue */}
-        <section id="shop-catalogue" className="relative pb-24">
+        <section id="shop-catalogue" className="py-14 lg:py-20">
           <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-end justify-between mb-8">
-              <div>
-                <div className="text-[10px] uppercase tracking-[0.22em] font-bold text-primary mb-2">
-                  Platform Catalogue
-                </div>
-                <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-                  {selectedCategoryName || "All Engineered Platforms"}
-                </h2>
-              </div>
-              <div className="text-xs font-mono text-muted-foreground hidden sm:block">
-                {filteredProducts.length} result{filteredProducts.length === 1 ? "" : "s"}
-              </div>
+            <div className="mb-8">
+              <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">
+                {selectedCategoryName || "All Products"}
+              </h2>
+              <p className="mt-1.5 text-sm text-muted-foreground">
+                Precision engineered products for professionals.
+              </p>
             </div>
 
+            <ShopFilterBar
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              availability={availability}
+              setAvailability={setAvailability}
+              resultCount={filteredProducts.length}
+            />
+
             {productsLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="rounded-2xl border border-border/40 overflow-hidden bg-card">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="rounded-2xl border border-border/60 overflow-hidden bg-card"
+                  >
                     <Skeleton className="aspect-[4/3]" />
-                    <div className="p-5 space-y-3">
+                    <div className="p-6 space-y-3">
                       <Skeleton className="h-3 w-1/3" />
                       <Skeleton className="h-5 w-3/4" />
                       <Skeleton className="h-3 w-full" />
-                      <Skeleton className="h-9 w-full rounded-lg" />
+                      <Skeleton className="h-10 w-full rounded-xl" />
                     </div>
                   </div>
                 ))}
               </div>
             ) : filteredProducts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredProducts.map((p) => (
-                  <EngineeredProductCard
-                    key={p.id}
-                    product={p}
-                    specs={highlightsMap?.get(p.id) || []}
-                    onQuickView={setQuickViewId}
-                    onCompare={toggleCompare}
-                    compareActive={compareIds.includes(p.id)}
-                  />
+                  <SimpleProductCard key={p.id} product={p} />
                 ))}
               </div>
             ) : (
               <div className="text-center py-24 rounded-2xl border border-dashed border-border/50 bg-card/40">
-                <div className="w-16 h-16 rounded-2xl bg-secondary/40 flex items-center justify-center mx-auto mb-4">
-                  <Package className="w-7 h-7 text-muted-foreground/40" />
+                <div className="w-16 h-16 rounded-2xl bg-secondary/50 flex items-center justify-center mx-auto mb-4">
+                  <Package className="w-7 h-7 text-muted-foreground/50" />
                 </div>
-                <h3 className="text-lg font-bold text-foreground mb-1.5">
-                  No platforms match your criteria
+                <h3 className="text-lg font-semibold text-foreground mb-1.5">
+                  No products found
                 </h3>
                 <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-6">
-                  Adjust filters or clear your search to view all platforms.
+                  Try adjusting your search or filters.
                 </p>
                 <Button
                   variant="outline"
+                  className="rounded-full"
                   onClick={() => {
                     setSearchQuery("");
                     setSelectedCategory(null);
-                    setMissionFilter("all");
                     setAvailability("all");
-                    setPriceRange(null);
                   }}
                 >
                   Reset Filters
@@ -342,32 +245,6 @@ const Shop = () => {
           </div>
         </section>
       </main>
-
-      <FullscreenQuickView
-        productId={quickViewId}
-        open={!!quickViewId}
-        onOpenChange={(open) => { if (!open) setQuickViewId(null); }}
-      />
-
-      <CompareDock
-        items={compareIds
-          .map((id) => {
-            const p = products?.find((x) => x.id === id);
-            return p ? { id: p.id, name: p.name, image: p.images?.[0] } : null;
-          })
-          .filter(Boolean) as { id: string; name: string; image?: string | null }[]}
-        onRemove={(id) => setCompareIds((prev) => prev.filter((x) => x !== id))}
-        onClear={() => setCompareIds([])}
-        onOpen={() => setCompareOpen(true)}
-        max={MAX_COMPARE}
-      />
-
-      <CompareDialog
-        ids={compareIds}
-        open={compareOpen}
-        onOpenChange={setCompareOpen}
-        onRemove={(id) => setCompareIds((prev) => prev.filter((x) => x !== id))}
-      />
 
       <PublicFooter />
     </div>
