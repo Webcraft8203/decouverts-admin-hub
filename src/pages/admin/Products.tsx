@@ -20,6 +20,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { ApplicationsPicker } from "@/components/admin/products/ApplicationsPicker";
 import { DownloadsManager } from "@/components/admin/products/DownloadsManager";
 import { RelatedProductsPicker } from "@/components/admin/products/RelatedProductsPicker";
+import { AccessoriesPicker } from "@/components/admin/products/AccessoriesPicker";
 import { ChildTableRepeater } from "@/components/admin/products/ChildTableRepeater";
 
 const isValidYouTubeUrl = (url: string): boolean => {
@@ -607,7 +608,7 @@ export default function Products() {
                 </TabsContent>
                 <TabsContent value="accessories" className="mt-4">
                   {editingProduct && (
-                    <RelatedProductsPicker productId={editingProduct.id} table="product_accessories" linkColumn="accessory_product_id" title="Accessories & Payloads" />
+                    <AccessoriesPicker productId={editingProduct.id} />
                   )}
                 </TabsContent>
               </Tabs>
