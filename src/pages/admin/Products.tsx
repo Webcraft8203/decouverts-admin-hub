@@ -75,7 +75,7 @@ interface Product {
 const defaultForm = {
   name: "", short_description: "", long_description: "", description: "",
   brand: "", series: "", model_number: "",
-  mission_type: "", model_3d_url: "",
+  mission_type: "", model_3d_url: "", step_file_url: "", stl_file_url: "",
   price: "", cost_price: "", category_id: "", stock_quantity: "",
   availability_status: "in_stock",
   is_highlighted: false, is_featured: false, featured_order: "0",
