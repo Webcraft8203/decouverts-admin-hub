@@ -1294,6 +1294,132 @@ export type Database = {
         }
         Relationships: []
       }
+      product_downloads: {
+        Row: {
+          created_at: string
+          display_order: number
+          download_type: string
+          file_size: number | null
+          file_url: string
+          id: string
+          product_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          download_type?: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+          product_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          download_type?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          product_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_downloads_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_features: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          icon: string | null
+          id: string
+          product_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          icon?: string | null
+          id?: string
+          product_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          icon?: string | null
+          id?: string
+          product_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_features_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_highlights: {
+        Row: {
+          created_at: string
+          display_order: number
+          icon: string | null
+          id: string
+          label: string
+          product_id: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          icon?: string | null
+          id?: string
+          label: string
+          product_id: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          icon?: string | null
+          id?: string
+          label?: string
+          product_id?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_highlights_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_parameters: {
         Row: {
           created_at: string
@@ -1326,6 +1452,45 @@ export type Database = {
           {
             foreignKeyName: "product_parameters_product_id_fkey"
             columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_related: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          product_id: string
+          related_product_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          product_id: string
+          related_product_id: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          product_id?: string
+          related_product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_related_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_related_related_product_id_fkey"
+            columns: ["related_product_id"]
             isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
@@ -1375,20 +1540,38 @@ export type Database = {
       }
       products: {
         Row: {
+          applications: string[]
           availability_status: string
+          brand: string | null
+          canonical_url: string | null
           category_id: string | null
           cost_price: number | null
           created_at: string
           description: string | null
           featured_order: number
+          gallery_360: string[]
           gst_percentage: number
           hsn_code: string | null
           id: string
           images: string[] | null
+          is_bestseller: boolean
+          is_coming_soon: boolean
+          is_discontinued: boolean
           is_featured: boolean
           is_highlighted: boolean
+          is_new_arrival: boolean
+          is_pre_order: boolean
+          long_description: string | null
+          made_in_india: boolean
+          model_number: string | null
           name: string
+          og_image_url: string | null
           price: number
+          seo_description: string | null
+          seo_keywords: string[]
+          seo_title: string | null
+          series: string | null
+          short_description: string | null
           sku: string | null
           slug: string | null
           stock_quantity: number
@@ -1396,20 +1579,38 @@ export type Database = {
           video_url: string | null
         }
         Insert: {
+          applications?: string[]
           availability_status?: string
+          brand?: string | null
+          canonical_url?: string | null
           category_id?: string | null
           cost_price?: number | null
           created_at?: string
           description?: string | null
           featured_order?: number
+          gallery_360?: string[]
           gst_percentage?: number
           hsn_code?: string | null
           id?: string
           images?: string[] | null
+          is_bestseller?: boolean
+          is_coming_soon?: boolean
+          is_discontinued?: boolean
           is_featured?: boolean
           is_highlighted?: boolean
+          is_new_arrival?: boolean
+          is_pre_order?: boolean
+          long_description?: string | null
+          made_in_india?: boolean
+          model_number?: string | null
           name: string
+          og_image_url?: string | null
           price?: number
+          seo_description?: string | null
+          seo_keywords?: string[]
+          seo_title?: string | null
+          series?: string | null
+          short_description?: string | null
           sku?: string | null
           slug?: string | null
           stock_quantity?: number
@@ -1417,20 +1618,38 @@ export type Database = {
           video_url?: string | null
         }
         Update: {
+          applications?: string[]
           availability_status?: string
+          brand?: string | null
+          canonical_url?: string | null
           category_id?: string | null
           cost_price?: number | null
           created_at?: string
           description?: string | null
           featured_order?: number
+          gallery_360?: string[]
           gst_percentage?: number
           hsn_code?: string | null
           id?: string
           images?: string[] | null
+          is_bestseller?: boolean
+          is_coming_soon?: boolean
+          is_discontinued?: boolean
           is_featured?: boolean
           is_highlighted?: boolean
+          is_new_arrival?: boolean
+          is_pre_order?: boolean
+          long_description?: string | null
+          made_in_india?: boolean
+          model_number?: string | null
           name?: string
+          og_image_url?: string | null
           price?: number
+          seo_description?: string | null
+          seo_keywords?: string[]
+          seo_title?: string | null
+          series?: string | null
+          short_description?: string | null
           sku?: string | null
           slug?: string | null
           stock_quantity?: number
