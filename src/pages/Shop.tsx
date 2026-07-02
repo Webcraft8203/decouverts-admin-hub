@@ -863,6 +863,13 @@ const Shop = () => {
         </section>
       </main>
 
+      <QuickViewModal
+        productId={quickViewId}
+        open={!!quickViewId}
+        onOpenChange={(open) => { if (!open) setQuickViewId(null); }}
+      />
+
+
       <PublicFooter />
     </div>
   );
