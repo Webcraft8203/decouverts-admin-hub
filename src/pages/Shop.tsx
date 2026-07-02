@@ -360,50 +360,77 @@ const Shop = () => {
 
       {/* Info */}
       <div className="flex flex-col flex-1 p-3.5 sm:p-4">
-        {product.categories && (
-          <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-[0.12em] mb-1.5">
-            {product.categories.name}
-          </p>
-        )}
+        <div className="flex items-center gap-1.5 mb-1.5">
+          {product.brand && (
+            <span className="text-[10px] text-primary font-bold uppercase tracking-[0.14em]">
+              {product.brand}
+            </span>
+          )}
+          {product.brand && product.categories && (
+            <span className="w-0.5 h-0.5 rounded-full bg-border" />
+          )}
+          {product.categories && (
+            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-[0.12em]">
+              {product.categories.name}
+            </p>
+          )}
+        </div>
         <h3 className="font-semibold text-foreground text-[13px] sm:text-sm leading-snug mb-1 line-clamp-2 min-h-[2.5em] group-hover:text-primary transition-colors duration-300">
           {product.name}
         </h3>
-        {product.sku && (
-          <span className="text-[9px] font-mono text-muted-foreground/40 mb-2">
-            {product.sku}
-          </span>
+        {product.short_description && (
+          <p className="text-[11px] text-muted-foreground/80 line-clamp-2 leading-snug mb-1.5">
+            {product.short_description}
+          </p>
         )}
-        
+
         <div className="mt-auto pt-3">
           <div className="flex items-center justify-between gap-2 mb-3">
             <p className="text-lg font-bold text-foreground tracking-tight">
               ₹{product.price.toLocaleString("en-IN")}
             </p>
-            {product.stock_quantity <= 10 && product.stock_quantity > 0 && (
+            {product.stock_quantity > 0 && product.stock_quantity <= 10 && (
               <span className="text-[9px] text-amber-600 font-semibold bg-amber-50 px-1.5 py-0.5 rounded">
                 {product.stock_quantity} left
               </span>
             )}
           </div>
-          
-          <Button
-            type="button"
-            onClick={(e) => handleAddToCart(e, product.id)}
-            disabled={addToCartMutation.isPending}
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-9 rounded-lg font-semibold text-xs transition-all duration-200 active:scale-[0.97] shadow-sm hover:shadow-md hover:shadow-primary/15"
-            size="sm"
-          >
-            {addToCartMutation.isPending ? (
-              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-            ) : (
-              <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
-            )}
-            Add to Cart
-          </Button>
+
+          {product.is_coming_soon ? (
+            <Button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); navigate(`/product/${product.slug || product.id}`); }}
+              variant="outline"
+              className="w-full h-9 rounded-lg font-semibold text-xs border-sky-500/30 text-sky-600 hover:bg-sky-500/5"
+              size="sm"
+            >
+              <BadgeCheck className="w-3.5 h-3.5 mr-1.5" /> Notify Me
+            </Button>
+          ) : product.stock_quantity === 0 ? (
+            <Button type="button" disabled variant="outline" size="sm" className="w-full h-9 rounded-lg text-xs">
+              Out of Stock
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={(e) => handleAddToCart(e, product.id)}
+              disabled={addToCartMutation.isPending}
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-9 rounded-lg font-semibold text-xs transition-all duration-200 active:scale-[0.97] shadow-sm hover:shadow-md hover:shadow-primary/15"
+              size="sm"
+            >
+              {addToCartMutation.isPending ? (
+                <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+              ) : (
+                <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
+              )}
+              Add to Cart
+            </Button>
+          )}
         </div>
       </div>
     </div>
   );
+
 
   const FilterContent = () => (
     <div className="space-y-5">
