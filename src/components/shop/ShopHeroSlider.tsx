@@ -53,10 +53,8 @@ export function ShopHeroSlider() {
 
   if (isLoading) {
     return (
-      <section className="bg-background py-8">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-          <Skeleton className="w-full aspect-[21/9] rounded-2xl" />
-        </div>
+      <section className="w-full bg-white">
+        <Skeleton className="w-full h-auto max-h-[80vh] aspect-[21/9]" />
       </section>
     );
   }
@@ -64,95 +62,91 @@ export function ShopHeroSlider() {
   if (!slides || slides.length === 0) return null;
 
   return (
-    <section className="relative bg-background py-6 sm:py-10 lg:py-12">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative">
-          <Carousel
-            setApi={setApi}
-            opts={{ align: "start", loop: true }}
-            plugins={[
-              Autoplay({
-                delay: AUTOPLAY_MS,
-                stopOnInteraction: false,
-                stopOnMouseEnter: true,
-              }),
-            ]}
-            className="w-full"
-          >
-            <CarouselContent>
-              {slides.map((slide, idx) => (
-                <CarouselItem key={slide.id}>
-                  <div className="w-full flex items-center justify-center">
-                    <AnimatePresence mode="wait">
-                      {idx === current && (
-                        <motion.img
-                          key={slide.id}
-                          src={slide.image_url}
-                          alt={slide.title}
-                          initial={{ opacity: 0, scale: 1.02 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{
-                            duration: 0.75,
-                            ease: [0.22, 1, 0.36, 1],
-                          }}
-                          className="block w-full h-auto max-h-[700px] object-contain mx-auto"
-                        />
-                      )}
-                      {idx !== current && (
-                        <img
-                          src={slide.image_url}
-                          alt=""
-                          aria-hidden
-                          className="block w-full h-auto max-h-[700px] object-contain mx-auto opacity-0"
-                        />
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-          </Carousel>
-
-          {slides.length > 1 && (
-            <>
-              {/* Arrows */}
-              <button
-                type="button"
-                aria-label="Previous slide"
-                onClick={() => api?.scrollPrev()}
-                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center rounded-full bg-background/90 backdrop-blur-sm border border-border shadow-md text-foreground/80 hover:text-foreground hover:bg-background hover:border-primary/40 transition-all"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <button
-                type="button"
-                aria-label="Next slide"
-                onClick={() => api?.scrollNext()}
-                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center rounded-full bg-background/90 backdrop-blur-sm border border-border shadow-md text-foreground/80 hover:text-foreground hover:bg-background hover:border-primary/40 transition-all"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-
-              {/* Dots */}
-              <div className="mt-5 flex items-center justify-center gap-2">
-                {slides.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => api?.scrollTo(i)}
-                    aria-label={`Go to slide ${i + 1}`}
-                    className={`h-1.5 rounded-full transition-all ${
-                      i === current
-                        ? "w-8 bg-primary"
-                        : "w-1.5 bg-foreground/25 hover:bg-foreground/40"
-                    }`}
-                  />
-                ))}
+    <section className="relative w-full bg-white">
+      <Carousel
+        setApi={setApi}
+        opts={{ align: "start", loop: true }}
+        plugins={[
+          Autoplay({
+            delay: AUTOPLAY_MS,
+            stopOnInteraction: false,
+            stopOnMouseEnter: true,
+          }),
+        ]}
+        className="w-full"
+      >
+        <CarouselContent className="ml-0">
+          {slides.map((slide, idx) => (
+            <CarouselItem key={slide.id} className="pl-0">
+              <div className="w-full flex items-center justify-center">
+                <AnimatePresence mode="wait">
+                  {idx === current && (
+                    <motion.img
+                      key={slide.id}
+                      src={slide.image_url}
+                      alt={slide.title}
+                      initial={{ opacity: 0, scale: 1.02 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{
+                        duration: 0.75,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
+                      className="block w-full h-auto max-h-[80vh] object-contain"
+                    />
+                  )}
+                  {idx !== current && (
+                    <img
+                      src={slide.image_url}
+                      alt=""
+                      aria-hidden
+                      className="block w-full h-auto max-h-[80vh] object-contain opacity-0"
+                    />
+                  )}
+                </AnimatePresence>
               </div>
-            </>
-          )}
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+
+        {slides.length > 1 && (
+          <>
+            <button
+              type="button"
+              aria-label="Previous slide"
+              onClick={() => api?.scrollPrev()}
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/90 border border-gray-200 text-foreground/70 hover:text-foreground hover:bg-white transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              type="button"
+              aria-label="Next slide"
+              onClick={() => api?.scrollNext()}
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/90 border border-gray-200 text-foreground/70 hover:text-foreground hover:bg-white transition-colors"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </>
+        )}
+      </Carousel>
+
+      {slides.length > 1 && (
+        <div className="flex items-center justify-center gap-2 py-4">
+          {slides.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => api?.scrollTo(i)}
+              aria-label={`Go to slide ${i + 1}`}
+              className={`h-1.5 rounded-full transition-all ${
+                i === current
+                  ? "w-8 bg-primary"
+                  : "w-1.5 bg-foreground/25 hover:bg-foreground/40"
+              }`}
+            />
+          ))}
         </div>
-      </div>
+      )}
     </section>
   );
 }
