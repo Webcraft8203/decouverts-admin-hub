@@ -236,7 +236,9 @@ const ProductDetail = () => {
     );
   }
 
-  const isLongDescription = (product.description?.length || 0) > 300;
+  const displayDescription = (product as any).long_description || product.description;
+  const isLongDescription = (displayDescription?.length || 0) > 300;
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
