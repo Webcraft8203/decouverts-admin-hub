@@ -535,6 +535,15 @@ const ProductDetail = () => {
             />
           )}
 
+          {/* Engineering Files (STEP / STL) */}
+          <ProductEngineeringFiles
+            stepUrl={(product as any)?.step_file_url}
+            stlUrl={(product as any)?.stl_file_url}
+            productName={product.name}
+          />
+
+
+
           {/* 360 Spin */}
           {product?.id && <Product360Spin productId={product.id} fallbackFrames={(product as any).gallery_360} />}
 
