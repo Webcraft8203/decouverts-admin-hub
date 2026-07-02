@@ -7,7 +7,12 @@ import { PublicNavbar } from "@/components/PublicNavbar";
 import { PublicFooter } from "@/components/PublicFooter";
 import { ProductMediaGallery } from "@/components/ProductMediaGallery";
 import { ProductSpecifications } from "@/components/product/ProductSpecifications";
+import { ProductFeatures } from "@/components/product/ProductFeatures";
+import { ProductHighlights } from "@/components/product/ProductHighlights";
+import { ProductDownloads } from "@/components/product/ProductDownloads";
+import { ProductApplications } from "@/components/product/ProductApplications";
 import { RelatedProducts } from "@/components/product/RelatedProducts";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
