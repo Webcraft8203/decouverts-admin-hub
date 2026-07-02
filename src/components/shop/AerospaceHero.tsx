@@ -123,12 +123,13 @@ export function AerospaceHero() {
               className="mt-8 flex flex-wrap items-center gap-3"
             >
               <Button
-                onClick={() => document.getElementById("shop-catalogue")?.scrollIntoView({ behavior: "smooth" })}
+                onClick={handlePrimary}
                 className="h-12 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm shadow-lg shadow-primary/30 group"
               >
-                Explore Platforms
+                {slide?.product_id ? "View Featured Platform" : "Explore Platforms"}
                 <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
               </Button>
+
               <Button
                 variant="outline"
                 className="h-12 px-6 rounded-xl border-border/60 bg-card/50 backdrop-blur-sm hover:bg-card font-semibold text-sm"
