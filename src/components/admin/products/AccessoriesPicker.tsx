@@ -124,9 +124,9 @@ export function AccessoriesPicker({ productId }: Props) {
               placeholder="Type (Battery, Payload…)"
               className="w-48 h-8 text-xs"
             />
-            <Badge variant="ghost" asChild>
-              <button type="button" onClick={() => remove(r.id)} className="p-1"><X className="h-4 w-4" /></button>
-            </Badge>
+            <button type="button" onClick={() => remove(r.id)} className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
+              <X className="h-4 w-4" />
+            </button>
           </div>
         ))}
       </div>
