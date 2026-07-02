@@ -432,40 +432,101 @@ const Shop = () => {
   );
 
 
-  const FilterContent = () => (
-    <div className="space-y-5">
-      <div>
-        <h4 className="font-semibold text-foreground mb-3 text-xs uppercase tracking-[0.15em]">Categories</h4>
-        <div className="space-y-0.5">
-          <button
-            onClick={() => setSelectedCategory(null)}
-            className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 flex items-center justify-between ${
-              !selectedCategory 
-                ? "bg-primary/10 text-primary font-medium" 
-                : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
-            }`}
-          >
-            All Products
-            {!selectedCategory && <Check className="w-3.5 h-3.5" />}
-          </button>
-          {categories?.map((category) => (
+  const FilterContent = () => {
+    const activeRange = priceRange || priceBounds;
+    return (
+      <div className="space-y-6">
+        <div>
+          <h4 className="font-semibold text-foreground mb-3 text-xs uppercase tracking-[0.15em]">Categories</h4>
+          <div className="space-y-0.5">
             <button
-              key={category.id}
-              onClick={() => setSelectedCategory(category.id)}
+              onClick={() => setSelectedCategory(null)}
               className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 flex items-center justify-between ${
-                selectedCategory === category.id 
+                !selectedCategory 
                   ? "bg-primary/10 text-primary font-medium" 
                   : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
               }`}
             >
-              {category.name}
-              {selectedCategory === category.id && <Check className="w-3.5 h-3.5" />}
+              All Products
+              {!selectedCategory && <Check className="w-3.5 h-3.5" />}
             </button>
-          ))}
+            {categories?.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category.id)}
+                className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 flex items-center justify-between ${
+                  selectedCategory === category.id 
+                    ? "bg-primary/10 text-primary font-medium" 
+                    : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+                }`}
+              >
+                {category.name}
+                {selectedCategory === category.id && <Check className="w-3.5 h-3.5" />}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {brands.length > 0 && (
+          <div>
+            <h4 className="font-semibold text-foreground mb-3 text-xs uppercase tracking-[0.15em]">Brand</h4>
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                onClick={() => setSelectedBrand(null)}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors border ${
+                  !selectedBrand
+                    ? "bg-foreground text-background border-foreground"
+                    : "bg-card border-border/40 text-muted-foreground hover:border-primary/40"
+                }`}
+              >
+                All
+              </button>
+              {brands.map((b) => (
+                <button
+                  key={b}
+                  onClick={() => setSelectedBrand(b === selectedBrand ? null : b)}
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors border ${
+                    selectedBrand === b
+                      ? "bg-foreground text-background border-foreground"
+                      : "bg-card border-border/40 text-muted-foreground hover:border-primary/40"
+                  }`}
+                >
+                  {b}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {priceBounds[1] > priceBounds[0] && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-semibold text-foreground text-xs uppercase tracking-[0.15em]">Price</h4>
+              {priceRange && (
+                <button
+                  onClick={() => setPriceRange(null)}
+                  className="text-[10px] text-muted-foreground hover:text-foreground"
+                >Reset</button>
+              )}
+            </div>
+            <Slider
+              value={[activeRange[0], activeRange[1]]}
+              min={priceBounds[0]}
+              max={priceBounds[1]}
+              step={Math.max(100, Math.round((priceBounds[1] - priceBounds[0]) / 100))}
+              onValueChange={(v) => setPriceRange([v[0], v[1]] as [number, number])}
+              className="mb-2"
+            />
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground font-medium">
+              <span>₹{activeRange[0].toLocaleString("en-IN")}</span>
+              <span>₹{activeRange[1].toLocaleString("en-IN")}</span>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
-  );
+    );
+  };
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
