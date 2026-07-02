@@ -57,21 +57,38 @@ const Shop = () => {
   const [compareIds, setCompareIds] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
     try {
+      const params = new URLSearchParams(window.location.search);
+      const fromUrl = params.get("compare");
+      if (fromUrl) {
+        const ids = fromUrl.split(",").map((s) => s.trim()).filter(Boolean);
+        if (ids.length) return ids.slice(0, 4);
+      }
       const raw = localStorage.getItem("dec-compare");
       return raw ? JSON.parse(raw) : [];
     } catch {
       return [];
     }
   });
-  const [compareOpen, setCompareOpen] = useState(false);
+  const [compareOpen, setCompareOpen] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return new URLSearchParams(window.location.search).get("compare") ? true : false;
+  });
   const [missionPreset, setMissionPreset] = useState("all");
   const MAX_COMPARE = 4;
 
   useEffect(() => {
     try {
       localStorage.setItem("dec-compare", JSON.stringify(compareIds));
+      const url = new URL(window.location.href);
+      if (compareIds.length > 0) {
+        url.searchParams.set("compare", compareIds.join(","));
+      } else {
+        url.searchParams.delete("compare");
+      }
+      window.history.replaceState({}, "", url.toString());
     } catch {}
   }, [compareIds]);
+
 
   const toggleCompare = (id: string) => {
     setCompareIds((prev) => {
