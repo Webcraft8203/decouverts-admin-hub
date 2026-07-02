@@ -535,7 +535,7 @@ const ProductDetail = () => {
           )}
 
           {/* 360 Spin */}
-          {product?.id && <Product360Spin productId={product.id} />}
+          {product?.id && <Product360Spin productId={product.id} fallbackFrames={(product as any).gallery_360} />}
 
           {/* Key Features */}
           {product?.id && <ProductFeatures productId={product.id} />}
@@ -554,6 +554,9 @@ const ProductDetail = () => {
 
           {/* Downloads */}
           {product?.id && <ProductDownloads productId={product.id} />}
+
+          {/* Accessories & Loadout */}
+          {product?.id && <ProductAccessories productId={product.id} />}
 
 
           {/* Reviews */}
