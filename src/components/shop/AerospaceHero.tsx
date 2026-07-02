@@ -1,6 +1,9 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, PlayCircle, Radar, Gauge, Cpu, Wind, ShieldCheck } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import droneImg from "@/assets/hero-drone.png";
 
 const SPECS = [
@@ -12,6 +15,41 @@ const SPECS = [
 ];
 
 export function AerospaceHero() {
+  const navigate = useNavigate();
+
+  const { data: slide } = useQuery({
+    queryKey: ["shop-hero-slide"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("shop_slides")
+        .select("id,title,description,image_url,product_id,is_visible,display_order")
+        .eq("is_visible", true)
+        .order("display_order", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      return data as {
+        id: string;
+        title: string;
+        description: string | null;
+        image_url: string;
+        product_id: string | null;
+      } | null;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const heroTitle = slide?.title;
+  const heroDescription = slide?.description;
+  const heroImage = slide?.image_url || droneImg;
+
+  const handlePrimary = () => {
+    if (slide?.product_id) {
+      navigate(`/product/${slide.product_id}`);
+    } else {
+      document.getElementById("shop-catalogue")?.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-background via-secondary/20 to-background">
       {/* Engineering grid */}
