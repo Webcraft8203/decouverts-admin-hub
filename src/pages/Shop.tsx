@@ -541,6 +541,10 @@ const Shop = () => {
         {/* Hero Slider */}
         {!searchQuery && !selectedCategory && <ShopHeroSlider />}
 
+        {/* Categories Rail */}
+        <CategoriesRail selectedId={selectedCategory} onSelect={setSelectedCategory} />
+
+
         {/* Shop Header - Clean & Minimal */}
         <section className="border-b border-border/30">
           <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
