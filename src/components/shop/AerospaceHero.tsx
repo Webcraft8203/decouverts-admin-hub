@@ -223,7 +223,7 @@ export function AerospaceHero() {
 
               {/* Drone image */}
               <motion.img
-                src={droneImg}
+                src={heroImage}
                 alt="Decouvertes UAV platform"
                 className="absolute inset-0 w-full h-full object-contain drop-shadow-[0_30px_50px_rgba(255,106,26,0.25)]"
                 initial={{ opacity: 0, scale: 0.9 }}
