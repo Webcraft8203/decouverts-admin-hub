@@ -57,11 +57,20 @@ interface Product {
   id: string;
   name: string;
   description: string | null;
+  short_description: string | null;
   price: number;
   stock_quantity: number;
   images: string[] | null;
   category_id: string | null;
   is_highlighted: boolean;
+  is_bestseller: boolean | null;
+  is_new_arrival: boolean | null;
+  is_coming_soon: boolean | null;
+  is_pre_order: boolean | null;
+  is_discontinued: boolean | null;
+  made_in_india: boolean | null;
+  brand: string | null;
+  applications: string[] | null;
   categories: { name: string } | null;
   sku: string | null;
   slug: string | null;
@@ -72,6 +81,7 @@ interface Category {
   name: string;
   description: string | null;
 }
+
 
 const Shop = () => {
   const [searchQuery, setSearchQuery] = useState("");
