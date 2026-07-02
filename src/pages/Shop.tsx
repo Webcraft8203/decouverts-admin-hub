@@ -6,14 +6,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { PublicFooter } from "@/components/PublicFooter";
 import { Skeleton } from "@/components/ui/skeleton";
-import { QuickViewModal } from "@/components/shop/QuickViewModal";
+import { FullscreenQuickView } from "@/components/shop/FullscreenQuickView";
 import { AerospaceHero } from "@/components/shop/AerospaceHero";
 import { FeatureBar } from "@/components/shop/FeatureBar";
 import { AerospaceCategories } from "@/components/shop/AerospaceCategories";
 import { CommandCenterSearch } from "@/components/shop/CommandCenterSearch";
 import { EngineeredProductCard } from "@/components/shop/EngineeredProductCard";
+import { CompareDock } from "@/components/shop/CompareDock";
+import { CompareDialog } from "@/components/shop/CompareDialog";
 import { Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface Product {
   id: string;
@@ -50,6 +53,20 @@ const Shop = () => {
   const [missionFilter, setMissionFilter] = useState("all");
   const [availability, setAvailability] = useState("all");
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [compareOpen, setCompareOpen] = useState(false);
+  const MAX_COMPARE = 4;
+
+  const toggleCompare = (id: string) => {
+    setCompareIds((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      if (prev.length >= MAX_COMPARE) {
+        toast.info(`You can compare up to ${MAX_COMPARE} platforms at once.`);
+        return prev;
+      }
+      return [...prev, id];
+    });
+  };
 
   const { data: products, isLoading: productsLoading } = useQuery({
     queryKey: ["public-products"],
@@ -245,6 +262,8 @@ const Shop = () => {
                     product={p}
                     specs={highlightsMap?.get(p.id) || []}
                     onQuickView={setQuickViewId}
+                    onCompare={toggleCompare}
+                    compareActive={compareIds.includes(p.id)}
                   />
                 ))}
               </div>
@@ -277,10 +296,30 @@ const Shop = () => {
         </section>
       </main>
 
-      <QuickViewModal
+      <FullscreenQuickView
         productId={quickViewId}
         open={!!quickViewId}
         onOpenChange={(open) => { if (!open) setQuickViewId(null); }}
+      />
+
+      <CompareDock
+        items={compareIds
+          .map((id) => {
+            const p = products?.find((x) => x.id === id);
+            return p ? { id: p.id, name: p.name, image: p.images?.[0] } : null;
+          })
+          .filter(Boolean) as { id: string; name: string; image?: string | null }[]}
+        onRemove={(id) => setCompareIds((prev) => prev.filter((x) => x !== id))}
+        onClear={() => setCompareIds([])}
+        onOpen={() => setCompareOpen(true)}
+        max={MAX_COMPARE}
+      />
+
+      <CompareDialog
+        ids={compareIds}
+        open={compareOpen}
+        onOpenChange={setCompareOpen}
+        onRemove={(id) => setCompareIds((prev) => prev.filter((x) => x !== id))}
       />
 
       <PublicFooter />
