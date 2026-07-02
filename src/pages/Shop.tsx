@@ -88,6 +88,9 @@ const Shop = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("newest");
   const [gridView, setGridView] = useState<"grid" | "large">("grid");
+  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
+  const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
+  const [quickFilter, setQuickFilter] = useState<"all" | "new" | "bestseller" | "made_in_india">("all");
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -98,8 +101,8 @@ const Shop = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("*, categories(name), sku, slug")
-        .gt("stock_quantity", 0)
+        .select("*, categories(name)")
+        .eq("is_discontinued", false as any)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -126,14 +129,33 @@ const Shop = () => {
     }
   }, [products]);
 
+  // Derived: brands from products
+  const brands = Array.from(
+    new Set((products || []).map((p) => p.brand).filter((b): b is string => !!b))
+  ).sort();
+
+  const priceBounds = products && products.length > 0
+    ? [Math.min(...products.map((p) => p.price)), Math.max(...products.map((p) => p.price))] as [number, number]
+    : [0, 100000] as [number, number];
+
   const filteredProducts = products
     ?.filter((product) => {
-      const matchesSearch = 
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.sku?.toLowerCase().includes(searchQuery.toLowerCase());
+      const q = searchQuery.toLowerCase();
+      const matchesSearch = !q ||
+        product.name.toLowerCase().includes(q) ||
+        product.description?.toLowerCase().includes(q) ||
+        product.short_description?.toLowerCase().includes(q) ||
+        product.brand?.toLowerCase().includes(q) ||
+        product.sku?.toLowerCase().includes(q);
       const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
-      return matchesSearch && matchesCategory;
+      const matchesBrand = !selectedBrand || product.brand === selectedBrand;
+      const matchesPrice = !priceRange || (product.price >= priceRange[0] && product.price <= priceRange[1]);
+      const matchesQuick =
+        quickFilter === "all" ||
+        (quickFilter === "new" && product.is_new_arrival) ||
+        (quickFilter === "bestseller" && (product.is_bestseller || product.is_highlighted)) ||
+        (quickFilter === "made_in_india" && product.made_in_india);
+      return matchesSearch && matchesCategory && matchesBrand && matchesPrice && matchesQuick;
     })
     ?.sort((a, b) => {
       switch (sortBy) {
@@ -147,6 +169,8 @@ const Shop = () => {
           return 0;
       }
     });
+
+
 
   const selectedCategoryName = selectedCategory 
     ? categories?.find(c => c.id === selectedCategory)?.name 
