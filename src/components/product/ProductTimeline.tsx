@@ -54,13 +54,20 @@ export function ProductTimeline({ productId }: Props) {
               </div>
 
               <div className="rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm p-4 hover:border-primary/40 transition-colors">
-                <div className="flex items-start justify-between gap-3 mb-1">
-                  <h3 className="text-sm font-bold text-foreground tracking-tight">
-                    {it.title}
-                  </h3>
-                  {it.date && (
-                    <span className="text-[10px] font-mono uppercase tracking-[0.14em] text-primary bg-primary/10 px-2 py-0.5 rounded flex-shrink-0">
-                      {it.date}
+                <div className="flex items-start justify-between gap-3 mb-1 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    {it.stage && (
+                      <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+                        {it.stage}
+                      </span>
+                    )}
+                    <h3 className="text-sm font-bold text-foreground tracking-tight">
+                      {it.title}
+                    </h3>
+                  </div>
+                  {it.event_date && (
+                    <span className="text-[10px] font-mono uppercase tracking-[0.14em] text-muted-foreground flex-shrink-0">
+                      {new Date(it.event_date).toLocaleDateString(undefined, { year: "numeric", month: "short" })}
                     </span>
                   )}
                 </div>
