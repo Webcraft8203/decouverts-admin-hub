@@ -101,7 +101,7 @@ export function CompareDialog({ ids, open, onOpenChange, onRemove }: Props) {
         </DialogDescription>
 
         <div className="p-5 sm:p-6 border-b border-border/50 bg-secondary/20">
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
               <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary mb-1">
                 Comparison Matrix
@@ -113,8 +113,30 @@ export function CompareDialog({ ids, open, onOpenChange, onRemove }: Props) {
                 Side-by-side technical comparison across up to 4 platforms.
               </p>
             </div>
+            {ids.length > 0 && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    const url = new URL(window.location.origin + "/shop");
+                    url.searchParams.set("compare", ids.join(","));
+                    await navigator.clipboard.writeText(url.toString());
+                    toast.success("Comparison link copied to clipboard");
+                  } catch {
+                    toast.error("Could not copy link");
+                  }
+                }}
+                className="h-9 rounded-lg mt-1"
+              >
+                <Share2 className="w-3.5 h-3.5 mr-1.5" />
+                Share Comparison
+              </Button>
+            )}
           </div>
         </div>
+
 
         <div className="max-h-[70vh] overflow-y-auto">
           {isLoading ? (
