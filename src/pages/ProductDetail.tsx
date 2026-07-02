@@ -16,6 +16,7 @@ import { Product3DViewer } from "@/components/product/Product3DViewer";
 import { Product360Spin } from "@/components/product/Product360Spin";
 import { ProductTimeline } from "@/components/product/ProductTimeline";
 import { ProductCertifications } from "@/components/product/ProductCertifications";
+import { ProductAccessories } from "@/components/product/ProductAccessories";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
