@@ -53,6 +53,20 @@ const Shop = () => {
   const [missionFilter, setMissionFilter] = useState("all");
   const [availability, setAvailability] = useState("all");
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [compareOpen, setCompareOpen] = useState(false);
+  const MAX_COMPARE = 4;
+
+  const toggleCompare = (id: string) => {
+    setCompareIds((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      if (prev.length >= MAX_COMPARE) {
+        toast.info(`You can compare up to ${MAX_COMPARE} platforms at once.`);
+        return prev;
+      }
+      return [...prev, id];
+    });
+  };
 
   const { data: products, isLoading: productsLoading } = useQuery({
     queryKey: ["public-products"],
@@ -248,6 +262,8 @@ const Shop = () => {
                     product={p}
                     specs={highlightsMap?.get(p.id) || []}
                     onQuickView={setQuickViewId}
+                    onCompare={toggleCompare}
+                    compareActive={compareIds.includes(p.id)}
                   />
                 ))}
               </div>
