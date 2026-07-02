@@ -1,59 +1,19 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { BreadcrumbSchema } from "@/components/SEOSchemas";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { PublicFooter } from "@/components/PublicFooter";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { WishlistButton } from "@/components/WishlistButton";
-import { ShareMenu } from "@/components/ShareMenu";
-import { ShopHeroSlider } from "@/components/shop/ShopHeroSlider";
-import { CategoriesRail } from "@/components/shop/CategoriesRail";
 import { QuickViewModal } from "@/components/shop/QuickViewModal";
-
-import { 
-  ShoppingCart, 
-  Package, 
-  Search, 
-  Star, 
-  Grid3X3,
-  LayoutGrid,
-  SlidersHorizontal,
-  X,
-  Check,
-  Eye,
-  ArrowUpDown,
-  Loader2,
-  Heart,
-  Sparkles,
-  Flame,
-  MapPin,
-  BadgeCheck
-} from "lucide-react";
-import { Slider } from "@/components/ui/slider";
-
-import { Input } from "@/components/ui/input";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { toast } from "sonner";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
+import { AerospaceHero } from "@/components/shop/AerospaceHero";
+import { FeatureBar } from "@/components/shop/FeatureBar";
+import { AerospaceCategories } from "@/components/shop/AerospaceCategories";
+import { CommandCenterSearch } from "@/components/shop/CommandCenterSearch";
+import { EngineeredProductCard } from "@/components/shop/EngineeredProductCard";
+import { Package } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Product {
   id: string;
@@ -76,29 +36,20 @@ interface Product {
   categories: { name: string } | null;
   sku: string | null;
   slug: string | null;
+  mission_type: string | null;
+  model_3d_url: string | null;
 }
 
-interface Category {
-  id: string;
-  name: string;
-  description: string | null;
-}
-
+interface Category { id: string; name: string; description: string | null }
 
 const Shop = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("newest");
-  const [gridView, setGridView] = useState<"grid" | "large">("grid");
   const [quickViewId, setQuickViewId] = useState<string | null>(null);
-
-  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
+  const [missionFilter, setMissionFilter] = useState("all");
+  const [availability, setAvailability] = useState("all");
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
-  const [quickFilter, setQuickFilter] = useState<"all" | "new" | "bestseller" | "made_in_india">("all");
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const hasAnimated = useRef(false);
 
   const { data: products, isLoading: productsLoading } = useQuery({
     queryKey: ["public-products"],
@@ -108,7 +59,6 @@ const Shop = () => {
         .select("*, categories(name)")
         .eq("is_discontinued", false as any)
         .order("created_at", { ascending: false });
-
       if (error) throw error;
       return data as Product[];
     },
@@ -117,76 +67,84 @@ const Shop = () => {
   const { data: categories } = useQuery({
     queryKey: ["public-categories"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("categories")
-        .select("*")
-        .order("name", { ascending: true });
-
+      const { data, error } = await supabase.from("categories").select("*").order("name");
       if (error) throw error;
       return data as Category[];
     },
   });
 
-  useEffect(() => {
-    if (products && !hasAnimated.current) {
-      hasAnimated.current = true;
-    }
+  // Batch fetch top 3 highlights per product for quick-spec strip
+  const { data: highlightsMap } = useQuery({
+    queryKey: ["public-product-highlights"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("product_highlights")
+        .select("product_id, label, value, display_order")
+        .order("display_order", { ascending: true });
+      const map = new Map<string, { label: string; value: string }[]>();
+      (data || []).forEach((h: any) => {
+        const arr = map.get(h.product_id) || [];
+        if (arr.length < 3) arr.push({ label: h.label, value: h.value });
+        map.set(h.product_id, arr);
+      });
+      return map;
+    },
+  });
+
+  const missionTypes = useMemo(() => {
+    return Array.from(new Set((products || []).map((p) => p.mission_type).filter(Boolean) as string[])).sort();
   }, [products]);
 
-  // Derived: brands from products
-  const brands = Array.from(
-    new Set((products || []).map((p) => p.brand).filter((b): b is string => !!b))
-  ).sort();
+  const priceBounds: [number, number] = useMemo(() => {
+    if (!products || products.length === 0) return [0, 100000];
+    const prices = products.map((p) => p.price).filter((p) => p > 0);
+    if (prices.length === 0) return [0, 100000];
+    return [Math.min(...prices), Math.max(...prices)];
+  }, [products]);
 
-  const priceBounds = products && products.length > 0
-    ? [Math.min(...products.map((p) => p.price)), Math.max(...products.map((p) => p.price))] as [number, number]
-    : [0, 100000] as [number, number];
+  const filteredProducts = useMemo(() => {
+    return (products || [])
+      .filter((p) => {
+        const q = searchQuery.toLowerCase();
+        const matchesSearch =
+          !q ||
+          p.name.toLowerCase().includes(q) ||
+          p.description?.toLowerCase().includes(q) ||
+          p.short_description?.toLowerCase().includes(q) ||
+          p.brand?.toLowerCase().includes(q) ||
+          p.mission_type?.toLowerCase().includes(q) ||
+          p.sku?.toLowerCase().includes(q);
+        const matchesCategory = !selectedCategory || p.category_id === selectedCategory;
+        const matchesMission = missionFilter === "all" || p.mission_type === missionFilter;
+        const matchesAvail =
+          availability === "all" ||
+          (availability === "in_stock" && p.stock_quantity > 0 && !p.is_coming_soon && !p.is_pre_order) ||
+          (availability === "coming_soon" && p.is_coming_soon) ||
+          (availability === "pre_order" && p.is_pre_order);
+        const matchesPrice = !priceRange || (p.price >= priceRange[0] && p.price <= priceRange[1]);
+        return matchesSearch && matchesCategory && matchesMission && matchesAvail && matchesPrice;
+      })
+      .sort((a, b) => {
+        switch (sortBy) {
+          case "price-low": return a.price - b.price;
+          case "price-high": return b.price - a.price;
+          case "name": return a.name.localeCompare(b.name);
+          default: return 0;
+        }
+      });
+  }, [products, searchQuery, selectedCategory, missionFilter, availability, priceRange, sortBy]);
 
-  const filteredProducts = products
-    ?.filter((product) => {
-      const q = searchQuery.toLowerCase();
-      const matchesSearch = !q ||
-        product.name.toLowerCase().includes(q) ||
-        product.description?.toLowerCase().includes(q) ||
-        product.short_description?.toLowerCase().includes(q) ||
-        product.brand?.toLowerCase().includes(q) ||
-        product.sku?.toLowerCase().includes(q);
-      const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
-      const matchesBrand = !selectedBrand || product.brand === selectedBrand;
-      const matchesPrice = !priceRange || (product.price >= priceRange[0] && product.price <= priceRange[1]);
-      const matchesQuick =
-        quickFilter === "all" ||
-        (quickFilter === "new" && product.is_new_arrival) ||
-        (quickFilter === "bestseller" && (product.is_bestseller || product.is_highlighted)) ||
-        (quickFilter === "made_in_india" && product.made_in_india);
-      return matchesSearch && matchesCategory && matchesBrand && matchesPrice && matchesQuick;
-    })
-    ?.sort((a, b) => {
-      switch (sortBy) {
-        case "price-low":
-          return a.price - b.price;
-        case "price-high":
-          return b.price - a.price;
-        case "name":
-          return a.name.localeCompare(b.name);
-        default:
-          return 0;
-      }
-    });
-
-
-
-  const selectedCategoryName = selectedCategory 
-    ? categories?.find(c => c.id === selectedCategory)?.name 
+  const selectedCategoryName = selectedCategory
+    ? categories?.find((c) => c.id === selectedCategory)?.name
     : null;
 
   usePageSEO({
     title: selectedCategoryName
-      ? `${selectedCategoryName} | Shop | Decouvertes`
-      : "Shop | Decouvertes",
+      ? `${selectedCategoryName} | Platforms | Decouvertes`
+      : "UAV Platforms & Deep-Tech Systems | Decouvertes",
     description: selectedCategoryName
-      ? `Shop ${selectedCategoryName} from Decouvertes with industrial-grade quality, reliable delivery and premium engineering products in India.`
-      : "Shop Decouvertes for industrial 3D printers, engineering products and premium technology solutions in India.",
+      ? `Explore ${selectedCategoryName} platforms from Decouvertes — engineered in India for defence, agriculture, industrial inspection and research missions.`
+      : "Purpose-built UAVs, defence systems, agriculture drones, industrial inspection platforms and 3D printers — engineered in India by Decouvertes.",
     path: "/shop",
   });
 
@@ -195,7 +153,7 @@ const Shop = () => {
     const itemListLd = {
       "@context": "https://schema.org",
       "@type": "ItemList",
-      name: selectedCategoryName ? `${selectedCategoryName} Products` : "All Products",
+      name: selectedCategoryName ? `${selectedCategoryName} Platforms` : "All Platforms",
       numberOfItems: filteredProducts.length,
       itemListElement: filteredProducts.slice(0, 30).map((p, i) => ({
         "@type": "ListItem",
@@ -213,652 +171,108 @@ const Shop = () => {
     return () => { document.getElementById("shop-itemlist-jsonld")?.remove(); };
   }, [filteredProducts, selectedCategoryName]);
 
-  const addToCartMutation = useMutation({
-    mutationFn: async (productId: string) => {
-      if (!user) throw new Error("Not authenticated");
-
-      const { data: existingItem } = await supabase
-        .from("cart_items")
-        .select("id, quantity")
-        .eq("user_id", user.id)
-        .eq("product_id", productId)
-        .maybeSingle();
-
-      if (existingItem) {
-        const { error } = await supabase
-          .from("cart_items")
-          .update({ quantity: existingItem.quantity + 1 })
-          .eq("id", existingItem.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("cart_items")
-          .insert({ user_id: user.id, product_id: productId, quantity: 1 });
-        if (error) throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cart-count"] });
-      queryClient.invalidateQueries({ queryKey: ["cart-items"] });
-      toast.success("Added to cart!");
-    },
-    onError: () => toast.error("Failed to add to cart"),
-  });
-
-  const handleAddToCart = (e: React.MouseEvent, productId: string) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (!user) {
-      toast.info("Please login to add items to cart", {
-        action: { label: "Login", onClick: () => navigate("/login") },
-      });
-      return;
-    }
-    addToCartMutation.mutate(productId);
-  };
-
-  const featuredProducts = products?.filter((p) => p.is_highlighted || p.is_bestseller) || [];
-  const newArrivals = products?.filter((p) => p.is_new_arrival) || [];
-  const comingSoon = products?.filter((p) => p.is_coming_soon) || [];
-
-
-  const ProductCard = ({ product }: { product: Product }) => (
-    <div
-      onClick={() => navigate(`/product/${product.slug || product.id}`)}
-      className="group relative flex flex-col h-full bg-card rounded-xl overflow-hidden cursor-pointer border border-border/30 hover:border-primary/20 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/[0.06]"
-    >
-      {/* Image */}
-      <div className="relative aspect-square overflow-hidden bg-secondary/10">
-        {product.images && product.images.length > 0 ? (
-          <>
-            <img
-              src={product.images[0]}
-              alt={`${product.name} - ${product.categories?.name || "Product"} by DECOUVERTES`}
-              className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-108"
-              loading="lazy"
-            />
-            {product.images[1] && (
-              <img
-                src={product.images[1]}
-                alt={`${product.name} alternate view`}
-                className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-600"
-                loading="lazy"
-              />
-            )}
-          </>
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Package className="w-10 h-10 text-muted-foreground/10" />
-          </div>
-        )}
-        
-        {/* Badges */}
-        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 z-10 max-w-[70%]">
-          {product.is_new_arrival && (
-            <span className="inline-flex items-center gap-1 bg-emerald-500 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow-md">
-              <Sparkles className="w-2.5 h-2.5" /> NEW
-            </span>
-          )}
-          {(product.is_bestseller || product.is_highlighted) && (
-            <span className="inline-flex items-center gap-1 bg-foreground text-background text-[9px] font-bold px-2 py-0.5 rounded shadow-md">
-              <Flame className="w-2.5 h-2.5" /> BESTSELLER
-            </span>
-          )}
-          {product.is_coming_soon && (
-            <span className="inline-flex items-center bg-sky-500 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow-md">
-              COMING SOON
-            </span>
-          )}
-          {product.is_pre_order && (
-            <span className="inline-flex items-center bg-violet-500 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow-md">
-              PRE-ORDER
-            </span>
-          )}
-          {product.made_in_india && (
-            <span className="inline-flex items-center gap-1 bg-orange-500/95 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow-md">
-              <MapPin className="w-2.5 h-2.5" /> INDIA
-            </span>
-          )}
-          {product.stock_quantity > 0 && product.stock_quantity <= 5 && (
-            <span className="inline-flex items-center bg-destructive text-destructive-foreground text-[9px] font-bold px-2 py-0.5 rounded shadow-md">
-              Only {product.stock_quantity} left
-            </span>
-          )}
-          {product.stock_quantity === 0 && !product.is_coming_soon && !product.is_pre_order && (
-            <span className="inline-flex items-center bg-muted text-muted-foreground text-[9px] font-bold px-2 py-0.5 rounded shadow-md">
-              OUT OF STOCK
-            </span>
-          )}
-        </div>
-
-
-        {/* Hover Actions */}
-        <div className="absolute top-2.5 right-2.5 z-10 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-1 group-hover:translate-y-0">
-          <div className="bg-card/95 backdrop-blur-sm rounded-full p-1.5 shadow-md border border-border/20">
-            <WishlistButton productId={product.id} size="sm" />
-          </div>
-          <ShareMenu
-            url={`${window.location.origin}/product/${product.slug || product.id}`}
-            title={product.name}
-            description={product.description || undefined}
-          />
-        </div>
-
-        {/* Quick View Overlay */}
-        <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/5 transition-colors duration-500" />
-        <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 translate-y-3 group-hover:translate-y-0 transition-all duration-400 z-10">
-          <Button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              setQuickViewId(product.id);
-            }}
-            variant="secondary"
-            className="w-full bg-card/95 backdrop-blur-md hover:bg-card text-foreground shadow-xl h-9 rounded-lg font-medium text-xs border border-border/20"
-          >
-            <Eye className="w-3.5 h-3.5 mr-1.5" />
-            Quick View
-          </Button>
-
-        </div>
-      </div>
-
-      {/* Info */}
-      <div className="flex flex-col flex-1 p-3.5 sm:p-4">
-        <div className="flex items-center gap-1.5 mb-1.5">
-          {product.brand && (
-            <span className="text-[10px] text-primary font-bold uppercase tracking-[0.14em]">
-              {product.brand}
-            </span>
-          )}
-          {product.brand && product.categories && (
-            <span className="w-0.5 h-0.5 rounded-full bg-border" />
-          )}
-          {product.categories && (
-            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-[0.12em]">
-              {product.categories.name}
-            </p>
-          )}
-        </div>
-        <h3 className="font-semibold text-foreground text-[13px] sm:text-sm leading-snug mb-1 line-clamp-2 min-h-[2.5em] group-hover:text-primary transition-colors duration-300">
-          {product.name}
-        </h3>
-        {product.short_description && (
-          <p className="text-[11px] text-muted-foreground/80 line-clamp-2 leading-snug mb-1.5">
-            {product.short_description}
-          </p>
-        )}
-
-        <div className="mt-auto pt-3">
-          <div className="flex items-center justify-between gap-2 mb-3">
-            <p className="text-lg font-bold text-foreground tracking-tight">
-              ₹{product.price.toLocaleString("en-IN")}
-            </p>
-            {product.stock_quantity > 0 && product.stock_quantity <= 10 && (
-              <span className="text-[9px] text-amber-600 font-semibold bg-amber-50 px-1.5 py-0.5 rounded">
-                {product.stock_quantity} left
-              </span>
-            )}
-          </div>
-
-          {product.is_coming_soon ? (
-            <Button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); navigate(`/product/${product.slug || product.id}`); }}
-              variant="outline"
-              className="w-full h-9 rounded-lg font-semibold text-xs border-sky-500/30 text-sky-600 hover:bg-sky-500/5"
-              size="sm"
-            >
-              <BadgeCheck className="w-3.5 h-3.5 mr-1.5" /> Notify Me
-            </Button>
-          ) : product.stock_quantity === 0 ? (
-            <Button type="button" disabled variant="outline" size="sm" className="w-full h-9 rounded-lg text-xs">
-              Out of Stock
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              onClick={(e) => handleAddToCart(e, product.id)}
-              disabled={addToCartMutation.isPending}
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-9 rounded-lg font-semibold text-xs transition-all duration-200 active:scale-[0.97] shadow-sm hover:shadow-md hover:shadow-primary/15"
-              size="sm"
-            >
-              {addToCartMutation.isPending ? (
-                <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-              ) : (
-                <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
-              )}
-              Add to Cart
-            </Button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-
-
-  const FilterContent = () => {
-    const activeRange = priceRange || priceBounds;
-    return (
-      <div className="space-y-6">
-        <div>
-          <h4 className="font-semibold text-foreground mb-3 text-xs uppercase tracking-[0.15em]">Categories</h4>
-          <div className="space-y-0.5">
-            <button
-              onClick={() => setSelectedCategory(null)}
-              className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 flex items-center justify-between ${
-                !selectedCategory 
-                  ? "bg-primary/10 text-primary font-medium" 
-                  : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
-              }`}
-            >
-              All Products
-              {!selectedCategory && <Check className="w-3.5 h-3.5" />}
-            </button>
-            {categories?.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 flex items-center justify-between ${
-                  selectedCategory === category.id 
-                    ? "bg-primary/10 text-primary font-medium" 
-                    : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
-                }`}
-              >
-                {category.name}
-                {selectedCategory === category.id && <Check className="w-3.5 h-3.5" />}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {brands.length > 0 && (
-          <div>
-            <h4 className="font-semibold text-foreground mb-3 text-xs uppercase tracking-[0.15em]">Brand</h4>
-            <div className="flex flex-wrap gap-1.5">
-              <button
-                onClick={() => setSelectedBrand(null)}
-                className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors border ${
-                  !selectedBrand
-                    ? "bg-foreground text-background border-foreground"
-                    : "bg-card border-border/40 text-muted-foreground hover:border-primary/40"
-                }`}
-              >
-                All
-              </button>
-              {brands.map((b) => (
-                <button
-                  key={b}
-                  onClick={() => setSelectedBrand(b === selectedBrand ? null : b)}
-                  className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors border ${
-                    selectedBrand === b
-                      ? "bg-foreground text-background border-foreground"
-                      : "bg-card border-border/40 text-muted-foreground hover:border-primary/40"
-                  }`}
-                >
-                  {b}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {priceBounds[1] > priceBounds[0] && (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="font-semibold text-foreground text-xs uppercase tracking-[0.15em]">Price</h4>
-              {priceRange && (
-                <button
-                  onClick={() => setPriceRange(null)}
-                  className="text-[10px] text-muted-foreground hover:text-foreground"
-                >Reset</button>
-              )}
-            </div>
-            <Slider
-              value={[activeRange[0], activeRange[1]]}
-              min={priceBounds[0]}
-              max={priceBounds[1]}
-              step={Math.max(100, Math.round((priceBounds[1] - priceBounds[0]) / 100))}
-              onValueChange={(v) => setPriceRange([v[0], v[1]] as [number, number])}
-              className="mb-2"
-            />
-            <div className="flex items-center justify-between text-[11px] text-muted-foreground font-medium">
-              <span>₹{activeRange[0].toLocaleString("en-IN")}</span>
-              <span>₹{activeRange[1].toLocaleString("en-IN")}</span>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <BreadcrumbSchema items={[
-        { name: "Home", url: "/" },
-        { name: "Shop", url: "/shop" },
-        ...(selectedCategoryName ? [{ name: selectedCategoryName, url: "/shop" }] : []),
-      ]} />
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: "/" },
+          { name: "Shop", url: "/shop" },
+          ...(selectedCategoryName ? [{ name: selectedCategoryName, url: "/shop" }] : []),
+        ]}
+      />
       <PublicNavbar />
 
       <main className="flex-1 pt-16">
-        {/* Hero Slider */}
-        {!searchQuery && !selectedCategory && <ShopHeroSlider />}
+        <AerospaceHero />
+        <FeatureBar />
+        <AerospaceCategories selectedId={selectedCategory} onSelect={setSelectedCategory} />
 
-        {/* Categories Rail */}
-        <CategoriesRail selectedId={selectedCategory} onSelect={setSelectedCategory} />
+        <CommandCenterSearch
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          categories={categories || []}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          missionFilter={missionFilter}
+          setMissionFilter={setMissionFilter}
+          availability={availability}
+          setAvailability={setAvailability}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          priceBounds={priceBounds}
+          priceRange={priceRange}
+          setPriceRange={setPriceRange}
+          missionTypes={missionTypes}
+          resultCount={filteredProducts.length}
+        />
 
-
-        {/* Shop Header - Clean & Minimal */}
-        <section className="border-b border-border/30">
-          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        {/* Catalogue */}
+        <section id="shop-catalogue" className="relative pb-24">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-end justify-between mb-8">
               <div>
-                <p className="text-primary font-semibold text-[11px] uppercase tracking-[0.2em] mb-1.5">
-                  DECOUVERTES
-                </p>
-                <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-                  {selectedCategory 
-                    ? categories?.find(c => c.id === selectedCategory)?.name 
-                    : "Shop All Products"}
-                </h1>
+                <div className="text-[10px] uppercase tracking-[0.22em] font-bold text-primary mb-2">
+                  Platform Catalogue
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+                  {selectedCategoryName || "All Engineered Platforms"}
+                </h2>
               </div>
-              <p className="text-sm text-muted-foreground">
-                {filteredProducts?.length || 0} product{(filteredProducts?.length || 0) !== 1 ? 's' : ''} available
-              </p>
+              <div className="text-xs font-mono text-muted-foreground hidden sm:block">
+                {filteredProducts.length} result{filteredProducts.length === 1 ? "" : "s"}
+              </div>
             </div>
-          </div>
-        </section>
 
-        {/* Sticky Toolbar */}
-        <section className="sticky top-16 z-30 bg-background/95 backdrop-blur-lg border-b border-border/30">
-          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-12 sm:h-14 gap-3">
-              <div className="flex items-center gap-2 flex-1">
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button variant="ghost" size="sm" className="lg:hidden h-8 px-2.5 gap-1.5 text-xs">
-                      <SlidersHorizontal className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Filters</span>
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="left" className="w-[280px]">
-                    <SheetHeader>
-                      <SheetTitle>Filters</SheetTitle>
-                    </SheetHeader>
-                    <div className="mt-6">
-                      <FilterContent />
+            {productsLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="rounded-2xl border border-border/40 overflow-hidden bg-card">
+                    <Skeleton className="aspect-[4/3]" />
+                    <div className="p-5 space-y-3">
+                      <Skeleton className="h-3 w-1/3" />
+                      <Skeleton className="h-5 w-3/4" />
+                      <Skeleton className="h-3 w-full" />
+                      <Skeleton className="h-9 w-full rounded-lg" />
                     </div>
-                  </SheetContent>
-                </Sheet>
-
-                <div className="relative flex-1 max-w-xs">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
-                  <Input
-                    placeholder="Search products..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-8 h-8 text-xs bg-secondary/30 border-border/20 focus-visible:ring-1 focus-visible:ring-primary/20 rounded-lg"
+                  </div>
+                ))}
+              </div>
+            ) : filteredProducts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+                {filteredProducts.map((p) => (
+                  <EngineeredProductCard
+                    key={p.id}
+                    product={p}
+                    specs={highlightsMap?.get(p.id) || []}
+                    onQuickView={setQuickViewId}
                   />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery("")}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
+                ))}
               </div>
-
-              <div className="flex items-center gap-2">
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-[120px] sm:w-[140px] h-8 text-xs border-border/20 bg-secondary/30 rounded-lg">
-                    <ArrowUpDown className="w-3 h-3 mr-1 text-muted-foreground/50" />
-                    <SelectValue placeholder="Sort" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="newest">Newest</SelectItem>
-                    <SelectItem value="price-low">Price: Low → High</SelectItem>
-                    <SelectItem value="price-high">Price: High → Low</SelectItem>
-                    <SelectItem value="name">Name</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <div className="hidden sm:flex items-center border border-border/20 rounded-lg p-0.5 bg-secondary/20">
-                  <button
-                    onClick={() => setGridView("grid")}
-                    className={`p-1.5 rounded-md transition-all ${
-                      gridView === "grid" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground/50"
-                    }`}
-                  >
-                    <Grid3X3 className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => setGridView("large")}
-                    className={`p-1.5 rounded-md transition-all ${
-                      gridView === "large" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground/50"
-                    }`}
-                  >
-                    <LayoutGrid className="w-3.5 h-3.5" />
-                  </button>
+            ) : (
+              <div className="text-center py-24 rounded-2xl border border-dashed border-border/50 bg-card/40">
+                <div className="w-16 h-16 rounded-2xl bg-secondary/40 flex items-center justify-center mx-auto mb-4">
+                  <Package className="w-7 h-7 text-muted-foreground/40" />
                 </div>
+                <h3 className="text-lg font-bold text-foreground mb-1.5">
+                  No platforms match your criteria
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-6">
+                  Adjust filters or clear your search to view all platforms.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedCategory(null);
+                    setMissionFilter("all");
+                    setAvailability("all");
+                    setPriceRange(null);
+                  }}
+                >
+                  Reset Filters
+                </Button>
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Main Content */}
-        <section className="py-6 sm:py-8">
-          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex gap-8 lg:gap-10">
-              {/* Desktop Sidebar */}
-              <aside className="hidden lg:block w-52 flex-shrink-0">
-                <div className="sticky top-36">
-                  <FilterContent />
-                </div>
-              </aside>
-
-              {/* Products */}
-              <div className="flex-1 min-w-0">
-                {/* Active Filters */}
-                {(selectedCategory || searchQuery) && (
-                  <div className="flex items-center gap-2 mb-5 flex-wrap">
-                    {selectedCategory && (
-                      <Badge 
-                        variant="secondary" 
-                        className="px-2.5 py-1 text-xs cursor-pointer hover:bg-destructive/10 hover:text-destructive rounded-full transition-colors"
-                        onClick={() => setSelectedCategory(null)}
-                      >
-                        {categories?.find(c => c.id === selectedCategory)?.name}
-                        <X className="w-3 h-3 ml-1.5" />
-                      </Badge>
-                    )}
-                    {searchQuery && (
-                      <Badge 
-                        variant="secondary" 
-                        className="px-2.5 py-1 text-xs cursor-pointer hover:bg-destructive/10 hover:text-destructive rounded-full transition-colors"
-                        onClick={() => setSearchQuery("")}
-                      >
-                        "{searchQuery}"
-                        <X className="w-3 h-3 ml-1.5" />
-                      </Badge>
-                    )}
-                    <button 
-                      onClick={() => { setSelectedCategory(null); setSearchQuery(""); }}
-                      className="text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      Clear all
-                    </button>
-                  </div>
-                )}
-
-                {/* Quick Filter Chips */}
-                <div className="flex items-center gap-2 mb-6 overflow-x-auto scrollbar-none -mx-1 px-1">
-                  {[
-                    { id: "all", label: "All", icon: null },
-                    { id: "new", label: "New Arrivals", icon: Sparkles },
-                    { id: "bestseller", label: "Bestsellers", icon: Flame },
-                    { id: "made_in_india", label: "Made in India", icon: MapPin },
-                  ].map((f) => {
-                    const Icon = f.icon;
-                    const active = quickFilter === (f.id as any);
-                    return (
-                      <button
-                        key={f.id}
-                        onClick={() => setQuickFilter(f.id as any)}
-                        className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all ${
-                          active
-                            ? "bg-primary text-primary-foreground border-primary shadow-sm shadow-primary/20"
-                            : "bg-card border-border/40 text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                        }`}
-                      >
-                        {Icon && <Icon className="w-3.5 h-3.5" />}
-                        {f.label}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* New Arrivals strip */}
-                {newArrivals.length > 0 && !selectedCategory && !searchQuery && quickFilter === "all" && (
-                  <div className="mb-10">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-emerald-500" />
-                        <h2 className="text-sm font-bold text-foreground uppercase tracking-wide">New Arrivals</h2>
-                      </div>
-                      <button
-                        onClick={() => setQuickFilter("new")}
-                        className="text-[11px] font-semibold text-primary hover:text-primary/80"
-                      >View all →</button>
-                    </div>
-                    <div className={`grid gap-3 sm:gap-4 ${
-                      gridView === "large" ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
-                    }`}>
-                      {newArrivals.slice(0, gridView === "large" ? 2 : 4).map((product) => (
-                        <ProductCard key={product.id} product={product} />
-                      ))}
-                    </div>
-                    <Separator className="mt-10" />
-                  </div>
-                )}
-
-                {/* Coming Soon strip */}
-                {comingSoon.length > 0 && !selectedCategory && !searchQuery && quickFilter === "all" && (
-                  <div className="mb-10">
-                    <div className="flex items-center gap-2 mb-4">
-                      <BadgeCheck className="w-4 h-4 text-sky-500" />
-                      <h2 className="text-sm font-bold text-foreground uppercase tracking-wide">Coming Soon</h2>
-                    </div>
-                    <div className={`grid gap-3 sm:gap-4 ${
-                      gridView === "large" ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
-                    }`}>
-                      {comingSoon.slice(0, gridView === "large" ? 2 : 4).map((product) => (
-                        <ProductCard key={product.id} product={product} />
-                      ))}
-                    </div>
-                    <Separator className="mt-10" />
-                  </div>
-                )}
-
-
-                {/* Featured */}
-                {featuredProducts.length > 0 && !selectedCategory && !searchQuery && (
-                  <div className="mb-10">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Star className="w-4 h-4 text-primary fill-primary" />
-                      <h2 className="text-sm font-bold text-foreground uppercase tracking-wide">Featured</h2>
-                    </div>
-                    <div className={`grid gap-3 sm:gap-4 ${
-                      gridView === "large" 
-                        ? "grid-cols-1 sm:grid-cols-2" 
-                        : "grid-cols-2 sm:grid-cols-3"
-                    }`}>
-                      {featuredProducts.slice(0, gridView === "large" ? 4 : 6).map((product) => (
-                        <ProductCard key={product.id} product={product} />
-                      ))}
-                    </div>
-                    <Separator className="mt-10" />
-                  </div>
-                )}
-
-                {/* Loading */}
-                {productsLoading ? (
-                  <div className={`grid gap-3 sm:gap-4 ${
-                    gridView === "large" 
-                      ? "grid-cols-1 sm:grid-cols-2" 
-                      : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
-                  }`}>
-                    {[...Array(8)].map((_, i) => (
-                      <div key={i} className="bg-card rounded-xl border border-border/20 overflow-hidden">
-                        <Skeleton className="aspect-square" />
-                        <div className="p-4 space-y-2.5">
-                          <Skeleton className="h-2.5 w-1/3" />
-                          <Skeleton className="h-3.5 w-3/4" />
-                          <Skeleton className="h-4 w-1/4" />
-                          <Skeleton className="h-9 w-full rounded-lg" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : filteredProducts && filteredProducts.length > 0 ? (
-                  <>
-                    {(selectedCategory || searchQuery || featuredProducts.length > 0) && (
-                      <h2 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide">
-                        {selectedCategory 
-                          ? `All ${categories?.find(c => c.id === selectedCategory)?.name}`
-                          : searchQuery 
-                            ? "Search Results" 
-                            : "All Products"}
-                      </h2>
-                    )}
-                    
-                    <div className={`grid gap-3 sm:gap-4 ${
-                      gridView === "large" 
-                        ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" 
-                        : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
-                    }`}>
-                      {filteredProducts
-                        .filter(p => !p.is_highlighted || selectedCategory || searchQuery)
-                        .map((product) => (
-                          <ProductCard key={product.id} product={product} />
-                        ))}
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center py-24">
-                    <div className="w-16 h-16 bg-secondary/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <Package className="w-8 h-8 text-muted-foreground/20" />
-                    </div>
-                    <h2 className="text-lg font-bold text-foreground mb-1.5">
-                      {searchQuery ? "No products found" : "No products yet"}
-                    </h2>
-                    <p className="text-muted-foreground text-sm max-w-sm mx-auto mb-6">
-                      {searchQuery
-                        ? "Try adjusting your search or filters."
-                        : "Check back soon for our new collection."}
-                    </p>
-                    {(searchQuery || selectedCategory) && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="rounded-lg"
-                        onClick={() => {
-                          setSearchQuery("");
-                          setSelectedCategory(null);
-                        }}
-                      >
-                        Clear Filters
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
+            )}
           </div>
         </section>
       </main>
@@ -868,7 +282,6 @@ const Shop = () => {
         open={!!quickViewId}
         onOpenChange={(open) => { if (!open) setQuickViewId(null); }}
       />
-
 
       <PublicFooter />
     </div>
