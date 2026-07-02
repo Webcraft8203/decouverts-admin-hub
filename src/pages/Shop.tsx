@@ -347,7 +347,8 @@ const Shop = () => {
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              navigate(`/product/${product.slug || product.id}`);
+              e.preventDefault();
+              setQuickViewId(product.id);
             }}
             variant="secondary"
             className="w-full bg-card/95 backdrop-blur-md hover:bg-card text-foreground shadow-xl h-9 rounded-lg font-medium text-xs border border-border/20"
@@ -355,6 +356,7 @@ const Shop = () => {
             <Eye className="w-3.5 h-3.5 mr-1.5" />
             Quick View
           </Button>
+
         </div>
       </div>
 
