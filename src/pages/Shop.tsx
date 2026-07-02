@@ -296,10 +296,30 @@ const Shop = () => {
         </section>
       </main>
 
-      <QuickViewModal
+      <FullscreenQuickView
         productId={quickViewId}
         open={!!quickViewId}
         onOpenChange={(open) => { if (!open) setQuickViewId(null); }}
+      />
+
+      <CompareDock
+        items={compareIds
+          .map((id) => {
+            const p = products?.find((x) => x.id === id);
+            return p ? { id: p.id, name: p.name, image: p.images?.[0] } : null;
+          })
+          .filter(Boolean) as { id: string; name: string; image?: string | null }[]}
+        onRemove={(id) => setCompareIds((prev) => prev.filter((x) => x !== id))}
+        onClear={() => setCompareIds([])}
+        onOpen={() => setCompareOpen(true)}
+        max={MAX_COMPARE}
+      />
+
+      <CompareDialog
+        ids={compareIds}
+        open={compareOpen}
+        onOpenChange={setCompareOpen}
+        onRemove={(id) => setCompareIds((prev) => prev.filter((x) => x !== id))}
       />
 
       <PublicFooter />
