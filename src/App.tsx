@@ -90,6 +90,8 @@ const App = () => (
               <Route path="/blogs/:slug" element={<BlogDetail />} />
               
               <Route path="/shop" element={<Shop />} />
+              <Route path="/downloads" element={<Downloads />} />
+
               <Route path="/categories/:slug" element={<CategoryPage />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/login" element={<CustomerAuth />} />
