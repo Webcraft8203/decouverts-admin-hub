@@ -68,7 +68,7 @@ export const HeroSection = () => {
     setShowIntro(false);
   };
 
-  const { data: slides = [] } = useQuery({
+  const { data: slides = [], isLoading } = useQuery({
     queryKey: ["hero-slides-public"],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
@@ -79,6 +79,7 @@ export const HeroSection = () => {
       if (error) throw error;
       return (data ?? []) as HeroSlide[];
     },
+    staleTime: 5 * 60 * 1000,
   });
 
   return (
