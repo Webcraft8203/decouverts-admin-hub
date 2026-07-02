@@ -22,6 +22,7 @@ import { DownloadsManager } from "@/components/admin/products/DownloadsManager";
 import { RelatedProductsPicker } from "@/components/admin/products/RelatedProductsPicker";
 import { AccessoriesPicker } from "@/components/admin/products/AccessoriesPicker";
 import { ChildTableRepeater } from "@/components/admin/products/ChildTableRepeater";
+import { ModelFilesUploader } from "@/components/admin/products/ModelFilesUploader";
 
 const isValidYouTubeUrl = (url: string): boolean => {
   if (!url) return true;
