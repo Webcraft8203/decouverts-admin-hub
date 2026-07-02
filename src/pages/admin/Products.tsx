@@ -344,7 +344,20 @@ export default function Products() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div><Label>Mission Type</Label><Input value={formData.mission_type} onChange={(e) => setFormData({ ...formData, mission_type: e.target.value })} placeholder="Defence UAV, Agriculture, Surveillance…" /></div>
-                      <div><Label>3D Model File Path <span className="text-xs text-muted-foreground">(product-3d-models bucket)</span></Label><Input value={formData.model_3d_url} onChange={(e) => setFormData({ ...formData, model_3d_url: e.target.value })} placeholder="drone-x10.glb" /></div>
+                    </div>
+                    <div className="pt-2">
+                      <ModelFilesUploader
+                        productId={editingProduct?.id}
+                        glbUrl={formData.model_3d_url}
+                        stepUrl={formData.step_file_url}
+                        stlUrl={formData.stl_file_url}
+                        onChange={(patch) => setFormData((f) => ({
+                          ...f,
+                          ...(patch.glb_model_url !== undefined ? { model_3d_url: patch.glb_model_url ?? "" } : {}),
+                          ...(patch.step_file_url !== undefined ? { step_file_url: patch.step_file_url ?? "" } : {}),
+                          ...(patch.stl_file_url !== undefined ? { stl_file_url: patch.stl_file_url ?? "" } : {}),
+                        }))}
+                      />
                     </div>
                     <div><Label>Short Description</Label><Textarea rows={2} value={formData.short_description} onChange={(e) => setFormData({ ...formData, short_description: e.target.value })} placeholder="One-liner shown on cards & meta description." /></div>
                     <div><Label>Long Description</Label><Textarea rows={5} value={formData.long_description} onChange={(e) => setFormData({ ...formData, long_description: e.target.value })} placeholder="Full storytelling description shown on product page." /></div>
