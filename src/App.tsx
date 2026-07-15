@@ -43,6 +43,7 @@ import AdminOrders from "./pages/admin/Orders";
 import AdminReviews from "./pages/admin/Reviews";
 import AdminPromoCodes from "./pages/admin/PromoCodes";
 import Invoices from "./pages/admin/Invoices";
+import Quotations from "./pages/admin/Quotations";
 import Customers from "./pages/admin/Customers";
 import CustomerMaster from "./pages/admin/CustomerMaster";
 import ProductMaster from "./pages/admin/ProductMaster";
