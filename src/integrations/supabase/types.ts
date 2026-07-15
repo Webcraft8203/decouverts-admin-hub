@@ -1999,6 +1999,59 @@ export type Database = {
         }
         Relationships: []
       }
+      quotation_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          discount: number
+          gst: number
+          id: string
+          line_order: number
+          product_name: string
+          quantity: number
+          quotation_id: string
+          rate: number
+          total: number
+          unit: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          discount?: number
+          gst?: number
+          id?: string
+          line_order?: number
+          product_name: string
+          quantity?: number
+          quotation_id: string
+          rate?: number
+          total?: number
+          unit?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          discount?: number
+          gst?: number
+          id?: string
+          line_order?: number
+          product_name?: string
+          quantity?: number
+          quotation_id?: string
+          rate?: number
+          total?: number
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotation_items_quotation_id_fkey"
+            columns: ["quotation_id"]
+            isOneToOne: false
+            referencedRelation: "quotations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quotation_messages: {
         Row: {
           created_at: string
@@ -2074,6 +2127,129 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      quotations: {
+        Row: {
+          billing_address: string | null
+          cgst: number
+          company_name: string | null
+          contact_person: string | null
+          created_at: string
+          created_by: string | null
+          customer_name: string
+          delivery_time: string | null
+          discount: number
+          dispatch_location: string | null
+          email: string | null
+          exclusions: string | null
+          grand_total: number
+          gst_number: string | null
+          id: string
+          igst: number
+          installation: string | null
+          is_igst: boolean
+          mobile: string | null
+          notes: string | null
+          payment_terms: string | null
+          prepared_by: string | null
+          quotation_date: string
+          quotation_number: string
+          reference_number: string | null
+          round_off: number
+          scope_of_supply: string | null
+          sgst: number
+          shipping_address: string | null
+          status: string
+          subject: string | null
+          subtotal: number
+          taxable_amount: number
+          terms_conditions: string | null
+          training: string | null
+          updated_at: string
+          valid_until: string | null
+          warranty: string | null
+        }
+        Insert: {
+          billing_address?: string | null
+          cgst?: number
+          company_name?: string | null
+          contact_person?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_name: string
+          delivery_time?: string | null
+          discount?: number
+          dispatch_location?: string | null
+          email?: string | null
+          exclusions?: string | null
+          grand_total?: number
+          gst_number?: string | null
+          id?: string
+          igst?: number
+          installation?: string | null
+          is_igst?: boolean
+          mobile?: string | null
+          notes?: string | null
+          payment_terms?: string | null
+          prepared_by?: string | null
+          quotation_date?: string
+          quotation_number: string
+          reference_number?: string | null
+          round_off?: number
+          scope_of_supply?: string | null
+          sgst?: number
+          shipping_address?: string | null
+          status?: string
+          subject?: string | null
+          subtotal?: number
+          taxable_amount?: number
+          terms_conditions?: string | null
+          training?: string | null
+          updated_at?: string
+          valid_until?: string | null
+          warranty?: string | null
+        }
+        Update: {
+          billing_address?: string | null
+          cgst?: number
+          company_name?: string | null
+          contact_person?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_name?: string
+          delivery_time?: string | null
+          discount?: number
+          dispatch_location?: string | null
+          email?: string | null
+          exclusions?: string | null
+          grand_total?: number
+          gst_number?: string | null
+          id?: string
+          igst?: number
+          installation?: string | null
+          is_igst?: boolean
+          mobile?: string | null
+          notes?: string | null
+          payment_terms?: string | null
+          prepared_by?: string | null
+          quotation_date?: string
+          quotation_number?: string
+          reference_number?: string | null
+          round_off?: number
+          scope_of_supply?: string | null
+          sgst?: number
+          shipping_address?: string | null
+          status?: string
+          subject?: string | null
+          subtotal?: number
+          taxable_amount?: number
+          terms_conditions?: string | null
+          training?: string | null
+          updated_at?: string
+          valid_until?: string | null
+          warranty?: string | null
+        }
+        Relationships: []
       }
       raw_material_ledger: {
         Row: {
@@ -2363,6 +2539,7 @@ export type Database = {
         Returns: undefined
       }
       generate_order_number: { Args: never; Returns: string }
+      generate_quotation_number: { Args: never; Returns: string }
       generate_shipment_id: { Args: never; Returns: string }
       generate_structured_invoice_number: {
         Args: { _category_code: string }
