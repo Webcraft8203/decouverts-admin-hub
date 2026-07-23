@@ -315,9 +315,11 @@ export default function Invoices() {
     });
 
     const totalTax = totalCgst + totalSgst + totalIgst;
-    const grandTotal = subtotal + totalTax;
+    const rawTotal = subtotal + totalTax;
+    const grandTotal = Math.round(rawTotal);
+    const roundOff = +(grandTotal - rawTotal).toFixed(2);
 
-    return { subtotal, totalCgst, totalSgst, totalIgst, totalTax, grandTotal };
+    return { subtotal, totalCgst, totalSgst, totalIgst, totalTax, rawTotal, roundOff, grandTotal };
   };
 
   const totals = calculateTotals();
@@ -331,13 +333,9 @@ export default function Invoices() {
       return;
     }
 
-    // Validate Indian phone (10 digits, optional +91 / leading 0)
+    // Normalize phone if provided (validation removed)
     const phoneDigits = (formData.client_phone || "").replace(/\D/g, "");
     const normalizedPhone = phoneDigits.length > 10 ? phoneDigits.slice(-10) : phoneDigits;
-    if (!normalizedPhone || normalizedPhone.length !== 10 || !/^[6-9]\d{9}$/.test(normalizedPhone)) {
-      toast({ title: "Invalid phone", description: "Enter a valid 10-digit Indian mobile number (with or without +91).", variant: "destructive" });
-      return;
-    }
     formData.client_phone = normalizedPhone;
 
     // Validate HSN codes
@@ -1128,6 +1126,10 @@ export default function Invoices() {
                         </div>
                       </>
                     )}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Round Off:</span>
+                      <span>{totals.roundOff >= 0 ? "+" : "-"}{formatCurrency(Math.abs(totals.roundOff))}</span>
+                    </div>
                     <Separator className="my-2" />
                     <div className="flex justify-between font-bold text-lg">
                       <span>Grand Total:</span>
