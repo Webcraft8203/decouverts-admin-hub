@@ -315,9 +315,11 @@ export default function Invoices() {
     });
 
     const totalTax = totalCgst + totalSgst + totalIgst;
-    const grandTotal = subtotal + totalTax;
+    const rawTotal = subtotal + totalTax;
+    const grandTotal = Math.round(rawTotal);
+    const roundOff = +(grandTotal - rawTotal).toFixed(2);
 
-    return { subtotal, totalCgst, totalSgst, totalIgst, totalTax, grandTotal };
+    return { subtotal, totalCgst, totalSgst, totalIgst, totalTax, rawTotal, roundOff, grandTotal };
   };
 
   const totals = calculateTotals();
