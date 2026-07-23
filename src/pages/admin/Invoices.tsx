@@ -1126,6 +1126,10 @@ export default function Invoices() {
                         </div>
                       </>
                     )}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Round Off:</span>
+                      <span>{totals.roundOff >= 0 ? "+" : "-"}{formatCurrency(Math.abs(totals.roundOff))}</span>
+                    </div>
                     <Separator className="my-2" />
                     <div className="flex justify-between font-bold text-lg">
                       <span>Grand Total:</span>
