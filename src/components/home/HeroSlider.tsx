@@ -25,6 +25,7 @@ interface Props {
 
 const AUTO_MS = 6500;
 const NAV_H = 115;
+const NAV_H_MOBILE = 88;
 const ORANGE = "#FF6B00";
 const ORANGE_SOFT = "#FF8A2A";
 
