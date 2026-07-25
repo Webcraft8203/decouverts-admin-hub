@@ -166,21 +166,73 @@ export function HomepageGallery() {
           {/* Main viewer */}
           <div className="lg:col-span-8">
             <div
-              onClick={() => handleOpenModal(active)}
-              className="group relative w-full aspect-[16/10] overflow-hidden rounded-2xl border border-white/[0.08] bg-slate-900 cursor-pointer isolate"
+              onMouseMove={handleMouseMove}
+              onMouseLeave={resetTilt}
+              style={{ perspective: "1400px" }}
+              className="relative w-full aspect-[16/10]"
             >
-              <AnimatePresence mode="wait">
-                <motion.img
-                  key={active.id}
-                  src={active.image_url}
-                  alt={active.alt_text || active.title}
-                  initial={{ opacity: 0, scale: 1.04 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-              </AnimatePresence>
+              <motion.div
+                onClick={() => handleOpenModal(active)}
+                animate={{ rotateX: tilt.x, rotateY: tilt.y }}
+                transition={{ type: "spring", stiffness: 120, damping: 18, mass: 0.6 }}
+                style={{ transformStyle: "preserve-3d" }}
+                className="group relative w-full h-full overflow-hidden rounded-2xl border border-white/[0.08] bg-slate-900 cursor-pointer isolate shadow-[0_40px_80px_-40px_rgba(0,0,0,0.9)]"
+              >
+                {/* 3D image stack */}
+                <div className="absolute inset-0" style={{ transformStyle: "preserve-3d" }}>
+                  <AnimatePresence mode="wait" custom={direction}>
+                    <motion.img
+                      key={active.id}
+                      src={active.image_url}
+                      alt={active.alt_text || active.title}
+                      custom={direction}
+                      initial={{
+                        opacity: 0,
+                        rotateY: direction * 35,
+                        z: -180,
+                        x: direction * 60,
+                        scale: 1.05,
+                        filter: "blur(8px) brightness(0.6)",
+                      }}
+                      animate={{
+                        opacity: 1,
+                        rotateY: 0,
+                        z: 0,
+                        x: 0,
+                        scale: 1,
+                        filter: "blur(0px) brightness(1)",
+                      }}
+                      exit={{
+                        opacity: 0,
+                        rotateY: -direction * 25,
+                        z: -80,
+                        x: -direction * 40,
+                        scale: 0.98,
+                        filter: "blur(6px) brightness(0.7)",
+                      }}
+                      transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
+                      style={{ transformStyle: "preserve-3d", backfaceVisibility: "hidden" }}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  </AnimatePresence>
+                </div>
+
+                {/* Cinematic scanline sweep during transition */}
+                <AnimatePresence>
+                  <motion.div
+                    key={active.id + "-sweep"}
+                    aria-hidden
+                    initial={{ x: "-120%", opacity: 0.9 }}
+                    animate={{ x: "120%", opacity: 0 }}
+                    transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                    className="absolute inset-y-0 w-1/2 pointer-events-none z-[5]"
+                    style={{
+                      background:
+                        "linear-gradient(90deg, transparent 0%, rgba(255,107,0,0.15) 45%, rgba(255,255,255,0.35) 50%, rgba(255,107,0,0.15) 55%, transparent 100%)",
+                      mixBlendMode: "screen",
+                    }}
+                  />
+                </AnimatePresence>
 
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/35 to-slate-950/10" />
               <div className="absolute inset-0 bg-gradient-to-r from-slate-950/60 via-transparent to-transparent" />
