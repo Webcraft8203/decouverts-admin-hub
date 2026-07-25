@@ -48,31 +48,31 @@ export const StatsCounter = () => {
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <section ref={ref} className="py-14 md:py-16 px-4 bg-[#080c14] relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,107,0,0.10),transparent_60%)]" />
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+    <section ref={ref} className="py-14 md:py-16 px-4 bg-white relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,107,0,0.06),transparent_60%)]" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
 
       <div className="max-w-6xl mx-auto relative z-10">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {stats.map((stat, index) => (
             <motion.div
               key={stat.label}
-              className="group relative bg-white/[0.04] backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-7 overflow-hidden hover:-translate-y-1 hover:border-primary/40 hover:bg-white/[0.06] hover:shadow-[0_30px_60px_-30px_hsl(var(--primary)/0.55)] transition-all duration-500"
+              className="group relative bg-white border border-slate-200 rounded-2xl p-6 md:p-7 overflow-hidden hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_30px_60px_-30px_hsl(var(--primary)/0.45)] transition-all duration-500"
               initial={{ opacity: 0, y: 30 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6, delay: index * 0.12, ease: "easeOut" }}
             >
               <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent opacity-70 group-hover:opacity-100 transition-opacity" />
-              <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative">
-                <h3 className="text-4xl md:text-5xl font-bold text-white tracking-tight leading-none mb-3">
+                <h3 className="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight leading-none mb-3">
                   <AnimatedNumber value={stat.value} suffix={stat.suffix} inView={isInView} />
                 </h3>
-                <p className="font-semibold text-white text-sm md:text-[15px] mb-1">
+                <p className="font-semibold text-slate-900 text-sm md:text-[15px] mb-1">
                   {stat.label}
                 </p>
-                <p className="text-white/60 text-xs md:text-[13px]">
+                <p className="text-slate-500 text-xs md:text-[13px]">
                   {stat.description}
                 </p>
               </div>
