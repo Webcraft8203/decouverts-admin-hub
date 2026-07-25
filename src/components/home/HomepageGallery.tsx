@@ -34,6 +34,8 @@ const getYouTubeVideoId = (url: string): string | null => {
 
 export function HomepageGallery() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [direction, setDirection] = useState<1 | -1>(1);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [modalItem, setModalItem] = useState<GalleryItem | null>(null);
   const [showVideo, setShowVideo] = useState(false);
 
