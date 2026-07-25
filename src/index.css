@@ -386,3 +386,17 @@
 @media (prefers-reduced-motion: reduce) {
   .marquee-track { animation: none; }
 }
+
+/* Cinematic scanline sweep — defence HUD reveal */
+.cinematic-scan {
+  transform: translateY(-100%);
+  animation: cinematic-scan-run 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes cinematic-scan-run {
+  0%   { transform: translateY(-40%); opacity: 0; }
+  20%  { opacity: 0.5; }
+  100% { transform: translateY(140%); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-scan { animation: none; display: none; }
+}
