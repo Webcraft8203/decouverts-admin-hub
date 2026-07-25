@@ -4,19 +4,25 @@ import { ArrowRight, ArrowUpRight, Plus } from "lucide-react";
 import { CATEGORIES, type CategoryDef } from "@/data/categories";
 
 /**
- * Bento layout config — indices match CATEGORIES order.
- * Locked structural composition from selected "Kinetic Editorial" direction.
+ * Curated verticals — Defence-led. Excludes agriculture, drone training, 3D printers.
+ * Order dictates bento composition.
  */
+const FEATURED_SLUGS = [
+  "defence",       // 01 — hero
+  "surveillance",  // 02 — dark compact
+  "survey",        // 03 — light compact
+  "mining",        // 04 — tall image
+  "research",      // 05 — half dark
+  "education",     // 06 — half compact
+] as const;
+
 type TileVariant =
-  | "hero-image-light" // 01 big image tile, light bg
-  | "compact-light"    // small card, light
-  | "compact-dark"     // small card, dark
-  | "tall-image-light" // tall image tile, light
-  | "compact-white"    // white with border, orange underline link
-  | "compact-plus"     // light, plus icon CTA
-  | "wide-dark-cta"    // wide dark banner with pill CTA
-  | "half-light"       // wider light tile
-  | "half-white";      // wider white tile
+  | "hero-defence"
+  | "compact-dark"
+  | "compact-glass"
+  | "tall-image"
+  | "half-dark-cta"
+  | "half-glass";
 
 interface TileConfig {
   colSpan: string;
@@ -26,15 +32,12 @@ interface TileConfig {
 }
 
 const LAYOUT: TileConfig[] = [
-  { colSpan: "md:col-span-8", rowSpan: "md:row-span-2", variant: "hero-image-light" },     // Agriculture
-  { colSpan: "md:col-span-4", variant: "compact-light" },                                   // Survey
-  { colSpan: "md:col-span-4", variant: "compact-dark" },                                    // Surveillance
-  { colSpan: "md:col-span-4", rowSpan: "md:row-span-2", variant: "tall-image-light" },     // Defence
-  { colSpan: "md:col-span-4", variant: "compact-white" },                                   // Mining
-  { colSpan: "md:col-span-4", variant: "compact-plus" },                                    // Research & Development
-  { colSpan: "md:col-span-8", variant: "wide-dark-cta", ctaLabel: "Book Course" },          // Drone Training
-  { colSpan: "md:col-span-6", variant: "half-light" },                                      // Educational
-  { colSpan: "md:col-span-6", variant: "half-white" },                                      // 3D Printers
+  { colSpan: "md:col-span-8", rowSpan: "md:row-span-2", variant: "hero-defence" },
+  { colSpan: "md:col-span-4", variant: "compact-dark" },
+  { colSpan: "md:col-span-4", variant: "compact-glass" },
+  { colSpan: "md:col-span-4", rowSpan: "md:row-span-2", variant: "tall-image" },
+  { colSpan: "md:col-span-4", variant: "half-dark-cta", ctaLabel: "Explore R&D" },
+  { colSpan: "md:col-span-4", variant: "half-glass" },
 ];
 
 const idx2 = (n: number) => String(n + 1).padStart(2, "0");
@@ -45,187 +48,171 @@ const fadeUp = {
   viewport: { once: true, margin: "-60px" },
 };
 
-function Tile({
-  cat,
-  i,
-  cfg,
-}: {
-  cat: CategoryDef;
-  i: number;
-  cfg: TileConfig;
-}) {
+function Tile({ cat, i, cfg }: { cat: CategoryDef; i: number; cfg: TileConfig }) {
   const href = `/categories/${cat.slug}`;
   const num = idx2(i);
   const base = `group relative overflow-hidden rounded-sm ${cfg.colSpan} ${cfg.rowSpan ?? ""}`;
-
-  const arrowIcon = (
+  const arrow = (
     <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
   );
 
   switch (cfg.variant) {
-    case "hero-image-light":
+    case "hero-defence":
       return (
-        <motion.div {...fadeUp} transition={{ duration: 0.6, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }} className={base}>
-          <Link to={href} className="block h-full bg-[#f0ebe3] p-8 md:p-10 flex flex-col justify-between relative">
+        <motion.div {...fadeUp} transition={{ duration: 0.7, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }} className={base}>
+          <Link
+            to={href}
+            className="block h-full bg-[#0b1220] p-8 md:p-12 flex flex-col justify-between relative min-h-[420px]"
+          >
             <div className="absolute inset-0 z-0">
               <img
                 src={cat.image}
                 alt={cat.title}
                 loading="lazy"
-                className="w-full h-full object-cover opacity-25 grayscale group-hover:grayscale-0 group-hover:scale-[1.04] transition-all duration-[900ms] ease-out"
+                className="w-full h-full object-cover opacity-40 group-hover:opacity-55 group-hover:scale-[1.05] transition-all duration-[900ms] ease-out"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#f0ebe3] via-[#f0ebe3]/40 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-tr from-[#0b1220] via-[#0b1220]/85 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0b1220] via-transparent to-transparent" />
+            </div>
+            <div className="relative z-10 flex items-center gap-3">
+              <span className="text-[#ff6b00] text-xs font-['Instrument_Serif'] italic">{num}.</span>
+              <span className="h-px w-8 bg-[#ff6b00]/60" />
+              <span className="text-[10px] font-semibold tracking-[0.28em] uppercase text-[#ff6b00]">
+                {cat.tagline}
+              </span>
             </div>
             <div className="relative z-10">
-              <span className="text-[#ff6b00] text-xs font-medium italic font-['Instrument_Serif']">{num}.</span>
-              <h3 className="text-4xl md:text-6xl font-['Instrument_Serif'] text-zinc-900 mt-2 leading-[0.95]">
+              <h3 className="text-5xl md:text-7xl font-['Instrument_Serif'] text-white leading-[0.95]">
                 {cat.title}
               </h3>
-              <p className="text-zinc-600 text-sm md:text-base mt-4 max-w-md leading-relaxed">
+              <p className="text-slate-300 text-sm md:text-base mt-5 max-w-lg leading-relaxed">
                 {cat.description}
               </p>
+              <div className="mt-8 flex items-center gap-4">
+                <span className="px-6 py-3 bg-[#ff6b00] text-white text-[10px] font-bold uppercase tracking-[0.22em] group-hover:bg-white group-hover:text-[#0b1220] transition-colors duration-300">
+                  Deploy Fleet
+                </span>
+                <span className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.22em] text-white/70">
+                  Mission Brief
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </span>
+              </div>
             </div>
-            <div className="relative z-10 flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[#ff6b00] mt-6">
-              Explore Category
-              <div className="w-8 h-[1px] bg-[#ff6b00] transition-all duration-500 group-hover:w-14" />
-            </div>
-          </Link>
-        </motion.div>
-      );
-
-    case "tall-image-light":
-      return (
-        <motion.div {...fadeUp} transition={{ duration: 0.6, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }} className={base}>
-          <Link to={href} className="block h-full bg-[#f0ebe3] p-8 flex flex-col justify-between relative min-h-[300px]">
-            <div className="absolute inset-0 z-0">
-              <img
-                src={cat.image}
-                alt={cat.title}
-                loading="lazy"
-                className="w-full h-full object-cover opacity-15 mix-blend-multiply group-hover:scale-[1.08] transition-transform duration-[900ms] ease-out"
-              />
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#f0ebe3]/30 to-[#f0ebe3]/70" />
-            </div>
-            <div className="relative z-10">
-              <span className="text-[#ff6b00] text-xs font-['Instrument_Serif'] italic">{num}.</span>
-              <h3 className="text-3xl md:text-4xl font-['Instrument_Serif'] text-zinc-900 mt-2 leading-tight">
-                {cat.title}
-              </h3>
-              <p className="text-sm text-zinc-600 mt-4 max-w-[240px] leading-relaxed">{cat.description}</p>
-            </div>
-            <div className="relative z-10 w-12 h-12 rounded-full border border-zinc-300 flex items-center justify-center text-zinc-900 group-hover:bg-[#ff6b00] group-hover:border-[#ff6b00] group-hover:text-white transition-all duration-300">
-              <ArrowUpRight className="w-5 h-5" />
-            </div>
-          </Link>
-        </motion.div>
-      );
-
-    case "compact-light":
-      return (
-        <motion.div {...fadeUp} transition={{ duration: 0.55, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }} className={base}>
-          <Link to={href} className="block h-full bg-[#f0ebe3] p-8 border border-transparent hover:border-[#c9b99a] transition-colors duration-300 flex flex-col min-h-[220px]">
-            <span className="text-[#ff6b00] text-xs font-['Instrument_Serif'] italic">{num}.</span>
-            <h3 className="text-2xl font-['Instrument_Serif'] mt-2 text-zinc-900 leading-tight">{cat.title}</h3>
-            <p className="text-xs text-zinc-500 mt-2 leading-relaxed">{cat.description}</p>
-            <div className="mt-auto pt-6 text-[#ff6b00]">{arrowIcon}</div>
           </Link>
         </motion.div>
       );
 
     case "compact-dark":
       return (
-        <motion.div {...fadeUp} transition={{ duration: 0.55, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }} className={base}>
-          <Link to={href} className="block h-full bg-zinc-900 p-8 flex flex-col min-h-[220px]">
-            <span className="text-white/40 text-xs font-['Instrument_Serif'] italic">{num}.</span>
-            <h3 className="text-2xl font-['Instrument_Serif'] mt-2 text-white leading-tight">{cat.title}</h3>
-            <p className="text-xs text-zinc-400 mt-2 leading-relaxed">{cat.description}</p>
-            <div className="mt-auto pt-6 text-[#ff6b00]">{arrowIcon}</div>
+        <motion.div {...fadeUp} transition={{ duration: 0.55, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }} className={base}>
+          <Link
+            to={href}
+            className="block h-full bg-[#111a2e] p-8 flex flex-col min-h-[200px] border border-white/5 hover:border-[#ff6b00]/40 transition-colors duration-300"
+          >
+            <span className="text-white/30 text-xs font-['Instrument_Serif'] italic">{num}.</span>
+            <h3 className="text-2xl md:text-3xl font-['Instrument_Serif'] mt-2 text-white leading-tight">
+              {cat.title}
+            </h3>
+            <p className="text-xs text-slate-400 mt-2 leading-relaxed">{cat.description}</p>
+            <div className="mt-auto pt-6 text-[#ff6b00]">{arrow}</div>
           </Link>
         </motion.div>
       );
 
-    case "compact-white":
+    case "compact-glass":
       return (
-        <motion.div {...fadeUp} transition={{ duration: 0.55, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }} className={base}>
-          <Link to={href} className="block h-full bg-white p-8 border border-[#f0ebe3] hover:border-[#c9b99a] transition-colors duration-300 flex flex-col min-h-[220px]">
-            <span className="text-[#c9b99a] text-xs font-['Instrument_Serif'] italic">{num}.</span>
-            <h3 className="text-2xl font-['Instrument_Serif'] mt-2 text-zinc-900 leading-tight">{cat.title}</h3>
-            <p className="text-xs text-zinc-500 mt-2 leading-relaxed">{cat.description}</p>
-            <span className="mt-auto pt-6 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#ff6b00] w-fit border-b border-[#ff6b00] pb-1">
-              View Details
+        <motion.div {...fadeUp} transition={{ duration: 0.55, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }} className={base}>
+          <Link
+            to={href}
+            className="block h-full bg-white/[0.03] backdrop-blur p-8 flex flex-col min-h-[200px] border border-white/10 hover:bg-white/[0.06] hover:border-[#ff6b00]/40 transition-all duration-300"
+          >
+            <span className="text-[#ff6b00]/80 text-xs font-['Instrument_Serif'] italic">{num}.</span>
+            <h3 className="text-2xl md:text-3xl font-['Instrument_Serif'] mt-2 text-white leading-tight">
+              {cat.title}
+            </h3>
+            <p className="text-xs text-slate-400 mt-2 leading-relaxed">{cat.description}</p>
+            <span className="mt-auto pt-6 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.22em] text-[#ff6b00] w-fit border-b border-[#ff6b00]/60 pb-1">
+              Recon Details
             </span>
           </Link>
         </motion.div>
       );
 
-    case "compact-plus":
+    case "tall-image":
       return (
-        <motion.div {...fadeUp} transition={{ duration: 0.55, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }} className={base}>
-          <Link to={href} className="block h-full bg-[#f0ebe3] p-8 border border-transparent hover:border-[#c9b99a] transition-colors duration-300 relative min-h-[220px]">
-            <span className="text-[#c9b99a] text-xs font-['Instrument_Serif'] italic">{num}.</span>
-            <h3 className="text-2xl font-['Instrument_Serif'] mt-2 text-zinc-900 leading-tight">{cat.title}</h3>
-            <p className="text-xs text-zinc-500 mt-2 leading-relaxed max-w-[240px]">{cat.description}</p>
-            <div className="absolute bottom-8 right-8 text-[#c9b99a] group-hover:text-[#ff6b00] transition-colors duration-300">
-              <Plus className="w-6 h-6" strokeWidth={1.5} />
-            </div>
-          </Link>
-        </motion.div>
-      );
-
-    case "wide-dark-cta":
-      return (
-        <motion.div {...fadeUp} transition={{ duration: 0.6, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }} className={base}>
-          <Link to={href} className="block h-full bg-zinc-900 p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden min-h-[220px]">
+        <motion.div {...fadeUp} transition={{ duration: 0.6, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }} className={base}>
+          <Link
+            to={href}
+            className="block h-full bg-[#0b1220] p-8 flex flex-col justify-between relative min-h-[300px] border border-white/5"
+          >
             <div className="absolute inset-0 z-0">
               <img
                 src={cat.image}
                 alt={cat.title}
                 loading="lazy"
-                className="w-full h-full object-cover opacity-30 group-hover:opacity-40 group-hover:scale-[1.04] transition-all duration-[900ms] ease-out"
+                className="w-full h-full object-cover opacity-35 group-hover:opacity-50 group-hover:scale-[1.06] transition-all duration-[900ms] ease-out"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-zinc-900 via-zinc-900/70 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0b1220]/50 to-[#0b1220]" />
             </div>
-            <div className="relative z-10 max-w-md">
-              <span className="text-[#ff6b00] text-[10px] font-semibold tracking-[0.24em] uppercase mb-2 block">
-                {cat.tagline}
-              </span>
-              <h3 className="text-3xl md:text-4xl font-['Instrument_Serif'] text-white leading-tight">{cat.title}</h3>
-              <p className="text-xs md:text-sm text-zinc-400 mt-3 leading-relaxed">{cat.description}</p>
-            </div>
-            <span className="relative z-10 px-6 py-3 bg-white text-black text-[10px] font-bold uppercase tracking-[0.2em] group-hover:bg-[#ff6b00] group-hover:text-white transition-colors duration-300 whitespace-nowrap">
-              {cfg.ctaLabel ?? "Explore"}
-            </span>
-          </Link>
-        </motion.div>
-      );
-
-    case "half-light":
-      return (
-        <motion.div {...fadeUp} transition={{ duration: 0.55, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }} className={base}>
-          <Link to={href} className="block h-full bg-[#f0ebe3] p-8 md:p-10 border border-transparent hover:border-[#c9b99a] transition-colors duration-300 flex flex-col justify-between min-h-[220px]">
-            <div>
+            <div className="relative z-10">
               <span className="text-[#ff6b00] text-xs font-['Instrument_Serif'] italic">{num}.</span>
-              <h3 className="text-3xl font-['Instrument_Serif'] mt-2 text-zinc-900 leading-tight">{cat.title}</h3>
+              <h3 className="text-3xl md:text-4xl font-['Instrument_Serif'] text-white mt-2 leading-tight">
+                {cat.title}
+              </h3>
+              <p className="text-sm text-slate-300 mt-4 max-w-[240px] leading-relaxed">
+                {cat.description}
+              </p>
             </div>
-            <div className="flex justify-between items-end gap-4 mt-6">
-              <p className="text-xs text-zinc-500 max-w-[240px] leading-relaxed">{cat.description}</p>
-              <div className="text-[#ff6b00] shrink-0">{arrowIcon}</div>
+            <div className="relative z-10 w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white group-hover:bg-[#ff6b00] group-hover:border-[#ff6b00] transition-all duration-300">
+              <ArrowUpRight className="w-5 h-5" />
             </div>
           </Link>
         </motion.div>
       );
 
-    case "half-white":
+    case "half-dark-cta":
       return (
-        <motion.div {...fadeUp} transition={{ duration: 0.55, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }} className={base}>
-          <Link to={href} className="block h-full bg-white p-8 md:p-10 border border-[#f0ebe3] hover:bg-[#faf8f5] transition-colors duration-300 flex flex-col justify-between min-h-[220px]">
-            <div>
-              <span className="text-[#c9b99a] text-xs font-['Instrument_Serif'] italic">{num}.</span>
-              <h3 className="text-3xl font-['Instrument_Serif'] mt-2 text-zinc-900 leading-tight">{cat.title}</h3>
+        <motion.div {...fadeUp} transition={{ duration: 0.55, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }} className={base}>
+          <Link
+            to={href}
+            className="block h-full bg-[#111a2e] p-8 flex flex-col justify-between min-h-[200px] border border-white/5 hover:border-[#ff6b00]/40 transition-colors duration-300 relative overflow-hidden"
+          >
+            <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-[#ff6b00]/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative z-10">
+              <span className="text-white/30 text-xs font-['Instrument_Serif'] italic">{num}.</span>
+              <h3 className="text-2xl md:text-3xl font-['Instrument_Serif'] mt-2 text-white leading-tight">
+                {cat.title}
+              </h3>
+              <p className="text-xs text-slate-400 mt-2 leading-relaxed">{cat.description}</p>
             </div>
-            <div className="flex justify-between items-end gap-4 mt-6">
-              <p className="text-xs text-zinc-500 max-w-[240px] leading-relaxed">{cat.description}</p>
-              <div className="text-[#ff6b00] shrink-0">{arrowIcon}</div>
+            <div className="relative z-10 mt-6 flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#ff6b00]">
+                {cfg.ctaLabel ?? "Explore"}
+              </span>
+              <div className="text-[#ff6b00]">{arrow}</div>
+            </div>
+          </Link>
+        </motion.div>
+      );
+
+    case "half-glass":
+      return (
+        <motion.div {...fadeUp} transition={{ duration: 0.55, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }} className={base}>
+          <Link
+            to={href}
+            className="block h-full bg-white/[0.03] p-8 flex flex-col justify-between min-h-[200px] border border-white/10 hover:bg-white/[0.06] hover:border-[#ff6b00]/40 transition-all duration-300"
+          >
+            <div>
+              <span className="text-[#ff6b00]/80 text-xs font-['Instrument_Serif'] italic">{num}.</span>
+              <h3 className="text-2xl md:text-3xl font-['Instrument_Serif'] mt-2 text-white leading-tight">
+                {cat.title}
+              </h3>
+            </div>
+            <div className="mt-4 flex items-end justify-between gap-4">
+              <p className="text-xs text-slate-400 max-w-[240px] leading-relaxed">{cat.description}</p>
+              <div className="text-[#ff6b00] shrink-0">
+                <Plus className="w-6 h-6" strokeWidth={1.5} />
+              </div>
             </div>
           </Link>
         </motion.div>
@@ -234,38 +221,64 @@ function Tile({
 }
 
 export const ProductCategories = () => {
+  const featured = FEATURED_SLUGS
+    .map((slug) => CATEGORIES.find((c) => c.slug === slug))
+    .filter((c): c is CategoryDef => Boolean(c));
+
   return (
-    <section className="relative bg-[#faf8f5] py-20 md:py-28 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-        {/* Editorial Header */}
+    <section className="relative bg-[#0F172A] py-20 md:py-28 overflow-hidden">
+      {/* Ambient accents */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/3 -left-24 w-96 h-96 rounded-full bg-[#ff6b00]/[0.06] blur-[120px]" />
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full bg-[#ff6b00]/[0.04] blur-[140px]" />
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)",
+            backgroundSize: "80px 80px",
+          }}
+        />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+        {/* Editorial header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-16 md:mb-20 grid grid-cols-1 md:grid-cols-12 gap-8 items-end"
+          className="mb-14 md:mb-20 grid grid-cols-1 md:grid-cols-12 gap-8 items-end"
         >
           <div className="md:col-span-8">
-            <p className="text-[#ff6b00] font-semibold tracking-[0.24em] text-[10px] uppercase mb-4">
-              Core Verticals
-            </p>
-            <h2 className="text-5xl md:text-7xl lg:text-8xl font-['Instrument_Serif'] text-zinc-900 leading-[0.9]">
-              Industry{" "}
-              <span className="italic font-light text-[#c9b99a]">Capabilities</span>
+            <div className="flex items-center gap-3 mb-4">
+              <span className="h-px w-10 bg-[#ff6b00]" />
+              <p className="text-[#ff6b00] font-semibold tracking-[0.28em] text-[10px] uppercase">
+                Mission Verticals
+              </p>
+            </div>
+            <h2 className="text-5xl md:text-7xl lg:text-8xl font-['Instrument_Serif'] text-white leading-[0.9]">
+              Defence-Grade{" "}
+              <span className="italic font-light text-[#ff6b00]">Capabilities</span>
             </h2>
           </div>
           <div className="md:col-span-4 pb-2">
-            <p className="text-zinc-500 text-sm md:text-base leading-relaxed border-l border-[#c9b99a] pl-6">
-              Bridging the gap between raw hardware and actionable intelligence
-              through sector-specific drone and additive manufacturing platforms.
+            <p className="text-slate-400 text-sm md:text-base leading-relaxed border-l border-[#ff6b00]/60 pl-6">
+              Mission-ready UAV platforms engineered in India for defence, homeland
+              security and critical intelligence operations across land, sea and sky.
             </p>
           </div>
         </motion.div>
 
-        {/* Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:auto-rows-[240px]">
-          {CATEGORIES.map((cat, i) => (
-            <Tile key={cat.slug} cat={cat} i={i} cfg={LAYOUT[i] ?? { colSpan: "md:col-span-4", variant: "compact-light" }} />
+        {/* Bento */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:auto-rows-[210px]">
+          {featured.map((cat, i) => (
+            <Tile
+              key={cat.slug}
+              cat={cat}
+              i={i}
+              cfg={LAYOUT[i] ?? { colSpan: "md:col-span-4", variant: "compact-dark" }}
+            />
           ))}
         </div>
       </div>
