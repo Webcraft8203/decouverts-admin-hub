@@ -252,18 +252,10 @@ export const HeroSlider = ({ slides }: Props) => {
                 >
                   <button
                     onClick={() => go(active.primary_cta_link || "/shop")}
-                    className="group relative inline-flex items-center justify-center gap-2.5 rounded-full font-semibold text-[13px] tracking-[0.14em] uppercase text-white overflow-hidden transition-all duration-300 hover:-translate-y-[3px] w-full sm:w-auto"
+                    className="group relative inline-flex items-center justify-center gap-2.5 rounded-full font-semibold text-[12px] md:text-[13px] tracking-[0.14em] uppercase text-white overflow-hidden transition-all duration-300 hover:-translate-y-[3px] w-full sm:w-auto h-[52px] md:h-[60px] px-8 md:px-10"
                     style={{
-                      height: 60,
-                      padding: "0 40px",
                       background: `linear-gradient(135deg, ${ORANGE} 0%, ${ORANGE_SOFT} 100%)`,
                       boxShadow: `0 14px 34px -10px ${ORANGE}cc, 0 0 0 1px ${ORANGE}30 inset`,
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 22px 50px -8px ${ORANGE}, 0 0 40px ${ORANGE}80`;
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 14px 34px -10px ${ORANGE}cc, 0 0 0 1px ${ORANGE}30 inset`;
                     }}
                   >
                     <span className="relative">{active.primary_cta_label || "Explore Products"}</span>
@@ -271,8 +263,7 @@ export const HeroSlider = ({ slides }: Props) => {
                   </button>
                   <button
                     onClick={() => go(active.secondary_cta_link || "#contact-section")}
-                    className="group inline-flex items-center justify-center gap-2.5 rounded-full font-semibold text-[13px] tracking-[0.14em] uppercase text-white bg-white/5 border border-white/40 backdrop-blur-md hover:bg-white hover:text-slate-900 hover:border-white transition-colors w-full sm:w-auto"
-                    style={{ height: 60, padding: "0 40px" }}
+                    className="group inline-flex items-center justify-center gap-2.5 rounded-full font-semibold text-[12px] md:text-[13px] tracking-[0.14em] uppercase text-white bg-white/5 border border-white/40 backdrop-blur-md hover:bg-white hover:text-slate-900 hover:border-white transition-colors w-full sm:w-auto h-[52px] md:h-[60px] px-8 md:px-10"
                   >
                     {active.secondary_cta_label || "Contact Us"}
                     <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
