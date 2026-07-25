@@ -13,7 +13,7 @@ const FEATURED_SLUGS = [
   "survey",        // 03 — light compact
   "mining",        // 04 — tall image
   "research",      // 05 — half dark
-  "education",     // 06 — half compact
+  "educational",   // 06 — half compact
 ] as const;
 
 type TileVariant =
