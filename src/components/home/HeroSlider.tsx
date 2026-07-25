@@ -336,7 +336,7 @@ export const HeroSlider = ({ slides }: Props) => {
 
                     {/* Title */}
                     <div
-                      className={`text-[14px] font-semibold tracking-wide mb-1 line-clamp-1 transition-colors ${
+                      className={`text-[13px] md:text-[14px] font-semibold tracking-wide mb-1 line-clamp-1 transition-colors ${
                         isActive ? "text-white" : "text-white/70"
                       }`}
                     >
@@ -346,7 +346,7 @@ export const HeroSlider = ({ slides }: Props) => {
                     {/* Short description */}
                     {(s.subtitle || s.description) && (
                       <p
-                        className={`text-[11.5px] leading-snug line-clamp-1 transition-colors ${
+                        className={`hidden md:block text-[11.5px] leading-snug line-clamp-1 transition-colors ${
                           isActive ? "text-white/60" : "text-white/40"
                         }`}
                       >
