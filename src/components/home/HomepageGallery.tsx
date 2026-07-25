@@ -100,8 +100,20 @@ export function HomepageGallery() {
   if (!items || items.length === 0) return null;
 
   const active = items[activeIndex] || items[0];
-  const goPrev = () => setActiveIndex((i) => (i - 1 + items.length) % items.length);
-  const goNext = () => setActiveIndex((i) => (i + 1) % items.length);
+  const selectIndex = (next: number) => {
+    setDirection(next > activeIndex || (activeIndex === items.length - 1 && next === 0) ? 1 : -1);
+    setActiveIndex(next);
+  };
+  const goPrev = () => selectIndex((activeIndex - 1 + items.length) % items.length);
+  const goNext = () => selectIndex((activeIndex + 1) % items.length);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2; // -1..1
+    const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+    setTilt({ x: -y * 4, y: x * 6 }); // rotateX, rotateY (deg)
+  };
+  const resetTilt = () => setTilt({ x: 0, y: 0 });
 
   return (
     <section
