@@ -192,7 +192,7 @@ export function HomepageGallery() {
 
   if (isLoading) {
     return (
-      <section className="py-20 px-4 bg-slate-50">
+      <section className="py-20 px-4 bg-[#080c14]">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Skeleton className="lg:col-span-2 lg:row-span-2 h-[640px] rounded-[24px]" />
           <Skeleton className="h-[310px] rounded-[24px]" />

@@ -62,7 +62,7 @@ export const OurPartners = () => {
 
   if (isLoading) {
     return (
-      <section className="py-16 md:py-20 bg-white">
+      <section className="py-16 md:py-20 bg-[#080c14]">
         <div className="container mx-auto px-4 text-center">
           <div className="animate-pulse h-8 bg-slate-100 rounded w-64 mx-auto mb-4" />
           <div className="animate-pulse h-4 bg-slate-100 rounded w-96 mx-auto" />
