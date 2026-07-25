@@ -304,7 +304,15 @@ export function HomepageGallery() {
                   </div>
                 </motion.div>
               </AnimatePresence>
+
+              {/* Cinematic viewfinder corner brackets */}
+              <span aria-hidden className="pointer-events-none absolute top-3 left-3 w-6 h-6 border-l-2 border-t-2 border-white/40 rounded-tl-md z-20" />
+              <span aria-hidden className="pointer-events-none absolute top-3 right-3 w-6 h-6 border-r-2 border-t-2 border-white/40 rounded-tr-md z-20" />
+              <span aria-hidden className="pointer-events-none absolute bottom-3 left-3 w-6 h-6 border-l-2 border-b-2 border-white/40 rounded-bl-md z-20" />
+              <span aria-hidden className="pointer-events-none absolute bottom-3 right-3 w-6 h-6 border-r-2 border-b-2 border-white/40 rounded-br-md z-20" />
+              </motion.div>
             </div>
+
 
             {/* Mobile progress dots */}
             <div className="mt-4 flex md:hidden items-center justify-center gap-1.5">
