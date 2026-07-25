@@ -1,136 +1,271 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowUpRight } from "lucide-react";
-import { CATEGORIES } from "@/data/categories";
+import { ArrowRight, ArrowUpRight, Plus } from "lucide-react";
+import { CATEGORIES, type CategoryDef } from "@/data/categories";
+
+/**
+ * Bento layout config — indices match CATEGORIES order.
+ * Locked structural composition from selected "Kinetic Editorial" direction.
+ */
+type TileVariant =
+  | "hero-image-light" // 01 big image tile, light bg
+  | "compact-light"    // small card, light
+  | "compact-dark"     // small card, dark
+  | "tall-image-light" // tall image tile, light
+  | "compact-white"    // white with border, orange underline link
+  | "compact-plus"     // light, plus icon CTA
+  | "wide-dark-cta"    // wide dark banner with pill CTA
+  | "half-light"       // wider light tile
+  | "half-white";      // wider white tile
+
+interface TileConfig {
+  colSpan: string;
+  rowSpan?: string;
+  variant: TileVariant;
+  ctaLabel?: string;
+}
+
+const LAYOUT: TileConfig[] = [
+  { colSpan: "md:col-span-8", rowSpan: "md:row-span-2", variant: "hero-image-light" },     // Agriculture
+  { colSpan: "md:col-span-4", variant: "compact-light" },                                   // Survey
+  { colSpan: "md:col-span-4", variant: "compact-dark" },                                    // Surveillance
+  { colSpan: "md:col-span-4", rowSpan: "md:row-span-2", variant: "tall-image-light" },     // Defence
+  { colSpan: "md:col-span-4", variant: "compact-white" },                                   // Mining
+  { colSpan: "md:col-span-4", variant: "compact-plus" },                                    // Research & Development
+  { colSpan: "md:col-span-8", variant: "wide-dark-cta", ctaLabel: "Book Course" },          // Drone Training
+  { colSpan: "md:col-span-6", variant: "half-light" },                                      // Educational
+  { colSpan: "md:col-span-6", variant: "half-white" },                                      // 3D Printers
+];
+
+const idx2 = (n: number) => String(n + 1).padStart(2, "0");
+
+const fadeUp = {
+  initial: { opacity: 0, y: 24 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-60px" },
+};
+
+function Tile({
+  cat,
+  i,
+  cfg,
+}: {
+  cat: CategoryDef;
+  i: number;
+  cfg: TileConfig;
+}) {
+  const href = `/categories/${cat.slug}`;
+  const num = idx2(i);
+  const base = `group relative overflow-hidden rounded-sm ${cfg.colSpan} ${cfg.rowSpan ?? ""}`;
+
+  const arrowIcon = (
+    <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
+  );
+
+  switch (cfg.variant) {
+    case "hero-image-light":
+      return (
+        <motion.div {...fadeUp} transition={{ duration: 0.6, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }} className={base}>
+          <Link to={href} className="block h-full bg-[#f0ebe3] p-8 md:p-10 flex flex-col justify-between relative">
+            <div className="absolute inset-0 z-0">
+              <img
+                src={cat.image}
+                alt={cat.title}
+                loading="lazy"
+                className="w-full h-full object-cover opacity-25 grayscale group-hover:grayscale-0 group-hover:scale-[1.04] transition-all duration-[900ms] ease-out"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#f0ebe3] via-[#f0ebe3]/40 to-transparent" />
+            </div>
+            <div className="relative z-10">
+              <span className="text-[#ff6b00] text-xs font-medium italic font-['Instrument_Serif']">{num}.</span>
+              <h3 className="text-4xl md:text-6xl font-['Instrument_Serif'] text-zinc-900 mt-2 leading-[0.95]">
+                {cat.title}
+              </h3>
+              <p className="text-zinc-600 text-sm md:text-base mt-4 max-w-md leading-relaxed">
+                {cat.description}
+              </p>
+            </div>
+            <div className="relative z-10 flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[#ff6b00] mt-6">
+              Explore Category
+              <div className="w-8 h-[1px] bg-[#ff6b00] transition-all duration-500 group-hover:w-14" />
+            </div>
+          </Link>
+        </motion.div>
+      );
+
+    case "tall-image-light":
+      return (
+        <motion.div {...fadeUp} transition={{ duration: 0.6, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }} className={base}>
+          <Link to={href} className="block h-full bg-[#f0ebe3] p-8 flex flex-col justify-between relative min-h-[300px]">
+            <div className="absolute inset-0 z-0">
+              <img
+                src={cat.image}
+                alt={cat.title}
+                loading="lazy"
+                className="w-full h-full object-cover opacity-15 mix-blend-multiply group-hover:scale-[1.08] transition-transform duration-[900ms] ease-out"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#f0ebe3]/30 to-[#f0ebe3]/70" />
+            </div>
+            <div className="relative z-10">
+              <span className="text-[#ff6b00] text-xs font-['Instrument_Serif'] italic">{num}.</span>
+              <h3 className="text-3xl md:text-4xl font-['Instrument_Serif'] text-zinc-900 mt-2 leading-tight">
+                {cat.title}
+              </h3>
+              <p className="text-sm text-zinc-600 mt-4 max-w-[240px] leading-relaxed">{cat.description}</p>
+            </div>
+            <div className="relative z-10 w-12 h-12 rounded-full border border-zinc-300 flex items-center justify-center text-zinc-900 group-hover:bg-[#ff6b00] group-hover:border-[#ff6b00] group-hover:text-white transition-all duration-300">
+              <ArrowUpRight className="w-5 h-5" />
+            </div>
+          </Link>
+        </motion.div>
+      );
+
+    case "compact-light":
+      return (
+        <motion.div {...fadeUp} transition={{ duration: 0.55, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }} className={base}>
+          <Link to={href} className="block h-full bg-[#f0ebe3] p-8 border border-transparent hover:border-[#c9b99a] transition-colors duration-300 flex flex-col min-h-[220px]">
+            <span className="text-[#ff6b00] text-xs font-['Instrument_Serif'] italic">{num}.</span>
+            <h3 className="text-2xl font-['Instrument_Serif'] mt-2 text-zinc-900 leading-tight">{cat.title}</h3>
+            <p className="text-xs text-zinc-500 mt-2 leading-relaxed">{cat.description}</p>
+            <div className="mt-auto pt-6 text-[#ff6b00]">{arrowIcon}</div>
+          </Link>
+        </motion.div>
+      );
+
+    case "compact-dark":
+      return (
+        <motion.div {...fadeUp} transition={{ duration: 0.55, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }} className={base}>
+          <Link to={href} className="block h-full bg-zinc-900 p-8 flex flex-col min-h-[220px]">
+            <span className="text-white/40 text-xs font-['Instrument_Serif'] italic">{num}.</span>
+            <h3 className="text-2xl font-['Instrument_Serif'] mt-2 text-white leading-tight">{cat.title}</h3>
+            <p className="text-xs text-zinc-400 mt-2 leading-relaxed">{cat.description}</p>
+            <div className="mt-auto pt-6 text-[#ff6b00]">{arrowIcon}</div>
+          </Link>
+        </motion.div>
+      );
+
+    case "compact-white":
+      return (
+        <motion.div {...fadeUp} transition={{ duration: 0.55, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }} className={base}>
+          <Link to={href} className="block h-full bg-white p-8 border border-[#f0ebe3] hover:border-[#c9b99a] transition-colors duration-300 flex flex-col min-h-[220px]">
+            <span className="text-[#c9b99a] text-xs font-['Instrument_Serif'] italic">{num}.</span>
+            <h3 className="text-2xl font-['Instrument_Serif'] mt-2 text-zinc-900 leading-tight">{cat.title}</h3>
+            <p className="text-xs text-zinc-500 mt-2 leading-relaxed">{cat.description}</p>
+            <span className="mt-auto pt-6 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#ff6b00] w-fit border-b border-[#ff6b00] pb-1">
+              View Details
+            </span>
+          </Link>
+        </motion.div>
+      );
+
+    case "compact-plus":
+      return (
+        <motion.div {...fadeUp} transition={{ duration: 0.55, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }} className={base}>
+          <Link to={href} className="block h-full bg-[#f0ebe3] p-8 border border-transparent hover:border-[#c9b99a] transition-colors duration-300 relative min-h-[220px]">
+            <span className="text-[#c9b99a] text-xs font-['Instrument_Serif'] italic">{num}.</span>
+            <h3 className="text-2xl font-['Instrument_Serif'] mt-2 text-zinc-900 leading-tight">{cat.title}</h3>
+            <p className="text-xs text-zinc-500 mt-2 leading-relaxed max-w-[240px]">{cat.description}</p>
+            <div className="absolute bottom-8 right-8 text-[#c9b99a] group-hover:text-[#ff6b00] transition-colors duration-300">
+              <Plus className="w-6 h-6" strokeWidth={1.5} />
+            </div>
+          </Link>
+        </motion.div>
+      );
+
+    case "wide-dark-cta":
+      return (
+        <motion.div {...fadeUp} transition={{ duration: 0.6, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }} className={base}>
+          <Link to={href} className="block h-full bg-zinc-900 p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden min-h-[220px]">
+            <div className="absolute inset-0 z-0">
+              <img
+                src={cat.image}
+                alt={cat.title}
+                loading="lazy"
+                className="w-full h-full object-cover opacity-30 group-hover:opacity-40 group-hover:scale-[1.04] transition-all duration-[900ms] ease-out"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-zinc-900 via-zinc-900/70 to-transparent" />
+            </div>
+            <div className="relative z-10 max-w-md">
+              <span className="text-[#ff6b00] text-[10px] font-semibold tracking-[0.24em] uppercase mb-2 block">
+                {cat.tagline}
+              </span>
+              <h3 className="text-3xl md:text-4xl font-['Instrument_Serif'] text-white leading-tight">{cat.title}</h3>
+              <p className="text-xs md:text-sm text-zinc-400 mt-3 leading-relaxed">{cat.description}</p>
+            </div>
+            <span className="relative z-10 px-6 py-3 bg-white text-black text-[10px] font-bold uppercase tracking-[0.2em] group-hover:bg-[#ff6b00] group-hover:text-white transition-colors duration-300 whitespace-nowrap">
+              {cfg.ctaLabel ?? "Explore"}
+            </span>
+          </Link>
+        </motion.div>
+      );
+
+    case "half-light":
+      return (
+        <motion.div {...fadeUp} transition={{ duration: 0.55, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }} className={base}>
+          <Link to={href} className="block h-full bg-[#f0ebe3] p-8 md:p-10 border border-transparent hover:border-[#c9b99a] transition-colors duration-300 flex flex-col justify-between min-h-[220px]">
+            <div>
+              <span className="text-[#ff6b00] text-xs font-['Instrument_Serif'] italic">{num}.</span>
+              <h3 className="text-3xl font-['Instrument_Serif'] mt-2 text-zinc-900 leading-tight">{cat.title}</h3>
+            </div>
+            <div className="flex justify-between items-end gap-4 mt-6">
+              <p className="text-xs text-zinc-500 max-w-[240px] leading-relaxed">{cat.description}</p>
+              <div className="text-[#ff6b00] shrink-0">{arrowIcon}</div>
+            </div>
+          </Link>
+        </motion.div>
+      );
+
+    case "half-white":
+      return (
+        <motion.div {...fadeUp} transition={{ duration: 0.55, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }} className={base}>
+          <Link to={href} className="block h-full bg-white p-8 md:p-10 border border-[#f0ebe3] hover:bg-[#faf8f5] transition-colors duration-300 flex flex-col justify-between min-h-[220px]">
+            <div>
+              <span className="text-[#c9b99a] text-xs font-['Instrument_Serif'] italic">{num}.</span>
+              <h3 className="text-3xl font-['Instrument_Serif'] mt-2 text-zinc-900 leading-tight">{cat.title}</h3>
+            </div>
+            <div className="flex justify-between items-end gap-4 mt-6">
+              <p className="text-xs text-zinc-500 max-w-[240px] leading-relaxed">{cat.description}</p>
+              <div className="text-[#ff6b00] shrink-0">{arrowIcon}</div>
+            </div>
+          </Link>
+        </motion.div>
+      );
+  }
+}
 
 export const ProductCategories = () => {
   return (
-    <section className="relative py-16 md:py-24 bg-[#0b1220] overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,rgba(255,107,0,0.10),transparent_60%)]" />
-      <div className="absolute -bottom-40 left-1/2 -translate-x-1/2 w-[820px] h-[440px] rounded-full bg-[radial-gradient(ellipse,rgba(255,107,0,0.10),transparent_70%)]" />
-
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
-        {/* Header */}
+    <section className="relative bg-[#faf8f5] py-20 md:py-28 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+        {/* Editorial Header */}
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="mx-auto text-center mb-12 md:mb-16"
-          style={{ maxWidth: 760 }}
+          className="mb-16 md:mb-20 grid grid-cols-1 md:grid-cols-12 gap-8 items-end"
         >
-          <span className="inline-flex items-center gap-2 py-1.5 px-3.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold tracking-[0.24em] uppercase mb-5 border border-primary/30">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            Capabilities
-          </span>
-          <h2
-            className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-[1.05] tracking-tight"
-            style={{ fontFamily: "'Montserrat', sans-serif" }}
-          >
-            Built for Every Mission.
-          </h2>
-          <p className="mt-5 text-base md:text-lg text-slate-300 leading-relaxed">
-            From precision agriculture to industrial 3D printing — purpose-built platforms
-            engineered for every mission-critical industry.
-          </p>
+          <div className="md:col-span-8">
+            <p className="text-[#ff6b00] font-semibold tracking-[0.24em] text-[10px] uppercase mb-4">
+              Core Verticals
+            </p>
+            <h2 className="text-5xl md:text-7xl lg:text-8xl font-['Instrument_Serif'] text-zinc-900 leading-[0.9]">
+              Industry{" "}
+              <span className="italic font-light text-[#c9b99a]">Capabilities</span>
+            </h2>
+          </div>
+          <div className="md:col-span-4 pb-2">
+            <p className="text-zinc-500 text-sm md:text-base leading-relaxed border-l border-[#c9b99a] pl-6">
+              Bridging the gap between raw hardware and actionable intelligence
+              through sector-specific drone and additive manufacturing platforms.
+            </p>
+          </div>
         </motion.div>
 
-        {/* Grid: 1 / 2 / 3 columns for 9 cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-7">
-          {CATEGORIES.map((c, i) => (
-            <motion.div
-              key={c.slug}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.65, delay: (i % 3) * 0.08, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <Link
-                to={`/categories/${c.slug}`}
-                className="group relative block overflow-hidden rounded-[26px] bg-slate-900 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_40px_80px_-20px_rgba(255,107,0,0.35)]"
-                style={{ height: 420 }}
-              >
-                {/* Background image */}
-                <div className="absolute inset-0 overflow-hidden">
-                  <img
-                    src={c.image}
-                    alt={c.title}
-                    loading="lazy"
-                    width={1600}
-                    height={1200}
-                    className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.09]"
-                  />
-                </div>
-
-                {/* Dark gradient overlay */}
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      "linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.35) 45%, rgba(8,12,20,0.85) 100%)",
-                  }}
-                />
-
-                {/* Accent glow on hover */}
-                <div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                  style={{
-                    background: `radial-gradient(ellipse at bottom right, ${c.accent}44, transparent 60%)`,
-                  }}
-                />
-
-                {/* Content */}
-                <div className="relative h-full flex flex-col p-6 md:p-7">
-                  {/* Glass badge */}
-                  <div className="flex">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-[0.2em] uppercase text-white border border-white/25 bg-white/10 backdrop-blur-md">
-                      <span
-                        className="w-1 h-1 rounded-full"
-                        style={{ backgroundColor: c.accent }}
-                      />
-                      Category
-                    </span>
-                  </div>
-
-                  {/* Title + description at bottom */}
-                  <div className="mt-auto">
-                    <p className="text-[11px] font-semibold tracking-[0.2em] uppercase text-white/60 mb-2">
-                      {c.tagline}
-                    </p>
-                    <h3
-                      className="text-2xl md:text-[26px] font-bold text-white leading-tight tracking-tight pr-16"
-                      style={{ fontFamily: "'Montserrat', sans-serif" }}
-                    >
-                      {c.title}
-                    </h3>
-                    <p className="mt-2 text-sm text-white/70 leading-relaxed line-clamp-2 pr-14">
-                      {c.description}
-                    </p>
-
-                    {/* Circular arrow */}
-                    <div className="absolute bottom-6 right-6 md:bottom-7 md:right-7">
-                      <div
-                        className="w-12 h-12 rounded-full flex items-center justify-center border border-white/25 bg-white/10 backdrop-blur-md text-white transition-all duration-500 group-hover:border-transparent group-hover:rotate-45 group-hover:shadow-[0_0_30px_rgba(255,107,0,0.55)]"
-                        style={{
-                          transitionProperty: "transform, background-color, border-color, box-shadow",
-                        }}
-                      >
-                        <ArrowUpRight className="w-5 h-5 relative z-10" />
-                        <div
-                          className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                          style={{ backgroundColor: c.accent }}
-                        />
-                        <ArrowUpRight className="w-5 h-5 absolute z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Corner brackets */}
-                <div className="absolute top-5 right-5 w-5 h-5 border-t border-r border-white/30 opacity-60" />
-                <div className="absolute bottom-5 left-5 w-5 h-5 border-b border-l border-white/30 opacity-60" />
-              </Link>
-            </motion.div>
+        {/* Bento Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:auto-rows-[240px]">
+          {CATEGORIES.map((cat, i) => (
+            <Tile key={cat.slug} cat={cat} i={i} cfg={LAYOUT[i] ?? { colSpan: "md:col-span-4", variant: "compact-light" }} />
           ))}
         </div>
       </div>
