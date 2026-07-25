@@ -25,6 +25,7 @@ interface Props {
 
 const AUTO_MS = 6500;
 const NAV_H = 115;
+const NAV_H_MOBILE = 88;
 const ORANGE = "#FF6B00";
 const ORANGE_SOFT = "#FF8A2A";
 
@@ -177,12 +178,11 @@ export const HeroSlider = ({ slides }: Props) => {
 
       {/* ============ LAYER 2 — Left-anchored content ============ */}
       <div
-        className="absolute inset-x-0 top-0 z-20 flex items-center pointer-events-none"
-        style={{ bottom: NAV_H }}
+        className="absolute inset-x-0 top-0 z-20 flex items-center pointer-events-none pb-[88px] md:pb-[115px]"
       >
         <div
-          className="w-full mx-auto"
-          style={{ maxWidth: 1440, paddingLeft: "clamp(24px, 8vw, 120px)", paddingRight: "clamp(24px, 6vw, 80px)" }}
+          className="w-full mx-auto px-6 sm:px-10 md:px-16 lg:px-24"
+          style={{ maxWidth: 1440 }}
         >
           <div className="max-w-[720px] pointer-events-auto">
             <AnimatePresence mode="wait">
@@ -198,7 +198,7 @@ export const HeroSlider = ({ slides }: Props) => {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.05 }}
-                  className="inline-flex items-center gap-2 py-2 px-4 rounded-full backdrop-blur-md text-[10px] md:text-[11px] font-semibold tracking-[0.32em] uppercase mb-8 text-white"
+                  className="inline-flex items-center gap-2 py-1.5 px-3 md:py-2 md:px-4 rounded-full backdrop-blur-md text-[9px] md:text-[11px] font-semibold tracking-[0.24em] md:tracking-[0.32em] uppercase mb-4 md:mb-8 text-white"
                   style={{
                     background: "rgba(255,255,255,0.06)",
                     border: `1px solid ${ORANGE}80`,
@@ -217,11 +217,10 @@ export const HeroSlider = ({ slides }: Props) => {
                   initial={{ opacity: 0, y: 24 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.75, delay: 0.14 }}
-                  className="text-white font-extrabold tracking-[-0.015em] mb-8"
+                  className="text-white font-extrabold tracking-[-0.015em] mb-4 md:mb-8 text-[2rem] sm:text-[2.75rem] md:text-[3.5rem] lg:text-[4.5rem]"
                   style={{
                     fontFamily: "'Montserrat', sans-serif",
-                    fontSize: "clamp(2.5rem, 6vw, 4.5rem)",
-                    lineHeight: 0.95,
+                    lineHeight: 1.02,
                     textShadow: "0 4px 40px rgba(0,0,0,0.5)",
                   }}
                 >
@@ -234,11 +233,9 @@ export const HeroSlider = ({ slides }: Props) => {
                     initial={{ opacity: 0, y: 18 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.75, delay: 0.24 }}
-                    className="mb-10"
+                    className="mb-6 md:mb-10 text-sm md:text-lg leading-relaxed md:leading-[1.8] line-clamp-4 md:line-clamp-none"
                     style={{
                       color: "rgba(226,232,240,0.82)",
-                      fontSize: 18,
-                      lineHeight: 1.8,
                       maxWidth: 620,
                     }}
                   >
@@ -255,18 +252,10 @@ export const HeroSlider = ({ slides }: Props) => {
                 >
                   <button
                     onClick={() => go(active.primary_cta_link || "/shop")}
-                    className="group relative inline-flex items-center justify-center gap-2.5 rounded-full font-semibold text-[13px] tracking-[0.14em] uppercase text-white overflow-hidden transition-all duration-300 hover:-translate-y-[3px] w-full sm:w-auto"
+                    className="group relative inline-flex items-center justify-center gap-2.5 rounded-full font-semibold text-[12px] md:text-[13px] tracking-[0.14em] uppercase text-white overflow-hidden transition-all duration-300 hover:-translate-y-[3px] w-full sm:w-auto h-[52px] md:h-[60px] px-8 md:px-10"
                     style={{
-                      height: 60,
-                      padding: "0 40px",
                       background: `linear-gradient(135deg, ${ORANGE} 0%, ${ORANGE_SOFT} 100%)`,
                       boxShadow: `0 14px 34px -10px ${ORANGE}cc, 0 0 0 1px ${ORANGE}30 inset`,
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 22px 50px -8px ${ORANGE}, 0 0 40px ${ORANGE}80`;
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 14px 34px -10px ${ORANGE}cc, 0 0 0 1px ${ORANGE}30 inset`;
                     }}
                   >
                     <span className="relative">{active.primary_cta_label || "Explore Products"}</span>
@@ -274,8 +263,7 @@ export const HeroSlider = ({ slides }: Props) => {
                   </button>
                   <button
                     onClick={() => go(active.secondary_cta_link || "#contact-section")}
-                    className="group inline-flex items-center justify-center gap-2.5 rounded-full font-semibold text-[13px] tracking-[0.14em] uppercase text-white bg-white/5 border border-white/40 backdrop-blur-md hover:bg-white hover:text-slate-900 hover:border-white transition-colors w-full sm:w-auto"
-                    style={{ height: 60, padding: "0 40px" }}
+                    className="group inline-flex items-center justify-center gap-2.5 rounded-full font-semibold text-[12px] md:text-[13px] tracking-[0.14em] uppercase text-white bg-white/5 border border-white/40 backdrop-blur-md hover:bg-white hover:text-slate-900 hover:border-white transition-colors w-full sm:w-auto h-[52px] md:h-[60px] px-8 md:px-10"
                   >
                     {active.secondary_cta_label || "Contact Us"}
                     <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -290,15 +278,14 @@ export const HeroSlider = ({ slides }: Props) => {
       {/* ============ LAYER 3 — Premium timeline navigation ============ */}
       {slides.length > 0 && (
         <div
-          className="absolute bottom-0 inset-x-0 z-30"
+          className="absolute bottom-0 inset-x-0 z-30 h-[88px] md:h-[115px]"
           style={{
-            height: NAV_H,
             background: "#111827",
             borderTop: "1px solid rgba(255,255,255,0.06)",
             boxShadow: "0 -20px 60px rgba(0,0,0,0.35)",
           }}
         >
-          <div className="h-full max-w-[1440px] mx-auto flex items-stretch px-4 md:px-8">
+          <div className="h-full max-w-[1440px] mx-auto flex items-stretch px-3 md:px-8">
             {/* Slides timeline */}
             <div className="flex-1 flex items-stretch overflow-x-auto no-scrollbar">
               {slides.map((s, i) => {
@@ -307,7 +294,7 @@ export const HeroSlider = ({ slides }: Props) => {
                   <button
                     key={s.id}
                     onClick={() => setIndex(i)}
-                    className={`group relative flex-1 min-w-[200px] text-left px-6 py-5 transition-all duration-300 ${
+                    className={`group relative flex-1 min-w-[140px] md:min-w-[200px] text-left px-3 md:px-6 py-3 md:py-5 transition-all duration-300 ${
                       isActive
                         ? "bg-white/[0.04]"
                         : "opacity-70 hover:opacity-100 hover:-translate-y-[2px]"
@@ -349,7 +336,7 @@ export const HeroSlider = ({ slides }: Props) => {
 
                     {/* Title */}
                     <div
-                      className={`text-[14px] font-semibold tracking-wide mb-1 line-clamp-1 transition-colors ${
+                      className={`text-[13px] md:text-[14px] font-semibold tracking-wide mb-1 line-clamp-1 transition-colors ${
                         isActive ? "text-white" : "text-white/70"
                       }`}
                     >
@@ -359,7 +346,7 @@ export const HeroSlider = ({ slides }: Props) => {
                     {/* Short description */}
                     {(s.subtitle || s.description) && (
                       <p
-                        className={`text-[11.5px] leading-snug line-clamp-1 transition-colors ${
+                        className={`hidden md:block text-[11.5px] leading-snug line-clamp-1 transition-colors ${
                           isActive ? "text-white/60" : "text-white/40"
                         }`}
                       >
@@ -373,27 +360,15 @@ export const HeroSlider = ({ slides }: Props) => {
 
             {/* Prev / Next — glass circular */}
             {slides.length > 1 && (
-              <div className="flex items-center gap-3 pl-4 md:pl-6">
+              <div className="flex items-center gap-2 md:gap-3 pl-2 md:pl-6">
                 <button
                   onClick={prev}
                   aria-label="Previous slide"
-                  className="rounded-full flex items-center justify-center text-white transition-all duration-300 hover:text-white"
+                  className="rounded-full flex items-center justify-center text-white transition-all duration-300 hover:text-white w-11 h-11 md:w-[60px] md:h-[60px]"
                   style={{
-                    width: 60,
-                    height: 60,
                     background: "rgba(255,255,255,0.04)",
                     border: "1px solid rgba(255,255,255,0.18)",
                     backdropFilter: "blur(12px)",
-                  }}
-                  onMouseEnter={(e) => {
-                    const b = e.currentTarget as HTMLButtonElement;
-                    b.style.background = ORANGE;
-                    b.style.borderColor = ORANGE;
-                  }}
-                  onMouseLeave={(e) => {
-                    const b = e.currentTarget as HTMLButtonElement;
-                    b.style.background = "rgba(255,255,255,0.04)";
-                    b.style.borderColor = "rgba(255,255,255,0.18)";
                   }}
                 >
                   <ChevronLeft className="w-5 h-5" />
@@ -401,23 +376,11 @@ export const HeroSlider = ({ slides }: Props) => {
                 <button
                   onClick={next}
                   aria-label="Next slide"
-                  className="rounded-full flex items-center justify-center text-white transition-all duration-300"
+                  className="rounded-full flex items-center justify-center text-white transition-all duration-300 w-11 h-11 md:w-[60px] md:h-[60px]"
                   style={{
-                    width: 60,
-                    height: 60,
                     background: "rgba(255,255,255,0.04)",
                     border: "1px solid rgba(255,255,255,0.18)",
                     backdropFilter: "blur(12px)",
-                  }}
-                  onMouseEnter={(e) => {
-                    const b = e.currentTarget as HTMLButtonElement;
-                    b.style.background = ORANGE;
-                    b.style.borderColor = ORANGE;
-                  }}
-                  onMouseLeave={(e) => {
-                    const b = e.currentTarget as HTMLButtonElement;
-                    b.style.background = "rgba(255,255,255,0.04)";
-                    b.style.borderColor = "rgba(255,255,255,0.18)";
                   }}
                 >
                   <ChevronRight className="w-5 h-5" />
