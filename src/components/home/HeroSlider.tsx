@@ -360,27 +360,15 @@ export const HeroSlider = ({ slides }: Props) => {
 
             {/* Prev / Next — glass circular */}
             {slides.length > 1 && (
-              <div className="flex items-center gap-3 pl-4 md:pl-6">
+              <div className="flex items-center gap-2 md:gap-3 pl-2 md:pl-6">
                 <button
                   onClick={prev}
                   aria-label="Previous slide"
-                  className="rounded-full flex items-center justify-center text-white transition-all duration-300 hover:text-white"
+                  className="rounded-full flex items-center justify-center text-white transition-all duration-300 hover:text-white w-11 h-11 md:w-[60px] md:h-[60px]"
                   style={{
-                    width: 60,
-                    height: 60,
                     background: "rgba(255,255,255,0.04)",
                     border: "1px solid rgba(255,255,255,0.18)",
                     backdropFilter: "blur(12px)",
-                  }}
-                  onMouseEnter={(e) => {
-                    const b = e.currentTarget as HTMLButtonElement;
-                    b.style.background = ORANGE;
-                    b.style.borderColor = ORANGE;
-                  }}
-                  onMouseLeave={(e) => {
-                    const b = e.currentTarget as HTMLButtonElement;
-                    b.style.background = "rgba(255,255,255,0.04)";
-                    b.style.borderColor = "rgba(255,255,255,0.18)";
                   }}
                 >
                   <ChevronLeft className="w-5 h-5" />
@@ -388,23 +376,11 @@ export const HeroSlider = ({ slides }: Props) => {
                 <button
                   onClick={next}
                   aria-label="Next slide"
-                  className="rounded-full flex items-center justify-center text-white transition-all duration-300"
+                  className="rounded-full flex items-center justify-center text-white transition-all duration-300 w-11 h-11 md:w-[60px] md:h-[60px]"
                   style={{
-                    width: 60,
-                    height: 60,
                     background: "rgba(255,255,255,0.04)",
                     border: "1px solid rgba(255,255,255,0.18)",
                     backdropFilter: "blur(12px)",
-                  }}
-                  onMouseEnter={(e) => {
-                    const b = e.currentTarget as HTMLButtonElement;
-                    b.style.background = ORANGE;
-                    b.style.borderColor = ORANGE;
-                  }}
-                  onMouseLeave={(e) => {
-                    const b = e.currentTarget as HTMLButtonElement;
-                    b.style.background = "rgba(255,255,255,0.04)";
-                    b.style.borderColor = "rgba(255,255,255,0.18)";
                   }}
                 >
                   <ChevronRight className="w-5 h-5" />
