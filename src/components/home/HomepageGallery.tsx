@@ -192,7 +192,7 @@ export function HomepageGallery() {
 
   if (isLoading) {
     return (
-      <section className="py-20 px-4 bg-slate-50">
+      <section className="py-20 px-4 bg-[#080c14]">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Skeleton className="lg:col-span-2 lg:row-span-2 h-[640px] rounded-[24px]" />
           <Skeleton className="h-[310px] rounded-[24px]" />
@@ -211,15 +211,15 @@ export function HomepageGallery() {
   return (
     <section
       id="gallery-section"
-      className="relative py-20 lg:py-28 px-4 bg-slate-50 overflow-hidden"
+      className="relative py-20 lg:py-28 px-4 bg-[#080c14] overflow-hidden"
     >
       {/* Engineering blueprint background */}
       <div
         aria-hidden
-        className="absolute inset-0 opacity-[0.35] pointer-events-none"
+        className="absolute inset-0 opacity-[0.5] pointer-events-none"
         style={{
           backgroundImage:
-            "linear-gradient(to right, rgba(15,23,42,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(15,23,42,0.06) 1px, transparent 1px)",
+            "linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px)",
           backgroundSize: "56px 56px",
           maskImage:
             "radial-gradient(ellipse 80% 60% at 50% 40%, black 40%, transparent 100%)",
@@ -231,7 +231,7 @@ export function HomepageGallery() {
       {/* Blueprint diagonal lines */}
       <div
         aria-hidden
-        className="absolute inset-0 opacity-[0.05] pointer-events-none"
+        className="absolute inset-0 opacity-[0.08] pointer-events-none"
         style={{
           backgroundImage:
             "repeating-linear-gradient(45deg, transparent 0 80px, rgba(255,107,0,0.5) 80px 81px)",
@@ -239,9 +239,9 @@ export function HomepageGallery() {
       />
 
       {/* HUD rings */}
-      <div aria-hidden className="absolute top-1/4 -left-40 w-[480px] h-[480px] rounded-full border border-primary/10 pointer-events-none animate-[spin_60s_linear_infinite]" />
-      <div aria-hidden className="absolute top-1/4 -left-40 w-[480px] h-[480px] rounded-full border-2 border-dashed border-primary/5 scale-75 pointer-events-none animate-[spin_40s_linear_infinite_reverse]" />
-      <div aria-hidden className="absolute bottom-0 -right-40 w-[560px] h-[560px] rounded-full border border-primary/10 pointer-events-none animate-[spin_80s_linear_infinite]" />
+      <div aria-hidden className="absolute top-1/4 -left-40 w-[480px] h-[480px] rounded-full border border-primary/15 pointer-events-none animate-[spin_60s_linear_infinite]" />
+      <div aria-hidden className="absolute top-1/4 -left-40 w-[480px] h-[480px] rounded-full border-2 border-dashed border-primary/10 scale-75 pointer-events-none animate-[spin_40s_linear_infinite_reverse]" />
+      <div aria-hidden className="absolute bottom-0 -right-40 w-[560px] h-[560px] rounded-full border border-primary/15 pointer-events-none animate-[spin_80s_linear_infinite]" />
 
       {/* Glowing orange particles */}
       <div aria-hidden className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -252,7 +252,7 @@ export function HomepageGallery() {
       </div>
 
       {/* Ambient radial glow */}
-      <div aria-hidden className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,107,0,0.06),transparent_60%)] pointer-events-none" />
+      <div aria-hidden className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,107,0,0.10),transparent_60%)] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
@@ -264,20 +264,21 @@ export function HomepageGallery() {
           className="mb-12 lg:mb-16 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6"
         >
           <div>
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 text-[11px] font-semibold tracking-[0.18em] uppercase text-primary bg-primary/10 border border-primary/20 rounded-full">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 text-[11px] font-semibold tracking-[0.18em] uppercase text-primary bg-primary/15 border border-primary/30 rounded-full">
               <Sparkles className="w-3.5 h-3.5" />
               Engineering Showcase
             </span>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 tracking-tight leading-[1.05]">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.05]">
               Built for the mission.
               <br />
-              <span className="text-slate-400">Engineered in India.</span>
+              <span className="text-white/40">Engineered in India.</span>
             </h2>
           </div>
-          <p className="text-slate-600 text-base lg:text-lg max-w-md leading-relaxed">
+          <p className="text-white/65 text-base lg:text-lg max-w-md leading-relaxed">
             A closer look at our flagship drone platforms, prototypes and mission-ready systems.
           </p>
         </motion.div>
+
 
         {/* Asymmetric grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6">
