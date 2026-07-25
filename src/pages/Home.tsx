@@ -60,17 +60,16 @@ const Home = () => {
       <NotificationMarquee />
 
       <main className={`flex-1 ${hasNotification ? "pt-[132px] md:pt-[138px]" : "pt-[88px] md:pt-[90px]"}`}>
-        {/* Dark canvas: brand story, capabilities, trust */}
+        {/* Alternating dark / light rhythm */}
         <HeroSection />
         <StatsCounter />
         <ProductCategories />
-        <OurCustomers />
-        <OurPartners />
-        <HomepageGallery />
-        {/* Light band: catalog, credentials, content, contact */}
         <FeaturedProducts />
+        <OurCustomers />
         <CertificationsSection />
+        <OurPartners />
         <LatestInsights />
+        <HomepageGallery />
         <ContactSection />
       </main>
 
