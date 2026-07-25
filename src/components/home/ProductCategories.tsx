@@ -75,14 +75,14 @@ function Tile({ cat, i, cfg }: { cat: CategoryDef; i: number; cfg: TileConfig })
               <div className="absolute inset-0 bg-gradient-to-t from-[#0b1220] via-transparent to-transparent" />
             </div>
             <div className="relative z-10 flex items-center gap-3">
-              <span className="text-[#ff6b00] text-xs font-['Instrument_Serif'] italic">{num}.</span>
+              <span className="text-[#ff6b00] text-xs italic">{num}.</span>
               <span className="h-px w-8 bg-[#ff6b00]/60" />
               <span className="text-[10px] font-semibold tracking-[0.28em] uppercase text-[#ff6b00]">
                 {cat.tagline}
               </span>
             </div>
             <div className="relative z-10">
-              <h3 className="text-5xl md:text-7xl font-['Instrument_Serif'] text-white leading-[0.95]">
+              <h3 className="text-5xl md:text-7xl text-white leading-[0.95]">
                 {cat.title}
               </h3>
               <p className="text-slate-300 text-sm md:text-base mt-5 max-w-lg leading-relaxed">
@@ -109,8 +109,8 @@ function Tile({ cat, i, cfg }: { cat: CategoryDef; i: number; cfg: TileConfig })
             to={href}
             className="block h-full bg-[#111a2e] p-8 flex flex-col min-h-[200px] border border-white/5 hover:border-[#ff6b00]/40 transition-colors duration-300"
           >
-            <span className="text-white/30 text-xs font-['Instrument_Serif'] italic">{num}.</span>
-            <h3 className="text-2xl md:text-3xl font-['Instrument_Serif'] mt-2 text-white leading-tight">
+            <span className="text-white/30 text-xs italic">{num}.</span>
+            <h3 className="text-2xl md:text-3xl mt-2 text-white leading-tight">
               {cat.title}
             </h3>
             <p className="text-xs text-slate-400 mt-2 leading-relaxed">{cat.description}</p>
@@ -126,8 +126,8 @@ function Tile({ cat, i, cfg }: { cat: CategoryDef; i: number; cfg: TileConfig })
             to={href}
             className="block h-full bg-white/[0.03] backdrop-blur p-8 flex flex-col min-h-[200px] border border-white/10 hover:bg-white/[0.06] hover:border-[#ff6b00]/40 transition-all duration-300"
           >
-            <span className="text-[#ff6b00]/80 text-xs font-['Instrument_Serif'] italic">{num}.</span>
-            <h3 className="text-2xl md:text-3xl font-['Instrument_Serif'] mt-2 text-white leading-tight">
+            <span className="text-[#ff6b00]/80 text-xs italic">{num}.</span>
+            <h3 className="text-2xl md:text-3xl mt-2 text-white leading-tight">
               {cat.title}
             </h3>
             <p className="text-xs text-slate-400 mt-2 leading-relaxed">{cat.description}</p>
@@ -155,8 +155,8 @@ function Tile({ cat, i, cfg }: { cat: CategoryDef; i: number; cfg: TileConfig })
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0b1220]/50 to-[#0b1220]" />
             </div>
             <div className="relative z-10">
-              <span className="text-[#ff6b00] text-xs font-['Instrument_Serif'] italic">{num}.</span>
-              <h3 className="text-3xl md:text-4xl font-['Instrument_Serif'] text-white mt-2 leading-tight">
+              <span className="text-[#ff6b00] text-xs italic">{num}.</span>
+              <h3 className="text-3xl md:text-4xl text-white mt-2 leading-tight">
                 {cat.title}
               </h3>
               <p className="text-sm text-slate-300 mt-4 max-w-[240px] leading-relaxed">
@@ -179,8 +179,8 @@ function Tile({ cat, i, cfg }: { cat: CategoryDef; i: number; cfg: TileConfig })
           >
             <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-[#ff6b00]/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="relative z-10">
-              <span className="text-white/30 text-xs font-['Instrument_Serif'] italic">{num}.</span>
-              <h3 className="text-2xl md:text-3xl font-['Instrument_Serif'] mt-2 text-white leading-tight">
+              <span className="text-white/30 text-xs italic">{num}.</span>
+              <h3 className="text-2xl md:text-3xl mt-2 text-white leading-tight">
                 {cat.title}
               </h3>
               <p className="text-xs text-slate-400 mt-2 leading-relaxed">{cat.description}</p>
@@ -203,8 +203,8 @@ function Tile({ cat, i, cfg }: { cat: CategoryDef; i: number; cfg: TileConfig })
             className="block h-full bg-white/[0.03] p-8 flex flex-col justify-between min-h-[200px] border border-white/10 hover:bg-white/[0.06] hover:border-[#ff6b00]/40 transition-all duration-300"
           >
             <div>
-              <span className="text-[#ff6b00]/80 text-xs font-['Instrument_Serif'] italic">{num}.</span>
-              <h3 className="text-2xl md:text-3xl font-['Instrument_Serif'] mt-2 text-white leading-tight">
+              <span className="text-[#ff6b00]/80 text-xs italic">{num}.</span>
+              <h3 className="text-2xl md:text-3xl mt-2 text-white leading-tight">
                 {cat.title}
               </h3>
             </div>
@@ -257,7 +257,7 @@ export const ProductCategories = () => {
                 Mission Verticals
               </p>
             </div>
-            <h2 className="text-5xl md:text-7xl lg:text-8xl font-['Instrument_Serif'] text-white leading-[0.9]">
+            <h2 className="text-5xl md:text-7xl lg:text-8xl text-white leading-[0.9]">
               Defence-Grade{" "}
               <span className="italic font-light text-[#ff6b00]">Capabilities</span>
             </h2>
