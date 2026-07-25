@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { X, Play, ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react";
+import { X, Play, ChevronLeft, ChevronRight, ArrowUpRight, Maximize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface GalleryItem {
@@ -32,89 +32,9 @@ const getYouTubeVideoId = (url: string): string | null => {
   return match ? match[1] : null;
 };
 
-interface ShowcaseCardProps {
-  item: GalleryItem;
-  index: number;
-  variant: "flagship" | "tall" | "regular";
-  onClick: () => void;
-}
-
-function ShowcaseCard({ item, index, variant, onClick }: ShowcaseCardProps) {
-  const isFlagship = variant === "flagship";
-
-  return (
-    <motion.article
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.55, delay: Math.min(index, 6) * 0.06, ease: [0.22, 1, 0.36, 1] }}
-      onClick={onClick}
-      className={cn(
-        "group relative overflow-hidden rounded-2xl cursor-pointer isolate h-full w-full",
-        "border border-white/[0.06] bg-slate-900",
-        "transition-all duration-500 ease-out",
-        "hover:border-white/[0.14] hover:shadow-[0_30px_60px_-30px_rgba(0,0,0,0.8)]"
-      )}
-    >
-      <img
-        src={item.image_url}
-        alt={item.alt_text || item.title}
-        loading="lazy"
-        className="absolute inset-0 w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.05]"
-      />
-
-      {/* Editorial gradient — dark bottom for legibility */}
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/40 to-transparent" />
-
-      {/* Top row: category + video pill */}
-      <div className="absolute top-4 left-4 right-4 z-10 flex items-start justify-between gap-2">
-        {item.category ? (
-          <span className="px-2.5 py-1 rounded-md text-[10px] font-medium tracking-[0.12em] uppercase bg-white/10 backdrop-blur-md text-white/90 border border-white/15">
-            {CATEGORY_LABELS[item.category] || item.category}
-          </span>
-        ) : <span />}
-        {item.video_url && (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-medium uppercase tracking-[0.12em] bg-white/10 backdrop-blur-md text-white border border-white/15">
-            <Play className="w-3 h-3" fill="currentColor" />
-            Video
-          </span>
-        )}
-      </div>
-
-      {/* Bottom content */}
-      <div className={cn("absolute inset-x-0 bottom-0 z-10 p-5 lg:p-6", isFlagship && "lg:p-8")}>
-        <div className="flex items-end justify-between gap-4">
-          <div className="min-w-0">
-            <h3
-              className={cn(
-                "font-semibold text-white tracking-tight leading-tight",
-                isFlagship ? "text-2xl md:text-3xl lg:text-4xl" : "text-lg lg:text-xl"
-              )}
-            >
-              {item.title}
-            </h3>
-            {item.description && (
-              <p
-                className={cn(
-                  "mt-2 text-white/60 leading-relaxed",
-                  isFlagship ? "text-sm lg:text-base line-clamp-2 max-w-xl" : "text-[13px] line-clamp-1"
-                )}
-              >
-                {item.description}
-              </p>
-            )}
-          </div>
-          <span className="shrink-0 w-9 h-9 rounded-full border border-white/20 flex items-center justify-center text-white transition-all duration-300 group-hover:bg-primary group-hover:border-primary">
-            <ArrowUpRight className="w-4 h-4" />
-          </span>
-        </div>
-      </div>
-    </motion.article>
-  );
-}
-
 export function HomepageGallery() {
-  const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [modalItem, setModalItem] = useState<GalleryItem | null>(null);
   const [showVideo, setShowVideo] = useState(false);
 
   const { data: items, isLoading } = useQuery({
@@ -131,38 +51,44 @@ export function HomepageGallery() {
     },
   });
 
+  // Reset if items change
+  useEffect(() => {
+    if (items && activeIndex >= items.length) setActiveIndex(0);
+  }, [items, activeIndex]);
+
   const handleOpenModal = (item: GalleryItem) => {
-    setSelectedItem(item);
+    setModalItem(item);
     setShowVideo(false);
   };
   const handleCloseModal = () => {
-    setSelectedItem(null);
+    setModalItem(null);
     setShowVideo(false);
   };
-  const navigateItem = (direction: "prev" | "next") => {
-    if (!items || !selectedItem) return;
-    const currentIndex = items.findIndex((i) => i.id === selectedItem.id);
-    const newIndex = direction === "prev" ? currentIndex - 1 : currentIndex + 1;
-    if (newIndex >= 0 && newIndex < items.length) {
-      setSelectedItem(items[newIndex]);
+  const navigateModal = (direction: "prev" | "next") => {
+    if (!items || !modalItem) return;
+    const currentIdx = items.findIndex((i) => i.id === modalItem.id);
+    const newIdx = direction === "prev" ? currentIdx - 1 : currentIdx + 1;
+    if (newIdx >= 0 && newIdx < items.length) {
+      setModalItem(items[newIdx]);
       setShowVideo(false);
     }
   };
-  const currentIndex = selectedItem ? items?.findIndex((i) => i.id === selectedItem.id) ?? -1 : -1;
-  const hasPrev = currentIndex > 0;
-  const hasNext = items ? currentIndex < items.length - 1 : false;
+  const modalIdx = modalItem && items ? items.findIndex((i) => i.id === modalItem.id) : -1;
+  const modalHasPrev = modalIdx > 0;
+  const modalHasNext = items ? modalIdx < items.length - 1 : false;
 
   if (isLoading) {
     return (
       <section className="py-20 px-4 bg-[#0b1220]">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5 auto-rows-[260px]">
-            <Skeleton className="lg:col-span-7 lg:row-span-2 rounded-2xl h-full" />
-            <Skeleton className="lg:col-span-5 rounded-2xl h-full" />
-            <Skeleton className="lg:col-span-5 rounded-2xl h-full" />
-            <Skeleton className="lg:col-span-4 rounded-2xl h-full" />
-            <Skeleton className="lg:col-span-4 rounded-2xl h-full" />
-            <Skeleton className="lg:col-span-4 rounded-2xl h-full" />
+          <Skeleton className="h-10 w-64 mb-10 bg-white/5" />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            <Skeleton className="lg:col-span-8 aspect-[16/10] rounded-2xl bg-white/5" />
+            <div className="lg:col-span-4 grid grid-cols-2 lg:grid-cols-1 gap-4">
+              {[0, 1, 2, 3].map((i) => (
+                <Skeleton key={i} className="aspect-[16/10] lg:aspect-[16/9] rounded-xl bg-white/5" />
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -171,27 +97,27 @@ export function HomepageGallery() {
 
   if (!items || items.length === 0) return null;
 
-  const flagship = items[0];
-  const secondary = items.slice(1, 3); // 2 tall cards next to flagship
-  const rest = items.slice(3);
+  const active = items[activeIndex] || items[0];
+  const goPrev = () => setActiveIndex((i) => (i - 1 + items.length) % items.length);
+  const goNext = () => setActiveIndex((i) => (i + 1) % items.length);
 
   return (
     <section
       id="gallery-section"
       className="relative py-20 lg:py-28 px-4 bg-[#0b1220] overflow-hidden"
     >
-      {/* Subtle vignette only — no radar/particles/blueprint */}
+      {/* Subtle ambient glow */}
       <div
         aria-hidden
-        className="absolute inset-0 pointer-events-none opacity-[0.4]"
+        className="absolute inset-0 pointer-events-none opacity-[0.35]"
         style={{
           background:
-            "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,107,0,0.08), transparent 60%)",
+            "radial-gradient(ellipse 60% 50% at 30% 20%, rgba(255,107,0,0.10), transparent 60%)",
         }}
       />
 
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Editorial header */}
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -203,59 +129,226 @@ export function HomepageGallery() {
             <div className="flex items-center gap-3 mb-4">
               <span className="h-px w-8 bg-primary" />
               <span className="text-[11px] font-semibold tracking-[0.22em] uppercase text-primary">
-                Showcase
+                Field Journal
               </span>
             </div>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-white tracking-tight leading-[1.1]">
               A closer look at what we build.
             </h2>
           </div>
-          <p className="text-white/55 text-[15px] leading-relaxed max-w-sm">
-            Selected drone platforms, prototypes and field imagery from our engineering programs.
-          </p>
+          <div className="flex items-center gap-3 text-white/50 text-sm">
+            <span className="tabular-nums font-mono text-white">
+              {String(activeIndex + 1).padStart(2, "0")}
+            </span>
+            <span className="h-px w-8 bg-white/20" />
+            <span className="tabular-nums font-mono">
+              {String(items.length).padStart(2, "0")}
+            </span>
+          </div>
         </motion.div>
 
-        {/* Editorial bento grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5 auto-rows-[260px] lg:auto-rows-[280px]">
-          {/* Flagship — 7 cols x 2 rows */}
-          <div className="lg:col-span-7 lg:row-span-2">
-            <ShowcaseCard
-              item={flagship}
-              index={0}
-              variant="flagship"
-              onClick={() => handleOpenModal(flagship)}
-            />
+        {/* Stage layout: main viewer + thumbnail rail */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+          {/* Main viewer */}
+          <div className="lg:col-span-8">
+            <div
+              onClick={() => handleOpenModal(active)}
+              className="group relative w-full aspect-[16/10] overflow-hidden rounded-2xl border border-white/[0.08] bg-slate-900 cursor-pointer isolate"
+            >
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={active.id}
+                  src={active.image_url}
+                  alt={active.alt_text || active.title}
+                  initial={{ opacity: 0, scale: 1.04 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              </AnimatePresence>
+
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/35 to-slate-950/10" />
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-950/60 via-transparent to-transparent" />
+
+              {/* Top row */}
+              <div className="absolute top-4 left-4 right-4 z-10 flex items-start justify-between gap-2">
+                <div className="flex flex-wrap gap-2">
+                  {active.category && (
+                    <span className="px-2.5 py-1 rounded-md text-[10px] font-medium tracking-[0.12em] uppercase bg-white/10 backdrop-blur-md text-white/90 border border-white/15">
+                      {CATEGORY_LABELS[active.category] || active.category}
+                    </span>
+                  )}
+                  {active.is_featured && (
+                    <span className="px-2.5 py-1 rounded-md text-[10px] font-medium tracking-[0.12em] uppercase bg-primary/90 text-white border border-primary/40">
+                      Featured
+                    </span>
+                  )}
+                </div>
+                {active.video_url && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-medium uppercase tracking-[0.12em] bg-white/10 backdrop-blur-md text-white border border-white/15">
+                    <Play className="w-3 h-3" fill="currentColor" />
+                    Video
+                  </span>
+                )}
+              </div>
+
+              {/* Prev / Next arrows */}
+              <button
+                type="button"
+                aria-label="Previous"
+                onClick={(e) => { e.stopPropagation(); goPrev(); }}
+                className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-white/10 backdrop-blur-md border border-white/20 items-center justify-center text-white hover:bg-primary hover:border-primary transition-all"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                type="button"
+                aria-label="Next"
+                onClick={(e) => { e.stopPropagation(); goNext(); }}
+                className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-white/10 backdrop-blur-md border border-white/20 items-center justify-center text-white hover:bg-primary hover:border-primary transition-all"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+
+              {/* Bottom content */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={active.id + "-copy"}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  className="absolute inset-x-0 bottom-0 z-10 p-5 sm:p-6 lg:p-8"
+                >
+                  <div className="flex items-end justify-between gap-4">
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-white tracking-tight leading-tight text-xl sm:text-2xl lg:text-4xl">
+                        {active.title}
+                      </h3>
+                      {active.description && (
+                        <p className="mt-2 sm:mt-3 text-white/65 leading-relaxed text-sm sm:text-[15px] line-clamp-2 max-w-2xl">
+                          {active.description}
+                        </p>
+                      )}
+                    </div>
+                    <span className="hidden sm:inline-flex shrink-0 w-11 h-11 rounded-full border border-white/20 items-center justify-center text-white transition-all duration-300 group-hover:bg-primary group-hover:border-primary">
+                      <Maximize2 className="w-4 h-4" />
+                    </span>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Mobile progress dots */}
+            <div className="mt-4 flex md:hidden items-center justify-center gap-1.5">
+              {items.map((it, i) => (
+                <button
+                  key={it.id}
+                  onClick={() => setActiveIndex(i)}
+                  aria-label={`Show ${it.title}`}
+                  className={cn(
+                    "h-1.5 rounded-full transition-all",
+                    i === activeIndex ? "w-6 bg-primary" : "w-1.5 bg-white/25"
+                  )}
+                />
+              ))}
+            </div>
           </div>
 
-          {/* Two tall cards on the right — 5 cols each, single row */}
-          {secondary.map((item, i) => (
-            <div key={item.id} className="lg:col-span-5">
-              <ShowcaseCard
-                item={item}
-                index={i + 1}
-                variant="tall"
-                onClick={() => handleOpenModal(item)}
-              />
-            </div>
-          ))}
+          {/* Thumbnail rail */}
+          <div className="lg:col-span-4">
+            {/* Desktop: vertical scrollable rail. Tablet: 2x2 grid. Mobile: horizontal scroll */}
+            <div
+              className={cn(
+                "flex gap-3 lg:gap-4",
+                "overflow-x-auto lg:overflow-x-visible",
+                "lg:grid lg:grid-cols-1 lg:auto-rows-[minmax(0,1fr)]",
+                "lg:h-full lg:max-h-[560px] lg:overflow-y-auto lg:pr-1",
+                "snap-x snap-mandatory lg:snap-none",
+                "scrollbar-thin -mx-4 px-4 lg:mx-0 lg:px-0"
+              )}
+            >
+              {items.map((item, idx) => {
+                const isActive = idx === activeIndex;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setActiveIndex(idx)}
+                    className={cn(
+                      "group relative shrink-0 snap-start overflow-hidden rounded-xl border transition-all duration-300 text-left",
+                      "w-[75vw] xs:w-[60vw] sm:w-[280px] lg:w-full",
+                      "aspect-[16/10] lg:aspect-[16/9]",
+                      isActive
+                        ? "border-primary shadow-[0_0_0_1px_rgba(255,107,0,0.6),0_20px_40px_-20px_rgba(255,107,0,0.5)]"
+                        : "border-white/[0.08] hover:border-white/25"
+                    )}
+                  >
+                    <img
+                      src={item.image_url}
+                      alt={item.alt_text || item.title}
+                      loading="lazy"
+                      className={cn(
+                        "absolute inset-0 w-full h-full object-cover transition-all duration-500",
+                        isActive ? "scale-[1.02]" : "opacity-70 group-hover:opacity-100 group-hover:scale-[1.03]"
+                      )}
+                    />
+                    <div
+                      className={cn(
+                        "absolute inset-0 transition-opacity",
+                        isActive
+                          ? "bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent"
+                          : "bg-gradient-to-t from-slate-950/80 via-slate-950/40 to-slate-950/20"
+                      )}
+                    />
 
-          {/* Remaining items — 4 cols each */}
-          {rest.map((item, i) => (
-            <div key={item.id} className="lg:col-span-4">
-              <ShowcaseCard
-                item={item}
-                index={i + 3}
-                variant="regular"
-                onClick={() => handleOpenModal(item)}
-              />
+                    {/* Index badge */}
+                    <span className="absolute top-2.5 left-2.5 z-10 tabular-nums font-mono text-[10px] px-1.5 py-0.5 rounded bg-black/50 backdrop-blur-sm text-white/80 border border-white/10">
+                      {String(idx + 1).padStart(2, "0")}
+                    </span>
+
+                    {/* Video pill */}
+                    {item.video_url && (
+                      <span className="absolute top-2.5 right-2.5 z-10 w-6 h-6 rounded-full bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center">
+                        <Play className="w-2.5 h-2.5 text-white" fill="currentColor" />
+                      </span>
+                    )}
+
+                    {/* Active side accent */}
+                    {isActive && (
+                      <span className="absolute left-0 top-4 bottom-4 w-[3px] rounded-r bg-primary" />
+                    )}
+
+                    <div className="absolute inset-x-0 bottom-0 z-10 p-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-white text-[13px] font-medium leading-tight truncate">
+                          {item.title}
+                        </p>
+                        <ArrowUpRight
+                          className={cn(
+                            "w-3.5 h-3.5 shrink-0 transition-colors",
+                            isActive ? "text-primary" : "text-white/60"
+                          )}
+                        />
+                      </div>
+                      {item.category && (
+                        <p className="mt-0.5 text-[10px] uppercase tracking-[0.14em] text-white/50">
+                          {CATEGORY_LABELS[item.category] || item.category}
+                        </p>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
-          ))}
+          </div>
         </div>
       </div>
 
-      {/* Modal (unchanged behavior) */}
+      {/* Fullscreen modal */}
       <AnimatePresence>
-        {selectedItem && (
+        {modalItem && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -277,17 +370,17 @@ export function HomepageGallery() {
                 <X className="w-5 h-5" />
               </button>
 
-              {hasPrev && (
+              {modalHasPrev && (
                 <button
-                  onClick={(e) => { e.stopPropagation(); navigateItem("prev"); }}
+                  onClick={(e) => { e.stopPropagation(); navigateModal("prev"); }}
                   className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full text-white transition-colors"
                 >
                   <ChevronLeft className="w-6 h-6" />
                 </button>
               )}
-              {hasNext && (
+              {modalHasNext && (
                 <button
-                  onClick={(e) => { e.stopPropagation(); navigateItem("next"); }}
+                  onClick={(e) => { e.stopPropagation(); navigateModal("next"); }}
                   className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full text-white transition-colors"
                 >
                   <ChevronRight className="w-6 h-6" />
@@ -296,10 +389,10 @@ export function HomepageGallery() {
 
               <div className="flex flex-col lg:flex-row max-h-[90vh]">
                 <div className="lg:flex-1 bg-slate-100 relative min-h-[300px] lg:min-h-[500px]">
-                  {showVideo && selectedItem.video_url ? (
+                  {showVideo && modalItem.video_url ? (
                     <iframe
-                      src={`https://www.youtube-nocookie.com/embed/${getYouTubeVideoId(selectedItem.video_url)}?rel=0&modestbranding=1&showinfo=0`}
-                      title={selectedItem.title}
+                      src={`https://www.youtube-nocookie.com/embed/${getYouTubeVideoId(modalItem.video_url)}?rel=0&modestbranding=1&showinfo=0`}
+                      title={modalItem.title}
                       className="absolute inset-0 w-full h-full"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
@@ -307,11 +400,11 @@ export function HomepageGallery() {
                   ) : (
                     <div className="relative w-full h-full min-h-[300px] lg:min-h-[500px]">
                       <img
-                        src={selectedItem.image_url}
-                        alt={selectedItem.alt_text || selectedItem.title}
+                        src={modalItem.image_url}
+                        alt={modalItem.alt_text || modalItem.title}
                         className="absolute inset-0 w-full h-full object-contain"
                       />
-                      {selectedItem.video_url && (
+                      {modalItem.video_url && (
                         <button
                           onClick={() => setShowVideo(true)}
                           className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors"
@@ -326,22 +419,22 @@ export function HomepageGallery() {
                 </div>
 
                 <div className="lg:w-[380px] p-8 overflow-y-auto">
-                  {selectedItem.category && (
+                  {modalItem.category && (
                     <span className="inline-block mb-4 px-3 py-1 rounded-full text-[10px] font-semibold tracking-[0.14em] uppercase bg-primary/10 text-primary border border-primary/20">
-                      {CATEGORY_LABELS[selectedItem.category] || selectedItem.category}
+                      {CATEGORY_LABELS[modalItem.category] || modalItem.category}
                     </span>
                   )}
-                  <h2 className="text-2xl font-bold text-slate-900 mb-4">{selectedItem.title}</h2>
-                  {selectedItem.description && (
-                    <p className="text-slate-600 leading-relaxed mb-6">{selectedItem.description}</p>
+                  <h2 className="text-2xl font-bold text-slate-900 mb-4">{modalItem.title}</h2>
+                  {modalItem.description && (
+                    <p className="text-slate-600 leading-relaxed mb-6">{modalItem.description}</p>
                   )}
-                  {selectedItem.project_id && (
+                  {modalItem.project_id && (
                     <div className="pt-6 border-t border-slate-200">
                       <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Project Reference</p>
-                      <p className="text-sm font-mono text-slate-600">{selectedItem.project_id}</p>
+                      <p className="text-sm font-mono text-slate-600">{modalItem.project_id}</p>
                     </div>
                   )}
-                  {selectedItem.video_url && !showVideo && (
+                  {modalItem.video_url && !showVideo && (
                     <button
                       onClick={() => setShowVideo(true)}
                       className="mt-6 w-full flex items-center justify-center gap-2 py-3 px-4 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors"
