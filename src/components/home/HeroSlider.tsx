@@ -278,15 +278,14 @@ export const HeroSlider = ({ slides }: Props) => {
       {/* ============ LAYER 3 — Premium timeline navigation ============ */}
       {slides.length > 0 && (
         <div
-          className="absolute bottom-0 inset-x-0 z-30"
+          className="absolute bottom-0 inset-x-0 z-30 h-[88px] md:h-[115px]"
           style={{
-            height: NAV_H,
             background: "#111827",
             borderTop: "1px solid rgba(255,255,255,0.06)",
             boxShadow: "0 -20px 60px rgba(0,0,0,0.35)",
           }}
         >
-          <div className="h-full max-w-[1440px] mx-auto flex items-stretch px-4 md:px-8">
+          <div className="h-full max-w-[1440px] mx-auto flex items-stretch px-3 md:px-8">
             {/* Slides timeline */}
             <div className="flex-1 flex items-stretch overflow-x-auto no-scrollbar">
               {slides.map((s, i) => {
@@ -295,7 +294,7 @@ export const HeroSlider = ({ slides }: Props) => {
                   <button
                     key={s.id}
                     onClick={() => setIndex(i)}
-                    className={`group relative flex-1 min-w-[200px] text-left px-6 py-5 transition-all duration-300 ${
+                    className={`group relative flex-1 min-w-[140px] md:min-w-[200px] text-left px-3 md:px-6 py-3 md:py-5 transition-all duration-300 ${
                       isActive
                         ? "bg-white/[0.04]"
                         : "opacity-70 hover:opacity-100 hover:-translate-y-[2px]"
