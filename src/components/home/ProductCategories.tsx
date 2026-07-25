@@ -107,14 +107,25 @@ function Tile({ cat, i, cfg }: { cat: CategoryDef; i: number; cfg: TileConfig })
         <motion.div {...fadeUp} transition={{ duration: 0.55, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }} className={base}>
           <Link
             to={href}
-            className="block h-full bg-[#111a2e] p-8 flex flex-col min-h-[200px] border border-white/5 hover:border-[#ff6b00]/40 transition-colors duration-300"
+            className="relative block h-full bg-[#111a2e] p-8 flex flex-col min-h-[200px] border border-white/5 hover:border-[#ff6b00]/40 transition-colors duration-300 overflow-hidden"
           >
-            <span className="text-white/30 text-xs italic">{num}.</span>
-            <h3 className="text-2xl md:text-3xl mt-2 text-white leading-tight">
-              {cat.title}
-            </h3>
-            <p className="text-xs text-slate-400 mt-2 leading-relaxed">{cat.description}</p>
-            <div className="mt-auto pt-6 text-[#ff6b00]">{arrow}</div>
+            <div className="absolute inset-0 z-0">
+              <img
+                src={cat.image}
+                alt={cat.title}
+                loading="lazy"
+                className="w-full h-full object-cover opacity-25 group-hover:opacity-40 group-hover:scale-[1.05] transition-all duration-[900ms] ease-out"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#111a2e] via-[#111a2e]/85 to-[#111a2e]/40" />
+            </div>
+            <div className="relative z-10 flex flex-col h-full">
+              <span className="text-white/30 text-xs italic">{num}.</span>
+              <h3 className="text-2xl md:text-3xl mt-2 text-white leading-tight">
+                {cat.title}
+              </h3>
+              <p className="text-xs text-slate-400 mt-2 leading-relaxed">{cat.description}</p>
+              <div className="mt-auto pt-6 text-[#ff6b00]">{arrow}</div>
+            </div>
           </Link>
         </motion.div>
       );
@@ -124,16 +135,27 @@ function Tile({ cat, i, cfg }: { cat: CategoryDef; i: number; cfg: TileConfig })
         <motion.div {...fadeUp} transition={{ duration: 0.55, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }} className={base}>
           <Link
             to={href}
-            className="block h-full bg-white/[0.03] backdrop-blur p-8 flex flex-col min-h-[200px] border border-white/10 hover:bg-white/[0.06] hover:border-[#ff6b00]/40 transition-all duration-300"
+            className="relative block h-full bg-white/[0.03] backdrop-blur p-8 flex flex-col min-h-[200px] border border-white/10 hover:bg-white/[0.06] hover:border-[#ff6b00]/40 transition-all duration-300 overflow-hidden"
           >
-            <span className="text-[#ff6b00]/80 text-xs italic">{num}.</span>
-            <h3 className="text-2xl md:text-3xl mt-2 text-white leading-tight">
-              {cat.title}
-            </h3>
-            <p className="text-xs text-slate-400 mt-2 leading-relaxed">{cat.description}</p>
-            <span className="mt-auto pt-6 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.22em] text-[#ff6b00] w-fit border-b border-[#ff6b00]/60 pb-1">
-              Recon Details
-            </span>
+            <div className="absolute inset-0 z-0">
+              <img
+                src={cat.image}
+                alt={cat.title}
+                loading="lazy"
+                className="w-full h-full object-cover opacity-20 group-hover:opacity-35 group-hover:scale-[1.05] transition-all duration-[900ms] ease-out"
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-[#0F172A]/90 via-[#0F172A]/70 to-transparent" />
+            </div>
+            <div className="relative z-10 flex flex-col h-full">
+              <span className="text-[#ff6b00]/80 text-xs italic">{num}.</span>
+              <h3 className="text-2xl md:text-3xl mt-2 text-white leading-tight">
+                {cat.title}
+              </h3>
+              <p className="text-xs text-slate-400 mt-2 leading-relaxed">{cat.description}</p>
+              <span className="mt-auto pt-6 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.22em] text-[#ff6b00] w-fit border-b border-[#ff6b00]/60 pb-1">
+                Recon Details
+              </span>
+            </div>
           </Link>
         </motion.div>
       );
@@ -175,8 +197,17 @@ function Tile({ cat, i, cfg }: { cat: CategoryDef; i: number; cfg: TileConfig })
         <motion.div {...fadeUp} transition={{ duration: 0.55, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }} className={base}>
           <Link
             to={href}
-            className="block h-full bg-[#111a2e] p-8 flex flex-col justify-between min-h-[200px] border border-white/5 hover:border-[#ff6b00]/40 transition-colors duration-300 relative overflow-hidden"
+            className="relative block h-full bg-[#111a2e] p-8 flex flex-col justify-between min-h-[200px] border border-white/5 hover:border-[#ff6b00]/40 transition-colors duration-300 overflow-hidden"
           >
+            <div className="absolute inset-0 z-0">
+              <img
+                src={cat.image}
+                alt={cat.title}
+                loading="lazy"
+                className="w-full h-full object-cover opacity-25 group-hover:opacity-40 group-hover:scale-[1.05] transition-all duration-[900ms] ease-out"
+              />
+              <div className="absolute inset-0 bg-gradient-to-l from-[#111a2e] via-[#111a2e]/85 to-[#111a2e]/40" />
+            </div>
             <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-[#ff6b00]/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="relative z-10">
               <span className="text-white/30 text-xs italic">{num}.</span>
@@ -200,15 +231,24 @@ function Tile({ cat, i, cfg }: { cat: CategoryDef; i: number; cfg: TileConfig })
         <motion.div {...fadeUp} transition={{ duration: 0.55, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }} className={base}>
           <Link
             to={href}
-            className="block h-full bg-white/[0.03] p-8 flex flex-col justify-between min-h-[200px] border border-white/10 hover:bg-white/[0.06] hover:border-[#ff6b00]/40 transition-all duration-300"
+            className="relative block h-full bg-white/[0.03] p-8 flex flex-col justify-between min-h-[200px] border border-white/10 hover:bg-white/[0.06] hover:border-[#ff6b00]/40 transition-all duration-300 overflow-hidden"
           >
-            <div>
+            <div className="absolute inset-0 z-0">
+              <img
+                src={cat.image}
+                alt={cat.title}
+                loading="lazy"
+                className="w-full h-full object-cover opacity-20 group-hover:opacity-35 group-hover:scale-[1.05] transition-all duration-[900ms] ease-out"
+              />
+              <div className="absolute inset-0 bg-gradient-to-tr from-[#0F172A]/90 via-[#0F172A]/70 to-transparent" />
+            </div>
+            <div className="relative z-10">
               <span className="text-[#ff6b00]/80 text-xs italic">{num}.</span>
               <h3 className="text-2xl md:text-3xl mt-2 text-white leading-tight">
                 {cat.title}
               </h3>
             </div>
-            <div className="mt-4 flex items-end justify-between gap-4">
+            <div className="relative z-10 mt-4 flex items-end justify-between gap-4">
               <p className="text-xs text-slate-400 max-w-[240px] leading-relaxed">{cat.description}</p>
               <div className="text-[#ff6b00] shrink-0">
                 <Plus className="w-6 h-6" strokeWidth={1.5} />

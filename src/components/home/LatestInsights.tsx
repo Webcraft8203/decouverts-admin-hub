@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
-import { ArrowRight, Calendar } from "lucide-react";
+import { ArrowRight, ArrowLeft, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const ORANGE = "#FF6B00";
@@ -45,103 +45,38 @@ export function LatestInsights() {
   });
 
   const items = posts || [];
-  // Duplicate for seamless infinite loop
-  const loop = items.length > 0 ? [...items, ...items] : [];
 
-  const trackRef = useRef<HTMLDivElement>(null);
-  const rafRef = useRef<number | null>(null);
-  const offsetRef = useRef(0);
-  const halfWidthRef = useRef(0);
-  const pausedRef = useRef(false);
-  const lastTimeRef = useRef<number | null>(null);
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(false);
 
-  // Drag state
-  const draggingRef = useRef(false);
-  const dragStartXRef = useRef(0);
-  const dragStartOffsetRef = useRef(0);
-  const [isDragging, setIsDragging] = useState(false);
-
-  const SPEED = 40; // px/sec
-
-  const applyTransform = useCallback(() => {
-    if (trackRef.current) {
-      trackRef.current.style.transform = `translate3d(${-offsetRef.current}px, 0, 0)`;
-    }
-  }, []);
-
-  const measure = useCallback(() => {
-    if (!trackRef.current) return;
-    halfWidthRef.current = trackRef.current.scrollWidth / 2;
+  const updateArrows = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    setCanPrev(el.scrollLeft > 4);
+    setCanNext(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
   }, []);
 
   useEffect(() => {
-    if (loop.length === 0) return;
-    measure();
-    const onResize = () => measure();
-    window.addEventListener("resize", onResize);
-
-    const tick = (t: number) => {
-      if (lastTimeRef.current == null) lastTimeRef.current = t;
-      const dt = (t - lastTimeRef.current) / 1000;
-      lastTimeRef.current = t;
-      if (!pausedRef.current && !draggingRef.current && halfWidthRef.current > 0) {
-        offsetRef.current += SPEED * dt;
-        if (offsetRef.current >= halfWidthRef.current) offsetRef.current -= halfWidthRef.current;
-        if (offsetRef.current < 0) offsetRef.current += halfWidthRef.current;
-        applyTransform();
-      }
-      rafRef.current = requestAnimationFrame(tick);
-    };
-    rafRef.current = requestAnimationFrame(tick);
+    updateArrows();
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", updateArrows, { passive: true });
+    window.addEventListener("resize", updateArrows);
     return () => {
-      window.removeEventListener("resize", onResize);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      lastTimeRef.current = null;
+      el.removeEventListener("scroll", updateArrows);
+      window.removeEventListener("resize", updateArrows);
     };
-  }, [loop.length, applyTransform, measure]);
+  }, [updateArrows, items.length]);
 
-  const DRAG_THRESHOLD = 6;
-  const pointerDownXRef = useRef(0);
-  const pointerDownYRef = useRef(0);
-
-  const onPointerDown = (e: React.PointerEvent) => {
-    // Do NOT capture on down — we only capture once we detect a real drag,
-    // otherwise pointer capture on the parent swallows the click on child <Link>.
-    if (e.pointerType === "mouse" && e.button !== 0) return;
-    pointerDownXRef.current = e.clientX;
-    pointerDownYRef.current = e.clientY;
-    dragStartXRef.current = e.clientX;
-    dragStartOffsetRef.current = offsetRef.current;
+  const scrollByCards = (dir: 1 | -1) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    // one card + gap ≈ card width; approx by 80% of clientWidth for smoothness
+    const first = el.querySelector<HTMLElement>("[data-insight-card]");
+    const step = first ? first.offsetWidth + 24 : el.clientWidth * 0.8;
+    el.scrollBy({ left: dir * step, behavior: "smooth" });
   };
-  const onPointerMove = (e: React.PointerEvent) => {
-    const dxTotal = e.clientX - pointerDownXRef.current;
-    const dyTotal = e.clientY - pointerDownYRef.current;
-    if (!draggingRef.current) {
-      // Start drag only after horizontal threshold is crossed
-      if (Math.abs(dxTotal) < DRAG_THRESHOLD || Math.abs(dxTotal) < Math.abs(dyTotal)) return;
-      draggingRef.current = true;
-      setIsDragging(true);
-      try {
-        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-      } catch {}
-    }
-    const dx = e.clientX - dragStartXRef.current;
-    let next = dragStartOffsetRef.current - dx;
-    const w = halfWidthRef.current || 1;
-    next = ((next % w) + w) % w;
-    offsetRef.current = next;
-    applyTransform();
-  };
-  const endDrag = (e: React.PointerEvent) => {
-    if (!draggingRef.current) return;
-    draggingRef.current = false;
-    // Delay clearing dragging state so an accidental click that follows a drag is suppressed
-    setTimeout(() => setIsDragging(false), 0);
-    try {
-      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-    } catch {}
-  };
-
 
   return (
     <section
@@ -169,10 +104,7 @@ export function LatestInsights() {
               background: "rgba(255,107,0,0.06)",
             }}
           >
-            <span
-              className="h-1.5 w-1.5 rounded-full"
-              style={{ background: ORANGE }}
-            />
+            <span className="h-1.5 w-1.5 rounded-full" style={{ background: ORANGE }} />
             Latest Insights
           </span>
           <h2 className="mt-6 text-4xl font-bold leading-[1.05] tracking-tight text-slate-900 md:text-5xl lg:text-[56px]">
@@ -187,42 +119,50 @@ export function LatestInsights() {
         </div>
 
         {/* Carousel */}
-        {loop.length > 0 && (
+        {items.length > 0 && (
           <div className="relative">
             {/* Edge fades */}
             <div
               aria-hidden
-              className="pointer-events-none absolute left-0 top-0 z-10 h-full w-24 bg-gradient-to-r from-white to-transparent md:w-40"
+              className="pointer-events-none absolute left-0 top-0 z-10 h-full w-16 bg-gradient-to-r from-white to-transparent md:w-32"
             />
             <div
               aria-hidden
-              className="pointer-events-none absolute right-0 top-0 z-10 h-full w-24 bg-gradient-to-l from-white to-transparent md:w-40"
+              className="pointer-events-none absolute right-0 top-0 z-10 h-full w-16 bg-gradient-to-l from-white to-transparent md:w-32"
             />
-            <div
-              className="overflow-hidden"
-              onMouseEnter={() => {
-                pausedRef.current = true;
-              }}
-              onMouseLeave={() => {
-                pausedRef.current = false;
-              }}
+
+            {/* Prev button */}
+            <button
+              type="button"
+              onClick={() => scrollByCards(-1)}
+              disabled={!canPrev}
+              aria-label="Previous"
+              className="absolute left-3 md:left-6 top-1/2 z-20 -translate-y-1/2 flex h-11 w-11 md:h-12 md:w-12 items-center justify-center rounded-full bg-white shadow-[0_10px_30px_-8px_rgba(15,23,42,0.25)] ring-1 ring-slate-200 text-slate-800 transition-all hover:bg-[#FF6B00] hover:text-white hover:ring-[#FF6B00] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-800 disabled:hover:ring-slate-200"
             >
-              <div
-                ref={trackRef}
-                className="flex gap-6 py-6 will-change-transform select-none"
-                style={{
-                  cursor: isDragging ? "grabbing" : "grab",
-                  touchAction: "pan-y",
-                }}
-                onPointerDown={onPointerDown}
-                onPointerMove={onPointerMove}
-                onPointerUp={endDrag}
-                onPointerCancel={endDrag}
-              >
-                {loop.map((p, i) => (
-                  <InsightCard key={`${p.id}-${i}`} post={p} />
-                ))}
-              </div>
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+
+            {/* Next button */}
+            <button
+              type="button"
+              onClick={() => scrollByCards(1)}
+              disabled={!canNext}
+              aria-label="Next"
+              className="absolute right-3 md:right-6 top-1/2 z-20 -translate-y-1/2 flex h-11 w-11 md:h-12 md:w-12 items-center justify-center rounded-full bg-white shadow-[0_10px_30px_-8px_rgba(15,23,42,0.25)] ring-1 ring-slate-200 text-slate-800 transition-all hover:bg-[#FF6B00] hover:text-white hover:ring-[#FF6B00] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-800 disabled:hover:ring-slate-200"
+            >
+              <ArrowRight className="h-5 w-5" />
+            </button>
+
+            <div
+              ref={scrollerRef}
+              className="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory py-6 px-6 md:px-16 no-scrollbar"
+              style={{ scrollbarWidth: "none" }}
+            >
+              {items.map((p) => (
+                <div key={p.id} data-insight-card className="snap-start shrink-0">
+                  <InsightCard post={p} />
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -235,9 +175,7 @@ function InsightCard({ post }: { post: Post }) {
   return (
     <Link
       to={`/blogs/${post.slug}`}
-      draggable={false}
-      onDragStart={(e) => e.preventDefault()}
-      className="group relative flex w-[320px] shrink-0 flex-col overflow-hidden rounded-[18px] bg-white shadow-[0_8px_24px_-14px_rgba(15,23,42,0.18)] ring-1 ring-slate-100 transition-all duration-500 ease-out hover:-translate-y-1.5 hover:shadow-[0_28px_50px_-20px_rgba(15,23,42,0.25)] sm:w-[340px] lg:w-[350px]"
+      className="group relative flex w-[300px] sm:w-[340px] lg:w-[360px] shrink-0 flex-col overflow-hidden rounded-[18px] bg-white shadow-[0_8px_24px_-14px_rgba(15,23,42,0.18)] ring-1 ring-slate-100 transition-all duration-500 ease-out hover:-translate-y-1.5 hover:shadow-[0_28px_50px_-20px_rgba(15,23,42,0.25)]"
     >
       {/* 16:10 image */}
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100">
@@ -247,7 +185,6 @@ function InsightCard({ post }: { post: Post }) {
             alt={post.title}
             className="h-full w-full object-cover transition-transform duration-[700ms] ease-out group-hover:scale-[1.05]"
             loading="lazy"
-            draggable={false}
           />
         ) : (
           <div className="h-full w-full bg-gradient-to-br from-slate-200 to-slate-300" />
