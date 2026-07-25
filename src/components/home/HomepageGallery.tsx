@@ -34,6 +34,8 @@ const getYouTubeVideoId = (url: string): string | null => {
 
 export function HomepageGallery() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [direction, setDirection] = useState<1 | -1>(1);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [modalItem, setModalItem] = useState<GalleryItem | null>(null);
   const [showVideo, setShowVideo] = useState(false);
 
@@ -98,8 +100,20 @@ export function HomepageGallery() {
   if (!items || items.length === 0) return null;
 
   const active = items[activeIndex] || items[0];
-  const goPrev = () => setActiveIndex((i) => (i - 1 + items.length) % items.length);
-  const goNext = () => setActiveIndex((i) => (i + 1) % items.length);
+  const selectIndex = (next: number) => {
+    setDirection(next > activeIndex || (activeIndex === items.length - 1 && next === 0) ? 1 : -1);
+    setActiveIndex(next);
+  };
+  const goPrev = () => selectIndex((activeIndex - 1 + items.length) % items.length);
+  const goNext = () => selectIndex((activeIndex + 1) % items.length);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2; // -1..1
+    const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+    setTilt({ x: -y * 4, y: x * 6 }); // rotateX, rotateY (deg)
+  };
+  const resetTilt = () => setTilt({ x: 0, y: 0 });
 
   return (
     <section
@@ -152,21 +166,73 @@ export function HomepageGallery() {
           {/* Main viewer */}
           <div className="lg:col-span-8">
             <div
-              onClick={() => handleOpenModal(active)}
-              className="group relative w-full aspect-[16/10] overflow-hidden rounded-2xl border border-white/[0.08] bg-slate-900 cursor-pointer isolate"
+              onMouseMove={handleMouseMove}
+              onMouseLeave={resetTilt}
+              style={{ perspective: "1400px" }}
+              className="relative w-full aspect-[16/10]"
             >
-              <AnimatePresence mode="wait">
-                <motion.img
-                  key={active.id}
-                  src={active.image_url}
-                  alt={active.alt_text || active.title}
-                  initial={{ opacity: 0, scale: 1.04 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-              </AnimatePresence>
+              <motion.div
+                onClick={() => handleOpenModal(active)}
+                animate={{ rotateX: tilt.x, rotateY: tilt.y }}
+                transition={{ type: "spring", stiffness: 120, damping: 18, mass: 0.6 }}
+                style={{ transformStyle: "preserve-3d" }}
+                className="group relative w-full h-full overflow-hidden rounded-2xl border border-white/[0.08] bg-slate-900 cursor-pointer isolate shadow-[0_40px_80px_-40px_rgba(0,0,0,0.9)]"
+              >
+                {/* 3D image stack */}
+                <div className="absolute inset-0" style={{ transformStyle: "preserve-3d" }}>
+                  <AnimatePresence mode="wait" custom={direction}>
+                    <motion.img
+                      key={active.id}
+                      src={active.image_url}
+                      alt={active.alt_text || active.title}
+                      custom={direction}
+                      initial={{
+                        opacity: 0,
+                        rotateY: direction * 35,
+                        z: -180,
+                        x: direction * 60,
+                        scale: 1.05,
+                        filter: "blur(8px) brightness(0.6)",
+                      }}
+                      animate={{
+                        opacity: 1,
+                        rotateY: 0,
+                        z: 0,
+                        x: 0,
+                        scale: 1,
+                        filter: "blur(0px) brightness(1)",
+                      }}
+                      exit={{
+                        opacity: 0,
+                        rotateY: -direction * 25,
+                        z: -80,
+                        x: -direction * 40,
+                        scale: 0.98,
+                        filter: "blur(6px) brightness(0.7)",
+                      }}
+                      transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
+                      style={{ transformStyle: "preserve-3d", backfaceVisibility: "hidden" }}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  </AnimatePresence>
+                </div>
+
+                {/* Cinematic scanline sweep during transition */}
+                <AnimatePresence>
+                  <motion.div
+                    key={active.id + "-sweep"}
+                    aria-hidden
+                    initial={{ x: "-120%", opacity: 0.9 }}
+                    animate={{ x: "120%", opacity: 0 }}
+                    transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                    className="absolute inset-y-0 w-1/2 pointer-events-none z-[5]"
+                    style={{
+                      background:
+                        "linear-gradient(90deg, transparent 0%, rgba(255,107,0,0.15) 45%, rgba(255,255,255,0.35) 50%, rgba(255,107,0,0.15) 55%, transparent 100%)",
+                      mixBlendMode: "screen",
+                    }}
+                  />
+                </AnimatePresence>
 
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/35 to-slate-950/10" />
               <div className="absolute inset-0 bg-gradient-to-r from-slate-950/60 via-transparent to-transparent" />
@@ -238,14 +304,22 @@ export function HomepageGallery() {
                   </div>
                 </motion.div>
               </AnimatePresence>
+
+              {/* Cinematic viewfinder corner brackets */}
+              <span aria-hidden className="pointer-events-none absolute top-3 left-3 w-6 h-6 border-l-2 border-t-2 border-white/40 rounded-tl-md z-20" />
+              <span aria-hidden className="pointer-events-none absolute top-3 right-3 w-6 h-6 border-r-2 border-t-2 border-white/40 rounded-tr-md z-20" />
+              <span aria-hidden className="pointer-events-none absolute bottom-3 left-3 w-6 h-6 border-l-2 border-b-2 border-white/40 rounded-bl-md z-20" />
+              <span aria-hidden className="pointer-events-none absolute bottom-3 right-3 w-6 h-6 border-r-2 border-b-2 border-white/40 rounded-br-md z-20" />
+              </motion.div>
             </div>
+
 
             {/* Mobile progress dots */}
             <div className="mt-4 flex md:hidden items-center justify-center gap-1.5">
               {items.map((it, i) => (
                 <button
                   key={it.id}
-                  onClick={() => setActiveIndex(i)}
+                  onClick={() => selectIndex(i)}
                   aria-label={`Show ${it.title}`}
                   className={cn(
                     "h-1.5 rounded-full transition-all",
@@ -275,7 +349,7 @@ export function HomepageGallery() {
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => setActiveIndex(idx)}
+                    onClick={() => selectIndex(idx)}
                     className={cn(
                       "group relative shrink-0 snap-start overflow-hidden rounded-xl border transition-all duration-300 text-left",
                       "w-[75vw] xs:w-[60vw] sm:w-[280px] lg:w-full",
