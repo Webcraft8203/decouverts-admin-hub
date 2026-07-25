@@ -319,7 +319,7 @@ export function HomepageGallery() {
               {items.map((it, i) => (
                 <button
                   key={it.id}
-                  onClick={() => setActiveIndex(i)}
+                  onClick={() => selectIndex(i)}
                   aria-label={`Show ${it.title}`}
                   className={cn(
                     "h-1.5 rounded-full transition-all",
@@ -349,7 +349,7 @@ export function HomepageGallery() {
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => setActiveIndex(idx)}
+                    onClick={() => selectIndex(idx)}
                     className={cn(
                       "group relative shrink-0 snap-start overflow-hidden rounded-xl border transition-all duration-300 text-left",
                       "w-[75vw] xs:w-[60vw] sm:w-[280px] lg:w-full",
