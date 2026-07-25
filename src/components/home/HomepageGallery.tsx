@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { X, Play, ChevronLeft, ChevronRight, ArrowRight, Sparkles } from "lucide-react";
+import { X, Play, ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface GalleryItem {
@@ -32,121 +32,83 @@ const getYouTubeVideoId = (url: string): string | null => {
   return match ? match[1] : null;
 };
 
-const BADGE_POOL = ["Made in India", "Flagship", "Mission Ready", "R&D", "New"];
-const pickBadges = (item: GalleryItem, index: number): string[] => {
-  const badges: string[] = [];
-  if (index === 0) badges.push("Flagship");
-  if (item.is_featured && index !== 0) badges.push("Mission Ready");
-  badges.push("Made in India");
-  return badges.slice(0, 2);
-};
-
 interface ShowcaseCardProps {
   item: GalleryItem;
   index: number;
-  size: "flagship" | "large" | "regular";
+  variant: "flagship" | "tall" | "regular";
   onClick: () => void;
 }
 
-function ShowcaseCard({ item, index, size, onClick }: ShowcaseCardProps) {
-  const badges = pickBadges(item, index);
-  const isFlagship = size === "flagship";
+function ShowcaseCard({ item, index, variant, onClick }: ShowcaseCardProps) {
+  const isFlagship = variant === "flagship";
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.6, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.55, delay: Math.min(index, 6) * 0.06, ease: [0.22, 1, 0.36, 1] }}
       onClick={onClick}
       className={cn(
-        "group relative overflow-hidden rounded-[24px] cursor-pointer isolate",
-        "bg-slate-900 border border-slate-200/60",
-        "shadow-[0_2px_20px_-8px_rgba(15,23,42,0.15)]",
-        "transition-all duration-300 ease-out",
-        "hover:-translate-y-3 hover:shadow-[0_30px_60px_-20px_rgba(255,107,0,0.35),0_0_0_1px_rgba(255,107,0,0.2)]",
-        isFlagship ? "min-h-[520px] lg:min-h-[640px]" : "min-h-[300px] lg:min-h-[310px]"
+        "group relative overflow-hidden rounded-2xl cursor-pointer isolate h-full w-full",
+        "border border-white/[0.06] bg-slate-900",
+        "transition-all duration-500 ease-out",
+        "hover:border-white/[0.14] hover:shadow-[0_30px_60px_-30px_rgba(0,0,0,0.8)]"
       )}
     >
-      {/* Image */}
       <img
         src={item.image_url}
         alt={item.alt_text || item.title}
         loading="lazy"
-        className="absolute inset-0 w-full h-full object-cover transition-transform duration-[700ms] ease-out group-hover:scale-[1.08]"
+        className="absolute inset-0 w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.05]"
       />
 
-      {/* Dark cinematic gradient */}
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-950/10" />
-      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      {/* Editorial gradient — dark bottom for legibility */}
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/40 to-transparent" />
 
-      {/* Video play indicator */}
-      {item.video_url && (
-        <div className="absolute top-5 right-5 z-10">
-          <div className="w-11 h-11 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-lg">
-            <Play className="w-4 h-4 text-white ml-0.5" fill="white" />
-          </div>
-        </div>
-      )}
-
-      {/* Top: badges */}
-      <div className="absolute top-5 left-5 z-10 flex flex-wrap gap-2">
-        {item.category && (
-          <span className="px-3 py-1 rounded-full text-[10px] font-semibold tracking-[0.14em] uppercase bg-white/10 backdrop-blur-md text-white border border-white/20">
+      {/* Top row: category + video pill */}
+      <div className="absolute top-4 left-4 right-4 z-10 flex items-start justify-between gap-2">
+        {item.category ? (
+          <span className="px-2.5 py-1 rounded-md text-[10px] font-medium tracking-[0.12em] uppercase bg-white/10 backdrop-blur-md text-white/90 border border-white/15">
             {CATEGORY_LABELS[item.category] || item.category}
           </span>
-        )}
-        {badges.map((b) => (
-          <span
-            key={b}
-            className={cn(
-              "px-3 py-1 rounded-full text-[10px] font-semibold tracking-[0.14em] uppercase backdrop-blur-md border",
-              b === "Flagship"
-                ? "bg-primary/90 text-white border-primary/50 shadow-[0_0_20px_rgba(255,107,0,0.5)]"
-                : "bg-white/10 text-white border-white/20"
-            )}
-          >
-            {b}
+        ) : <span />}
+        {item.video_url && (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-medium uppercase tracking-[0.12em] bg-white/10 backdrop-blur-md text-white border border-white/15">
+            <Play className="w-3 h-3" fill="currentColor" />
+            Video
           </span>
-        ))}
+        )}
       </div>
 
       {/* Bottom content */}
-      <div className={cn("absolute inset-x-0 bottom-0 z-10 p-6 lg:p-8", isFlagship && "lg:p-10")}>
-        <h3
-          className={cn(
-            "font-bold text-white tracking-tight leading-tight mb-3",
-            isFlagship ? "text-3xl md:text-4xl lg:text-5xl" : "text-xl md:text-2xl"
-          )}
-        >
-          {item.title}
-        </h3>
-        {item.description && (
-          <p
-            className={cn(
-              "text-white/70 leading-relaxed mb-5 max-w-2xl",
-              isFlagship ? "text-base lg:text-lg line-clamp-2" : "text-sm line-clamp-1"
+      <div className={cn("absolute inset-x-0 bottom-0 z-10 p-5 lg:p-6", isFlagship && "lg:p-8")}>
+        <div className="flex items-end justify-between gap-4">
+          <div className="min-w-0">
+            <h3
+              className={cn(
+                "font-semibold text-white tracking-tight leading-tight",
+                isFlagship ? "text-2xl md:text-3xl lg:text-4xl" : "text-lg lg:text-xl"
+              )}
+            >
+              {item.title}
+            </h3>
+            {item.description && (
+              <p
+                className={cn(
+                  "mt-2 text-white/60 leading-relaxed",
+                  isFlagship ? "text-sm lg:text-base line-clamp-2 max-w-xl" : "text-[13px] line-clamp-1"
+                )}
+              >
+                {item.description}
+              </p>
             )}
-          >
-            {item.description}
-          </p>
-        )}
-
-        {/* Explore button */}
-        <div className="inline-flex items-center gap-2 text-white font-semibold text-sm group/btn">
-          <span className="relative overflow-hidden">
-            <span className="inline-block transition-transform duration-300 group-hover:-translate-x-1">
-              Explore
-            </span>
-          </span>
-          <span className="relative w-9 h-9 rounded-full bg-white/10 backdrop-blur-md border border-white/25 flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:bg-primary group-hover:border-primary group-hover:shadow-[0_0_20px_rgba(255,107,0,0.6)]">
-            <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+          </div>
+          <span className="shrink-0 w-9 h-9 rounded-full border border-white/20 flex items-center justify-center text-white transition-all duration-300 group-hover:bg-primary group-hover:border-primary">
+            <ArrowUpRight className="w-4 h-4" />
           </span>
         </div>
       </div>
-
-      {/* Orange accent line on hover */}
-      <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-primary to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-center z-20" />
     </motion.article>
   );
 }
@@ -192,11 +154,16 @@ export function HomepageGallery() {
 
   if (isLoading) {
     return (
-      <section className="py-20 px-4 bg-[#080c14]">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Skeleton className="lg:col-span-2 lg:row-span-2 h-[640px] rounded-[24px]" />
-          <Skeleton className="h-[310px] rounded-[24px]" />
-          <Skeleton className="h-[310px] rounded-[24px]" />
+      <section className="py-20 px-4 bg-[#0b1220]">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5 auto-rows-[260px]">
+            <Skeleton className="lg:col-span-7 lg:row-span-2 rounded-2xl h-full" />
+            <Skeleton className="lg:col-span-5 rounded-2xl h-full" />
+            <Skeleton className="lg:col-span-5 rounded-2xl h-full" />
+            <Skeleton className="lg:col-span-4 rounded-2xl h-full" />
+            <Skeleton className="lg:col-span-4 rounded-2xl h-full" />
+            <Skeleton className="lg:col-span-4 rounded-2xl h-full" />
+          </div>
         </div>
       </section>
     );
@@ -205,122 +172,88 @@ export function HomepageGallery() {
   if (!items || items.length === 0) return null;
 
   const flagship = items[0];
-  const secondary = items.slice(1, 5);
-  const rest = items.slice(5);
+  const secondary = items.slice(1, 3); // 2 tall cards next to flagship
+  const rest = items.slice(3);
 
   return (
     <section
       id="gallery-section"
-      className="relative py-20 lg:py-28 px-4 bg-[#080c14] overflow-hidden"
+      className="relative py-20 lg:py-28 px-4 bg-[#0b1220] overflow-hidden"
     >
-      {/* Engineering blueprint background */}
+      {/* Subtle vignette only — no radar/particles/blueprint */}
       <div
         aria-hidden
-        className="absolute inset-0 opacity-[0.5] pointer-events-none"
+        className="absolute inset-0 pointer-events-none opacity-[0.4]"
         style={{
-          backgroundImage:
-            "linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px)",
-          backgroundSize: "56px 56px",
-          maskImage:
-            "radial-gradient(ellipse 80% 60% at 50% 40%, black 40%, transparent 100%)",
-          WebkitMaskImage:
-            "radial-gradient(ellipse 80% 60% at 50% 40%, black 40%, transparent 100%)",
+          background:
+            "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,107,0,0.08), transparent 60%)",
         }}
       />
-
-      {/* Blueprint diagonal lines */}
-      <div
-        aria-hidden
-        className="absolute inset-0 opacity-[0.08] pointer-events-none"
-        style={{
-          backgroundImage:
-            "repeating-linear-gradient(45deg, transparent 0 80px, rgba(255,107,0,0.5) 80px 81px)",
-        }}
-      />
-
-      {/* HUD rings */}
-      <div aria-hidden className="absolute top-1/4 -left-40 w-[480px] h-[480px] rounded-full border border-primary/15 pointer-events-none animate-[spin_60s_linear_infinite]" />
-      <div aria-hidden className="absolute top-1/4 -left-40 w-[480px] h-[480px] rounded-full border-2 border-dashed border-primary/10 scale-75 pointer-events-none animate-[spin_40s_linear_infinite_reverse]" />
-      <div aria-hidden className="absolute bottom-0 -right-40 w-[560px] h-[560px] rounded-full border border-primary/15 pointer-events-none animate-[spin_80s_linear_infinite]" />
-
-      {/* Glowing orange particles */}
-      <div aria-hidden className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[20%] left-[15%] w-2 h-2 rounded-full bg-primary/60 shadow-[0_0_20px_6px_rgba(255,107,0,0.4)] animate-pulse" />
-        <div className="absolute top-[70%] left-[80%] w-1.5 h-1.5 rounded-full bg-primary/60 shadow-[0_0_16px_5px_rgba(255,107,0,0.4)] animate-pulse [animation-delay:600ms]" />
-        <div className="absolute top-[40%] left-[92%] w-1 h-1 rounded-full bg-primary/60 shadow-[0_0_12px_4px_rgba(255,107,0,0.4)] animate-pulse [animation-delay:1200ms]" />
-        <div className="absolute top-[85%] left-[10%] w-1.5 h-1.5 rounded-full bg-primary/60 shadow-[0_0_16px_5px_rgba(255,107,0,0.4)] animate-pulse [animation-delay:1800ms]" />
-      </div>
-
-      {/* Ambient radial glow */}
-      <div aria-hidden className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,107,0,0.10),transparent_60%)] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Header */}
+        {/* Editorial header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="mb-12 lg:mb-16 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6"
+          className="mb-10 lg:mb-14 flex flex-col md:flex-row md:items-end md:justify-between gap-6 border-b border-white/10 pb-8"
         >
-          <div>
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 text-[11px] font-semibold tracking-[0.18em] uppercase text-primary bg-primary/15 border border-primary/30 rounded-full">
-              <Sparkles className="w-3.5 h-3.5" />
-              Engineering Showcase
-            </span>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.05]">
-              Built for the mission.
-              <br />
-              <span className="text-white/40">Engineered in India.</span>
+          <div className="max-w-2xl">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="h-px w-8 bg-primary" />
+              <span className="text-[11px] font-semibold tracking-[0.22em] uppercase text-primary">
+                Showcase
+              </span>
+            </div>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-white tracking-tight leading-[1.1]">
+              A closer look at what we build.
             </h2>
           </div>
-          <p className="text-white/65 text-base lg:text-lg max-w-md leading-relaxed">
-            A closer look at our flagship drone platforms, prototypes and mission-ready systems.
+          <p className="text-white/55 text-[15px] leading-relaxed max-w-sm">
+            Selected drone platforms, prototypes and field imagery from our engineering programs.
           </p>
         </motion.div>
 
-
-        {/* Asymmetric grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6">
-          {/* Flagship spans 2 cols x 2 rows */}
-          <div className="lg:col-span-2 lg:row-span-2">
+        {/* Editorial bento grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5 auto-rows-[260px] lg:auto-rows-[280px]">
+          {/* Flagship — 7 cols x 2 rows */}
+          <div className="lg:col-span-7 lg:row-span-2">
             <ShowcaseCard
               item={flagship}
               index={0}
-              size="flagship"
+              variant="flagship"
               onClick={() => handleOpenModal(flagship)}
             />
           </div>
 
-          {/* Secondary cards */}
+          {/* Two tall cards on the right — 5 cols each, single row */}
           {secondary.map((item, i) => (
-            <ShowcaseCard
-              key={item.id}
-              item={item}
-              index={i + 1}
-              size="regular"
-              onClick={() => handleOpenModal(item)}
-            />
-          ))}
-        </div>
-
-        {/* Any remaining items in a clean row */}
-        {rest.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6 mt-5 lg:mt-6">
-            {rest.map((item, i) => (
+            <div key={item.id} className="lg:col-span-5">
               <ShowcaseCard
-                key={item.id}
                 item={item}
-                index={i + 5}
-                size="regular"
+                index={i + 1}
+                variant="tall"
                 onClick={() => handleOpenModal(item)}
               />
-            ))}
-          </div>
-        )}
+            </div>
+          ))}
+
+          {/* Remaining items — 4 cols each */}
+          {rest.map((item, i) => (
+            <div key={item.id} className="lg:col-span-4">
+              <ShowcaseCard
+                item={item}
+                index={i + 3}
+                variant="regular"
+                onClick={() => handleOpenModal(item)}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Modal */}
+      {/* Modal (unchanged behavior) */}
       <AnimatePresence>
         {selectedItem && (
           <motion.div
