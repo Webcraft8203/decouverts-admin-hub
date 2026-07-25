@@ -178,12 +178,11 @@ export const HeroSlider = ({ slides }: Props) => {
 
       {/* ============ LAYER 2 — Left-anchored content ============ */}
       <div
-        className="absolute inset-x-0 top-0 z-20 flex items-center pointer-events-none"
-        style={{ bottom: NAV_H }}
+        className="absolute inset-x-0 top-0 z-20 flex items-center pointer-events-none pb-[88px] md:pb-[115px]"
       >
         <div
-          className="w-full mx-auto"
-          style={{ maxWidth: 1440, paddingLeft: "clamp(24px, 8vw, 120px)", paddingRight: "clamp(24px, 6vw, 80px)" }}
+          className="w-full mx-auto px-6 sm:px-10 md:px-16 lg:px-24"
+          style={{ maxWidth: 1440 }}
         >
           <div className="max-w-[720px] pointer-events-auto">
             <AnimatePresence mode="wait">
@@ -199,7 +198,7 @@ export const HeroSlider = ({ slides }: Props) => {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.05 }}
-                  className="inline-flex items-center gap-2 py-2 px-4 rounded-full backdrop-blur-md text-[10px] md:text-[11px] font-semibold tracking-[0.32em] uppercase mb-8 text-white"
+                  className="inline-flex items-center gap-2 py-1.5 px-3 md:py-2 md:px-4 rounded-full backdrop-blur-md text-[9px] md:text-[11px] font-semibold tracking-[0.24em] md:tracking-[0.32em] uppercase mb-4 md:mb-8 text-white"
                   style={{
                     background: "rgba(255,255,255,0.06)",
                     border: `1px solid ${ORANGE}80`,
@@ -218,11 +217,10 @@ export const HeroSlider = ({ slides }: Props) => {
                   initial={{ opacity: 0, y: 24 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.75, delay: 0.14 }}
-                  className="text-white font-extrabold tracking-[-0.015em] mb-8"
+                  className="text-white font-extrabold tracking-[-0.015em] mb-4 md:mb-8 text-[2rem] sm:text-[2.75rem] md:text-[3.5rem] lg:text-[4.5rem]"
                   style={{
                     fontFamily: "'Montserrat', sans-serif",
-                    fontSize: "clamp(2.5rem, 6vw, 4.5rem)",
-                    lineHeight: 0.95,
+                    lineHeight: 1.02,
                     textShadow: "0 4px 40px rgba(0,0,0,0.5)",
                   }}
                 >
@@ -235,11 +233,9 @@ export const HeroSlider = ({ slides }: Props) => {
                     initial={{ opacity: 0, y: 18 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.75, delay: 0.24 }}
-                    className="mb-10"
+                    className="mb-6 md:mb-10 text-sm md:text-lg leading-relaxed md:leading-[1.8] line-clamp-4 md:line-clamp-none"
                     style={{
                       color: "rgba(226,232,240,0.82)",
-                      fontSize: 18,
-                      lineHeight: 1.8,
                       maxWidth: 620,
                     }}
                   >
