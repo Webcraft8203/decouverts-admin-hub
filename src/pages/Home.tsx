@@ -16,7 +16,7 @@ import { ContactSection } from "@/components/home/ContactSection";
 import { OurCustomers } from "@/components/home/OurCustomers";
 import { OurPartners } from "@/components/home/OurPartners";
 import { BackToTop } from "@/components/home/BackToTop";
-import { CinematicSection, TacticalDivider } from "@/components/home/CinematicSection";
+import { CinematicSection, CinematicDivider } from "@/components/home/CinematicSection";
 
 import { OrganizationSchema } from "@/components/SEOSchemas";
 import { usePageSEO } from "@/hooks/usePageSEO";
@@ -64,47 +64,47 @@ const Home = () => {
         {/* Hero stays untouched — defence-briefing rhythm wraps everything below */}
         <HeroSection />
 
-        <TacticalDivider code="SEC · 01" label="MISSION TELEMETRY" status="LIVE FEED" tone="dark" />
+        <CinematicDivider tone="dark" />
         <CinematicSection variant="rise" hud grid scan grain tone="dark">
           <StatsCounter />
         </CinematicSection>
 
-        <TacticalDivider code="SEC · 02" label="OPERATIONAL CAPABILITIES" status="CLASSIFIED" tone="dark" />
+        <CinematicDivider tone="dark" />
         <CinematicSection variant="scale" hud grid vignette scan tone="dark">
           <ProductCategories />
         </CinematicSection>
 
-        <TacticalDivider code="SEC · 03" label="DEPLOYED PLATFORMS" status="IN SERVICE" tone="light" />
+        <CinematicDivider tone="light" />
         <CinematicSection variant="rise" hud delay={60} tone="light">
           <FeaturedProducts />
         </CinematicSection>
 
-        <TacticalDivider code="SEC · 04" label="TRUSTED OPERATORS" status="AUTHORISED" tone="light" />
+        <CinematicDivider tone="light" />
         <CinematicSection variant="pan" tone="light">
           <OurCustomers />
         </CinematicSection>
 
-        <TacticalDivider code="SEC · 05" label="COMPLIANCE MATRIX" status="CERTIFIED" tone="dark" />
+        <CinematicDivider tone="dark" />
         <CinematicSection variant="blur" hud grid grain vignette scan tone="dark">
           <CertificationsSection />
         </CinematicSection>
 
-        <TacticalDivider code="SEC · 06" label="STRATEGIC PARTNERS" status="LINKED" tone="light" />
+        <CinematicDivider tone="light" />
         <CinematicSection variant="pan" tone="light">
           <OurPartners />
         </CinematicSection>
 
-        <TacticalDivider code="SEC · 07" label="INTEL BRIEFINGS" status="UPDATED" tone="light" />
+        <CinematicDivider tone="light" />
         <CinematicSection variant="rise" tone="light">
           <LatestInsights />
         </CinematicSection>
 
-        <TacticalDivider code="SEC · 08" label="FIELD IMAGERY" status="DECLASSIFIED" tone="dark" />
+        <CinematicDivider tone="dark" />
         <CinematicSection variant="scale" hud grid vignette grain scan tone="dark">
           <HomepageGallery />
         </CinematicSection>
 
-        <TacticalDivider code="SEC · 09" label="SECURE CHANNEL" status="ENCRYPTED" tone="light" />
+        <CinematicDivider tone="light" />
         <CinematicSection variant="rise" hud delay={80} tone="light">
           <ContactSection />
         </CinematicSection>
