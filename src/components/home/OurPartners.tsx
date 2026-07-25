@@ -155,14 +155,14 @@ export const OurPartners = () => {
   };
 
   return (
-    <section className="relative py-16 md:py-24 bg-white overflow-hidden">
+    <section className="relative py-16 md:py-24 bg-[#080c14] overflow-hidden">
       {/* Subtle engineering grid */}
       <div
         aria-hidden
-        className="absolute inset-0 opacity-[0.35] pointer-events-none"
+        className="absolute inset-0 opacity-[0.5] pointer-events-none"
         style={{
           backgroundImage:
-            "linear-gradient(to right, rgba(15,23,42,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(15,23,42,0.05) 1px, transparent 1px)",
+            "linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)",
           backgroundSize: "56px 56px",
           maskImage:
             "radial-gradient(ellipse at center, black 40%, transparent 80%)",
@@ -176,7 +176,7 @@ export const OurPartners = () => {
         className="absolute left-1/2 top-8 -translate-x-1/2 w-[680px] h-[280px] pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse at center, hsl(var(--primary) / 0.14), transparent 70%)",
+            "radial-gradient(ellipse at center, hsl(var(--primary) / 0.22), transparent 70%)",
         }}
       />
 
@@ -188,13 +188,13 @@ export const OurPartners = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <span className="inline-block px-4 py-1.5 mb-5 text-[10px] font-bold tracking-[0.28em] uppercase rounded-full bg-primary/10 text-primary border border-primary/20">
+          <span className="inline-block px-4 py-1.5 mb-5 text-[10px] font-bold tracking-[0.28em] uppercase rounded-full bg-primary/15 text-primary border border-primary/30">
             Trusted By
           </span>
-          <h2 className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight mb-4">
+          <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight mb-4">
             Trusted By Industry & <span className="text-primary">Government</span>
           </h2>
-          <p className="text-slate-600 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+          <p className="text-white/65 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
             Collaborating with defence organizations, government agencies, research
             institutes and industry leaders to build next-generation drone technologies.
           </p>
@@ -207,8 +207,9 @@ export const OurPartners = () => {
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
-        <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+        <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-[#080c14] to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-[#080c14] to-transparent z-10 pointer-events-none" />
+
 
         <div
           ref={trackRef}
