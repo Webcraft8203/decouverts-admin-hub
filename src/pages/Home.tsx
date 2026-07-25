@@ -16,6 +16,7 @@ import { ContactSection } from "@/components/home/ContactSection";
 import { OurCustomers } from "@/components/home/OurCustomers";
 import { OurPartners } from "@/components/home/OurPartners";
 import { BackToTop } from "@/components/home/BackToTop";
+import { CinematicSection, CinematicDivider } from "@/components/home/CinematicSection";
 
 import { OrganizationSchema } from "@/components/SEOSchemas";
 import { usePageSEO } from "@/hooks/usePageSEO";
@@ -60,17 +61,50 @@ const Home = () => {
       <NotificationMarquee />
 
       <main className={`flex-1 ${hasNotification ? "pt-[132px] md:pt-[138px]" : "pt-[88px] md:pt-[90px]"}`}>
-        {/* Alternating dark / light rhythm */}
+        {/* Hero stays untouched — cinematic reveals wrap the sections below */}
         <HeroSection />
-        <StatsCounter />
-        <ProductCategories />
-        <FeaturedProducts />
-        <OurCustomers />
-        <CertificationsSection />
-        <OurPartners />
-        <LatestInsights />
-        <HomepageGallery />
-        <ContactSection />
+
+        <CinematicSection variant="rise" grain>
+          <StatsCounter />
+        </CinematicSection>
+        <CinematicDivider tone="dark" />
+
+        <CinematicSection variant="scale" vignette>
+          <ProductCategories />
+        </CinematicSection>
+        <CinematicDivider tone="light" />
+
+        <CinematicSection variant="rise" delay={60}>
+          <FeaturedProducts />
+        </CinematicSection>
+        <CinematicDivider tone="dark" />
+
+        <CinematicSection variant="pan">
+          <OurCustomers />
+        </CinematicSection>
+
+        <CinematicSection variant="blur" grain vignette>
+          <CertificationsSection />
+        </CinematicSection>
+        <CinematicDivider tone="dark" />
+
+        <CinematicSection variant="pan">
+          <OurPartners />
+        </CinematicSection>
+
+        <CinematicSection variant="rise">
+          <LatestInsights />
+        </CinematicSection>
+        <CinematicDivider tone="dark" />
+
+        <CinematicSection variant="scale" vignette grain>
+          <HomepageGallery />
+        </CinematicSection>
+        <CinematicDivider tone="light" />
+
+        <CinematicSection variant="rise" delay={80}>
+          <ContactSection />
+        </CinematicSection>
       </main>
 
       <PublicFooter />
