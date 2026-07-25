@@ -129,7 +129,7 @@ export const OurPartners = () => {
             />
           </div>
         </div>
-        <p className="mt-4 text-center text-[13px] md:text-sm font-semibold text-slate-700 group-hover:text-primary transition-colors duration-300 max-w-[150px] leading-snug">
+        <p className="mt-4 text-center text-[13px] md:text-sm font-semibold text-white/80 group-hover:text-primary transition-colors duration-300 max-w-[150px] leading-snug">
           {partner.partner_name}
         </p>
       </div>
