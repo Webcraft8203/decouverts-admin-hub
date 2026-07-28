@@ -84,14 +84,15 @@ export const PublicNavbar = () => {
     <nav
       className={cn(
         "fixed top-0 left-0 w-full z-50",
-        "h-[88px] md:h-[90px]",
-        "transition-[background-color,box-shadow,backdrop-filter] duration-[250ms] ease-out",
+        "h-[76px] md:h-[84px]",
+        "transition-[background-color,box-shadow,backdrop-filter,border-color] duration-300 ease-out",
+        "border-b",
         isScrolled
-          ? "bg-white/[0.97] shadow-[0_1px_3px_rgba(0,0,0,0.06)] backdrop-blur-[6px]"
-          : "bg-white"
+          ? "bg-[hsl(222,30%,6%)]/92 backdrop-blur-md border-white/10 shadow-[0_1px_0_rgba(255,255,255,0.04)]"
+          : "bg-transparent border-transparent"
       )}
     >
-      <div className="mx-auto h-full max-w-[1440px] px-6 md:px-10 lg:px-20 flex items-center justify-between relative">
+      <div className="mx-auto h-full max-w-[1440px] px-6 md:px-10 lg:px-16 flex items-center justify-between relative">
         {/* Left — Logo + Brand */}
         <div
           onClick={handleLogoClick}
@@ -100,20 +101,18 @@ export const PublicNavbar = () => {
           <img
             src={logo}
             alt="Decouvertes Logo"
-            className="h-9 md:h-11 lg:h-12 w-auto object-contain transition-transform group-hover:scale-105"
+            className="h-9 md:h-10 w-auto object-contain transition-transform group-hover:scale-105"
           />
           <div className="flex flex-col justify-center">
             <span
-              className="text-base md:text-lg lg:text-xl font-bold tracking-[0.15em] uppercase leading-none text-foreground"
-              style={{ fontFamily: "'Montserrat', sans-serif" }}
+              className="font-display text-base md:text-lg font-bold tracking-[0.22em] uppercase leading-none text-white"
             >
               DECOUVERTES
             </span>
             <span
-              className="text-[8px] md:text-[9px] lg:text-[10px] font-medium tracking-wider leading-tight mt-0.5 text-primary"
-              style={{ fontFamily: "'Montserrat', sans-serif" }}
+              className="font-display text-[9px] md:text-[10px] font-medium tracking-[0.32em] uppercase leading-tight mt-1 text-primary/90"
             >
-              Discovering Future Technologies
+              Defence · Tech · India
             </span>
           </div>
         </div>
