@@ -6,76 +6,74 @@
 
 @layer base {
   :root {
-    /* Light backgrounds with more depth */
+    /* Soft White canvas */
     --background: 210 20% 98%;
-    --foreground: 222 47% 11%;
+    --foreground: 220 25% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 220 25% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 220 25% 10%;
 
-    /* Primary: Vibrant Orange */
-    --primary: 24 95% 53%;
+    /* Primary: Signal Orange #FF6B00 */
+    --primary: 25 100% 50%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Soft Slate Gray */
-    --secondary: 214 32% 95%;
-    --secondary-foreground: 222 47% 11%;
+    /* Secondary: cool graphite tint */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 25% 10%;
 
-    --muted: 214 32% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 45%;
 
-    /* Accent: Warm Amber */
-    --accent: 38 92% 50%;
+    --accent: 25 100% 50%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Success state */
-    --success: 142 71% 45%;
+    --success: 142 71% 40%;
     --success-foreground: 0 0% 100%;
 
-    /* Warning state */
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 24 95% 53%;
+    /* Hairline border */
+    --border: 220 15% 90%;
+    --input: 220 15% 90%;
+    --ring: 25 100% 50%;
 
     --radius: 0.75rem;
 
-    /* Sidebar - Light elegant */
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 24 95% 53%;
+    --sidebar-foreground: 220 25% 10%;
+    --sidebar-primary: 25 100% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 40% 96%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 24 95% 53%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 220 25% 10%;
+    --sidebar-border: 220 15% 90%;
+    --sidebar-ring: 25 100% 50%;
 
-    /* Chart colors - Orange/Amber gradient */
-    --chart-1: 24 95% 53%;
+    --chart-1: 25 100% 50%;
     --chart-2: 32 95% 50%;
     --chart-3: 38 92% 50%;
-    --chart-4: 45 93% 47%;
-    --chart-5: 16 90% 50%;
+    --chart-4: 220 25% 10%;
+    --chart-5: 220 15% 40%;
 
-    /* Brand specific */
-    --brand-orange: 24 95% 53%;
+    /* Brand — Defence palette */
+    --brand-orange: 25 100% 50%;
     --brand-amber: 38 92% 50%;
-    --brand-navy: 222 47% 11%;
-    
-    /* Dark section colors */
-    --dark-surface: 222 47% 11%;
-    --dark-surface-elevated: 222 40% 14%;
-    --dark-surface-accent: 222 35% 18%;
-    --dark-muted: 215 20% 65%;
-    --dark-border: 217 33% 20%;
+    --brand-graphite: 220 20% 14%;
+    --brand-navy: 217 40% 10%;
+    --brand-matte: 222 30% 6%;
+
+    /* Dark section tokens — Matte Black / Deep Navy / Graphite */
+    --dark-surface: 222 30% 6%;
+    --dark-surface-elevated: 217 40% 10%;
+    --dark-surface-accent: 220 20% 14%;
+    --dark-muted: 220 12% 62%;
+    --dark-border: 220 20% 18%;
   }
 
   .dark {
