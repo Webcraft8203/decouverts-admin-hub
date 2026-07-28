@@ -264,7 +264,7 @@ export const PublicNavbar = () => {
             </Button>
           )}
           <button
-            className="p-2 text-slate-700 rounded-lg hover:bg-white/5 transition-colors"
+            className="p-2 text-white rounded-lg hover:bg-white/5 transition-colors"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
