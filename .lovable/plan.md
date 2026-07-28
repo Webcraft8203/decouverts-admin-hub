@@ -5,7 +5,7 @@ Reposition the Shop from an e-commerce grid into an **interactive aerospace prod
 Given the size, I'll deliver this in **5 sequenced phases**. Each phase is shippable on its own — you can approve, review, then say "continue" for the next.
 
 ---
-
+ 
 ## Design Language (locked across all phases)
 
 - **Palette:** White base, graphite `#1a1d24`, signal orange `#FF6A1A`, soft glass surfaces
