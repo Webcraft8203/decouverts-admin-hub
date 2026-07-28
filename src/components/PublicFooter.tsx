@@ -104,13 +104,14 @@ export const PublicFooter = () => {
   };
 
   return (
-    <footer className="bg-slate-950 text-white relative overflow-hidden border-t border-slate-900">
-      {/* Subtle grid pattern */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] opacity-20 pointer-events-none" />
-      
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60 pointer-events-none" />
-      
+    <footer className="bg-[hsl(222,30%,6%)] text-white relative overflow-hidden border-t border-white/5">
+      {/* Engineering grid overlay */}
+      <div className="absolute inset-0 grid-engineering-dark opacity-60 pointer-events-none" />
+      {/* Orange horizon glow */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent pointer-events-none" />
+      <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[300px] rounded-full pointer-events-none"
+        style={{ background: "radial-gradient(ellipse at center, hsl(var(--primary) / 0.10), transparent 70%)" }} />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8">
           
@@ -125,17 +126,15 @@ export const PublicFooter = () => {
                 />
               </div>
               <div className="flex flex-col justify-center">
-                <span 
-                  className="text-xl font-bold text-white tracking-[0.15em] uppercase leading-none"
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                <span
+                  className="font-display text-xl font-bold text-white tracking-[0.22em] uppercase leading-none"
                 >
                   DECOUVERTES
                 </span>
-                <span 
-                  className="text-[10px] text-primary font-medium tracking-wider leading-tight mt-0.5"
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                <span
+                  className="font-display text-[10px] text-primary font-medium tracking-[0.32em] uppercase leading-tight mt-1"
                 >
-                  Discovering Future Technologies
+                  Defence · Tech · India
                 </span>
               </div>
             </div>
@@ -309,12 +308,19 @@ export const PublicFooter = () => {
           >
             © {new Date().getFullYear()} DECOUVERTES. All rights reserved.
           </button>
-          <div className="flex items-center gap-6">
-             <button 
+          <div className="flex items-center gap-4">
+             <button
                onClick={() => setShowMadeInIndia(true)}
-               className="text-slate-500 text-sm flex items-center gap-2 hover:text-primary transition-colors group"
+               className="group inline-flex items-center gap-3 px-4 py-2 rounded-full border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-primary/40 transition-all"
              >
-              Proudly Made in <span className="text-primary font-medium group-hover:underline">India</span> 🇮🇳
+              <span className="flex items-center gap-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#FF9933]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#138808]" />
+              </span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/70 group-hover:text-white">
+                Made in <span className="text-primary">India</span>
+              </span>
             </button>
           </div>
         </div>

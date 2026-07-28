@@ -60,7 +60,7 @@ const Home = () => {
       <PublicNavbar />
       <NotificationMarquee />
 
-      <main className={`flex-1 ${hasNotification ? "pt-[132px] md:pt-[138px]" : "pt-[88px] md:pt-[90px]"}`}>
+      <main className={`flex-1 ${hasNotification ? "pt-[120px] md:pt-[128px]" : "pt-[76px] md:pt-[84px]"}`}>
         {/* Hero stays untouched — defence-briefing rhythm wraps everything below */}
         <HeroSection />
 

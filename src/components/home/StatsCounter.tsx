@@ -58,21 +58,20 @@ export const StatsCounter = () => {
           {stats.map((stat, index) => (
             <motion.div
               key={stat.label}
-              className="group relative bg-white border border-slate-200 rounded-2xl p-6 md:p-7 overflow-hidden hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_30px_60px_-30px_hsl(var(--primary)/0.45)] transition-all duration-500"
+              className="group relative bg-white hairline rounded-2xl p-7 md:p-9 overflow-hidden elevation-1 hover:elevation-3 hover:-translate-y-1 hover:border-primary/40 transition-all duration-500 accent-bar-orange"
               initial={{ opacity: 0, y: 30 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6, delay: index * 0.12, ease: "easeOut" }}
             >
-              <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent opacity-70 group-hover:opacity-100 transition-opacity" />
-              <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute -top-16 -right-16 w-40 h-40 bg-primary/[0.06] rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               <div className="relative">
-                <h3 className="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight leading-none mb-3">
+                <h3 className="font-display text-5xl md:text-6xl font-bold text-slate-900 tracking-[-0.03em] leading-none mb-4">
                   <AnimatedNumber value={stat.value} suffix={stat.suffix} inView={isInView} />
                 </h3>
-                <p className="font-semibold text-slate-900 text-sm md:text-[15px] mb-1">
+                <p className="font-display font-semibold text-slate-900 text-[15px] md:text-base mb-1 tracking-tight">
                   {stat.label}
                 </p>
-                <p className="text-slate-500 text-xs md:text-[13px]">
+                <p className="text-slate-500 text-[13px] md:text-sm">
                   {stat.description}
                 </p>
               </div>

@@ -6,76 +6,74 @@
 
 @layer base {
   :root {
-    /* Light backgrounds with more depth */
+    /* Soft White canvas */
     --background: 210 20% 98%;
-    --foreground: 222 47% 11%;
+    --foreground: 220 25% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 220 25% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 220 25% 10%;
 
-    /* Primary: Vibrant Orange */
-    --primary: 24 95% 53%;
+    /* Primary: Signal Orange #FF6B00 */
+    --primary: 25 100% 50%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Soft Slate Gray */
-    --secondary: 214 32% 95%;
-    --secondary-foreground: 222 47% 11%;
+    /* Secondary: cool graphite tint */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 25% 10%;
 
-    --muted: 214 32% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 45%;
 
-    /* Accent: Warm Amber */
-    --accent: 38 92% 50%;
+    --accent: 25 100% 50%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Success state */
-    --success: 142 71% 45%;
+    --success: 142 71% 40%;
     --success-foreground: 0 0% 100%;
 
-    /* Warning state */
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 24 95% 53%;
+    /* Hairline border */
+    --border: 220 15% 90%;
+    --input: 220 15% 90%;
+    --ring: 25 100% 50%;
 
     --radius: 0.75rem;
 
-    /* Sidebar - Light elegant */
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 24 95% 53%;
+    --sidebar-foreground: 220 25% 10%;
+    --sidebar-primary: 25 100% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 40% 96%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 24 95% 53%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 220 25% 10%;
+    --sidebar-border: 220 15% 90%;
+    --sidebar-ring: 25 100% 50%;
 
-    /* Chart colors - Orange/Amber gradient */
-    --chart-1: 24 95% 53%;
+    --chart-1: 25 100% 50%;
     --chart-2: 32 95% 50%;
     --chart-3: 38 92% 50%;
-    --chart-4: 45 93% 47%;
-    --chart-5: 16 90% 50%;
+    --chart-4: 220 25% 10%;
+    --chart-5: 220 15% 40%;
 
-    /* Brand specific */
-    --brand-orange: 24 95% 53%;
+    /* Brand — Defence palette */
+    --brand-orange: 25 100% 50%;
     --brand-amber: 38 92% 50%;
-    --brand-navy: 222 47% 11%;
-    
-    /* Dark section colors */
-    --dark-surface: 222 47% 11%;
-    --dark-surface-elevated: 222 40% 14%;
-    --dark-surface-accent: 222 35% 18%;
-    --dark-muted: 215 20% 65%;
-    --dark-border: 217 33% 20%;
+    --brand-graphite: 220 20% 14%;
+    --brand-navy: 217 40% 10%;
+    --brand-matte: 222 30% 6%;
+
+    /* Dark section tokens — Matte Black / Deep Navy / Graphite */
+    --dark-surface: 222 30% 6%;
+    --dark-surface-elevated: 217 40% 10%;
+    --dark-surface-accent: 220 20% 14%;
+    --dark-muted: 220 12% 62%;
+    --dark-border: 220 20% 18%;
   }
 
   .dark {
@@ -141,33 +139,89 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply bg-background text-foreground antialiased font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  
-  /* Typography hierarchy */
+
+  /* Display typography — Space Grotesk on every heading */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+    font-feature-settings: "ss01" 1, "ss02" 1;
+  }
+
   h1 {
-    @apply text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1];
+    @apply text-4xl md:text-6xl lg:text-7xl font-bold tracking-[-0.02em] leading-[1.02];
   }
-  
   h2 {
-    @apply text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-tight;
+    @apply text-3xl md:text-5xl lg:text-[3.5rem] font-bold tracking-[-0.02em] leading-[1.05];
   }
-  
   h3 {
-    @apply text-2xl md:text-3xl font-bold tracking-tight;
+    @apply text-2xl md:text-3xl font-semibold tracking-[-0.015em];
   }
-  
-  h4 {
-    @apply text-xl md:text-2xl font-semibold;
+  h4 { @apply text-xl md:text-2xl font-semibold tracking-tight; }
+  h5 { @apply text-lg md:text-xl font-semibold; }
+  h6 { @apply text-base md:text-lg font-semibold; }
+}
+
+/* Premium Defence utilities */
+@layer utilities {
+  .font-display { font-family: 'Space Grotesk', Inter, sans-serif; }
+
+  /* Engineering grid overlay — 32px */
+  .grid-engineering {
+    background-image:
+      linear-gradient(to right, hsl(220 20% 60% / 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(220 20% 60% / 0.08) 1px, transparent 1px);
+    background-size: 32px 32px;
   }
-  
-  h5 {
-    @apply text-lg md:text-xl font-semibold;
+  .grid-engineering-dark {
+    background-image:
+      linear-gradient(to right, hsl(220 20% 80% / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(220 20% 80% / 0.05) 1px, transparent 1px);
+    background-size: 32px 32px;
   }
-  
-  h6 {
-    @apply text-base md:text-lg font-semibold;
+
+  /* HUD corner brackets */
+  .hud-corner::before,
+  .hud-corner::after {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 1px solid hsl(var(--primary));
+    pointer-events: none;
+    transition: all 300ms ease;
+  }
+  .hud-corner::before { top: 8px; left: 8px; border-right: none; border-bottom: none; }
+  .hud-corner::after  { bottom: 8px; right: 8px; border-left: none; border-top: none; }
+
+  /* Metallic subtle gradient */
+  .metallic-gradient {
+    background: linear-gradient(135deg,
+      hsl(222 30% 6%) 0%,
+      hsl(217 40% 10%) 50%,
+      hsl(220 20% 14%) 100%);
+  }
+
+  /* Hairlines */
+  .hairline { border: 1px solid hsl(220 15% 90%); }
+  .hairline-dark { border: 1px solid hsl(220 20% 18%); }
+
+  /* Elevations — soft layered */
+  .elevation-1 { box-shadow: 0 1px 2px hsl(220 40% 10% / 0.04), 0 2px 8px hsl(220 40% 10% / 0.04); }
+  .elevation-2 { box-shadow: 0 4px 12px hsl(220 40% 10% / 0.06), 0 12px 32px hsl(220 40% 10% / 0.08); }
+  .elevation-3 { box-shadow: 0 8px 24px hsl(220 40% 10% / 0.08), 0 32px 64px hsl(220 40% 10% / 0.12); }
+  .shadow-orange-glow { box-shadow: 0 12px 40px -12px hsl(var(--primary) / 0.35); }
+
+  /* Signal orange accent bar */
+  .accent-bar-orange::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 24px;
+    width: 32px; height: 2px;
+    background: hsl(var(--primary));
   }
 }
 

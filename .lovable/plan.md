@@ -1,80 +1,82 @@
-# Shop Redesign — Aerospace Deep-Tech Experience
+# Decouvertes — Premium Defence UI Redesign
 
-Reposition the Shop from an e-commerce grid into an **interactive aerospace product catalogue** modeled after DJI Enterprise / Anduril / Skydio / Apple. All content stays driven by the existing admin panel; backend gets small additive extensions for 3D models, CAD files, and mission metadata.
+Visual-only redesign across the public site. Zero changes to logic, routes, APIs, DB, forms, components' behavior, or admin. Everything remains fully dynamic and CMS-driven.
 
-Given the size, I'll deliver this in **5 sequenced phases**. Each phase is shippable on its own — you can approve, review, then say "continue" for the next.
+## Design System (foundation)
 
----
- 
-## Design Language (locked across all phases)
+Update `src/index.css` + `tailwind.config.ts` + `index.html`:
 
-- **Palette:** White base, graphite `#1a1d24`, signal orange `#FF6A1A`, soft glass surfaces
-- **Motifs:** Thin engineering grid, blueprint lines, radar rings, orange glow accents, glassmorphism
-- **Type:** Large display headings (Space Grotesk / Sora), technical mono for specs (JetBrains Mono)
-- **Motion:** Framer Motion everywhere — parallax, scroll reveals, hover lifts, cinematic transitions
-- **Feel:** Engineered, precise, minimal, futuristic — never "shop-y"
+- **Palette (HSL tokens)**
+  - `--background` Soft White `210 20% 98%`
+  - `--foreground` Graphite `220 25% 10%`
+  - `--surface-dark` Matte Black `222 30% 6%`
+  - `--surface-navy` Deep Navy `217 40% 10%`
+  - `--surface-graphite` `220 15% 14%`
+  - `--primary` Signal Orange `18 100% 50%` (#FF6B00)
+  - `--muted-foreground` `220 10% 45%`
+  - `--border` hairline `220 15% 88%` / dark `220 20% 18%`
+- **Typography**: Space Grotesk (display 600/700), Inter (body 400/500). Load via `index.html`. Set in Tailwind `fontFamily.display` + `fontFamily.sans`. Enforce large H1 (clamp 3rem→5.5rem), H2 (clamp 2rem→3.5rem), body 16-18px, tight tracking on headings.
+- **Utilities**
+  - `.grid-engineering` — subtle 32px grid overlay (2% opacity)
+  - `.hud-corner` — 12px L-brackets for cards
+  - `.metallic-gradient` — very subtle linear (navy→graphite)
+  - `.hairline` — 1px border tokenized
+  - `.elevation-1/2/3` — soft layered shadows
+  - `.reveal-up` — fade+translate 12px (already have CinematicSection)
+- **Rhythm**: strict alternation Dark → Light → Dark → Light across homepage sections.
 
----
+## Section-by-section (files touched)
 
-## Phase 1 — Backend extensions (additive, non-breaking)
+Only markup, className, and imagery. No prop, hook, or handler changes.
 
-New tables and columns to power 3D models, mission metadata, and richer product data. Existing admin flows keep working.
+1. **PublicNavbar** (`src/components/PublicNavbar.tsx`)
+   - Transparent over hero, matte black + hairline border on scroll, backdrop-blur.
+   - Space Grotesk for logo lockup, thin uppercase nav labels with orange underline animation.
 
-- `products` new columns: `mission_type`, `mission_ready_score` (0-100), `readiness_breakdown` (jsonb), `industries` (text[]), `awards` (text[]), `model_3d_url`, `model_3d_format` (glb/gltf/usdz), `blueprint_images` (text[]), `video_urls` (jsonb), `platform_count_label`
-- `categories` new columns: `icon_name`, `tagline`, `mission_label`
-- New table `product_360_images` (product_id, image_url, frame_index)
-- New table `product_certifications` (product_id, cert_name, cert_type, issued_by, icon_name)
-- New table `product_timeline` (product_id, stage, title, description, date, display_order)
-- New table `product_accessories` (product_id, accessory_product_id, accessory_type, display_order)
-- Storage bucket `product-3d-models` (public) for GLB/GLTF/USDZ
-- All tables: proper GRANTs + RLS (public read, admin write)
+2. **HeroSection / HeroSlider** — untouched per prior instruction, only ensure it sits under transparent navbar.
 
-## Phase 2 — Shop page core rebuild
+3. **StatsCounter** — floating dashboard cards, 4-col editorial, huge numerals (Space Grotesk 600), muted labels, elevation-2, orange 2px top-left accent bar.
 
-- **Cinematic Hero:** Split layout, large heading "Engineering India's Next Generation UAV Platforms", floating 3D drone (model-viewer + fallback image), animated radar rings, particle field, floating spec chips (Range / Payload / Endurance / AI Nav / Mission Ready), CTAs: Explore Platforms + Book Demonstration. Slide transitions animate the whole scene.
-- **Glass Feature Bar:** Mission Ready · Made in India · AI Powered · Enterprise Grade · DGCA Ready · Modular Design — connected by animated orange line
-- **Aerospace Category Cards:** Icon + name + mission label + platform count + arrow. Hover lift, orange glow, animated border, mesh background
-- **Command Center Search:** Glass container with global search, voice icon, category / mission / payload / price / availability filters, sort
-- **Engineered Product Cards:** Blueprint background lines, floating badges (Bestseller, Made in India, category), quick-spec strip (Flight Time / Payload / Range / Motor / Controller), hover: slight rotate + orange under-glow. Buttons: **Explore Platform →** (primary), **Get Quote** (secondary), Compare / 3D View / Wishlist icons. No "Add to Cart" as primary.
+4. **ProductCategories (Capabilities)** — bento: 1 large left tile (row-span-2) + 5 supporting. Each: bg image, navy→transparent overlay, hud-corner brackets, large title, small caption, animated arrow, hover reveals 6% more image (scale 1.06) + orange bottom bar grows.
 
-## Phase 3 — Fullscreen Quick View + Compare
+5. **OurPartners / OurCustomers (Trust)** — dark matte section, centered eyebrow, large circular logo holders (96px), silver ring, generous 96px gaps, greyscale → full-color on hover.
 
-- **Fullscreen Quick View modal:** Large drone image / 3D viewer, 360 spinner, specs, applications, gallery, videos, mission profile, downloads, "Request Demo" CTA
-- **Compare tool:** Floating side panel to add up to 4 products → opens comparison table (Payload / Range / Battery / Weight / Flight Time / Navigation / Mission / Applications / Price)
-- **Sticky Floating Side Panel:** Compare · Recently Viewed · Wishlist · Downloads · Request Quote · Book Demo
+6. **CertificationsSection** — light section, clean white cards, rounded-2xl, subtle border, large preview thumbnail, status pill (Active/Valid), search+filter chrome restyled only.
 
-## Phase 4 — Product Detail page overhaul
+7. **LatestInsights (Blogs)** — editorial cards: 16:10 image, category pill (orange outline), Space Grotesk title, hairline meta row, hover: image scale 1.03 + title shifts 4px.
 
-- **Left column:** Gallery with 360 viewer, 3D model viewer (`@google/model-viewer`), AR preview button (USDZ/GLB), exploded view toggle, hover zoom, fullscreen
-- **Right column:** Mission type, category, status (Available / Made in India / DGCA Ready), optional price, CTAs: **Request Quote · Download Brochure · Book Demo · Talk to Engineer**
-- **Animated Tabs:** Overview · Specifications · Applications · Downloads · Gallery · Videos · Reviews · FAQ · Accessories · Similar Platforms
-- **Specs Dashboard:** Card grid (not table), expandable groups, mono values, icon per spec
-- **Applications:** Image cards with hover animation
-- **Downloads:** Typed cards (PDF / Manual / Datasheet / CAD / Mission Brief / Certification / Brochure)
-- **Mission Readiness Score:** Animated circular gauge + breakdown (Weather / AI / Navigation / Payload / Reliability)
-- **Certifications strip:** Clickable cards (Made in India / DGCA / ISO / R&D / Defence)
-- **Timeline:** Concept → Prototype → Testing → Production → Deployment (animated)
-- **Technical Drawings gallery:** Blueprint / CAD / exploded diagrams
-- **Accessories ecosystem:** Modular grid (Battery / Payload / Camera / LiDAR / Thermal / Controller / Landing Gear / 3D Printer Parts)
-- **Related Platforms carousel:** Center-focus, perspective animation
+8. **HomepageGallery** — magazine layout: one 16:10 hero image left, 2×2 thumbnails right on desktop; dark bg with grid-engineering overlay; hover zoom 1.05; keep existing gallery logic/controls.
 
-## Phase 5 — Admin panel extensions + polish
+9. **CinematicSection wrapper** — soften: remove aggressive scanlines, keep fade-up + hud brackets only for premium calm feel.
 
-- Admin Products form: new tabs for **3D Model upload**, **360 Images**, **Mission Metadata**, **Timeline**, **Certifications**, **Accessories**, **Readiness Score builder**, **Blueprint uploads**, **Video links**
-- All existing admin functionality preserved
-- Global scroll animations pass (Framer Motion + optional Lenis smooth scroll)
-- Engineering grid + particle background layer
-- SEO, lazy loading, image optimization, code splitting, full responsive audit
+10. **ContactSection** — split: left info column with orange icon tiles (already updated), right form as elevated white card with 2px top orange border, larger inputs (h-14), rounded-xl, generous padding.
 
----
+11. **PublicFooter** — matte black (#07111F equivalent token), 4-col grid, newsletter card top-right with orange CTA, thin dividers, "Made in India" badge (tricolor accent dot + micro label), social icons outline only.
 
-## Technical Notes
+12. **Section dividers** — replace hard cuts with `SectionDivider` curve/wave in tokenized colors between dark↔light bands; add subtle floating stat card overlapping Hero↔Stats seam.
 
-- **3D viewer:** `@google/model-viewer` (web component, tiny, supports GLB/GLTF/USDZ + AR out of the box). Falls back to image if no model.
-- **Smooth scroll:** Lenis (optional, gated behind reduced-motion)
-- **Animation:** Framer Motion (already installed). GSAP only if a specific effect needs it.
-- **No breaking changes** to existing cart, wishlist, checkout, or admin flows — CTAs shift emphasis but underlying data model stays.
+## Motion
 
----
+Framer Motion presets already in project. Standardize:
+- Reveal: opacity 0→1, y 16→0, 600ms, easeOut, `viewport once`.
+- Hover lift: translateY(-4px) + shadow bump, 250ms.
+- Image zoom: scale 1→1.05, 500ms.
+- No neon, no infinite bounces.
 
-Reply **"start phase 1"** (or "start") and I'll begin with the database migration. Or tell me to reorder / drop phases.
+## Guardrails
+
+- No changes to: `src/pages/**` route logic, `src/hooks/**`, `src/integrations/**`, `supabase/**`, admin pages, forms' zod/schema/submit, sliders' JS behavior, filters, search.
+- All content stays sourced from Supabase/admin. Only className, wrapper markup, tokens, fonts, and imagery classes change.
+- Preserve accessibility: focus rings, aria-labels, contrast AA on dark surfaces.
+
+## Rollout order
+
+1. Tokens + fonts + utilities (`index.css`, `tailwind.config.ts`, `index.html`).
+2. Navbar + Footer (global chrome).
+3. Stats → Capabilities → Trust → Certifications → Blogs → Gallery → Contact.
+4. Section dividers + rhythm pass on `src/pages/Home.tsx` (className/order-preserving wrappers only).
+5. Visual QA at desktop/tablet/mobile.
+
+## Out of scope
+
+Hero redesign (explicitly locked), admin UI, product detail page (already redesigned), shop page (already redesigned), any data model or edge function.
