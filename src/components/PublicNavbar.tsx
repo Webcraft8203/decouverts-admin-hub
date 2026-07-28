@@ -126,7 +126,7 @@ export const PublicNavbar = () => {
               "after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:bg-primary after:transition-all after:duration-300 after:ease-out",
               isActive("/")
                 ? "text-primary after:w-full"
-                : "text-slate-700 hover:text-primary after:w-0 hover:after:w-full"
+                : "text-white/75 hover:text-white after:w-0 hover:after:w-full"
             )}
           >
             Home
@@ -139,7 +139,7 @@ export const PublicNavbar = () => {
                 className={cn(
                   "relative text-[13px] font-semibold tracking-wide transition-colors duration-200 py-1",
                   "after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:bg-primary after:transition-all after:duration-300 after:ease-out after:w-0 hover:after:w-full",
-                  "text-slate-700 hover:text-primary"
+                  "text-white/75 hover:text-white"
                 )}
               >
                 Gallery
@@ -151,7 +151,7 @@ export const PublicNavbar = () => {
                   "after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:bg-primary after:transition-all after:duration-300 after:ease-out",
                   isActive("/blogs")
                     ? "text-primary after:w-full"
-                    : "text-slate-700 hover:text-primary after:w-0 hover:after:w-full"
+                    : "text-white/75 hover:text-white after:w-0 hover:after:w-full"
                 )}
               >
                 Blogs
@@ -163,7 +163,7 @@ export const PublicNavbar = () => {
                   "after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:bg-primary after:transition-all after:duration-300 after:ease-out",
                   isActive("/about")
                     ? "text-primary after:w-full"
-                    : "text-slate-700 hover:text-primary after:w-0 hover:after:w-full"
+                    : "text-white/75 hover:text-white after:w-0 hover:after:w-full"
                 )}
               >
                 About
@@ -173,7 +173,7 @@ export const PublicNavbar = () => {
                 className={cn(
                   "relative text-[13px] font-semibold tracking-wide transition-colors duration-200 py-1",
                   "after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:bg-primary after:transition-all after:duration-300 after:ease-out after:w-0 hover:after:w-full",
-                  "text-slate-700 hover:text-primary"
+                  "text-white/75 hover:text-white"
                 )}
               >
                 Contact
@@ -189,7 +189,7 @@ export const PublicNavbar = () => {
                 "after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:bg-primary after:transition-all after:duration-300 after:ease-out",
                 isActive("/shop")
                   ? "text-primary after:w-full"
-                  : "text-slate-700 hover:text-primary after:w-0 hover:after:w-full"
+                  : "text-white/75 hover:text-white after:w-0 hover:after:w-full"
               )}
             >
               Shop
@@ -216,7 +216,7 @@ export const PublicNavbar = () => {
                     variant="ghost"
                     size="icon"
                     onClick={() => navigate("/dashboard/cart")}
-                    className="relative text-slate-700 hover:text-primary hover:bg-primary/5"
+                    className="relative text-white/75 hover:text-white hover:bg-white/5"
                   >
                     <ShoppingCart className="w-5 h-5" />
                     {cartCount > 0 && (
@@ -253,7 +253,7 @@ export const PublicNavbar = () => {
               variant="ghost"
               size="icon"
               onClick={() => navigate("/dashboard/cart")}
-              className="relative text-slate-700 hover:text-primary"
+              className="relative text-white/75 hover:text-white"
             >
               <ShoppingCart className="w-5 h-5" />
               {cartCount > 0 && (
@@ -264,7 +264,7 @@ export const PublicNavbar = () => {
             </Button>
           )}
           <button
-            className="p-2 text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
+            className="p-2 text-slate-700 rounded-lg hover:bg-white/5 transition-colors"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -280,7 +280,7 @@ export const PublicNavbar = () => {
             <div className="flex flex-col gap-1 px-6">
               <Link
                 to="/"
-                className="block text-slate-700 hover:text-primary hover:bg-primary/5 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
+                className="block text-white/75 hover:text-white hover:bg-white/5 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Home
@@ -290,27 +290,27 @@ export const PublicNavbar = () => {
                 <>
                   <button
                     onClick={() => scrollToSection("gallery-section")}
-                    className="block w-full text-left text-slate-700 hover:text-primary hover:bg-primary/5 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
+                    className="block w-full text-left text-white/75 hover:text-white hover:bg-white/5 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
                   >
                     Gallery
                   </button>
                   <Link
                     to="/blogs"
-                    className="block text-slate-700 hover:text-primary hover:bg-primary/5 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
+                    className="block text-white/75 hover:text-white hover:bg-white/5 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Blogs
                   </Link>
                   <Link
                     to="/about"
-                    className="block text-slate-700 hover:text-primary hover:bg-primary/5 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
+                    className="block text-white/75 hover:text-white hover:bg-white/5 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     About
                   </Link>
                   <button
                     onClick={() => scrollToSection("contact-section")}
-                    className="block w-full text-left text-slate-700 hover:text-primary hover:bg-primary/5 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
+                    className="block w-full text-left text-white/75 hover:text-white hover:bg-white/5 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
                   >
                     Contact
                   </button>
@@ -320,7 +320,7 @@ export const PublicNavbar = () => {
               {isEcommerceEnabled && (
                 <Link
                   to="/shop"
-                  className="block text-slate-700 hover:text-primary hover:bg-primary/5 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
+                  className="block text-white/75 hover:text-white hover:bg-white/5 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Shop
