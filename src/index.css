@@ -168,6 +168,7 @@
 /* Premium Defence utilities */
 @layer utilities {
   .font-display { font-family: 'Space Grotesk', Inter, sans-serif; }
+  .font-brand { font-family: 'Montserrat', Inter, sans-serif; font-weight: 600; }
 
   /* Engineering grid overlay — 32px */
   .grid-engineering {
