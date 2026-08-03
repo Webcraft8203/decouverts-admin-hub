@@ -85,11 +85,11 @@ export const PublicNavbar = () => {
       className={cn(
         "fixed top-0 left-0 w-full z-50",
         "h-[76px] md:h-[84px]",
-        "transition-[background-color,box-shadow,backdrop-filter,border-color] duration-300 ease-out",
-        "border-b",
+        "transition-[box-shadow,border-color] duration-300 ease-out",
+        "border-b bg-white",
         isScrolled
-          ? "bg-[hsl(222,30%,6%)]/92 backdrop-blur-md border-white/10 shadow-[0_1px_0_rgba(255,255,255,0.04)]"
-          : "bg-transparent border-transparent"
+          ? "border-slate-200 shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
+          : "border-slate-100"
       )}
     >
       <div className="mx-auto h-full max-w-[1440px] px-6 md:px-10 lg:px-16 flex items-center justify-between relative">
@@ -105,17 +105,18 @@ export const PublicNavbar = () => {
           />
           <div className="flex flex-col justify-center">
             <span
-              className="font-display text-base md:text-lg font-bold tracking-[0.22em] uppercase leading-none text-white"
+              className="font-brand text-base md:text-lg tracking-[0.22em] uppercase leading-none text-black"
             >
               DECOUVERTES
             </span>
             <span
-              className="font-display text-[9px] md:text-[10px] font-medium tracking-[0.32em] uppercase leading-tight mt-1 text-primary/90"
+              className="font-brand text-[9px] md:text-[10px] tracking-[0.24em] uppercase leading-tight mt-1 text-primary"
             >
-              Defence · Tech · India
+              Discovering Future Technologies
             </span>
           </div>
         </div>
+
 
         {/* Center — Navigation */}
         <div className="hidden md:flex items-center gap-10 absolute left-1/2 -translate-x-1/2">
