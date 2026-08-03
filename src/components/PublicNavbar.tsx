@@ -96,21 +96,21 @@ export const PublicNavbar = () => {
         {/* Left — Logo + Brand */}
         <div
           onClick={handleLogoClick}
-          className="flex items-center gap-3 cursor-pointer select-none group flex-shrink-0"
+          className="flex items-center gap-3.5 md:gap-4 cursor-pointer select-none group flex-shrink-0"
         >
           <img
             src={logo}
             alt="Decouvertes Logo"
-            className="h-9 md:h-10 w-auto object-contain transition-transform group-hover:scale-105"
+            className="h-11 md:h-12 w-auto object-contain transition-transform group-hover:scale-105"
           />
           <div className="flex flex-col justify-center">
             <span
-              className="font-brand text-base md:text-lg tracking-[0.22em] uppercase leading-none text-black"
+              className="font-brand text-base md:text-lg tracking-[0.2em] uppercase leading-none font-semibold text-black"
             >
               DECOUVERTES
             </span>
             <span
-              className="font-brand text-[9px] md:text-[10px] tracking-[0.24em] uppercase leading-tight mt-1 text-primary"
+              className="font-brand text-[9px] md:text-[11px] tracking-[0.18em] uppercase leading-none mt-1 font-medium text-primary"
             >
               Discovering Future Technologies
             </span>
