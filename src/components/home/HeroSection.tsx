@@ -91,7 +91,7 @@ export const HeroSection = () => {
 
       <section
         className="relative w-full bg-[#080c14] overflow-hidden"
-        style={{ height: "95vh", minHeight: 620 }}
+        style={{ height: "100vh", minHeight: 780 }}
       >
         <AnimatePresence mode="wait">
           {isLoading ? (
@@ -104,21 +104,25 @@ export const HeroSection = () => {
               transition={{ duration: 0.3 }}
             >
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,107,0,0.08),transparent_60%)]" />
-              <div className="relative z-10 h-full flex flex-col justify-center max-w-6xl mx-auto px-6 md:px-12">
-                <div className="h-4 w-32 bg-white/10 rounded mb-6 animate-pulse" />
-                <div className="h-10 md:h-14 w-3/4 bg-white/15 rounded-lg mb-4 animate-pulse" />
-                <div className="h-10 md:h-14 w-1/2 bg-white/10 rounded-lg mb-6 animate-pulse" />
-                <div className="h-4 w-2/3 max-w-xl bg-white/10 rounded mb-3 animate-pulse" />
-                <div className="h-4 w-1/2 max-w-md bg-white/10 rounded mb-8 animate-pulse" />
-                <div className="flex gap-4">
-                  <div className="h-12 w-40 bg-primary/30 rounded-full animate-pulse" />
-                  <div className="h-12 w-32 bg-white/10 rounded-full animate-pulse" />
+              <div className="relative z-10 h-full flex items-center max-w-[1440px] mx-auto px-6 md:px-16 lg:px-24">
+                <div className="max-w-[650px] w-full animate-pulse">
+                  <div className="h-8 w-64 bg-white/10 rounded-full mb-6" />
+                  <div className="h-16 md:h-20 w-full bg-white/15 rounded-lg mb-6" />
+                  <div className="h-16 md:h-20 w-4/5 bg-white/10 rounded-lg mb-8" />
+                  <div className="h-5 w-full max-w-lg bg-white/10 rounded mb-3" />
+                  <div className="h-5 w-2/3 max-w-md bg-white/10 rounded mb-10" />
+                  <div className="flex gap-4">
+                    <div className="h-14 w-48 bg-primary/30 rounded-[14px]" />
+                    <div className="h-14 w-40 bg-white/10 rounded-[14px]" />
+                  </div>
                 </div>
               </div>
-              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
-                {[0, 1, 2].map((i) => (
-                  <div key={i} className="w-8 h-1.5 rounded-full bg-white/20 animate-pulse" />
-                ))}
+              {/* Skeleton for bottom nav */}
+              <div className="absolute bottom-0 inset-x-0 h-[90px] bg-black/10 backdrop-blur-sm animate-pulse">
+                <div className="h-full max-w-[1440px] mx-auto flex items-center justify-between px-6 md:px-8">
+                  <div className="h-8 w-1/3 bg-white/5 rounded-lg" />
+                  <div className="h-8 w-24 bg-white/5 rounded-lg" />
+                </div>
               </div>
             </motion.div>
           ) : slides.length > 0 ? (

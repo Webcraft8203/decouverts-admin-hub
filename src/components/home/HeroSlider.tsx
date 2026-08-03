@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react";
 
 export interface HeroSlide {
   id: string;
@@ -24,10 +24,7 @@ interface Props {
 }
 
 const AUTO_MS = 6500;
-const NAV_H = 115;
-const NAV_H_MOBILE = 88;
-const ORANGE = "#FF6B00";
-const ORANGE_SOFT = "#FF8A2A";
+const ORANGE = "hsl(26, 100%, 50%)"; // #FF6B00
 
 export const HeroSlider = ({ slides }: Props) => {
   const [index, setIndex] = useState(0);
@@ -80,7 +77,7 @@ export const HeroSlider = ({ slides }: Props) => {
   return (
     <div
       className="absolute inset-0 overflow-hidden bg-[#080c14]"
-      onMouseEnter={() => setPaused(true)}
+      onMouseEnter={() => setPaused(false)} // Keep autoscroll for premium feel
       onMouseLeave={() => setPaused(false)}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
@@ -97,7 +94,7 @@ export const HeroSlider = ({ slides }: Props) => {
         >
           <motion.div
             className="absolute inset-0"
-            initial={{ scale: 1.05 }}
+            initial={{ scale: 1.1 }}
             animate={{ scale: 1 }}
             transition={{ duration: 8, ease: "linear" }}
           >
@@ -129,27 +126,19 @@ export const HeroSlider = ({ slides }: Props) => {
       {/* ============ Cinematic left-to-right gradient overlay ============ */}
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "linear-gradient(90deg, rgba(8,12,20,0.75) 0%, rgba(8,12,20,0.55) 30%, rgba(8,12,20,0.45) 50%, rgba(8,12,20,0.22) 75%, rgba(8,12,20,0.08) 100%)",
-        }}
-      />
-      {/* Bottom-fade toward the nav bar so it blends */}
-      <div
-        className="absolute inset-x-0 bottom-0 pointer-events-none"
-        style={{
-          height: NAV_H + 120,
-          background:
-            "linear-gradient(180deg, rgba(8,12,20,0) 0%, rgba(8,12,20,0.55) 60%, rgba(17,24,39,0.95) 100%)",
-        }}
+        style={{ background: "linear-gradient(90deg, rgba(8,10,15,0.82) 0%, rgba(8,10,15,0.58) 38%, rgba(8,10,15,0.18) 70%, rgba(8,10,15,0.05) 100%)" }}
       />
 
       {/* ============ Subtle aerospace HUD (3–5% opacity) ============ */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.05]">
+      <div
+        aria-hidden
+        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        style={{ mixBlendMode: "overlay" }}
+      >
         {/* GPS grid */}
         <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <pattern id="hud-grid" width="72" height="72" patternUnits="userSpaceOnUse">
+            <pattern id="hud-grid" width="56" height="56" patternUnits="userSpaceOnUse">
               <path d="M 72 0 L 0 0 0 72" fill="none" stroke="white" strokeWidth="0.5" />
             </pattern>
           </defs>
@@ -157,7 +146,7 @@ export const HeroSlider = ({ slides }: Props) => {
         </svg>
       </div>
       {/* Radar circles — top right */}
-      <div className="absolute -top-40 -right-40 w-[560px] h-[560px] pointer-events-none opacity-[0.06]">
+      <div className="absolute -top-40 -right-40 w-[560px] h-[560px] pointer-events-none opacity-[0.04]">
         <div className="absolute inset-0 rounded-full border border-white/60" />
         <div className="absolute inset-10 rounded-full border border-white/50" />
         <div className="absolute inset-24 rounded-full border border-white/40" />
@@ -170,21 +159,21 @@ export const HeroSlider = ({ slides }: Props) => {
           top: "18%",
           right: "12%",
           width: 520,
-          height: 520,
-          background: `radial-gradient(circle, ${ORANGE}22 0%, transparent 65%)`,
+          height: 420,
+          background: `radial-gradient(circle, hsl(var(--primary) / 0.12) 0%, transparent 65%)`,
           filter: "blur(20px)",
         }}
       />
 
       {/* ============ LAYER 2 — Left-anchored content ============ */}
       <div
-        className="absolute inset-x-0 top-0 z-20 flex items-center pointer-events-none pb-[88px] md:pb-[115px]"
+        className="absolute inset-0 z-20 flex items-center pointer-events-none"
       >
         <div
-          className="w-full mx-auto px-6 sm:px-10 md:px-16 lg:px-24"
-          style={{ maxWidth: 1440 }}
+          className="w-full mx-auto px-6 md:px-16 lg:px-24"
+          style={{ maxWidth: 1440, paddingBottom: 90 }} // Avoid overlap with bottom nav
         >
-          <div className="max-w-[720px] pointer-events-auto">
+          <div className="max-w-[650px] pointer-events-auto">
             <AnimatePresence mode="wait">
               <motion.div
                 key={active.id + "-content"}
@@ -194,33 +183,29 @@ export const HeroSlider = ({ slides }: Props) => {
                 transition={{ duration: 0.5 }}
               >
                 {/* Badge */}
-                <motion.span
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.05 }}
-                  className="inline-flex items-center gap-2 py-1.5 px-3 md:py-2 md:px-4 rounded-full backdrop-blur-md text-[9px] md:text-[11px] font-semibold tracking-[0.24em] md:tracking-[0.32em] uppercase mb-4 md:mb-8 text-white"
-                  style={{
-                    background: "rgba(255,255,255,0.06)",
-                    border: `1px solid ${ORANGE}80`,
-                    boxShadow: `0 0 24px ${ORANGE}22, inset 0 0 12px rgba(255,255,255,0.04)`,
-                  }}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                  className="inline-flex items-center gap-2.5 py-2 px-4 rounded-full backdrop-blur-md text-[10px] font-semibold tracking-[0.18em] uppercase mb-6 text-white border border-white/20 bg-white/10"
                 >
-                  <span
-                    className="w-1.5 h-1.5 rounded-full animate-pulse"
-                    style={{ background: ORANGE, boxShadow: `0 0 8px ${ORANGE}` }}
-                  />
-                  {active.badge_label || "Indigenous Drone Technology"}
-                </motion.span>
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-primary"></span>
+                  </span>
+                  <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+                  <span>{active.badge_label || "Trusted by Defence Professionals"}</span>
+                </motion.div>
 
                 {/* Title */}
                 <motion.h1
                   initial={{ opacity: 0, y: 24 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.75, delay: 0.14 }}
-                  className="text-white font-extrabold tracking-[-0.015em] mb-4 md:mb-8 text-[2rem] sm:text-[2.75rem] md:text-[3.5rem] lg:text-[4.5rem]"
+                  transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                  className="text-white font-extrabold tracking-tighter mb-6 md:mb-8 text-5xl sm:text-6xl md:text-7xl"
                   style={{
                     fontFamily: "'Montserrat', sans-serif",
-                    lineHeight: 1.02,
+                    lineHeight: 1.0,
                     textShadow: "0 4px 40px rgba(0,0,0,0.5)",
                   }}
                 >
@@ -232,11 +217,11 @@ export const HeroSlider = ({ slides }: Props) => {
                   <motion.p
                     initial={{ opacity: 0, y: 18 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.75, delay: 0.24 }}
-                    className="mb-6 md:mb-10 text-sm md:text-lg leading-relaxed md:leading-[1.8] line-clamp-4 md:line-clamp-none"
+                    transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                    className="mb-8 md:mb-10 text-base md:text-lg lg:text-xl leading-relaxed md:leading-loose"
                     style={{
                       color: "rgba(226,232,240,0.82)",
-                      maxWidth: 620,
+                      maxWidth: 600,
                     }}
                   >
                     {active.description}
@@ -247,26 +232,24 @@ export const HeroSlider = ({ slides }: Props) => {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.75, delay: 0.34 }}
+                  transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
                   className="flex flex-col sm:flex-row gap-4"
                 >
                   <button
                     onClick={() => go(active.primary_cta_link || "/shop")}
-                    className="group relative inline-flex items-center justify-center gap-2.5 rounded-full font-semibold text-[12px] md:text-[13px] tracking-[0.14em] uppercase text-white overflow-hidden transition-all duration-300 hover:-translate-y-[3px] w-full sm:w-auto h-[52px] md:h-[60px] px-8 md:px-10"
+                    className="group relative inline-flex items-center justify-center gap-2.5 rounded-[14px] font-semibold text-[13px] tracking-wider uppercase text-white overflow-hidden transition-all duration-300 hover:-translate-y-0.5 w-full sm:w-auto h-14 px-8 shadow-[0_10px_30px_-10px_hsl(var(--primary)/0.5)]"
                     style={{
-                      background: `linear-gradient(135deg, ${ORANGE} 0%, ${ORANGE_SOFT} 100%)`,
-                      boxShadow: `0 14px 34px -10px ${ORANGE}cc, 0 0 0 1px ${ORANGE}30 inset`,
+                      background: `linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 100%)`,
                     }}
                   >
                     <span className="relative">{active.primary_cta_label || "Explore Products"}</span>
                     <ArrowRight className="relative w-4 h-4 transition-transform group-hover:translate-x-1" />
                   </button>
                   <button
-                    onClick={() => go(active.secondary_cta_link || "#contact-section")}
-                    className="group inline-flex items-center justify-center gap-2.5 rounded-full font-semibold text-[12px] md:text-[13px] tracking-[0.14em] uppercase text-white bg-white/5 border border-white/40 backdrop-blur-md hover:bg-white hover:text-slate-900 hover:border-white transition-colors w-full sm:w-auto h-[52px] md:h-[60px] px-8 md:px-10"
+                    onClick={() => go(active.secondary_cta_link || "#contact-section")} // Corrected height
+                    className="group inline-flex items-center justify-center gap-2.5 rounded-[14px] font-semibold text-[13px] tracking-wider uppercase text-white bg-white/10 border border-white/20 backdrop-blur-md hover:border-white hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto h-14 px-8"
                   >
                     {active.secondary_cta_label || "Contact Us"}
-                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                   </button>
                 </motion.div>
               </motion.div>
@@ -275,17 +258,28 @@ export const HeroSlider = ({ slides }: Props) => {
         </div>
       </div>
 
+      {/* Scroll Indicator */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.5, duration: 1 }}
+        className="absolute bottom-32 left-6 md:left-16 lg:left-24 z-20 flex flex-col items-center gap-2 text-white/50 pointer-events-none"
+      >
+        <span className="text-[10px] font-semibold tracking-[0.2em] uppercase [writing-mode:vertical-rl]">Scroll</span>
+        <span className="w-px h-8 bg-white/40 mt-2" />
+      </motion.div>
+
       {/* ============ LAYER 3 — Premium timeline navigation ============ */}
       {slides.length > 0 && (
         <div
-          className="absolute bottom-0 inset-x-0 z-30 h-[88px] md:h-[115px]"
+          className="absolute bottom-0 inset-x-0 z-30 h-[90px]"
           style={{
-            background: "#111827",
-            borderTop: "1px solid rgba(255,255,255,0.06)",
-            boxShadow: "0 -20px 60px rgba(0,0,0,0.35)",
+            background: "rgba(15, 23, 42, 0.3)",
+            backdropFilter: "blur(12px)",
+            borderTop: "1px solid rgba(255,255,255,0.1)",
           }}
         >
-          <div className="h-full max-w-[1440px] mx-auto flex items-stretch px-3 md:px-8">
+          <div className="h-full max-w-[1440px] mx-auto flex items-stretch px-6 md:px-8">
             {/* Slides timeline */}
             <div className="flex-1 flex items-stretch overflow-x-auto no-scrollbar">
               {slides.map((s, i) => {
@@ -294,7 +288,7 @@ export const HeroSlider = ({ slides }: Props) => {
                   <button
                     key={s.id}
                     onClick={() => setIndex(i)}
-                    className={`group relative flex-1 min-w-[140px] md:min-w-[200px] text-left px-3 md:px-6 py-3 md:py-5 transition-all duration-300 ${
+                    className={`group relative flex-1 min-w-[180px] md:min-w-[240px] text-left px-4 md:px-6 py-3 md:py-5 transition-all duration-300 ${
                       isActive
                         ? "bg-white/[0.04]"
                         : "opacity-70 hover:opacity-100 hover:-translate-y-[2px]"
@@ -302,24 +296,15 @@ export const HeroSlider = ({ slides }: Props) => {
                   >
                     {/* Top progress / border line */}
                     <span className="absolute top-0 left-0 right-0 h-[2px] bg-white/8 overflow-hidden">
-                      <span
-                        className={`absolute inset-y-0 left-0 transition-all duration-500 ${
-                          isActive ? "opacity-100" : "opacity-0 group-hover:opacity-60"
-                        }`}
-                        style={{
-                          width: isActive ? undefined : "40%",
-                          background: ORANGE,
-                        }}
-                      />
                       {isActive && (
                         <motion.span
                           key={s.id + "-prog-" + index + "-" + String(paused)}
                           className="absolute inset-y-0 left-0"
-                          style={{ background: ORANGE, boxShadow: `0 0 10px ${ORANGE}` }}
+                          style={{ background: "hsl(var(--primary))", boxShadow: `0 0 10px hsl(var(--primary))` }}
                           initial={{ width: "0%" }}
-                          animate={{ width: paused ? "0%" : "100%" }}
+                          animate={{ width: "100%" }}
                           transition={{
-                            duration: paused ? 0 : AUTO_MS / 1000,
+                            duration: AUTO_MS / 1000,
                             ease: "linear",
                           }}
                         />
@@ -328,31 +313,21 @@ export const HeroSlider = ({ slides }: Props) => {
 
                     {/* Number */}
                     <div
-                      className="text-[11px] font-mono tracking-[0.2em] tabular-nums mb-1.5 transition-colors"
-                      style={{ color: isActive ? ORANGE : "rgba(255,255,255,0.45)" }}
+                      className={`text-[11px] font-mono tracking-widest tabular-nums mb-2 transition-colors ${
+                        isActive ? "text-primary" : "text-white/50"
+                      }`}
                     >
                       {String(i + 1).padStart(2, "0")}
                     </div>
 
                     {/* Title */}
                     <div
-                      className={`text-[13px] md:text-[14px] font-semibold tracking-wide mb-1 line-clamp-1 transition-colors ${
+                      className={`text-sm font-semibold tracking-wide line-clamp-1 transition-colors ${
                         isActive ? "text-white" : "text-white/70"
                       }`}
                     >
                       {s.title}
                     </div>
-
-                    {/* Short description */}
-                    {(s.subtitle || s.description) && (
-                      <p
-                        className={`hidden md:block text-[11.5px] leading-snug line-clamp-1 transition-colors ${
-                          isActive ? "text-white/60" : "text-white/40"
-                        }`}
-                      >
-                        {s.subtitle || s.description}
-                      </p>
-                    )}
                   </button>
                 );
               })}
@@ -360,15 +335,14 @@ export const HeroSlider = ({ slides }: Props) => {
 
             {/* Prev / Next — glass circular */}
             {slides.length > 1 && (
-              <div className="flex items-center gap-2 md:gap-3 pl-2 md:pl-6">
+              <div className="flex items-center gap-3 pl-4 md:pl-6">
                 <button
                   onClick={prev}
                   aria-label="Previous slide"
-                  className="rounded-full flex items-center justify-center text-white transition-all duration-300 hover:text-white w-11 h-11 md:w-[60px] md:h-[60px]"
+                  className="rounded-full flex items-center justify-center text-white/70 hover:text-white transition-all duration-300 w-11 h-11"
                   style={{
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.18)",
-                    backdropFilter: "blur(12px)",
+                    background: "rgba(255,255,255,0.08)",
+                    border: "1px solid rgba(255,255,255,0.15)",
                   }}
                 >
                   <ChevronLeft className="w-5 h-5" />
@@ -376,11 +350,10 @@ export const HeroSlider = ({ slides }: Props) => {
                 <button
                   onClick={next}
                   aria-label="Next slide"
-                  className="rounded-full flex items-center justify-center text-white transition-all duration-300 w-11 h-11 md:w-[60px] md:h-[60px]"
+                  className="rounded-full flex items-center justify-center text-white/70 hover:text-white transition-all duration-300 w-11 h-11"
                   style={{
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.18)",
-                    backdropFilter: "blur(12px)",
+                    background: "rgba(255,255,255,0.08)",
+                    border: "1px solid rgba(255,255,255,0.15)",
                   }}
                 >
                   <ChevronRight className="w-5 h-5" />
