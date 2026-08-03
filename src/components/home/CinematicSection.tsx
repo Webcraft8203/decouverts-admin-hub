@@ -123,32 +123,6 @@ export const CinematicSection = ({
         />
       )}
 
-      {hud && (
-        <>
-          {/* HUD corner brackets */}
-          <span
-            aria-hidden
-            className="pointer-events-none absolute left-4 top-4 md:left-6 md:top-6 h-5 w-5 md:h-7 md:w-7 z-[2]"
-            style={{ borderTop: `1.5px solid ${bracketColor}`, borderLeft: `1.5px solid ${bracketColor}` }}
-          />
-          <span
-            aria-hidden
-            className="pointer-events-none absolute right-4 top-4 md:right-6 md:top-6 h-5 w-5 md:h-7 md:w-7 z-[2]"
-            style={{ borderTop: `1.5px solid ${bracketColor}`, borderRight: `1.5px solid ${bracketColor}` }}
-          />
-          <span
-            aria-hidden
-            className="pointer-events-none absolute left-4 bottom-4 md:left-6 md:bottom-6 h-5 w-5 md:h-7 md:w-7 z-[2]"
-            style={{ borderBottom: `1.5px solid ${bracketColor}`, borderLeft: `1.5px solid ${bracketColor}` }}
-          />
-          <span
-            aria-hidden
-            className="pointer-events-none absolute right-4 bottom-4 md:right-6 md:bottom-6 h-5 w-5 md:h-7 md:w-7 z-[2]"
-            style={{ borderBottom: `1.5px solid ${bracketColor}`, borderRight: `1.5px solid ${bracketColor}` }}
-          />
-        </>
-      )}
-
       {scan && visible && (
         <div
           aria-hidden
