@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, X, ArrowUp } from "lucide-react";
 
 export interface HeroSlide {
   id: string;
@@ -24,11 +24,73 @@ interface Props {
 }
 
 const AUTO_MS = 6500;
-const ORANGE = "hsl(26, 100%, 50%)"; // #FF6B00
+
+// Define the three premium themes
+interface Theme {
+  background: string;
+  headingColor: string;
+  descriptionColor: string;
+  primaryButtonBg: string;
+  primaryButtonHoverBg: string;
+  secondaryButtonBg: string;
+  secondaryButtonBorder: string;
+  secondaryButtonHoverBg: string;
+  secondaryButtonHoverBorder: string;
+  subtleOverlay?: React.ReactNode;
+}
+
+const themes: Theme[] = [
+  // Theme A: "Navy Defence"
+  {
+    background: "#08121F",
+    headingColor: "white",
+    descriptionColor: "#C9D1D9",
+    primaryButtonBg: "bg-primary hover:bg-orange-400",
+    primaryButtonHoverBg: "bg-orange-400",
+    secondaryButtonBg: "bg-transparent",
+    secondaryButtonBorder: "border-white/30",
+    secondaryButtonHoverBg: "bg-white/10",
+    secondaryButtonHoverBorder: "border-white/50",
+    subtleOverlay: (
+      <div aria-hidden className="absolute inset-0 opacity-[0.03] mix-blend-overlay" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)", backgroundSize: "56px 56px", maskImage: "radial-gradient(ellipse at 30% 50%, black 0%, transparent 70%)" }} />
+    ),
+  },
+  // Theme B: "Clean White"
+  {
+    background: "#F8F9FB",
+    headingColor: "#111827",
+    descriptionColor: "#4B5563",
+    primaryButtonBg: "bg-primary hover:bg-orange-400",
+    primaryButtonHoverBg: "bg-orange-400",
+    secondaryButtonBg: "bg-transparent",
+    secondaryButtonBorder: "border-slate-300",
+    secondaryButtonHoverBg: "bg-slate-100",
+    secondaryButtonHoverBorder: "border-slate-400",
+    subtleOverlay: (
+      <div aria-hidden className="absolute inset-0 opacity-[0.05] mix-blend-overlay" style={{ backgroundImage: "radial-gradient(circle, rgba(0,0,0,0.02) 1px, transparent 1px)", backgroundSize: "8px 8px" }} />
+    ),
+  },
+  // Theme C: "Graphite"
+  {
+    background: "#1A1D22",
+    headingColor: "white",
+    descriptionColor: "#D1D5DB",
+    primaryButtonBg: "bg-primary hover:bg-orange-400",
+    primaryButtonHoverBg: "bg-orange-400",
+    secondaryButtonBg: "bg-transparent",
+    secondaryButtonBorder: "border-white/20",
+    secondaryButtonHoverBg: "bg-white/10",
+    secondaryButtonHoverBorder: "border-white/30",
+    subtleOverlay: (
+      <div aria-hidden className="absolute inset-0 opacity-[0.08] mix-blend-overlay" style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%, rgba(255,255,255,0.05) 100%)" }} />
+    ),
+  },
+];
 
 export const HeroSlider = ({ slides }: Props) => {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -74,295 +136,221 @@ export const HeroSlider = ({ slides }: Props) => {
   const next = () => setIndex((i) => (i + 1) % slides.length);
   const prev = () => setIndex((i) => (i - 1 + slides.length) % slides.length);
 
+  const currentTheme = themes[index % themes.length];
+
   return (
-    <div
-      className="absolute inset-0 overflow-hidden bg-[#080c14]"
-      onMouseEnter={() => setPaused(false)} // Keep autoscroll for premium feel
-      onMouseLeave={() => setPaused(false)}
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
-    >
-      {/* ============ LAYER 1 — Full-bleed cinematic background ============ */}
-      <AnimatePresence mode="sync">
-        <motion.div
-          key={active.id + "-bg"}
-          className="absolute inset-0"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-        >
+    <>
+      <div
+        className="absolute inset-0 overflow-hidden flex flex-col md:flex-row"
+        onMouseEnter={() => setPaused(false)}
+        onMouseLeave={() => setPaused(false)}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
+        {/* ==================== Left Content Panel (Desktop/Tablet) ==================== */}
+        <div className="hidden md:flex relative md:w-[45%] lg:w-[40%] h-full flex-col justify-center bg-[#081018]">
+          {/* Animated background for the left panel */}
           <motion.div
+            key={active.id + "-left-panel-bg"}
+            initial={{ backgroundColor: themes[(index - 1 + themes.length) % themes.length].background }}
+            animate={{ backgroundColor: currentTheme.background }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
             className="absolute inset-0"
-            initial={{ scale: 1.1 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 8, ease: "linear" }}
-          >
-            {active.video_url ? (
-              <video
-                src={active.video_url}
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="metadata"
-                className="absolute inset-0 w-full h-full object-cover object-center"
-              />
-            ) : bgMedia ? (
-              <img
-                src={bgMedia}
-                alt={active.title}
-                loading={index === 0 ? "eager" : "lazy"}
-                fetchPriority={index === 0 ? "high" : "auto"}
-                className="absolute inset-0 w-full h-full object-cover object-center"
-              />
-            ) : (
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-950" />
-            )}
-          </motion.div>
-        </motion.div>
-      </AnimatePresence>
-
-      {/* ============ Cinematic left-to-right gradient overlay ============ */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: "linear-gradient(90deg, rgba(8,10,15,0.82) 0%, rgba(8,10,15,0.58) 38%, rgba(8,10,15,0.18) 70%, rgba(8,10,15,0.05) 100%)" }}
-      />
-
-      {/* ============ Subtle aerospace HUD (3–5% opacity) ============ */}
-      <div
-        aria-hidden
-        className="absolute inset-0 pointer-events-none opacity-[0.03]"
-        style={{ mixBlendMode: "overlay" }}
-      >
-        {/* GPS grid */}
-        <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="hud-grid" width="56" height="56" patternUnits="userSpaceOnUse">
-              <path d="M 72 0 L 0 0 0 72" fill="none" stroke="white" strokeWidth="0.5" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#hud-grid)" />
-        </svg>
-      </div>
-      {/* Radar circles — top right */}
-      <div className="absolute -top-40 -right-40 w-[560px] h-[560px] pointer-events-none opacity-[0.04]">
-        <div className="absolute inset-0 rounded-full border border-white/60" />
-        <div className="absolute inset-10 rounded-full border border-white/50" />
-        <div className="absolute inset-24 rounded-full border border-white/40" />
-        <div className="absolute inset-40 rounded-full border border-white/30" />
-      </div>
-      {/* Soft orange glow */}
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          top: "18%",
-          right: "12%",
-          width: 520,
-          height: 420,
-          background: `radial-gradient(circle, hsl(var(--primary) / 0.12) 0%, transparent 65%)`,
-          filter: "blur(20px)",
-        }}
-      />
-
-      {/* ============ LAYER 2 — Left-anchored content ============ */}
-      <div
-        className="absolute inset-0 z-20 flex items-center pointer-events-none"
-      >
-        <div
-          className="w-full mx-auto px-6 md:px-16 lg:px-24"
-          style={{ maxWidth: 1440, paddingBottom: 90 }} // Avoid overlap with bottom nav
-        >
-          <div className="max-w-[650px] pointer-events-auto">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={active.id + "-content"}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                {/* Badge */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                  className="inline-flex items-center gap-2.5 py-2 px-4 rounded-full backdrop-blur-md text-[10px] font-semibold tracking-[0.18em] uppercase mb-6 text-white border border-white/20 bg-white/10"
-                >
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-primary"></span>
-                  </span>
-                  <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-                  <span>{active.badge_label || "Trusted by Defence Professionals"}</span>
-                </motion.div>
-
-                {/* Title */}
-                <motion.h1
-                  initial={{ opacity: 0, y: 24 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                  className="text-white font-extrabold tracking-tighter mb-6 md:mb-8 text-5xl sm:text-6xl md:text-7xl"
-                  style={{
-                    fontFamily: "'Montserrat', sans-serif",
-                    lineHeight: 1.0,
-                    textShadow: "0 4px 40px rgba(0,0,0,0.5)",
-                  }}
-                >
-                  {active.title}
-                </motion.h1>
-
-                {/* Description */}
-                {active.description && (
-                  <motion.p
-                    initial={{ opacity: 0, y: 18 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                    className="mb-8 md:mb-10 text-base md:text-lg lg:text-xl leading-relaxed md:leading-loose"
-                    style={{
-                      color: "rgba(226,232,240,0.82)",
-                      maxWidth: 600,
-                    }}
+          />
+          {currentTheme.subtleOverlay}
+          <div className="w-full max-w-[1600px] mx-auto">
+            <div className="relative z-20 text-white px-6 sm:px-8 md:px-12 lg:px-16">
+              <div className="max-w-[520px]">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={active.id + "-content"}
+                    initial={{ opacity: 0, x: 40, scale: 0.98 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    exit={{ opacity: 0, x: -40, scale: 0.98 }}
+                    transition={{ duration: 0.7, ease: "easeInOut" }}
                   >
-                    {active.description}
-                  </motion.p>
-                )}
+                    <motion.h1
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+                      className={`font-extrabold tracking-tighter mb-6 [font-size:clamp(40px,5vw,64px)]`}
+                      style={{ color: currentTheme.headingColor }}
+                      style={{ lineHeight: "110%" }}
+                    >
+                      {active.title}
+                    </motion.h1>
 
-                {/* CTAs */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                  className="flex flex-col sm:flex-row gap-4"
-                >
-                  <button
-                    onClick={() => go(active.primary_cta_link || "/shop")}
-                    className="group relative inline-flex items-center justify-center gap-2.5 rounded-[14px] font-semibold text-[13px] tracking-wider uppercase text-white overflow-hidden transition-all duration-300 hover:-translate-y-0.5 w-full sm:w-auto h-14 px-8 shadow-[0_10px_30px_-10px_hsl(var(--primary)/0.5)]"
-                    style={{
-                      background: `linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 100%)`,
-                    }}
-                  >
-                    <span className="relative">{active.primary_cta_label || "Explore Products"}</span>
-                    <ArrowRight className="relative w-4 h-4 transition-transform group-hover:translate-x-1" />
-                  </button>
-                  <button
-                    onClick={() => go(active.secondary_cta_link || "#contact-section")} // Corrected height
-                    className="group inline-flex items-center justify-center gap-2.5 rounded-[14px] font-semibold text-[13px] tracking-wider uppercase text-white bg-white/10 border border-white/20 backdrop-blur-md hover:border-white hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto h-14 px-8"
-                  >
-                    {active.secondary_cta_label || "Contact Us"}
-                  </button>
-                </motion.div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </div>
-      </div>
+                    {active.description && (
+                      <motion.p
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
+                        className="mb-10 text-base md:text-lg leading-relaxed max-w-[520px]"
+                        style={{ color: currentTheme.descriptionColor }}
+                      >
+                        {active.description}
+                      </motion.p>
+                    )}
 
-      {/* Scroll Indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.5, duration: 1 }}
-        className="absolute bottom-32 left-6 md:left-16 lg:left-24 z-20 flex flex-col items-center gap-2 text-white/50 pointer-events-none"
-      >
-        <span className="text-[10px] font-semibold tracking-[0.2em] uppercase [writing-mode:vertical-rl]">Scroll</span>
-        <span className="w-px h-8 bg-white/40 mt-2" />
-      </motion.div>
-
-      {/* ============ LAYER 3 — Premium timeline navigation ============ */}
-      {slides.length > 0 && (
-        <div
-          className="absolute bottom-0 inset-x-0 z-30 h-[90px]"
-          style={{
-            background: "rgba(15, 23, 42, 0.3)",
-            backdropFilter: "blur(12px)",
-            borderTop: "1px solid rgba(255,255,255,0.1)",
-          }}
-        >
-          <div className="h-full max-w-[1440px] mx-auto flex items-stretch px-6 md:px-8">
-            {/* Slides timeline */}
-            <div className="flex-1 flex items-stretch overflow-x-auto no-scrollbar">
-              {slides.map((s, i) => {
-                const isActive = i === index;
-                return (
-                  <button
-                    key={s.id}
-                    onClick={() => setIndex(i)}
-                    className={`group relative flex-1 min-w-[180px] md:min-w-[240px] text-left px-4 md:px-6 py-3 md:py-5 transition-all duration-300 ${
-                      isActive
-                        ? "bg-white/[0.04]"
-                        : "opacity-70 hover:opacity-100 hover:-translate-y-[2px]"
-                    }`}
-                  >
-                    {/* Top progress / border line */}
-                    <span className="absolute top-0 left-0 right-0 h-[2px] bg-white/8 overflow-hidden">
-                      {isActive && (
-                        <motion.span
-                          key={s.id + "-prog-" + index + "-" + String(paused)}
-                          className="absolute inset-y-0 left-0"
-                          style={{ background: "hsl(var(--primary))", boxShadow: `0 0 10px hsl(var(--primary))` }}
-                          initial={{ width: "0%" }}
-                          animate={{ width: "100%" }}
-                          transition={{
-                            duration: AUTO_MS / 1000,
-                            ease: "linear",
-                          }}
-                        />
+                    <motion.div
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.4, ease: "easeOut" }}
+                      className="flex flex-col sm:flex-row items-start gap-3"
+                    >
+                      {active.primary_cta_label && (
+                        <button
+                          onClick={() => go(active.primary_cta_link)}
+                          className={`group relative inline-flex items-center justify-center gap-2 rounded-lg font-semibold text-sm text-white overflow-hidden transition-all duration-300 hover:-translate-y-0.5 h-11 px-6 shadow-lg shadow-primary/20 hover:shadow-primary/40 ${currentTheme.primaryButtonBg}`}
+                        >
+                          <span>{active.primary_cta_label}</span>
+                          <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                          {/* Glow effect on hover */}
+                          <span className="absolute inset-0 -z-10 rounded-lg bg-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100 blur-md" />
+                        </button>
                       )}
-                    </span>
-
-                    {/* Number */}
-                    <div
-                      className={`text-[11px] font-mono tracking-widest tabular-nums mb-2 transition-colors ${
-                        isActive ? "text-primary" : "text-white/50"
-                      }`}
-                    >
-                      {String(i + 1).padStart(2, "0")}
-                    </div>
-
-                    {/* Title */}
-                    <div
-                      className={`text-sm font-semibold tracking-wide line-clamp-1 transition-colors ${
-                        isActive ? "text-white" : "text-white/70"
-                      }`}
-                    >
-                      {s.title}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Prev / Next — glass circular */}
-            {slides.length > 1 && (
-              <div className="flex items-center gap-3 pl-4 md:pl-6">
-                <button
-                  onClick={prev}
-                  aria-label="Previous slide"
-                  className="rounded-full flex items-center justify-center text-white/70 hover:text-white transition-all duration-300 w-11 h-11"
-                  style={{
-                    background: "rgba(255,255,255,0.08)",
-                    border: "1px solid rgba(255,255,255,0.15)",
-                  }}
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={next}
-                  aria-label="Next slide"
-                  className="rounded-full flex items-center justify-center text-white/70 hover:text-white transition-all duration-300 w-11 h-11"
-                  style={{
-                    background: "rgba(255,255,255,0.08)",
-                    border: "1px solid rgba(255,255,255,0.15)",
-                  }}
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
+                      {active.secondary_cta_label && (
+                        <button
+                          onClick={() => go(active.secondary_cta_link)}
+                          className={`group relative inline-flex items-center justify-center gap-2 rounded-lg font-semibold text-sm text-white backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 h-11 px-6 ${currentTheme.secondaryButtonBg} border ${currentTheme.secondaryButtonBorder} hover:${currentTheme.secondaryButtonHoverBg} hover:${currentTheme.secondaryButtonHoverBorder}`}
+                        >
+                          {active.secondary_cta_label}
+                        </button>
+                      )}
+                    </motion.div>
+                  </motion.div>
+                </AnimatePresence>
               </div>
-            )}
+            </div>
           </div>
         </div>
-      )}
-    </div>
+
+        {/* ==================== Right Media Panel (All Screens) ==================== */}
+        <div className="relative w-full md:w-[55%] lg:w-[60%] h-full">
+          <AnimatePresence mode="sync">
+            <motion.div
+              key={active.id + "-media"}
+              className="absolute inset-0"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.2, ease: "easeInOut" }}
+            >
+              <motion.div
+                className="absolute inset-0"
+                initial={{ scale: 1.08, opacity: 0.9, x: 0 }}
+                animate={{ scale: 1, opacity: 1, x: "2%" }} // Subtle parallax effect
+                transition={{ duration: AUTO_MS / 1000, ease: "linear", repeat: Infinity, repeatType: "reverse" }}
+              >
+                {active.video_url ? (
+                  <video src={active.video_url} autoPlay muted loop playsInline preload="metadata" className="absolute inset-0 w-full h-full object-cover object-center" />
+                ) : bgMedia ? (
+                  <img src={bgMedia} alt={active.title} loading={index === 0 ? "eager" : "lazy"} fetchPriority={index === 0 ? "high" : "auto"} className="absolute inset-0 w-full h-full object-cover object-center" />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-950" />
+                )}
+              </motion.div>
+            </motion.div>
+          </AnimatePresence>
+          {/* Mobile-only gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent md:hidden" />
+        </div>
+
+        {/* ==================== Slider Navigation (All Screens) ==================== */}
+        {slides.length > 1 && (
+          <div className="absolute bottom-0 inset-x-0 z-30 h-24">
+            <div className="h-full max-w-[1600px] mx-auto flex items-center justify-start px-6 sm:px-8 md:px-12 lg:px-16">
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <button onClick={prev} aria-label="Previous slide" className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white transition-colors duration-300 bg-black/30 border border-white/20 backdrop-blur-sm hover:bg-white/20">
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button onClick={next} aria-label="Next slide" className="w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white transition-colors duration-300 bg-black/30 border border-white/20 backdrop-blur-sm hover:bg-white/20">
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="hidden sm:flex items-center gap-2">
+                  {slides.map((s, i) => (
+                    <div key={s.id} className="flex items-center gap-2 text-white/70 text-sm font-mono">
+                      <span className="w-5 text-right">{String(i + 1).padStart(2, '0')}</span>
+                      <button onClick={() => setIndex(i)} className="relative h-1 w-16 bg-white/20 rounded-full overflow-hidden transition-all hover:bg-white/30">
+                        <span className="absolute inset-0 h-full overflow-hidden rounded-full">
+                          {i === index && (
+                            <motion.span key={s.id + "-prog-" + index + "-" + String(paused)} className="absolute inset-y-0 left-0 bg-primary" initial={{ width: "0%" }} animate={{ width: "100%" }} transition={{ duration: AUTO_MS / 1000, ease: "linear" }} />
+                          )}
+                        </span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ==================== Mobile Floating Button ==================== */}
+        <div className="md:hidden absolute bottom-24 inset-x-0 z-30 flex justify-center">
+          <motion.button
+            onClick={() => setIsSheetOpen(true)}
+            className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-black/40 backdrop-blur-lg border border-white/20 text-white text-sm font-semibold shadow-lg"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            Explore
+            <ArrowUp className="w-4 h-4" />
+          </motion.button>
+        </div>
+      </div>
+
+      {/* ==================== Mobile Bottom Sheet ==================== */}
+      <AnimatePresence>
+        {isSheetOpen && (
+          <>
+            <motion.div
+              onClick={() => setIsSheetOpen(false)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+            />
+            <motion.div
+              drag="y"
+              dragConstraints={{ top: 0, bottom: 0 }}
+              onDragEnd={(_, info) => {
+                if (info.offset.y > 100) setIsSheetOpen(false);
+              }}
+              initial={{ y: "100%" }}
+              animate={{ y: "25%" }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed bottom-0 left-0 right-0 h-full z-50 bg-[#0D131D] rounded-t-3xl text-white p-6 pt-4 md:hidden"
+            >
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 w-10 h-1.5 bg-white/20 rounded-full" />
+              <button onClick={() => setIsSheetOpen(false)} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                <X className="w-4 h-4" />
+              </button>
+              <div className="overflow-y-auto h-full pt-8">
+                <h1 className="font-extrabold tracking-tight mb-4 text-3xl">{active.title}</h1>
+                {active.description && <p className="mb-8 text-slate-300">{active.description}</p>}
+                <div className="flex flex-col items-start gap-4">
+                  {active.primary_cta_label && (
+                    <button onClick={() => go(active.primary_cta_link)} className="w-full group relative inline-flex items-center justify-center gap-2 rounded-lg font-semibold text-sm text-white h-12 px-6 bg-primary">
+                      <span>{active.primary_cta_label}</span>
+                      <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    </button>
+                  )}
+                  {active.secondary_cta_label && (
+                    <button onClick={() => go(active.secondary_cta_link)} className="w-full group relative inline-flex items-center justify-center gap-2 rounded-lg font-semibold text-sm text-white bg-white/10 border border-white/20 h-12 px-6">
+                      {active.secondary_cta_label}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
