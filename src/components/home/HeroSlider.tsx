@@ -128,7 +128,7 @@ export const HeroSlider = ({ slides }: Props) => {
                     }}
                   >
                     <motion.h1
-                      className="font-extrabold tracking-tighter mb-6 [font-size:clamp(2.5rem,5vw,3.5rem)]"
+                      className="font-extrabold tracking-tighter mb-8 [font-size:clamp(2.5rem,5vw,3.5rem)]" // Changed mb-6 to mb-8 (32px)
                       style={{ color: defenceNavyTheme.headingColor, lineHeight: "1.1" }}
                     >
                       {active.title.split(" ").map((word, i) => (
@@ -147,7 +147,7 @@ export const HeroSlider = ({ slides }: Props) => {
 
                     {active.description && (
                       <motion.p
-                        className="mb-10 text-base md:text-lg leading-relaxed max-w-[520px]"
+                        className="mb-10 text-base md:text-lg leading-relaxed max-w-[520px]" // mb-10 (40px) is correct
                         style={{ color: defenceNavyTheme.descriptionColor }}
                         variants={{
                           hidden: { opacity: 0, y: 20 },
@@ -163,7 +163,7 @@ export const HeroSlider = ({ slides }: Props) => {
                         hidden: { opacity: 0, y: 20 },
                         visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut", delay: 0.3 } },
                       }}
-                      className="flex flex-col sm:flex-row items-start gap-3"
+                      className="flex flex-col sm:flex-row items-start gap-3 mb-16" // Added mb-16 (64px)
                     >
                       {active.primary_cta_label && (
                         <button
