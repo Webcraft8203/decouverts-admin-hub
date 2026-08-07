@@ -172,3 +172,154 @@ export const ArticleSchema = ({
 
   return null;
 };
+
+/**
+ * Generic JSON-LD injector used by the schema helpers below.
+ */
+const useJsonLd = (id: string, schema: unknown, deps: unknown[]) => {
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.id = id;
+    script.type = "application/ld+json";
+    script.textContent = JSON.stringify(schema);
+    document.head.appendChild(script);
+    return () => {
+      document.getElementById(id)?.remove();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+};
+
+/**
+ * LocalBusiness structured data — physical presence, NAP and geo.
+ */
+export const LocalBusinessSchema = () => {
+  useJsonLd(
+    "localbusiness-jsonld",
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "@id": `${SITE_URL}/#localbusiness`,
+      name: "Decouvertes Future Technologies Pvt. Ltd.",
+      alternateName: "Decouvertes",
+      url: SITE_URL,
+      logo: `${SITE_URL}/favicon.png`,
+      image: `${SITE_URL}/og-image.png`,
+      description:
+        "Indian drone manufacturer and defence technology company developing UAV platforms, surveillance drones, autonomous systems and drone AI from Pune, Maharashtra.",
+      telephone: "+91-9561103435",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress:
+          "A-414, Gera's Imperium Gateway, Near Nashik Phata Flyover, Opp. Bhosari Metro Station, Kasarwadi, Pimpri-Chinchwad",
+        addressLocality: "Pune",
+        addressRegion: "Maharashtra",
+        postalCode: "411034",
+        addressCountry: "IN",
+      },
+      geo: { "@type": "GeoCoordinates", latitude: 18.6019, longitude: 73.8283 },
+      areaServed: [
+        { "@type": "Country", name: "India" },
+        { "@type": "State", name: "Maharashtra" },
+        { "@type": "City", name: "Pune" },
+      ],
+      knowsAbout: [
+        "Drone manufacturing",
+        "Defence drones",
+        "Military UAV systems",
+        "Counter drone systems",
+        "Surveillance drones",
+        "ISR solutions",
+        "Autonomous drones",
+        "Drone AI",
+        "Aerospace engineering",
+        "Robotics",
+      ],
+    },
+    [],
+  );
+  return null;
+};
+
+/**
+ * WebPage structured data for any route.
+ */
+export const WebPageSchema = ({
+  name,
+  description,
+  path,
+}: {
+  name: string;
+  description: string;
+  path: string;
+}) => {
+  useJsonLd(
+    "webpage-jsonld",
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "@id": `${SITE_URL}${path}#webpage`,
+      name,
+      description,
+      url: `${SITE_URL}${path}`,
+      inLanguage: "en-IN",
+      isPartOf: { "@type": "WebSite", name: "Decouvertes", url: `${SITE_URL}/` },
+      about: { "@type": "Organization", name: "Decouvertes Future Technologies Pvt. Ltd." },
+    },
+    [name, description, path],
+  );
+  return null;
+};
+
+/**
+ * FAQPage structured data.
+ */
+export const FAQSchema = ({ faqs }: { faqs: { q: string; a: string }[] }) => {
+  useJsonLd(
+    "faq-jsonld",
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqs.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    },
+    [faqs],
+  );
+  return null;
+};
+
+/**
+ * Service structured data for solution landing pages.
+ */
+export const ServiceSchema = ({
+  name,
+  description,
+  path,
+}: {
+  name: string;
+  description: string;
+  path: string;
+}) => {
+  useJsonLd(
+    "service-jsonld",
+    {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      name,
+      description,
+      serviceType: name,
+      url: `${SITE_URL}${path}`,
+      areaServed: { "@type": "Country", name: "India" },
+      provider: {
+        "@type": "Organization",
+        name: "Decouvertes Future Technologies Pvt. Ltd.",
+        url: SITE_URL,
+      },
+    },
+    [name, description, path],
+  );
+  return null;
+};
