@@ -38,12 +38,15 @@ const UAV_SOLUTIONS_DATA = [
   },
 ];
 
+const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
 const fadeUp = {
   initial: { opacity: 0, y: 24 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true, margin: "-80px" },
-  transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
+  transition: { duration: 0.7, ease: EASE_OUT },
 };
+
 
 interface SolutionCardProps {
   solution: (typeof UAV_SOLUTIONS_DATA)[0];
