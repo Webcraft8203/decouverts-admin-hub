@@ -7,6 +7,7 @@ interface PageSEOConfig {
   type?: string;
   image?: string;
   noindex?: boolean;
+  keywords?: string[];
 }
 
 const BRAND = "Decouvertes";
@@ -15,9 +16,12 @@ const SITE_URL = "https://www.decouvertes.in";
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
 
 export const usePageSEO = (config: PageSEOConfig) => {
+  const keywordsKey = (config.keywords || []).join(",");
+
   useEffect(() => {
-    const title = config.title.slice(0, 60);
-    const description = config.description.slice(0, 160);
+    const title = config.title.length > 120 ? config.title.slice(0, 120) : config.title;
+    const description =
+      config.description.length > 320 ? config.description.slice(0, 320) : config.description;
     const url = `${SITE_URL}${config.path}`;
 
     document.title = title;
@@ -37,7 +41,13 @@ export const usePageSEO = (config: PageSEOConfig) => {
     setMeta("apple-mobile-web-app-title", BRAND);
     setMeta("publisher", BRAND);
     setMeta("description", description);
-    setMeta("robots", config.noindex ? "noindex, follow" : "index, follow");
+    setMeta(
+      "robots",
+      config.noindex
+        ? "noindex, follow"
+        : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+    );
+    if (keywordsKey) setMeta("keywords", keywordsKey.split(",").join(", "));
 
     // Open Graph
     setMeta("og:title", title, true);
@@ -46,6 +56,7 @@ export const usePageSEO = (config: PageSEOConfig) => {
     setMeta("og:url", url, true);
     setMeta("og:image", config.image || DEFAULT_IMAGE, true);
     setMeta("og:site_name", BRAND, true);
+    setMeta("og:locale", "en_IN", true);
 
     // Twitter
     setMeta("twitter:card", "summary_large_image");
@@ -67,5 +78,13 @@ export const usePageSEO = (config: PageSEOConfig) => {
       const canonicalEl = document.querySelector('link[rel="canonical"]');
       if (canonicalEl) canonicalEl.remove();
     };
-  }, [config.title, config.description, config.path, config.type, config.image, config.noindex]);
+  }, [
+    config.title,
+    config.description,
+    config.path,
+    config.type,
+    config.image,
+    config.noindex,
+    keywordsKey,
+  ]);
 };
