@@ -892,32 +892,15 @@ export default function Invoices() {
               })()}
 
 
-              {/* Invoice Category */}
-              <div className="space-y-2">
-                <Label htmlFor="category_code">
-                  Invoice Category <span className="text-destructive">*</span>
-                </Label>
-                <Select
-                  value={formData.category_code}
-                  onValueChange={(value) => setFormData({ ...formData, category_code: value })}
-                  disabled={!!editingInvoiceId}
-                >
-                  <SelectTrigger id="category_code">
-                    <SelectValue placeholder="Select invoice category (e.g. PRD-DM)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {INVOICE_CATEGORIES.map((c) => (
-                      <SelectItem key={c.code} value={c.code}>
-                        {c.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              {/* Invoice numbering info */}
+              <div className="rounded-md border bg-muted/40 px-3 py-2">
                 <p className="text-xs text-muted-foreground">
-                  Determines invoice number format: <code>DFT&lt;FY&gt;&lt;CATEGORY&gt;###</code>
-                  {editingInvoiceId && " (locked when editing)"}
+                  Invoice number is generated automatically in the format{" "}
+                  <code className="font-mono">INV/2026-27/0001</code>
+                  {editingInvoiceId && " (existing number is kept when editing)"}
                 </p>
               </div>
+
 
               {/* Client Information */}
               <div className="space-y-4">
