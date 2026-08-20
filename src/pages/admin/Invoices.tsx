@@ -503,19 +503,14 @@ export default function Invoices() {
       toast({ title: "Already converted", description: "This proforma has already been converted to a final invoice.", variant: "destructive" });
       return;
     }
-    const catCode = (proforma as any).category_code;
-    if (!catCode) {
-      toast({ title: "Missing category", description: "Proforma must have an invoice category before conversion.", variant: "destructive" });
-      return;
-    }
     if (!window.confirm(`Convert ${proforma.invoice_number} to a Final Tax Invoice?\n\nA new final invoice will be generated using all the proforma data.`)) return;
 
     setIsConverting(true);
     try {
-      // Generate new structured number for final invoice
+      // Generate new unified invoice number for final invoice
       const { data: numData, error: numErr } = await supabase.rpc(
         "generate_structured_invoice_number" as any,
-        { _category_code: catCode }
+        {}
       );
       if (numErr || !numData) throw new Error(numErr?.message || "Failed to generate invoice number");
       const row: any = Array.isArray(numData) ? numData[0] : numData;
