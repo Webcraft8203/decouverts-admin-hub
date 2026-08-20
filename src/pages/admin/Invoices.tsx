@@ -60,21 +60,6 @@ function normalizeInvoiceItem(item: any): InvoiceItem {
 // Default GST rate
 const DEFAULT_GST_RATE = 18;
 
-// Structured invoice number categories
-const INVOICE_CATEGORIES: { group: string; code: string; label: string }[] = [
-  { group: "Product", code: "PRD-DM", label: "Product — Dropping Mechanism (PRD-DM)" },
-  { group: "Product", code: "PRD-3DP", label: "Product — 3D Printer (PRD-3DP)" },
-  { group: "Product", code: "PRD-DRN", label: "Product — Drone (PRD-DRN)" },
-  { group: "Parts", code: "PRT-PRO", label: "Parts — Production (PRT-PRO)" },
-  { group: "Parts", code: "PRT-MEC", label: "Parts — Mechanical (PRT-MEC)" },
-  { group: "Parts", code: "PRT-ELE", label: "Parts — Electronics (PRT-ELE)" },
-  { group: "Service", code: "SRV-DES", label: "Service — Design (SRV-DES)" },
-  { group: "Service", code: "SRV-RND", label: "Service — R&D (SRV-RND)" },
-  { group: "Service", code: "SRV-PRT", label: "Service — Printing (SRV-PRT)" },
-  { group: "Training", code: "TRN-IND", label: "Training — Industry (TRN-IND)" },
-  { group: "Training", code: "TRN-STU", label: "Training — Students (TRN-STU)" },
-  { group: "Training", code: "TRN-WS", label: "Training — Workshop (TRN-WS)" },
-];
 
 // Invoice Settings (matches the generate-invoice edge function)
 const COMPANY_SETTINGS = {
@@ -143,7 +128,6 @@ export default function Invoices() {
     notes: "",
     buyer_state: "Maharashtra",
     buyer_gstin: "",
-    category_code: "",
     payment_status: "unpaid",
     payment_method: "",
     payment_reference: "",
@@ -474,7 +458,6 @@ export default function Invoices() {
       notes: invoice.notes || "",
       buyer_state: invoice.buyer_state || "Maharashtra",
       buyer_gstin: invoice.buyer_gstin || "",
-      category_code: (invoice as any).category_code || "",
       payment_status: (invoice as any).payment_status || "unpaid",
       payment_method: (invoice as any).payment_method || "",
       payment_reference: (invoice as any).payment_reference || "",
