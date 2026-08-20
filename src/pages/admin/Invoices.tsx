@@ -327,11 +327,7 @@ export default function Invoices() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate Category (required for new invoices)
-    if (!editingInvoiceId && !formData.category_code) {
-      toast({ title: "Category required", description: "Please select an invoice category.", variant: "destructive" });
-      return;
-    }
+
 
     // Normalize phone if provided (validation removed)
     const phoneDigits = (formData.client_phone || "").replace(/\D/g, "");
