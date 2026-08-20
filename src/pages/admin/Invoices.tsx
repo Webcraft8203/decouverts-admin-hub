@@ -358,22 +358,22 @@ export default function Invoices() {
       };
     });
 
-    // Generate structured invoice number for new invoices via RPC
+    // Generate unified invoice number for new invoices via RPC
     let invoiceNumber: string;
-    let categoryCode: string | null = formData.category_code || null;
+    let categoryCode: string | null = null;
     let financialYear: string | null = null;
     let serialNumber: number | null = null;
 
     if (editingInvoiceId) {
       const existing = invoices.find((i) => i.id === editingInvoiceId);
       invoiceNumber = existing?.invoice_number || `INV-${Date.now().toString(36).toUpperCase()}`;
-      categoryCode = (existing as any)?.category_code ?? categoryCode;
+      categoryCode = (existing as any)?.category_code ?? null;
       financialYear = (existing as any)?.financial_year ?? null;
       serialNumber = (existing as any)?.serial_number ?? null;
     } else {
       const { data: numData, error: numErr } = await supabase.rpc(
         "generate_structured_invoice_number" as any,
-        { _category_code: formData.category_code }
+        {}
       );
       if (numErr || !numData || (Array.isArray(numData) && numData.length === 0)) {
         toast({ title: "Error", description: numErr?.message || "Failed to generate invoice number", variant: "destructive" });
