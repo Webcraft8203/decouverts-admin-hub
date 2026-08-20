@@ -1342,22 +1342,8 @@ export default function Invoices() {
             </div>
           </div>
 
-          {/* Second row: Category + Source filters */}
+          {/* Second row: Source filter */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-            <div className="md:col-span-6">
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger>
-                  <Receipt className="w-4 h-4 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="All categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Invoice Categories</SelectItem>
-                  {INVOICE_CATEGORIES.map((c) => (
-                    <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
             <div className="md:col-span-3">
               <Select value={sourceFilter} onValueChange={(v) => setSourceFilter(v as any)}>
                 <SelectTrigger>
@@ -1371,12 +1357,8 @@ export default function Invoices() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="md:col-span-3 flex items-center text-xs text-muted-foreground">
-              {categoryFilter !== "all" && (
-                <span>Filtered: <code className="font-mono">{categoryFilter}</code></span>
-              )}
-            </div>
           </div>
+
           
           {/* Active filters summary */}
           {(searchQuery || paymentFilter !== "all" || statusFilter !== "all" || categoryFilter !== "all" || sourceFilter !== "all" || dateRange.from || dateRange.to) && (
