@@ -781,10 +781,7 @@ export default function Invoices() {
   };
 
   const handleDownloadReport = async () => {
-    const catObj = INVOICE_CATEGORIES.find((c) => c.code === categoryFilter);
     await generateInvoiceCollectionReport({
-      categoryCode: categoryFilter !== "all" ? categoryFilter : undefined,
-      categoryLabel: catObj?.label,
       dateFrom: dateRange.from || undefined,
       dateTo: dateRange.to || undefined,
       invoiceType: activeTab === "final" ? "final" : "proforma",
