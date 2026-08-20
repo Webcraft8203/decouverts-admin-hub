@@ -60,21 +60,6 @@ function normalizeInvoiceItem(item: any): InvoiceItem {
 // Default GST rate
 const DEFAULT_GST_RATE = 18;
 
-// Structured invoice number categories
-const INVOICE_CATEGORIES: { group: string; code: string; label: string }[] = [
-  { group: "Product", code: "PRD-DM", label: "Product — Dropping Mechanism (PRD-DM)" },
-  { group: "Product", code: "PRD-3DP", label: "Product — 3D Printer (PRD-3DP)" },
-  { group: "Product", code: "PRD-DRN", label: "Product — Drone (PRD-DRN)" },
-  { group: "Parts", code: "PRT-PRO", label: "Parts — Production (PRT-PRO)" },
-  { group: "Parts", code: "PRT-MEC", label: "Parts — Mechanical (PRT-MEC)" },
-  { group: "Parts", code: "PRT-ELE", label: "Parts — Electronics (PRT-ELE)" },
-  { group: "Service", code: "SRV-DES", label: "Service — Design (SRV-DES)" },
-  { group: "Service", code: "SRV-RND", label: "Service — R&D (SRV-RND)" },
-  { group: "Service", code: "SRV-PRT", label: "Service — Printing (SRV-PRT)" },
-  { group: "Training", code: "TRN-IND", label: "Training — Industry (TRN-IND)" },
-  { group: "Training", code: "TRN-STU", label: "Training — Students (TRN-STU)" },
-  { group: "Training", code: "TRN-WS", label: "Training — Workshop (TRN-WS)" },
-];
 
 // Invoice Settings (matches the generate-invoice edge function)
 const COMPANY_SETTINGS = {
@@ -143,7 +128,6 @@ export default function Invoices() {
     notes: "",
     buyer_state: "Maharashtra",
     buyer_gstin: "",
-    category_code: "",
     payment_status: "unpaid",
     payment_method: "",
     payment_reference: "",
@@ -327,11 +311,7 @@ export default function Invoices() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate Category (required for new invoices)
-    if (!editingInvoiceId && !formData.category_code) {
-      toast({ title: "Category required", description: "Please select an invoice category.", variant: "destructive" });
-      return;
-    }
+
 
     // Normalize phone if provided (validation removed)
     const phoneDigits = (formData.client_phone || "").replace(/\D/g, "");
@@ -362,22 +342,22 @@ export default function Invoices() {
       };
     });
 
-    // Generate structured invoice number for new invoices via RPC
+    // Generate unified invoice number for new invoices via RPC
     let invoiceNumber: string;
-    let categoryCode: string | null = formData.category_code || null;
+    let categoryCode: string | null = null;
     let financialYear: string | null = null;
     let serialNumber: number | null = null;
 
     if (editingInvoiceId) {
       const existing = invoices.find((i) => i.id === editingInvoiceId);
       invoiceNumber = existing?.invoice_number || `INV-${Date.now().toString(36).toUpperCase()}`;
-      categoryCode = (existing as any)?.category_code ?? categoryCode;
+      categoryCode = (existing as any)?.category_code ?? null;
       financialYear = (existing as any)?.financial_year ?? null;
       serialNumber = (existing as any)?.serial_number ?? null;
     } else {
       const { data: numData, error: numErr } = await supabase.rpc(
         "generate_structured_invoice_number" as any,
-        { _category_code: formData.category_code }
+        {}
       );
       if (numErr || !numData || (Array.isArray(numData) && numData.length === 0)) {
         toast({ title: "Error", description: numErr?.message || "Failed to generate invoice number", variant: "destructive" });
@@ -478,7 +458,6 @@ export default function Invoices() {
       notes: invoice.notes || "",
       buyer_state: invoice.buyer_state || "Maharashtra",
       buyer_gstin: invoice.buyer_gstin || "",
-      category_code: (invoice as any).category_code || "",
       payment_status: (invoice as any).payment_status || "unpaid",
       payment_method: (invoice as any).payment_method || "",
       payment_reference: (invoice as any).payment_reference || "",
@@ -503,19 +482,14 @@ export default function Invoices() {
       toast({ title: "Already converted", description: "This proforma has already been converted to a final invoice.", variant: "destructive" });
       return;
     }
-    const catCode = (proforma as any).category_code;
-    if (!catCode) {
-      toast({ title: "Missing category", description: "Proforma must have an invoice category before conversion.", variant: "destructive" });
-      return;
-    }
     if (!window.confirm(`Convert ${proforma.invoice_number} to a Final Tax Invoice?\n\nA new final invoice will be generated using all the proforma data.`)) return;
 
     setIsConverting(true);
     try {
-      // Generate new structured number for final invoice
+      // Generate new unified invoice number for final invoice
       const { data: numData, error: numErr } = await supabase.rpc(
         "generate_structured_invoice_number" as any,
-        { _category_code: catCode }
+        {}
       );
       if (numErr || !numData) throw new Error(numErr?.message || "Failed to generate invoice number");
       const row: any = Array.isArray(numData) ? numData[0] : numData;
@@ -781,10 +755,7 @@ export default function Invoices() {
   };
 
   const handleDownloadReport = async () => {
-    const catObj = INVOICE_CATEGORIES.find((c) => c.code === categoryFilter);
     await generateInvoiceCollectionReport({
-      categoryCode: categoryFilter !== "all" ? categoryFilter : undefined,
-      categoryLabel: catObj?.label,
       dateFrom: dateRange.from || undefined,
       dateTo: dateRange.to || undefined,
       invoiceType: activeTab === "final" ? "final" : "proforma",
@@ -892,32 +863,15 @@ export default function Invoices() {
               })()}
 
 
-              {/* Invoice Category */}
-              <div className="space-y-2">
-                <Label htmlFor="category_code">
-                  Invoice Category <span className="text-destructive">*</span>
-                </Label>
-                <Select
-                  value={formData.category_code}
-                  onValueChange={(value) => setFormData({ ...formData, category_code: value })}
-                  disabled={!!editingInvoiceId}
-                >
-                  <SelectTrigger id="category_code">
-                    <SelectValue placeholder="Select invoice category (e.g. PRD-DM)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {INVOICE_CATEGORIES.map((c) => (
-                      <SelectItem key={c.code} value={c.code}>
-                        {c.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              {/* Invoice numbering info */}
+              <div className="rounded-md border bg-muted/40 px-3 py-2">
                 <p className="text-xs text-muted-foreground">
-                  Determines invoice number format: <code>DFT&lt;FY&gt;&lt;CATEGORY&gt;###</code>
-                  {editingInvoiceId && " (locked when editing)"}
+                  Invoice number is generated automatically in the format{" "}
+                  <code className="font-mono">INV/2026-27/0001</code>
+                  {editingInvoiceId && " (existing number is kept when editing)"}
                 </p>
               </div>
+
 
               {/* Client Information */}
               <div className="space-y-4">
@@ -1342,22 +1296,8 @@ export default function Invoices() {
             </div>
           </div>
 
-          {/* Second row: Category + Source filters */}
+          {/* Second row: Source filter */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-            <div className="md:col-span-6">
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger>
-                  <Receipt className="w-4 h-4 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="All categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Invoice Categories</SelectItem>
-                  {INVOICE_CATEGORIES.map((c) => (
-                    <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
             <div className="md:col-span-3">
               <Select value={sourceFilter} onValueChange={(v) => setSourceFilter(v as any)}>
                 <SelectTrigger>
@@ -1371,12 +1311,8 @@ export default function Invoices() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="md:col-span-3 flex items-center text-xs text-muted-foreground">
-              {categoryFilter !== "all" && (
-                <span>Filtered: <code className="font-mono">{categoryFilter}</code></span>
-              )}
-            </div>
           </div>
+
           
           {/* Active filters summary */}
           {(searchQuery || paymentFilter !== "all" || statusFilter !== "all" || categoryFilter !== "all" || sourceFilter !== "all" || dateRange.from || dateRange.to) && (

@@ -2542,7 +2542,7 @@ export type Database = {
       generate_quotation_number: { Args: never; Returns: string }
       generate_shipment_id: { Args: never; Returns: string }
       generate_structured_invoice_number: {
-        Args: { _category_code: string }
+        Args: { _category_code?: string }
         Returns: {
           category_code: string
           financial_year: string
