@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Package, Layers, Warehouse, Box, FileText, LogOut, Menu, X, Shield,
   ShoppingBag, Star, Ticket, Users, Activity, Palette, Home, MessageCircle,
   Handshake, Image as ImageIcon, MessageSquare, SlidersHorizontal, FileText as BlogIcon,
-  Newspaper, Briefcase, FileBarChart, Mail, Rocket, Award,
+  Newspaper, Briefcase, FileBarChart, Mail, Rocket, Award, ScrollText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -33,6 +33,8 @@ const navItems: NavItem[] = [
   { to: "/admin/raw-materials", icon: Box, label: "Raw Materials" },
   { to: "/admin/invoices", icon: FileText, label: "Invoices" },
   { to: "/admin/quotations", icon: FileText, label: "Quotations" },
+  { to: "/admin/terms-conditions", icon: ScrollText, label: "Terms & Conditions" },
+
   { to: "/admin/accounting", icon: Activity, label: "Accounting" },
   { to: "/admin/reports", icon: FileBarChart, label: "Reports" },
   { to: "/admin/customers", icon: Users, label: "Customers" },

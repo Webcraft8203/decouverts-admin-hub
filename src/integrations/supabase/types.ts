@@ -533,6 +533,36 @@ export type Database = {
         }
         Relationships: []
       }
+      document_terms: {
+        Row: {
+          content: string
+          created_at: string
+          display_order: number
+          document_type: string
+          id: string
+          is_active: boolean
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          display_order?: number
+          document_type?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          display_order?: number
+          document_type?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       hero_slides: {
         Row: {
           background_image_url: string | null

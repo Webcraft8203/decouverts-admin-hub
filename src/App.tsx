@@ -44,6 +44,7 @@ import AdminReviews from "./pages/admin/Reviews";
 import AdminPromoCodes from "./pages/admin/PromoCodes";
 import Invoices from "./pages/admin/Invoices";
 import Quotations from "./pages/admin/Quotations";
+import TermsConditions from "./pages/admin/TermsConditions";
 import Customers from "./pages/admin/Customers";
 import CustomerMaster from "./pages/admin/CustomerMaster";
 import ProductMaster from "./pages/admin/ProductMaster";
@@ -124,7 +125,9 @@ const App = () => (
               <Route path="/admin/promo-codes" element={<AdminRoute><AdminPromoCodes /></AdminRoute>} />
               <Route path="/admin/invoices" element={<AdminRoute><Invoices /></AdminRoute>} />
               <Route path="/admin/quotations" element={<AdminRoute><Quotations /></AdminRoute>} />
+              <Route path="/admin/terms-conditions" element={<AdminRoute><TermsConditions /></AdminRoute>} />
               <Route path="/admin/customers" element={<AdminRoute><Customers /></AdminRoute>} />
+
               <Route path="/admin/customer-master" element={<AdminRoute><CustomerMaster /></AdminRoute>} />
               <Route path="/admin/product-master" element={<AdminRoute><ProductMaster /></AdminRoute>} />
               <Route path="/admin/design-requests" element={<AdminRoute><AdminDesignRequests /></AdminRoute>} />
