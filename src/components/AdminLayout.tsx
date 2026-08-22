@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Package, Layers, Warehouse, Box, FileText, LogOut, Menu, X, Shield,
   ShoppingBag, Star, Ticket, Users, Activity, Palette, Home, MessageCircle,
   Handshake, Image as ImageIcon, MessageSquare, SlidersHorizontal, FileText as BlogIcon,
-  Newspaper, Briefcase, FileBarChart, Mail, Rocket, Award,
+  Newspaper, Briefcase, FileBarChart, Mail, Rocket, Award, ScrollText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
