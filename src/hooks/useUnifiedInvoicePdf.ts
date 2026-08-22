@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
+import { fetchDocumentTerms } from "@/lib/documentTerms";
 
 // ==================== UNIFIED DECOUVERTES INVOICE TEMPLATE ====================
 
@@ -243,7 +244,8 @@ function renderInvoicePdf(
   totalSgst: number,
   totalIgst: number,
   logoBase64: string | null,
-  signatureBase64: string | null
+  signatureBase64: string | null,
+  termsList: string[] = COMPANY.terms
 ) {
   const isManual = !invoice.order_id;
   const { width: pw, height: ph, margin: M } = PAGE;
@@ -672,7 +674,7 @@ function renderInvoicePdf(
 
   doc.setFontSize(5.5);
   const termsLines: string[] = [];
-  COMPANY.terms.forEach((term) => {
+  termsList.forEach((term) => {
     const wrapped = doc.splitTextToSize(term, sumLeftW) as string[];
     termsLines.push(...wrapped);
   });
@@ -928,7 +930,8 @@ export function useUnifiedInvoicePdf() {
 
     const logoBase64 = await fetchLogoAsBase64();
     const signatureBase64 = await fetchSignature();
-    renderInvoicePdf(doc, invoice, items, isIgst, totalCgst, totalSgst, totalIgst, logoBase64, signatureBase64);
+    const termsList = await fetchDocumentTerms("invoice", COMPANY.terms);
+    renderInvoicePdf(doc, invoice, items, isIgst, totalCgst, totalSgst, totalIgst, logoBase64, signatureBase64, termsList);
     return doc.output("blob");
   }, []);
 

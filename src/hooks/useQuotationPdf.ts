@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
+import { fetchDocumentTerms } from "@/lib/documentTerms";
 
 // ==================== TYPES ====================
 export interface QuotationItem {
@@ -808,7 +809,7 @@ async function renderQuotationPdf(doc: jsPDF, q: Quotation) {
   // ==================== 10. TERMS & CONDITIONS ====================
   const tcBody = (q.terms_conditions && q.terms_conditions.trim())
     ? q.terms_conditions.split(/\r?\n/).filter(Boolean)
-    : COMPANY.defaultTerms;
+    : await fetchDocumentTerms("quotation", COMPANY.defaultTerms);
   doc.setFontSize(5.8);
   const tcLines: string[] = [];
   tcBody.forEach((t) => {
