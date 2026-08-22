@@ -62,10 +62,10 @@ export const OurPartners = () => {
 
   if (isLoading) {
     return (
-      <section className="py-16 md:py-20 bg-[#080c14]">
+      <section className="py-16 md:py-20 bg-background">
         <div className="container mx-auto px-4 text-center">
-          <div className="animate-pulse h-8 bg-slate-100 rounded w-64 mx-auto mb-4" />
-          <div className="animate-pulse h-4 bg-slate-100 rounded w-96 mx-auto" />
+          <div className="animate-pulse h-8 bg-secondary rounded w-64 mx-auto mb-4" />
+          <div className="animate-pulse h-4 bg-secondary rounded w-96 mx-auto" />
         </div>
       </section>
     );
@@ -109,14 +109,14 @@ export const OurPartners = () => {
           )}
           <div
             className={[
-              "relative flex items-center justify-center rounded-full bg-white",
-              "border border-slate-200/80 shadow-[0_6px_20px_-6px_rgba(15,23,42,0.15)]",
-              "transition-all duration-300 ease-out",
-              "group-hover:-translate-y-1.5 group-hover:shadow-[0_18px_40px_-12px_rgba(234,88,12,0.35)]",
+              "relative flex items-center justify-center rounded-full bg-card",
+              "border border-border shadow-[0_6px_20px_-6px_rgba(15,23,42,0.08)]",
+              "transition-all duration-300 ease-out grayscale group-hover:grayscale-0",
+              "group-hover:-translate-y-1.5 group-hover:shadow-[0_18px_40px_-12px_hsl(var(--primary)/0.35)]",
               "group-hover:border-primary/60 group-hover:ring-2 group-hover:ring-primary/40",
               featured
-                ? "h-[130px] w-[130px] md:h-[170px] md:w-[170px]"
-                : "h-[90px] w-[90px] md:h-[110px] md:w-[110px] lg:h-[150px] lg:w-[150px]",
+                ? "h-[100px] w-[100px] md:h-[124px] md:w-[124px]"
+                : "h-[76px] w-[76px] md:h-[88px] md:w-[88px] lg:h-[104px] lg:w-[104px]",
             ].join(" ")}
           >
             <img
@@ -129,7 +129,7 @@ export const OurPartners = () => {
             />
           </div>
         </div>
-        <p className="mt-4 text-center text-[13px] md:text-sm font-semibold text-white/80 group-hover:text-primary transition-colors duration-300 max-w-[150px] leading-snug">
+        <p className="mt-4 text-center text-[13px] md:text-sm font-semibold text-muted-foreground group-hover:text-primary transition-colors duration-300 max-w-[150px] leading-snug">
           {partner.partner_name}
         </p>
       </div>
@@ -155,28 +155,14 @@ export const OurPartners = () => {
   };
 
   return (
-    <section className="relative py-16 md:py-24 bg-[#080c14] overflow-hidden">
-      {/* Subtle engineering grid */}
-      <div
-        aria-hidden
-        className="absolute inset-0 opacity-[0.5] pointer-events-none"
-        style={{
-          backgroundImage:
-            "linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)",
-          backgroundSize: "56px 56px",
-          maskImage:
-            "radial-gradient(ellipse at center, black 40%, transparent 80%)",
-          WebkitMaskImage:
-            "radial-gradient(ellipse at center, black 40%, transparent 80%)",
-        }}
-      />
+    <section className="relative py-24 md:py-32 bg-background overflow-hidden">
       {/* Orange radial glow behind heading */}
       <div
         aria-hidden
         className="absolute left-1/2 top-8 -translate-x-1/2 w-[680px] h-[280px] pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse at center, hsl(var(--primary) / 0.22), transparent 70%)",
+            "radial-gradient(ellipse at center, hsl(var(--primary) / 0.06), transparent 70%)",
         }}
       />
 
@@ -188,13 +174,13 @@ export const OurPartners = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <span className="inline-block px-4 py-1.5 mb-5 text-[10px] font-bold tracking-[0.28em] uppercase rounded-full bg-primary/15 text-primary border border-primary/30">
+          <span className="inline-block px-4 py-1.5 mb-5 text-[10px] font-bold tracking-[0.28em] uppercase rounded-full bg-primary/5 text-primary border border-primary/20">
             Trusted By
           </span>
-          <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight mb-4">
+          <h2 className="text-3xl md:text-5xl font-bold text-foreground tracking-tight mb-4">
             Trusted By Industry & <span className="text-primary">Government</span>
           </h2>
-          <p className="text-white/65 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+          <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
             Collaborating with defence organizations, government agencies, research
             institutes and industry leaders to build next-generation drone technologies.
           </p>
@@ -207,8 +193,8 @@ export const OurPartners = () => {
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
-        <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-[#080c14] to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-[#080c14] to-transparent z-10 pointer-events-none" />
+        <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
 
 
         <div

@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,59 +6,107 @@ import logo from "@/assets/logo.png";
 import { FloatingSocials } from "./FloatingSocials";
 import { HeroSlider, type HeroSlide } from "./HeroSlider";
 
-/* ---------- Intro overlay ---------- */
+/* ---------- Intro overlay — cinematic entrance sequence ---------- */
+const BRAND = "DECOUVERTES";
+
 const IntroAnimation = ({ onComplete }: { onComplete: () => void }) => {
-  const [isVisible, setIsVisible] = useState(true);
+  const prefersReducedMotion = useReducedMotion();
+  const [phase, setPhase] = useState<"content" | "wipe" | "done">("content");
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(false);
-      setTimeout(onComplete, 500);
-    }, 1600);
-    return () => clearTimeout(timer);
-  }, [onComplete]);
+    if (prefersReducedMotion) {
+      const t = setTimeout(onComplete, 200);
+      return () => clearTimeout(t);
+    }
+    const t1 = setTimeout(() => setPhase("wipe"), 2200);
+    const t2 = setTimeout(() => {
+      setPhase("done");
+      onComplete();
+    }, 3000);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [onComplete, prefersReducedMotion]);
+
+  if (prefersReducedMotion) return null;
 
   return (
     <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-white"
-          initial={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.5, ease: "easeInOut" }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-slate-100" />
-          <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-[radial-gradient(circle_at_top_right,rgba(255,107,0,0.06),transparent_70%)]" />
-          <div className="relative flex flex-col items-center z-10">
+      {phase !== "done" && (
+        <div className="fixed inset-0 z-[100] pointer-events-none">
+          {/* Two panels that curtain-wipe apart to reveal the hero */}
+          <motion.div
+            className="absolute inset-y-0 left-0 w-1/2 bg-[#07090d] flex items-center justify-end overflow-hidden"
+            animate={phase === "wipe" ? { x: "-100%" } : { x: 0 }}
+            transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
+          >
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_50%,rgba(255,107,0,0.08),transparent_60%)]" />
+          </motion.div>
+          <motion.div
+            className="absolute inset-y-0 right-0 w-1/2 bg-[#07090d] flex items-center justify-start overflow-hidden"
+            animate={phase === "wipe" ? { x: "100%" } : { x: 0 }}
+            transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
+          >
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(255,107,0,0.08),transparent_60%)]" />
+          </motion.div>
+
+          {/* Centered content, independent of the two panels */}
+          <motion.div
+            className="absolute inset-0 flex flex-col items-center justify-center"
+            animate={phase === "wipe" ? { opacity: 0, scale: 1.04 } : { opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
+          >
             <motion.img
-              src={logo} alt="Decouvertes"
-              className="w-20 h-20 md:w-24 md:h-24 object-contain"
-              initial={{ opacity: 0, scale: 0.94 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4 }}
+              src={logo}
+              alt="Decouvertes"
+              className="w-14 h-14 md:w-16 md:h-16 object-contain"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             />
-            <motion.h1
-              className="mt-6 text-2xl md:text-3xl font-bold text-slate-900 tracking-[0.15em] uppercase"
-              style={{ fontFamily: "'Montserrat', sans-serif" }}
-              initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-            >
-              DECOUVERTES
-            </motion.h1>
+
+            <div className="mt-7 flex overflow-hidden">
+              {BRAND.split("").map((ch, i) => (
+                <motion.span
+                  key={i}
+                  className="font-display text-2xl md:text-4xl font-bold tracking-[0.3em] text-white uppercase inline-block"
+                  initial={{ y: "110%" }}
+                  animate={{ y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.35 + i * 0.045, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  {ch}
+                </motion.span>
+              ))}
+            </div>
+
             <motion.p
-              className="text-xs md:text-sm text-primary font-medium tracking-wider mt-2"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.6 }}
+              className="mt-4 text-[11px] md:text-xs text-primary font-medium tracking-[0.35em] uppercase"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 1.1 }}
             >
               Discovering Future Technologies
             </motion.p>
-          </div>
-        </motion.div>
+
+            {/* Loading line */}
+            <div className="mt-10 w-40 md:w-48 h-px bg-white/10 overflow-hidden rounded-full">
+              <motion.div
+                className="h-full bg-primary"
+                initial={{ width: "0%" }}
+                animate={{ width: "100%" }}
+                transition={{ duration: 1.5, delay: 0.5, ease: [0.65, 0, 0.35, 1] }}
+              />
+            </div>
+          </motion.div>
+        </div>
       )}
     </AnimatePresence>
   );
 };
 
 export const HeroSection = () => {
+  const prefersReducedMotion = useReducedMotion();
   const [showIntro, setShowIntro] = useState(() => {
     try { return !sessionStorage.getItem("introPlayed"); } catch { return true; }
   });
@@ -153,6 +201,23 @@ export const HeroSection = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Scroll cue — desktop only */}
+        {!isLoading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.4, duration: 0.6 }}
+            className="hidden md:flex absolute bottom-7 left-1/2 -translate-x-1/2 z-20 flex-col items-center gap-2 pointer-events-none"
+          >
+            <span className="text-[10px] font-semibold tracking-[0.3em] uppercase text-white/40">Scroll</span>
+            <motion.span
+              animate={prefersReducedMotion ? {} : { y: [0, 6, 0] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+              className="w-px h-8 bg-gradient-to-b from-white/50 to-transparent"
+            />
+          </motion.div>
+        )}
       </section>
     </>
   );

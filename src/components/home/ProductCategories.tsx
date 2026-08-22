@@ -63,7 +63,7 @@ const SolutionCard = ({ solution, category, isLarge = false, delay }: SolutionCa
     <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay }}>
       <Link
         to={href}
-        className="group relative block rounded-2xl overflow-hidden bg-slate-900/50 border border-white/10 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_30px_60px_-20px_rgba(255,107,0,0.2)] hover:border-primary/30"
+        className="group relative block rounded-2xl overflow-hidden bg-card border border-border transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_30px_60px_-20px_hsl(var(--primary)/0.2)] hover:border-primary/30"
       >
         <div className={`relative ${isLarge ? "aspect-[16/9]" : "aspect-square"}`}>
           {image && (
@@ -87,7 +87,7 @@ const SolutionCard = ({ solution, category, isLarge = false, delay }: SolutionCa
               {solution.title}
             </h3>
             <p
-              className={`mt-3 text-slate-300 leading-relaxed ${
+              className={`mt-3 text-white/65 leading-relaxed ${
                 isLarge ? "text-base max-w-lg" : "text-sm"
               }`}
             >
@@ -112,20 +112,10 @@ export const ProductCategories = () => {
   }));
 
   return (
-    <section className="relative bg-[#0F172A] py-20 md:py-28 overflow-hidden">
-      {/* Ambient accents */}
+    <section className="relative bg-background py-24 md:py-32 overflow-hidden">
+      {/* Ambient accent */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 -left-32 w-96 h-96 rounded-full bg-primary/[0.05] blur-[120px]" />
-        <div className="absolute bottom-0 -right-32 w-[500px] h-[500px] rounded-full bg-primary/[0.03] blur-[140px]" />
-        <div
-          className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-            maskImage: "radial-gradient(ellipse at center, black 10%, transparent 70%)",
-          }}
-        />
+        <div className="absolute top-1/4 -left-32 w-96 h-96 rounded-full bg-primary/[0.04] blur-[120px]" />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
@@ -141,12 +131,12 @@ export const ProductCategories = () => {
                 Our UAV Solutions
               </p>
             </div>
-            <h2 className="text-4xl md:text-6xl text-white font-bold leading-tight tracking-tighter">
+            <h2 className="text-4xl md:text-6xl text-foreground font-bold leading-tight tracking-tighter">
               Advanced Drone Solutions Engineered for Every Mission
             </h2>
           </div>
           <div className="md:col-span-4 pb-2">
-            <p className="text-slate-400 text-sm md:text-base leading-relaxed border-l border-primary/60 pl-6">
+            <p className="text-muted-foreground text-sm md:text-base leading-relaxed border-l border-primary/60 pl-6">
               Discover indigenous UAV platforms engineered for defence, surveillance, mapping,
               inspection, and industrial operations with precision, reliability, and advanced engineering.
             </p>

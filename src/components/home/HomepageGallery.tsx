@@ -305,11 +305,6 @@ export function HomepageGallery() {
                 </motion.div>
               </AnimatePresence>
 
-              {/* Cinematic viewfinder corner brackets */}
-              <span aria-hidden className="pointer-events-none absolute top-3 left-3 w-6 h-6 border-l-2 border-t-2 border-white/40 rounded-tl-md z-20" />
-              <span aria-hidden className="pointer-events-none absolute top-3 right-3 w-6 h-6 border-r-2 border-t-2 border-white/40 rounded-tr-md z-20" />
-              <span aria-hidden className="pointer-events-none absolute bottom-3 left-3 w-6 h-6 border-l-2 border-b-2 border-white/40 rounded-bl-md z-20" />
-              <span aria-hidden className="pointer-events-none absolute bottom-3 right-3 w-6 h-6 border-r-2 border-b-2 border-white/40 rounded-br-md z-20" />
               </motion.div>
             </div>
 
@@ -498,14 +493,14 @@ export function HomepageGallery() {
                       {CATEGORY_LABELS[modalItem.category] || modalItem.category}
                     </span>
                   )}
-                  <h2 className="text-2xl font-bold text-slate-900 mb-4">{modalItem.title}</h2>
+                  <h2 className="text-2xl font-bold text-foreground mb-4">{modalItem.title}</h2>
                   {modalItem.description && (
-                    <p className="text-slate-600 leading-relaxed mb-6">{modalItem.description}</p>
+                    <p className="text-muted-foreground leading-relaxed mb-6">{modalItem.description}</p>
                   )}
                   {modalItem.project_id && (
-                    <div className="pt-6 border-t border-slate-200">
-                      <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Project Reference</p>
-                      <p className="text-sm font-mono text-slate-600">{modalItem.project_id}</p>
+                    <div className="pt-6 border-t border-border">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Project Reference</p>
+                      <p className="text-sm font-mono text-muted-foreground">{modalItem.project_id}</p>
                     </div>
                   )}
                   {modalItem.video_url && !showVideo && (

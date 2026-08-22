@@ -113,7 +113,7 @@ export const CertificationsSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.05 }}
-            className="mt-5 text-5xl md:text-6xl lg:text-[60px] font-extrabold tracking-tight text-slate-900 leading-[1.05]"
+            className="mt-5 text-5xl md:text-6xl lg:text-[60px] font-extrabold tracking-tight text-foreground leading-[1.05]"
           >
             Certified. <span className="text-primary">Recognized.</span> Trusted.
           </motion.h2>
@@ -122,7 +122,7 @@ export const CertificationsSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-            className="mt-4 text-lg md:text-xl leading-relaxed text-slate-600 max-w-3xl mx-auto"
+            className="mt-4 text-lg md:text-xl leading-relaxed text-muted-foreground max-w-3xl mx-auto"
           >
             Our certifications, registrations and government recognitions reflect our commitment to
             quality, innovation and regulatory compliance.
@@ -138,12 +138,12 @@ export const CertificationsSection = () => {
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
             className="relative w-full max-w-xl"
           >
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Search certificates…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-14 rounded-xl bg-white border-slate-200 shadow-lg shadow-slate-100/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300"
+              className="pl-9 h-14 rounded-xl bg-card hairline elevation-1 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300"
             />
           </motion.div>
           <motion.div
@@ -160,12 +160,12 @@ export const CertificationsSection = () => {
                 className={cn(
                   "group inline-flex items-center gap-2 px-5 h-12 rounded-full text-sm font-medium whitespace-nowrap border transition-all duration-300 hover:scale-[1.02]",
                   category === c.value
-                    ? "bg-gradient-to-br from-primary to-orange-400 text-white border-primary/60 shadow-md shadow-primary/30"
-                    : "bg-white text-slate-600 border-slate-200 hover:border-primary/40 hover:text-primary hover:shadow-sm hover:shadow-slate-100/50"
+                    ? "bg-primary text-white border-primary/60 shadow-md shadow-primary/30"
+                    : "bg-card text-muted-foreground border-border hover:border-primary/40 hover:text-primary hover:elevation-1"
                 )}
               >
                 <c.icon
-                  className={cn("w-4 h-4 transition-colors duration-300", category === c.value ? "text-white" : "text-slate-400 group-hover:text-primary")}
+                  className={cn("w-4 h-4 transition-colors duration-300", category === c.value ? "text-white" : "text-muted-foreground group-hover:text-primary")}
                 />
                 {c.label}
               </button>
@@ -192,13 +192,13 @@ export const CertificationsSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: Math.min(i, 6) * 0.08 }}
-              className="group relative text-left bg-white rounded-[22px] border border-slate-200/70 overflow-hidden shadow-[0_12px_30px_-10px_rgba(15,23,42,0.08)] transition-all duration-500 ease-out hover:-translate-y-2 hover:border-primary/40 hover:shadow-[0_40px_80px_-30px_hsl(var(--primary)/0.45)]"
+              className="group relative text-left bg-card rounded-[22px] hairline elevation-1 overflow-hidden transition-all duration-500 ease-out hover:-translate-y-2 hover:border-primary/40 hover:elevation-3"
             >
               {/* Top accent line */}
               <div className="absolute inset-x-6 -top-px h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
               {/* Image */}
-              <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden">
+              <div className="relative aspect-[4/3] bg-secondary overflow-hidden">
                 {cert.image_url ? (
                   <img
                     src={cert.image_url}
@@ -207,12 +207,12 @@ export const CertificationsSection = () => {
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[700ms] ease-out"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-300">
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground/40">
                     <Award className="w-16 h-16" />
                   </div>
                 )}
                 {/* Category badge */}
-                <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-900/85 text-white backdrop-blur border border-white/20">
+                <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-foreground/85 text-background backdrop-blur border border-white/20">
                   {cert.category}
                 </div>
 
@@ -229,33 +229,33 @@ export const CertificationsSection = () => {
 
               {/* Body */}
               <div className="p-5">
-                <h3 className="text-2xl leading-snug font-bold text-slate-900 line-clamp-2 group-hover:text-primary transition-colors min-h-[60px]">
+                <h3 className="text-2xl leading-snug font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors min-h-[60px]">
                   {cert.title}
                 </h3>
-                <p className="mt-1 text-base text-slate-500">{cert.issuing_authority}</p>
+                <p className="mt-1 text-base text-muted-foreground">{cert.issuing_authority}</p>
 
-                <div className="mt-5 pt-5 border-t border-slate-100 grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-slate-500">
+                <div className="mt-5 pt-5 border-t border-border grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-slate-400" />
-                    <span className="font-medium text-slate-700">Issued By</span>
+                    <Building2 className="w-4 h-4 text-muted-foreground" />
+                    <span className="font-medium text-foreground/80">Issued By</span>
                   </div>
-                  <span className="font-semibold text-slate-900 truncate">{cert.issuing_authority}</span>
+                  <span className="font-semibold text-foreground truncate">{cert.issuing_authority}</span>
                   {cert.certificate_number && (
                     <>
                       <div className="flex items-center gap-2">
-                        <Hash className="w-4 h-4 text-slate-400" />
-                        <span className="font-medium text-slate-700">Certificate No</span>
+                        <Hash className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-medium text-foreground/80">Certificate No</span>
                       </div>
-                      <span className="font-semibold text-slate-900 truncate">{cert.certificate_number}</span>
+                      <span className="font-semibold text-foreground truncate">{cert.certificate_number}</span>
                     </>
                   )}
                   {formatDate(cert.issue_date) && (
                     <>
                       <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-slate-400" />
-                        <span className="font-medium text-slate-700">Issued Date</span>
+                        <Calendar className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-medium text-foreground/80">Issued Date</span>
                       </div>
-                      <span className="font-semibold text-slate-900">{formatDate(cert.issue_date)}</span>
+                      <span className="font-semibold text-foreground">{formatDate(cert.issue_date)}</span>
                     </>
                   )}
                 </div>
@@ -276,11 +276,11 @@ export const CertificationsSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-center py-20 flex flex-col items-center justify-center text-slate-500"
+            className="text-center py-20 flex flex-col items-center justify-center text-muted-foreground"
           >
-            <ShieldCheck className="w-20 h-20 text-slate-300 mb-6" />
-            <p className="text-xl font-semibold text-slate-700">No certifications found.</p>
-            <p className="mt-2 text-base text-slate-500">Adjust your search or filters to see results.</p>
+            <ShieldCheck className="w-20 h-20 text-muted-foreground/30 mb-6" />
+            <p className="text-xl font-semibold text-foreground">No certifications found.</p>
+            <p className="mt-2 text-base text-muted-foreground">Adjust your search or filters to see results.</p>
           </motion.div>
         )}
       </div>

@@ -16,7 +16,7 @@ import { ContactSection } from "@/components/home/ContactSection";
 import { OurCustomers } from "@/components/home/OurCustomers";
 import { OurPartners } from "@/components/home/OurPartners";
 import { BackToTop } from "@/components/home/BackToTop";
-import { CinematicSection, CinematicDivider } from "@/components/home/CinematicSection";
+import { CinematicSection } from "@/components/home/CinematicSection";
 
 import { OrganizationSchema } from "@/components/SEOSchemas";
 import { usePageSEO } from "@/hooks/usePageSEO";
@@ -61,51 +61,41 @@ const Home = () => {
       <NotificationMarquee />
 
       <main className={`flex-1 ${hasNotification ? "pt-[120px] md:pt-[128px]" : "pt-[76px] md:pt-[84px]"}`}>
-        {/* Hero stays untouched — defence-briefing rhythm wraps everything below */}
         <HeroSection />
 
-        <CinematicDivider tone="dark" />
-        <CinematicSection variant="rise" hud grid scan grain tone="dark">
+        <CinematicSection variant="rise" tone="light">
           <StatsCounter />
         </CinematicSection>
 
-        <CinematicDivider tone="dark" />
-        <CinematicSection variant="scale" hud grid vignette scan tone="dark">
+        <CinematicSection variant="scale" tone="light">
           <ProductCategories />
         </CinematicSection>
 
-        <CinematicDivider tone="light" />
-        <CinematicSection variant="rise" hud delay={60} tone="light">
+        <CinematicSection variant="rise" delay={60} tone="light">
           <FeaturedProducts />
         </CinematicSection>
 
-        <CinematicDivider tone="light" />
         <CinematicSection variant="pan" tone="light">
           <OurCustomers />
         </CinematicSection>
 
-        <CinematicDivider tone="dark" />
-        <CinematicSection variant="blur" hud grid grain vignette scan tone="dark">
+        <CinematicSection variant="rise" tone="light">
           <CertificationsSection />
         </CinematicSection>
 
-        <CinematicDivider tone="light" />
         <CinematicSection variant="pan" tone="light">
           <OurPartners />
         </CinematicSection>
 
-        <CinematicDivider tone="light" />
         <CinematicSection variant="rise" tone="light">
           <LatestInsights />
         </CinematicSection>
 
-        <CinematicDivider tone="dark" />
-        <CinematicSection variant="scale" hud grid vignette grain scan tone="dark">
+        <CinematicSection variant="scale" tone="dark">
           <HomepageGallery />
         </CinematicSection>
 
-        <CinematicDivider tone="light" />
-        <CinematicSection variant="rise" hud delay={80} tone="light">
+        <CinematicSection variant="rise" delay={80} tone="light">
           <ContactSection />
         </CinematicSection>
       </main>

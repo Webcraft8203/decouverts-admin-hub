@@ -5,8 +5,6 @@ import { format } from "date-fns";
 import { ArrowRight, ArrowLeft, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-const ORANGE = "#FF6B00";
-
 type Post = {
   id: string;
   title: string;
@@ -96,23 +94,16 @@ export function LatestInsights() {
       <div className="relative">
         {/* Header */}
         <div className="mx-auto mb-12 max-w-4xl px-6 text-center">
-          <span
-            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.24em]"
-            style={{
-              borderColor: "rgba(255,107,0,0.35)",
-              color: ORANGE,
-              background: "rgba(255,107,0,0.06)",
-            }}
-          >
-            <span className="h-1.5 w-1.5 rounded-full" style={{ background: ORANGE }} />
+          <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
             Latest Insights
           </span>
-          <h2 className="mt-6 text-4xl font-bold leading-[1.05] tracking-tight text-slate-900 md:text-5xl lg:text-[56px]">
+          <h2 className="mt-6 text-4xl font-bold leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-[56px]">
             Engineering Stories.{" "}
-            <span className="text-slate-500">Product Updates.</span>{" "}
-            <span style={{ color: ORANGE }}>Industry News.</span>
+            <span className="text-muted-foreground">Product Updates.</span>{" "}
+            <span className="text-primary">Industry News.</span>
           </h2>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600 md:text-xl">
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
             Stay updated with our latest innovations, product launches,
             engineering breakthroughs, company news and research.
           </p>
@@ -137,7 +128,7 @@ export function LatestInsights() {
               onClick={() => scrollByCards(-1)}
               disabled={!canPrev}
               aria-label="Previous"
-              className="absolute left-3 md:left-6 top-1/2 z-20 -translate-y-1/2 flex h-11 w-11 md:h-12 md:w-12 items-center justify-center rounded-full bg-white shadow-[0_10px_30px_-8px_rgba(15,23,42,0.25)] ring-1 ring-slate-200 text-slate-800 transition-all hover:bg-[#FF6B00] hover:text-white hover:ring-[#FF6B00] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-800 disabled:hover:ring-slate-200"
+              className="absolute left-3 md:left-6 top-1/2 z-20 -translate-y-1/2 flex h-11 w-11 md:h-12 md:w-12 items-center justify-center rounded-full bg-card hairline elevation-1 text-foreground transition-all hover:bg-primary hover:text-white hover:border-primary disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-card disabled:hover:text-foreground disabled:hover:border-border"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
@@ -148,7 +139,7 @@ export function LatestInsights() {
               onClick={() => scrollByCards(1)}
               disabled={!canNext}
               aria-label="Next"
-              className="absolute right-3 md:right-6 top-1/2 z-20 -translate-y-1/2 flex h-11 w-11 md:h-12 md:w-12 items-center justify-center rounded-full bg-white shadow-[0_10px_30px_-8px_rgba(15,23,42,0.25)] ring-1 ring-slate-200 text-slate-800 transition-all hover:bg-[#FF6B00] hover:text-white hover:ring-[#FF6B00] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-800 disabled:hover:ring-slate-200"
+              className="absolute right-3 md:right-6 top-1/2 z-20 -translate-y-1/2 flex h-11 w-11 md:h-12 md:w-12 items-center justify-center rounded-full bg-card hairline elevation-1 text-foreground transition-all hover:bg-primary hover:text-white hover:border-primary disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-card disabled:hover:text-foreground disabled:hover:border-border"
             >
               <ArrowRight className="h-5 w-5" />
             </button>
@@ -175,10 +166,10 @@ function InsightCard({ post }: { post: Post }) {
   return (
     <Link
       to={`/blogs/${post.slug}`}
-      className="group relative flex w-[300px] sm:w-[340px] lg:w-[360px] shrink-0 flex-col overflow-hidden rounded-[18px] bg-white shadow-[0_8px_24px_-14px_rgba(15,23,42,0.18)] ring-1 ring-slate-100 transition-all duration-500 ease-out hover:-translate-y-1.5 hover:shadow-[0_28px_50px_-20px_rgba(15,23,42,0.25)]"
+      className="group relative flex w-[300px] sm:w-[340px] lg:w-[360px] shrink-0 flex-col overflow-hidden rounded-[18px] bg-card hairline elevation-1 transition-all duration-500 ease-out hover:-translate-y-1.5 hover:elevation-3"
     >
       {/* 16:10 image */}
-      <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100">
+      <div className="relative aspect-[16/10] w-full overflow-hidden bg-secondary">
         {post.feature_image ? (
           <img
             src={post.feature_image}
@@ -187,7 +178,7 @@ function InsightCard({ post }: { post: Post }) {
             loading="lazy"
           />
         ) : (
-          <div className="h-full w-full bg-gradient-to-br from-slate-200 to-slate-300" />
+          <div className="h-full w-full bg-gradient-to-br from-secondary to-muted" />
         )}
         <span
           className="absolute left-4 top-4 inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-white backdrop-blur-md"
@@ -202,26 +193,23 @@ function InsightCard({ post }: { post: Post }) {
 
       {/* Text */}
       <div className="flex flex-1 flex-col gap-3 p-6">
-        <h4 className="line-clamp-2 text-[22px] font-bold leading-tight tracking-tight text-slate-900">
+        <h4 className="line-clamp-2 text-[22px] font-bold leading-tight tracking-tight text-foreground">
           {post.title}
         </h4>
         {post.excerpt && (
-          <p className="line-clamp-2 text-[15px] leading-relaxed text-slate-600">
+          <p className="line-clamp-2 text-[15px] leading-relaxed text-muted-foreground">
             {post.excerpt}
           </p>
         )}
         <div className="mt-auto flex items-center justify-between pt-3">
-          <span className="inline-flex items-center gap-1.5 text-[13px] text-slate-500">
+          <span className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground">
             <Calendar className="h-3.5 w-3.5" />
             {format(
               new Date(post.publish_date || post.created_at),
               "MMM d, yyyy",
             )}
           </span>
-          <span
-            className="inline-flex items-center gap-1 text-[12px] font-semibold uppercase tracking-widest"
-            style={{ color: ORANGE }}
-          >
+          <span className="inline-flex items-center gap-1 text-[12px] font-semibold uppercase tracking-widest text-primary">
             Read
             <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
           </span>
@@ -231,8 +219,7 @@ function InsightCard({ post }: { post: Post }) {
       {/* Orange accent line */}
       <span
         aria-hidden
-        className="absolute bottom-0 left-0 h-[3px] w-0 transition-all duration-500 ease-out group-hover:w-full"
-        style={{ background: ORANGE }}
+        className="absolute bottom-0 left-0 h-[3px] w-0 bg-primary transition-all duration-500 ease-out group-hover:w-full"
       />
     </Link>
   );

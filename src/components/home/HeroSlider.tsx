@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, MouseEvent, useMemo } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, ChevronLeft, ChevronRight, X, ArrowUp, MapPin, Hash, Calendar, ChevronsDown } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, X, ArrowUp, ChevronsDown } from "lucide-react";
 
 export interface HeroSlide {
   id: string;
@@ -126,21 +126,6 @@ export const HeroSlider = ({ slides }: Props) => {
               backgroundSize: "32px 32px",
               maskImage: "radial-gradient(ellipse at 30% 40%, black 0%, transparent 70%)"
             }}
-          />
-          {/* Animated blueprint lines */}
-          <motion.div
-            aria-hidden
-            className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"
-            initial={{ x: "-100%" }}
-            animate={{ x: "100%" }}
-            transition={{ duration: 15, repeat: Infinity, repeatType: "loop", ease: "linear" }}
-          />
-          <motion.div
-            aria-hidden
-            className="absolute bottom-1/3 right-0 w-px h-1/2 bg-gradient-to-b from-transparent via-primary/20 to-transparent"
-            initial={{ y: "100%" }}
-            animate={{ y: "-100%" }}
-            transition={{ duration: 12, repeat: Infinity, repeatType: "loop", ease: "linear", delay: 5 }}
           />
           {/* Soft radial lighting */}
           <motion.div
@@ -296,40 +281,6 @@ export const HeroSlider = ({ slides }: Props) => {
           {/* --- Overlays --- */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/10 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent md:hidden" />
-
-          {/* --- Floating HUD Card --- */}
-          <AnimatePresence>
-            <motion.div
-              key={active.id + "-hud"}
-              initial={{ opacity: 0, y: 20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1, transition: { delay: 0.8, duration: 0.5 } }}
-              exit={{ opacity: 0, y: 20, scale: 0.95 }}
-              className="absolute bottom-8 right-8 z-20 hidden lg:block w-[280px] rounded-xl border border-white/10 bg-black/30 backdrop-blur-md p-4 text-white shadow-2xl"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">Telemetry</p>
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-              </div>
-              <h4 className="font-semibold leading-tight truncate">{active.subtitle || active.title}</h4>
-              <div className="mt-4 pt-4 border-t border-white/10 space-y-2 text-xs text-white/70">
-                <div className="flex items-center gap-2">
-                  <Hash className="w-3 h-3 text-primary/70" />
-                  <span>ID: {active.id.substring(0, 8).toUpperCase()}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-3 h-3 text-primary/70" />
-                  <span>Status: Operational</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-3 h-3 text-primary/70" />
-                  <span>Timestamp: {new Date().toISOString().substring(11, 19)}Z</span>
-                </div>
-              </div>
-            </motion.div>
-          </AnimatePresence>
         </div>
 
         {/* ==================== Mobile Content Overlay ==================== */}

@@ -106,7 +106,6 @@ export const PublicFooter = () => {
   return (
     <footer className="bg-[hsl(222,30%,6%)] text-white relative overflow-hidden border-t border-white/5">
       {/* Engineering grid overlay */}
-      <div className="absolute inset-0 grid-engineering-dark opacity-60 pointer-events-none" />
       {/* Orange horizon glow */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent pointer-events-none" />
       <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[300px] rounded-full pointer-events-none"

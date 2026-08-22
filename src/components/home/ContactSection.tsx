@@ -33,22 +33,16 @@ const contactInfo = [
     icon: Mail,
     label: "Email Us",
     value: "hello@decouvertes.in",
-    color: "text-blue-600",
-    bg: "bg-blue-50"
   },
   {
     icon: Phone,
     label: "Call Us",
     value: "+91 9561103435",
-    color: "text-emerald-600",
-    bg: "bg-emerald-50"
   },
   {
     icon: MapPin,
     label: "Visit Us",
     value: "A-414, Gera's Imperium Gateway, Near Nashik Phata Flyover, Opp. Bhosari Metro Station, Kasarwadi, Pimpri-Chinchwad, Pune, Maharashtra 411034",
-    color: "text-purple-600",
-    bg: "bg-purple-50"
   }
 ];
 
@@ -105,7 +99,7 @@ export function ContactSection() {
 
         <div className="max-w-2xl mx-auto text-center relative z-10">
           <motion.div
-            className="bg-white/80 backdrop-blur-sm rounded-3xl p-12 border border-slate-200 shadow-xl"
+            className="bg-card rounded-2xl p-12 hairline elevation-2"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
@@ -115,12 +109,12 @@ export function ContactSection() {
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring" }}
             >
-              <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="h-10 w-10 text-emerald-600" />
+              <div className="w-20 h-20 rounded-xl hairline bg-background flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="h-10 w-10 text-primary" />
               </div>
             </motion.div>
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">Message Sent</h2>
-            <p className="text-slate-600 text-lg mb-8">
+            <h2 className="text-3xl font-bold text-foreground mb-4">Message Sent</h2>
+            <p className="text-muted-foreground text-lg mb-8">
               We have received your message and will contact you shortly.
             </p>
             <Button 
@@ -152,10 +146,10 @@ export function ContactSection() {
           <span className="inline-block px-3 py-1 mb-6 text-xs font-bold tracking-[0.2em] uppercase text-primary/80 border border-primary/20 rounded-full bg-primary/5">
             Get In Touch
           </span>
-          <h2 className="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight mb-6">
             Contact <span className="text-primary">Us</span>
           </h2>
-          <p className="text-slate-600 text-lg max-w-2xl mx-auto leading-relaxed">
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
             Reach out for drone inquiries, mission planning, or strategic partnerships.
           </p>
         </motion.div>
@@ -169,8 +163,8 @@ export function ContactSection() {
             viewport={{ once: true }}
           >
             <div className="mb-8">
-              <h3 className="text-2xl font-bold text-slate-900 mb-4">Let's Take Flight Together</h3>
-              <p className="text-slate-600 leading-relaxed">
+              <h3 className="text-2xl font-bold text-foreground mb-4">Let's Take Flight Together</h3>
+              <p className="text-muted-foreground leading-relaxed">
                 Whether you need a surveillance UAV, a custom payload integration, or a fleet for
                 mission-critical operations, our drone team is here to help bring your program to life.
               </p>
@@ -180,24 +174,24 @@ export function ContactSection() {
               {contactInfo.map((info, index) => (
                 <motion.div
                   key={info.label}
-                  className="flex items-center gap-5 p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300"
+                  className="flex items-center gap-5 p-5 rounded-2xl bg-card hairline elevation-1 hover:elevation-2 hover:border-primary/30 transition-all duration-300"
                   initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <div className={`w-12 h-12 rounded-xl ${info.bg} flex items-center justify-center shrink-0`}>
-                    <info.icon className={`w-6 h-6 ${info.color}`} />
+                  <div className="w-12 h-12 rounded-xl hairline bg-background flex items-center justify-center shrink-0">
+                    <info.icon className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{info.label}</p>
-                    <p className="font-semibold text-slate-900 text-lg">{info.value}</p>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{info.label}</p>
+                    <p className="font-semibold text-foreground text-lg">{info.value}</p>
                   </div>
                 </motion.div>
               ))}
             </div>
 
-            <div className="pt-8 flex items-center gap-3 text-slate-500 text-sm font-medium">
+            <div className="pt-8 flex items-center gap-3 text-muted-foreground text-sm font-medium">
               <Building2 className="w-5 h-5 text-primary/60" />
               <p>Serving drone operators and defence customers across India.</p>
             </div>
@@ -205,12 +199,12 @@ export function ContactSection() {
 
           {/* Contact Form */}
           <motion.div
-            className="bg-white rounded-3xl p-8 lg:p-10 border border-slate-200 shadow-xl relative overflow-hidden"
+            className="bg-card rounded-2xl p-8 lg:p-10 hairline elevation-2 relative overflow-hidden"
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
           >
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-accent" />
+            <div className="absolute top-0 left-0 w-full h-[2px] bg-primary" />
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
