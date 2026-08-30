@@ -886,6 +886,7 @@ export type Database = {
           source_proforma_id: string | null
           subtotal: number
           tax_amount: number
+          terms_and_conditions: string | null
           total_amount: number
           updated_at: string
         }
@@ -929,6 +930,7 @@ export type Database = {
           source_proforma_id?: string | null
           subtotal?: number
           tax_amount?: number
+          terms_and_conditions?: string | null
           total_amount?: number
           updated_at?: string
         }
@@ -972,6 +974,7 @@ export type Database = {
           source_proforma_id?: string | null
           subtotal?: number
           tax_amount?: number
+          terms_and_conditions?: string | null
           total_amount?: number
           updated_at?: string
         }
