@@ -103,7 +103,7 @@ export default function Blogs() {
           </div>
 
           {/* Filters */}
-          <div className="bg-card border border-border rounded-2xl p-4 md:p-6 mb-8 shadow-soft">
+          <div className="bg-card border border-border rounded-lg p-4 md:p-6 mb-8 shadow-soft">
             <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
               {/* Search */}
               <div className="relative w-full lg:w-80">
@@ -185,7 +185,7 @@ export default function Blogs() {
           {postsLoading ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-card rounded-2xl overflow-hidden border border-border">
+                <div key={i} className="bg-card rounded-lg overflow-hidden border border-border">
                   <Skeleton className="w-full aspect-video" />
                   <div className="p-6 space-y-3">
                     <Skeleton className="h-4 w-20" />

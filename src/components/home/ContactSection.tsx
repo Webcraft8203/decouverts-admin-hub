@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,76 +91,49 @@ export function ContactSection() {
 
   if (isSubmitted) {
     return (
-      <section className="py-16 md:py-20 px-4 bg-white relative overflow-hidden" id="contact-section">
-        {/* Technical Grid Background */}
-        <div className="absolute inset-0 " />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_50%_200px,rgba(255,255,255,0.8),transparent)]" />
-
-        <div className="max-w-2xl mx-auto text-center relative z-10">
-          <motion.div
-            className="bg-card rounded-2xl p-12 hairline elevation-2"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-          >
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring" }}
-            >
-              <div className="w-20 h-20 rounded-xl hairline bg-background flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="h-10 w-10 text-primary" />
-              </div>
-            </motion.div>
+      <section className="py-20 md:py-28 px-4 bg-white border-t border-border" id="contact-section">
+        <div className="max-w-2xl mx-auto text-center">
+          <div className="bg-card rounded-lg p-12 border border-border">
+            <div className="w-20 h-20 rounded-md border border-border bg-background flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="h-10 w-10 text-primary" />
+            </div>
             <h2 className="text-3xl font-bold text-foreground mb-4">Message Sent</h2>
             <p className="text-muted-foreground text-lg mb-8">
               We have received your message and will contact you shortly.
             </p>
-            <Button 
-              onClick={() => setIsSubmitted(false)} 
+            <Button
+              onClick={() => setIsSubmitted(false)}
               variant="outline"
-              className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+              className="border-primary text-primary hover:bg-primary hover:text-primary-foreground rounded-md"
             >
               Send Another Message
             </Button>
-          </motion.div>
+          </div>
         </div>
       </section>
     );
   }
 
   return (
-    <section className="py-16 md:py-20 px-4 bg-white relative overflow-hidden" id="contact-section">
-      {/* Technical Grid Background */}
-      <div className="absolute inset-0 " />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_100%_0px,rgba(255,255,255,0.8),transparent)]" />
-
-      <div className="max-w-7xl mx-auto relative z-10">
-        <motion.div
-          className="text-center mb-12"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          <span className="inline-block px-3 py-1 mb-6 text-xs font-bold tracking-[0.2em] uppercase text-primary/80 border border-primary/20 rounded-full bg-primary/5">
-            Get In Touch
-          </span>
+    <section className="py-20 md:py-28 px-4 bg-white border-t border-border" id="contact-section">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-14">
+          <div className="flex items-center justify-center gap-3 mb-5">
+            <span className="h-px w-10 bg-primary" />
+            <p className="text-primary font-semibold tracking-[0.2em] text-xs uppercase">Get In Touch</p>
+            <span className="h-px w-10 bg-primary" />
+          </div>
           <h2 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight mb-6">
-            Contact <span className="text-primary">Us</span>
+            Contact Us
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
             Reach out for drone inquiries, mission planning, or strategic partnerships.
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-start">
           {/* Contact Info */}
-          <motion.div
-            className="space-y-6"
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-          >
+          <div className="space-y-6">
             <div className="mb-8">
               <h3 className="text-2xl font-bold text-foreground mb-4">Let's Take Flight Together</h3>
               <p className="text-muted-foreground leading-relaxed">
@@ -169,25 +141,21 @@ export function ContactSection() {
                 mission-critical operations, our drone team is here to help bring your program to life.
               </p>
             </div>
-            
+
             <div className="space-y-4">
-              {contactInfo.map((info, index) => (
-                <motion.div
+              {contactInfo.map((info) => (
+                <div
                   key={info.label}
-                  className="flex items-center gap-5 p-5 rounded-2xl bg-card hairline elevation-1 hover:elevation-2 hover:border-primary/30 transition-all duration-300"
-                  initial={{ opacity: 0, y: 10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
+                  className="flex items-center gap-5 p-5 rounded-lg bg-card border border-border hover:border-primary/30 transition-colors duration-200"
                 >
-                  <div className="w-12 h-12 rounded-xl hairline bg-background flex items-center justify-center shrink-0">
+                  <div className="w-12 h-12 rounded-md border border-border bg-background flex items-center justify-center shrink-0">
                     <info.icon className="w-6 h-6 text-primary" />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{info.label}</p>
                     <p className="font-semibold text-foreground text-lg">{info.value}</p>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
 
@@ -195,15 +163,10 @@ export function ContactSection() {
               <Building2 className="w-5 h-5 text-primary/60" />
               <p>Serving drone operators and defence customers across India.</p>
             </div>
-          </motion.div>
+          </div>
 
           {/* Contact Form */}
-          <motion.div
-            className="bg-card rounded-2xl p-8 lg:p-10 hairline elevation-2 relative overflow-hidden"
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-          >
+          <div className="bg-card rounded-lg p-8 lg:p-10 border border-border relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-[2px] bg-primary" />
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -213,12 +176,12 @@ export function ContactSection() {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-slate-700 font-semibold">Name</FormLabel>
+                        <FormLabel className="text-foreground/80 font-semibold">Name</FormLabel>
                         <FormControl>
-                          <Input 
-                            placeholder="Your full name" 
-                            className="bg-slate-50 border-slate-200 focus:border-primary focus:ring-primary/20 h-12 rounded-xl"
-                            {...field} 
+                          <Input
+                            placeholder="Your full name"
+                            className="bg-secondary/50 border-border focus:border-primary focus:ring-primary/20 h-12 rounded-md"
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
@@ -231,12 +194,12 @@ export function ContactSection() {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-slate-700 font-semibold">Phone Number</FormLabel>
+                        <FormLabel className="text-foreground/80 font-semibold">Phone Number</FormLabel>
                         <FormControl>
-                          <Input 
-                            placeholder="Your phone number" 
-                            className="bg-slate-50 border-slate-200 focus:border-primary focus:ring-primary/20 h-12 rounded-xl"
-                            {...field} 
+                          <Input
+                            placeholder="Your phone number"
+                            className="bg-secondary/50 border-border focus:border-primary focus:ring-primary/20 h-12 rounded-md"
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
@@ -250,13 +213,13 @@ export function ContactSection() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-slate-700 font-semibold">Email Address</FormLabel>
+                      <FormLabel className="text-foreground/80 font-semibold">Email Address</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="email" 
-                          placeholder="your@email.com" 
-                          className="bg-slate-50 border-slate-200 focus:border-primary focus:ring-primary/20 h-12 rounded-xl"
-                          {...field} 
+                        <Input
+                          type="email"
+                          placeholder="your@email.com"
+                          className="bg-secondary/50 border-border focus:border-primary focus:ring-primary/20 h-12 rounded-md"
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
@@ -269,11 +232,11 @@ export function ContactSection() {
                   name="message"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-slate-700 font-semibold">Message</FormLabel>
+                      <FormLabel className="text-foreground/80 font-semibold">Message</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Tell us about your project..."
-                          className="min-h-[150px] resize-none bg-slate-50 border-slate-200 focus:border-primary focus:ring-primary/20 rounded-xl p-4"
+                          className="min-h-[150px] resize-none bg-secondary/50 border-border focus:border-primary focus:ring-primary/20 rounded-md p-4"
                           {...field}
                         />
                       </FormControl>
@@ -285,7 +248,7 @@ export function ContactSection() {
                 <Button
                   type="submit"
                   size="lg"
-                  className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 rounded-xl text-base font-semibold transition-all duration-300 hover:scale-[1.02]"
+                  className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md text-base font-semibold transition-colors duration-200"
                   disabled={isSubmitting || isChecking}
                 >
                   {isSubmitting || isChecking ? (
@@ -299,7 +262,7 @@ export function ContactSection() {
                 </Button>
               </form>
             </Form>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

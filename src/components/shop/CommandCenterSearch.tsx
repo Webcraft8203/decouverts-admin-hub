@@ -71,7 +71,7 @@ export function CommandCenterSearch(p: Props) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="relative rounded-3xl border border-border/60 bg-card/70 backdrop-blur-xl shadow-[0_20px_70px_-25px_rgba(0,0,0,0.25)] overflow-hidden"
+          className="relative rounded-lg border border-border/60 bg-card/70 backdrop-blur-xl shadow-[0_20px_70px_-25px_rgba(0,0,0,0.25)] overflow-hidden"
         >
           {/* Ambient glow */}
           <div className="pointer-events-none absolute -top-24 -left-24 w-64 h-64 rounded-full bg-primary/10 blur-3xl" />

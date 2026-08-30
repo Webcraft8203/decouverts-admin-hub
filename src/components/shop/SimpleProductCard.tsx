@@ -44,7 +44,7 @@ export function SimpleProductCard({ product }: Props) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.4 }}
-      className="group relative flex flex-col bg-card rounded-2xl border border-border/60 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/40"
+      className="group relative flex flex-col bg-card rounded-lg border border-border overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-primary/40"
     >
       {/* Badges */}
       <div className="absolute top-4 left-4 z-10 flex flex-col gap-1.5">
@@ -117,7 +117,7 @@ export function SimpleProductCard({ product }: Props) {
           <Button
             asChild
             variant="outline"
-            className="h-10 rounded-xl border-border/70 hover:bg-secondary/60 font-medium text-sm"
+            className="h-10 rounded-md border-border/70 hover:bg-secondary/60 font-medium text-sm"
           >
             <Link to={href}>
               Explore
@@ -126,7 +126,7 @@ export function SimpleProductCard({ product }: Props) {
           </Button>
           <Button
             asChild
-            className="h-10 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm shadow-sm"
+            className="h-10 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm shadow-sm"
           >
             <Link to={`/contact?product=${encodeURIComponent(product.name)}`}>
               Get Quote

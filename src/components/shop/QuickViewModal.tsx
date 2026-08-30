@@ -119,7 +119,7 @@ export function QuickViewModal({ productId, open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl p-0 gap-0 overflow-hidden rounded-2xl">
+      <DialogContent className="max-w-4xl p-0 gap-0 overflow-hidden rounded-lg">
         <button
           onClick={() => onOpenChange(false)}
           className="absolute top-3 right-3 z-30 w-8 h-8 rounded-full bg-card/95 backdrop-blur shadow-md flex items-center justify-center hover:bg-card border border-border/40"

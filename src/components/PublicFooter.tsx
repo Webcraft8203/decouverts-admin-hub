@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  Mail, MapPin, Linkedin, Twitter, Instagram, Phone, 
-  ArrowUp, Send, ShieldCheck, Cpu, ChevronRight, Loader2
+import {
+  Mail, MapPin, Linkedin, Twitter, Instagram, Phone,
+  ArrowUp, Send, ShieldCheck, Cpu, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -104,58 +104,44 @@ export const PublicFooter = () => {
   };
 
   return (
-    <footer className="bg-[hsl(222,30%,6%)] text-white relative overflow-hidden border-t border-white/5">
-      {/* Engineering grid overlay */}
-      {/* Orange horizon glow */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent pointer-events-none" />
-      <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[300px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(ellipse at center, hsl(var(--primary) / 0.10), transparent 70%)" }} />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20 relative z-10">
+    <footer className="bg-[hsl(217,45%,9%)] text-white relative border-t border-white/10">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16 py-16 lg:py-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8">
-          
+
           {/* Brand Column */}
-          <div className="lg:col-span-4 space-y-8">
+          <div className="lg:col-span-4 space-y-7">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/70 hover:bg-white rounded-xl transition-colors duration-300">
-                <img 
-                  src={logo} 
-                  alt="Decouvertes Logo" 
-                  className="h-10 w-auto"
-                />
+              <div className="p-1.5 bg-white rounded-md">
+                <img src={logo} alt="Decouvertes Logo" className="h-9 w-auto" />
               </div>
               <div className="flex flex-col justify-center">
-                <span
-                  className="font-display text-xl font-bold text-white tracking-[0.22em] uppercase leading-none"
-                >
+                <span className="font-display text-lg font-bold text-white tracking-[0.16em] uppercase leading-none">
                   DECOUVERTES
                 </span>
-                <span
-                  className="font-display text-[10px] text-primary font-medium tracking-[0.32em] uppercase leading-tight mt-1"
-                >
+                <span className="font-display text-[10px] text-white/50 font-medium tracking-[0.22em] uppercase leading-tight mt-1.5">
                   Defence · Tech · India
                 </span>
               </div>
             </div>
-            
-            <p className="text-slate-400 text-sm leading-relaxed max-w-sm">
+
+            <p className="text-white/55 text-sm leading-relaxed max-w-sm">
               Building the future of flight. Decouvertes designs indigenous drone platforms
               for surveillance, industrial, and mission-critical operations across India.
             </p>
 
             {/* Trust Badges */}
-            <div className="flex flex-wrap gap-4 pt-2">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors cursor-default">
+            <div className="flex flex-wrap gap-x-6 gap-y-3 pt-1">
+              <div className="flex items-center gap-2 text-xs font-medium text-white/60">
                 <Cpu className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs font-medium text-slate-300">Indigenous R&D</span>
+                Indigenous R&amp;D
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors cursor-default">
+              <div className="flex items-center gap-2 text-xs font-medium text-white/60">
                 <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs font-medium text-slate-300">Secure Payments</span>
+                Secure Payments
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors cursor-default">
+              <div className="flex items-center gap-2 text-xs font-medium text-white/60">
                 <span className="text-xs">🇮🇳</span>
-                <span className="text-xs font-medium text-slate-300">Make in India</span>
+                Make in India
               </div>
             </div>
 
@@ -169,10 +155,10 @@ export const PublicFooter = () => {
                 <a
                   key={i}
                   href={href}
-                  className="w-10 h-10 rounded-xl bg-white/5 hover:bg-primary/20 border border-white/10 hover:border-primary/30 flex items-center justify-center transition-all duration-300 group"
+                  className="w-9 h-9 rounded-md border border-white/15 hover:border-primary/50 hover:bg-white/5 flex items-center justify-center transition-colors duration-200"
                   aria-label="Social Link"
                 >
-                  <Icon className="w-4 h-4 text-slate-400 group-hover:text-primary transition-colors" />
+                  <Icon className="w-4 h-4 text-white/60" />
                 </a>
               ))}
             </div>
@@ -180,8 +166,8 @@ export const PublicFooter = () => {
 
           {/* Quick Actions */}
           <div className="lg:col-span-3">
-            <h3 className="font-bold text-white mb-6 text-sm uppercase tracking-wider flex items-center gap-2">
-              <ChevronRight className="w-4 h-4 text-primary" /> Quick Actions
+            <h3 className="font-semibold text-white mb-6 text-xs uppercase tracking-[0.16em]">
+              Quick Actions
             </h3>
             <ul className="space-y-3">
               {quickLinks.map((link) => (
@@ -189,17 +175,12 @@ export const PublicFooter = () => {
                   {link.action ? (
                     <button
                       onClick={(e) => handleQuickLinkClick(e, link)}
-                      className="text-slate-400 hover:text-primary transition-colors text-sm flex items-center gap-2 group w-fit text-left"
+                      className="text-white/55 hover:text-white transition-colors text-sm text-left"
                     >
-                      <span className="w-1.5 h-1.5 rounded-full bg-slate-700 group-hover:bg-primary transition-colors" />
                       {link.label}
                     </button>
                   ) : (
-                    <Link 
-                      to={link.href} 
-                      className="text-slate-400 hover:text-primary transition-colors text-sm flex items-center gap-2 group w-fit"
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-slate-700 group-hover:bg-primary transition-colors" />
+                    <Link to={link.href} className="text-white/55 hover:text-white transition-colors text-sm">
                       {link.label}
                     </Link>
                   )}
@@ -210,23 +191,20 @@ export const PublicFooter = () => {
 
           {/* Support & Legal */}
           <div className="lg:col-span-2">
-            <h3 className="font-bold text-white mb-6 text-sm uppercase tracking-wider flex items-center gap-2">
-              <ChevronRight className="w-4 h-4 text-primary" /> Support
+            <h3 className="font-semibold text-white mb-6 text-xs uppercase tracking-[0.16em]">
+              Support
             </h3>
             <ul className="space-y-3 mb-8">
               {supportLinks.map((link) => (
                 <li key={link.label}>
                   {link.action === "link" ? (
-                    <Link 
-                      to={link.href} 
-                      className="text-slate-400 hover:text-primary transition-colors text-sm flex items-center gap-2 group w-fit"
-                    >
+                    <Link to={link.href} className="text-white/55 hover:text-white transition-colors text-sm">
                       {link.label}
                     </Link>
                   ) : (
                     <button
                       onClick={(e) => handleSupportClick(e, link)}
-                      className="text-slate-400 hover:text-primary transition-colors text-sm flex items-center gap-2 group w-fit text-left"
+                      className="text-white/55 hover:text-white transition-colors text-sm text-left"
                     >
                       {link.label}
                     </button>
@@ -235,13 +213,13 @@ export const PublicFooter = () => {
               ))}
             </ul>
 
-            <h3 className="font-bold text-white mb-4 text-sm uppercase tracking-wider">Legal</h3>
+            <h3 className="font-semibold text-white mb-4 text-xs uppercase tracking-[0.16em]">Legal</h3>
             <ul className="space-y-2">
               {legalLinks.map((link) => (
                 <li key={link.key}>
-                  <button 
+                  <button
                     onClick={() => setSelectedPolicy(link.key)}
-                    className="text-slate-500 hover:text-slate-300 transition-colors text-xs flex items-center gap-1 group text-left"
+                    className="text-white/40 hover:text-white/70 transition-colors text-xs text-left"
                   >
                     {link.label}
                   </button>
@@ -252,48 +230,42 @@ export const PublicFooter = () => {
 
           {/* Newsletter & Contact */}
           <div className="lg:col-span-3">
-            <div className="bg-white/5 rounded-2xl p-6 border border-white/10 backdrop-blur-sm">
-              <h3 className="font-bold text-white mb-2">Stay Updated</h3>
-              <p className="text-slate-400 text-xs mb-4 leading-relaxed">
-                Get the latest updates on new drone platforms, missions, and R&D milestones.
+            <div className="border border-white/10 rounded-lg p-6">
+              <h3 className="font-semibold text-white mb-2 text-sm">Stay Updated</h3>
+              <p className="text-white/50 text-xs mb-4 leading-relaxed">
+                Get the latest updates on new drone platforms, missions, and R&amp;D milestones.
               </p>
-              
+
               <form onSubmit={handleSubscribe} className="space-y-3">
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                  <Input 
-                    type="email" 
-                    placeholder="Enter your email" 
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/35" />
+                  <Input
+                    type="email"
+                    placeholder="Enter your email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="bg-black/20 border-white/10 text-white placeholder:text-slate-600 pl-10 h-10 text-sm focus-visible:ring-primary/50"
+                    className="bg-white/5 border-white/15 text-white placeholder:text-white/35 pl-10 h-10 text-sm focus-visible:ring-primary/50 rounded-md"
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-9 text-sm font-medium" disabled={isSubscribing}>
+                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-9 text-sm font-medium rounded-md" disabled={isSubscribing}>
                   {isSubscribing ? <Loader2 className="h-3 w-3 animate-spin" /> : <>Subscribe <Send className="w-3 h-3 ml-2" /></>}
                 </Button>
               </form>
             </div>
 
             <div className="mt-8 space-y-4">
-              <a href="mailto:hello@decouvertes.in" className="flex items-center gap-3 text-slate-400 hover:text-white transition-colors text-sm group">
-                <div className="p-2 bg-white/5 rounded-lg group-hover:bg-primary/20 transition-colors border border-white/5 group-hover:border-primary/20">
-                  <Mail className="w-4 h-4 group-hover:text-primary transition-colors" />
-                </div>
+              <a href="mailto:hello@decouvertes.in" className="flex items-center gap-3 text-white/55 hover:text-white transition-colors text-sm">
+                <Mail className="w-4 h-4 text-white/35" />
                 hello@decouvertes.in
               </a>
-              <a href="tel:+919561103435" className="flex items-center gap-3 text-slate-400 hover:text-white transition-colors text-sm group">
-                <div className="p-2 bg-white/5 rounded-lg group-hover:bg-primary/20 transition-colors border border-white/5 group-hover:border-primary/20">
-                  <Phone className="w-4 h-4 group-hover:text-primary transition-colors" />
-                </div>
+              <a href="tel:+919561103435" className="flex items-center gap-3 text-white/55 hover:text-white transition-colors text-sm">
+                <Phone className="w-4 h-4 text-white/35" />
                 +91 9561103435
               </a>
-              <div className="flex items-start gap-3 text-slate-400 text-sm">
-                <div className="p-2 bg-white/5 rounded-lg shrink-0 border border-white/5">
-                  <MapPin className="w-4 h-4" />
-                </div>
-                <span className="leading-relaxed text-xs">A-414, Gera's Imperium Gateway, Near Nashik Phata Flyover, Opp. Bhosari Metro Station, Kasarwadi, Pimpri-Chinchwad, Pune, Maharashtra – 411034, India</span>
+              <div className="flex items-start gap-3 text-white/50 text-xs leading-relaxed">
+                <MapPin className="w-4 h-4 shrink-0 text-white/35 mt-0.5" />
+                <span>A-414, Gera's Imperium Gateway, Near Nashik Phata Flyover, Opp. Bhosari Metro Station, Kasarwadi, Pimpri-Chinchwad, Pune, Maharashtra – 411034, India</span>
               </div>
             </div>
           </div>
@@ -301,27 +273,25 @@ export const PublicFooter = () => {
 
         {/* Bottom Bar */}
         <div className="border-t border-white/10 mt-16 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <button 
+          <button
             onClick={() => setShowCopyright(true)}
-            className="text-slate-500 text-sm hover:text-slate-300 transition-colors text-left"
+            className="text-white/40 text-sm hover:text-white/70 transition-colors text-left"
           >
             © {new Date().getFullYear()} DECOUVERTES. All rights reserved.
           </button>
-          <div className="flex items-center gap-4">
-             <button
-               onClick={() => setShowMadeInIndia(true)}
-               className="group inline-flex items-center gap-3 px-4 py-2 rounded-full border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-primary/40 transition-all"
-             >
-              <span className="flex items-center gap-0.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#FF9933]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                <span className="w-1.5 h-1.5 rounded-full bg-[#138808]" />
-              </span>
-              <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/70 group-hover:text-white">
-                Made in <span className="text-primary">India</span>
-              </span>
-            </button>
-          </div>
+          <button
+            onClick={() => setShowMadeInIndia(true)}
+            className="inline-flex items-center gap-2.5 px-4 py-2 rounded-md border border-white/10 hover:border-primary/40 transition-colors"
+          >
+            <span className="flex items-center gap-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FF9933]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-white" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#138808]" />
+            </span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/60">
+              Made in <span className="text-primary">India</span>
+            </span>
+          </button>
         </div>
       </div>
 
@@ -329,43 +299,43 @@ export const PublicFooter = () => {
       <button
         onClick={scrollToTop}
         className={cn(
-          "fixed bottom-8 right-8 p-3 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all duration-300 z-50 group",
-          showBackToTop ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0 pointer-events-none"
+          "fixed bottom-24 right-6 p-3 rounded-md bg-foreground text-background shadow-elevated hover:bg-foreground/85 transition-all duration-300 z-50",
+          showBackToTop ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0 pointer-events-none"
         )}
         aria-label="Back to top"
       >
-        <ArrowUp className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform" />
+        <ArrowUp className="w-5 h-5" />
       </button>
 
-      <LegalModal 
-        isOpen={!!selectedPolicy} 
-        policyKey={selectedPolicy} 
-        onClose={() => setSelectedPolicy(null)} 
+      <LegalModal
+        isOpen={!!selectedPolicy}
+        policyKey={selectedPolicy}
+        onClose={() => setSelectedPolicy(null)}
       />
 
-      <HelpCenterDialog 
-        isOpen={showHelpCenter} 
-        onClose={() => setShowHelpCenter(false)} 
+      <HelpCenterDialog
+        isOpen={showHelpCenter}
+        onClose={() => setShowHelpCenter(false)}
       />
 
-      <FAQDialog 
-        isOpen={showFAQ} 
-        onClose={() => setShowFAQ(false)} 
+      <FAQDialog
+        isOpen={showFAQ}
+        onClose={() => setShowFAQ(false)}
       />
 
-      <CopyrightDialog 
-        isOpen={showCopyright} 
-        onClose={() => setShowCopyright(false)} 
+      <CopyrightDialog
+        isOpen={showCopyright}
+        onClose={() => setShowCopyright(false)}
       />
 
-      <MadeInIndiaDialog 
-        isOpen={showMadeInIndia} 
-        onClose={() => setShowMadeInIndia(false)} 
+      <MadeInIndiaDialog
+        isOpen={showMadeInIndia}
+        onClose={() => setShowMadeInIndia(false)}
       />
 
-      <CareersDialog 
-        isOpen={showCareers} 
-        onClose={() => setShowCareers(false)} 
+      <CareersDialog
+        isOpen={showCareers}
+        onClose={() => setShowCareers(false)}
       />
     </footer>
   );

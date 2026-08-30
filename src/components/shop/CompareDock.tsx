@@ -27,7 +27,7 @@ export function CompareDock({ items, onRemove, onClear, onOpen, max = 4 }: Props
           transition={{ type: "spring", stiffness: 260, damping: 28 }}
           className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-1.5rem)] max-w-3xl"
         >
-          <div className="relative rounded-2xl border border-border/60 bg-card/95 backdrop-blur-xl shadow-[0_25px_60px_-15px_hsl(var(--primary)/0.35)] overflow-hidden">
+          <div className="relative rounded-lg border border-border/60 bg-card/95 backdrop-blur-xl shadow-[0_25px_60px_-15px_hsl(var(--primary)/0.35)] overflow-hidden">
             {/* Accent line */}
             <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent" />
 

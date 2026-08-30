@@ -64,7 +64,7 @@ export function EngineeredProductCard({
       transition={{ duration: 0.4 }}
       whileHover={{ y: -6 }}
       onClick={() => navigate(url)}
-      className="group relative flex flex-col rounded-2xl overflow-hidden border border-border/50 bg-card/80 backdrop-blur-sm cursor-pointer transition-all duration-500 hover:border-primary/50 hover:shadow-[0_28px_70px_-25px_hsl(var(--primary)/0.35)]"
+      className="group relative flex flex-col rounded-lg overflow-hidden border border-border/50 bg-card/80 backdrop-blur-sm cursor-pointer transition-all duration-500 hover:border-primary/50 hover:shadow-[0_28px_70px_-25px_hsl(var(--primary)/0.35)]"
     >
       {/* Image stage */}
       <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-secondary/40 via-background to-secondary/20">

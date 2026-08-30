@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, ArrowLeft, Eye, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -73,26 +72,16 @@ export const FeaturedProducts = () => {
   };
 
   return (
-    <section className="relative py-16 md:py-24 bg-background overflow-hidden">
-      {/* Ambient glow */}
-      <div className="absolute -top-40 right-0 w-[560px] h-[560px] rounded-full bg-[radial-gradient(circle,hsl(var(--primary)/0.08),transparent_65%)] pointer-events-none" />
-      <div className="absolute -bottom-40 left-0 w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,hsl(var(--primary)/0.05),transparent_65%)] pointer-events-none" />
-
+    <section className="relative py-20 md:py-28 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.7 }}
-          className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10 md:mb-14"
-        >
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10 md:mb-14">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-              Featured Products
-            </span>
-            <h2 className="mt-5 text-4xl md:text-5xl lg:text-[54px] font-bold leading-[1.05] tracking-tight text-foreground">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="h-px w-10 bg-primary" />
+              <p className="text-primary font-semibold tracking-[0.2em] text-xs uppercase">Featured Products</p>
+            </div>
+            <h2 className="text-4xl md:text-5xl lg:text-[54px] font-bold leading-[1.05] tracking-tight text-foreground">
               Featured Products
             </h2>
             <p className="mt-4 text-base md:text-lg leading-relaxed text-muted-foreground">
@@ -104,19 +93,19 @@ export const FeaturedProducts = () => {
             <button
               onClick={scrollPrev}
               aria-label="Previous"
-              className="h-12 w-12 rounded-full hairline bg-card text-foreground hover:border-primary hover:text-primary hover:elevation-2 transition-all flex items-center justify-center"
+              className="h-11 w-11 rounded-md border border-border bg-card text-foreground hover:border-primary hover:text-primary transition-colors flex items-center justify-center"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
             <button
               onClick={scrollNext}
               aria-label="Next"
-              className="h-12 w-12 rounded-full hairline bg-card text-foreground hover:border-primary hover:text-primary hover:elevation-2 transition-all flex items-center justify-center"
+              className="h-11 w-11 rounded-md border border-border bg-card text-foreground hover:border-primary hover:text-primary transition-colors flex items-center justify-center"
             >
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
-        </motion.div>
+        </div>
 
         {/* Carousel */}
         <div className="relative">
@@ -137,10 +126,8 @@ export const FeaturedProducts = () => {
                   >
                     <Link
                       to={`/product/${p.id}`}
-                      className="group relative block bg-card rounded-[20px] hairline overflow-hidden hover:-translate-y-2 hover:border-primary/40 hover:elevation-3 transition-all duration-500 ease-out"
+                      className="group relative block bg-card rounded-lg border border-border overflow-hidden hover:-translate-y-1 hover:border-primary/40 transition-all duration-300 ease-out"
                     >
-                      <div className="absolute inset-x-6 -top-px h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-
                       {/* Image */}
                       <div className="relative aspect-[4/3] bg-secondary overflow-hidden">
                         {image ? (
@@ -148,16 +135,15 @@ export const FeaturedProducts = () => {
                             src={image}
                             alt={p.name}
                             loading="lazy"
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[700ms] ease-out"
+                            className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-muted-foreground/50 text-sm">No image</div>
                         )}
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.18),transparent_65%)] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                         {/* Top-left: New badge */}
                         {isNew(p.created_at) && (
-                          <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full bg-primary text-white shadow-md">
+                          <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded bg-primary text-white">
                             <Sparkles className="w-3 h-3" />
                             New
                           </span>
@@ -165,11 +151,11 @@ export const FeaturedProducts = () => {
 
                         {/* Top-right: Stock badge */}
                         {outOfStock ? (
-                          <span className="absolute top-3 right-3 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full bg-foreground/85 text-background backdrop-blur">Out of Stock</span>
+                          <span className="absolute top-3 right-3 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded bg-foreground/85 text-background">Out of Stock</span>
                         ) : stockLow ? (
-                          <span className="absolute top-3 right-3 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full bg-amber-500/90 text-white backdrop-blur">Low Stock</span>
+                          <span className="absolute top-3 right-3 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded bg-warning text-white">Low Stock</span>
                         ) : (
-                          <span className="absolute top-3 right-3 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full bg-emerald-500/90 text-white backdrop-blur">In Stock</span>
+                          <span className="absolute top-3 right-3 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded bg-success text-white">In Stock</span>
                         )}
                       </div>
 
@@ -190,19 +176,13 @@ export const FeaturedProducts = () => {
                           <span className="font-display text-lg font-bold text-foreground tabular-nums">
                             ₹{Number(p.price).toLocaleString("en-IN")}
                           </span>
-                          <span className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-foreground text-background text-[11px] font-bold uppercase tracking-wider group-hover:bg-primary transition-colors">
+                          <span className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md bg-foreground text-background text-[11px] font-bold uppercase tracking-wider group-hover:bg-primary transition-colors">
                             <Eye className="w-3.5 h-3.5" />
                             Explore
                             <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
                           </span>
                         </div>
                       </div>
-
-                      {/* Orange accent line */}
-                      <span
-                        aria-hidden
-                        className="absolute bottom-0 left-0 h-[3px] w-0 bg-primary transition-all duration-500 ease-out group-hover:w-full"
-                      />
                     </Link>
                   </div>
                 );
@@ -231,7 +211,7 @@ export const FeaturedProducts = () => {
         <div className="mt-10 flex justify-center">
           <Link
             to="/shop"
-            className="group inline-flex items-center gap-2 h-11 px-6 rounded-full bg-card hairline text-foreground text-xs font-bold tracking-wider uppercase hover:border-primary hover:text-primary transition-colors"
+            className="group inline-flex items-center gap-2 h-11 px-6 rounded-md border border-border bg-card text-foreground text-xs font-bold tracking-wider uppercase hover:border-primary hover:text-primary transition-colors"
           >
             Explore Full Fleet
             <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />

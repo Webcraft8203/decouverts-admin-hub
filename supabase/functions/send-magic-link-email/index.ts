@@ -104,7 +104,7 @@ const handler = async (req: Request): Promise<Response> => {
             <td style="background-color: #f9f9f9; padding: 24px 40px; border-top: 1px solid #eeeeee;">
               <p style="margin: 0; color: #888888; font-size: 12px; line-height: 18px; text-align: center;">
                 This email was sent by Decouverts Plus.<br>
-                If you have any questions, contact us at <a href="mailto:support@decouvertsplus.com" style="color: #EAAB1C; text-decoration: none;">support@decouvertsplus.com</a>
+                If you have any questions, contact us at <a href="mailto:hello@decouvertes.in" style="color: #EAAB1C; text-decoration: none;">hello@decouvertes.in</a>
               </p>
               <p style="margin: 16px 0 0; color: #aaaaaa; font-size: 11px; text-align: center;">
                 © ${new Date().getFullYear()} Decouverts Plus. All rights reserved.

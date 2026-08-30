@@ -15,7 +15,6 @@ import { HomepageGallery } from "@/components/home/HomepageGallery";
 import { ContactSection } from "@/components/home/ContactSection";
 import { OurCustomers } from "@/components/home/OurCustomers";
 import { OurPartners } from "@/components/home/OurPartners";
-import { BackToTop } from "@/components/home/BackToTop";
 import { CinematicSection } from "@/components/home/CinematicSection";
 
 import { OrganizationSchema } from "@/components/SEOSchemas";
@@ -101,7 +100,6 @@ const Home = () => {
       </main>
 
       <PublicFooter />
-      <BackToTop />
     </div>
   );
 };

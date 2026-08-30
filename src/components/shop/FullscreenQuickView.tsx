@@ -181,7 +181,7 @@ export function FullscreenQuickView({ productId, open, onOpenChange }: Props) {
             <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-8">
               {isLoading || !product ? (
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                  <Skeleton className="lg:col-span-3 aspect-[4/3] rounded-2xl" />
+                  <Skeleton className="lg:col-span-3 aspect-[4/3] rounded-lg" />
                   <div className="lg:col-span-2 space-y-4">
                     <Skeleton className="h-4 w-1/3" />
                     <Skeleton className="h-10 w-3/4" />
@@ -197,7 +197,7 @@ export function FullscreenQuickView({ productId, open, onOpenChange }: Props) {
                 >
                   {/* Gallery */}
                   <div className="lg:col-span-3 space-y-3">
-                    <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-border/50 bg-gradient-to-br from-secondary/40 via-background to-secondary/20">
+                    <div className="relative aspect-[4/3] rounded-lg overflow-hidden border border-border/50 bg-gradient-to-br from-secondary/40 via-background to-secondary/20">
                       {/* Blueprint grid */}
                       <div
                         aria-hidden

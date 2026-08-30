@@ -8,9 +8,20 @@ import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import { cn } from "@/lib/utils";
 
+/**
+ * Hidden admin-access gesture: 10 logo clicks within a rolling idle window
+ * opens the existing admin auth flow. Kept as module-level state (not React
+ * state) so the count survives the navbar remounting on every normal
+ * page/route navigation — a single click always behaves like a standard
+ * logo link to "/".
+ */
+const ADMIN_CLICK_THRESHOLD = 10;
+const ADMIN_CLICK_RESET_MS = 3000;
+let adminClickCount = 0;
+let adminClickResetTimer: ReturnType<typeof setTimeout> | null = null;
+
 export const PublicNavbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [logoClickCount, setLogoClickCount] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -43,15 +54,20 @@ export const PublicNavbar = () => {
   const showCartAndAccount = isEcommerceEnabled && isShopPage;
 
   const handleLogoClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const newCount = logoClickCount + 1;
-    setLogoClickCount(newCount);
-    if (newCount >= 10) {
-      setLogoClickCount(0);
+    adminClickCount += 1;
+    if (adminClickResetTimer) clearTimeout(adminClickResetTimer);
+
+    if (adminClickCount >= ADMIN_CLICK_THRESHOLD) {
+      adminClickCount = 0;
+      e.preventDefault();
       navigate("/auth");
-    } else {
-      setTimeout(() => setLogoClickCount(0), 2000);
+      return;
     }
+
+    adminClickResetTimer = setTimeout(() => {
+      adminClickCount = 0;
+    }, ADMIN_CLICK_RESET_MS);
+    // No preventDefault — a normal click just follows the Link to "/" as usual.
   };
 
   const { data: cartCount = 0 } = useQuery({
@@ -80,6 +96,15 @@ export const PublicNavbar = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
+  const navLinkClass = (active: boolean) =>
+    cn(
+      "relative text-[13px] font-semibold tracking-wide transition-colors duration-200 py-1",
+      "after:absolute after:left-0 after:bottom-[-2px] after:h-px after:bg-primary after:transition-all after:duration-200 after:ease-out",
+      active
+        ? "text-foreground after:w-full"
+        : "text-foreground/70 hover:text-foreground after:w-0 hover:after:w-full"
+    );
+
   return (
     <nav
       className={cn(
@@ -87,123 +112,68 @@ export const PublicNavbar = () => {
         "h-[76px] md:h-[84px]",
         "transition-[box-shadow,border-color] duration-300 ease-out",
         "border-b bg-white",
-        isScrolled
-          ? "border-slate-200 shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
-          : "border-slate-100"
+        isScrolled ? "border-border shadow-sm" : "border-transparent"
       )}
     >
       <div className="mx-auto h-full max-w-[1440px] px-6 md:px-10 lg:px-16 flex items-center justify-between relative">
         {/* Left — Logo + Brand */}
-        <div
+        <Link
+          to="/"
           onClick={handleLogoClick}
-          className="flex items-center gap-4 md:gap-5 cursor-pointer select-none group flex-shrink-0"
+          className="flex items-center gap-4 select-none flex-shrink-0"
+          aria-label="Decouvertes — go to homepage"
         >
           <img
             src={logo}
             alt="Decouvertes Logo"
-            className="h-11 md:h-12 w-auto object-contain transition-transform group-hover:scale-105"
+            className="h-10 md:h-11 w-auto object-contain"
           />
           <div className="flex flex-col justify-center">
-            <span
-              className="font-brand text-xl md:text-2xl tracking-[0.14em] uppercase leading-none font-bold text-slate-900"
-            >
+            <span className="font-brand text-lg md:text-xl tracking-[0.12em] uppercase leading-none font-bold text-foreground">
               DECOUVERTES
             </span>
-            <span
-              className="font-brand text-[11px] tracking-[0.05em] leading-tight mt-1.5 font-medium text-primary"
-            >
+            <span className="font-brand text-[10px] tracking-[0.08em] leading-tight mt-1.5 font-medium text-muted-foreground">
               Discovering Future Technologies
             </span>
           </div>
-        </div>
-
+        </Link>
 
         {/* Center — Navigation */}
-        <div className="hidden md:flex items-center gap-10 absolute left-1/2 -translate-x-1/2">
-          <Link
-            to="/"
-            className={cn(
-              "relative text-[13px] font-semibold tracking-wide transition-colors duration-200 py-1",
-              "after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:bg-primary after:transition-all after:duration-300 after:ease-out",
-              isActive("/")
-                ? "text-primary after:w-full"
-                : "text-slate-800 hover:text-primary after:w-0 hover:after:w-full"
-            )}
-          >
+        <div className="hidden md:flex items-center gap-9 absolute left-1/2 -translate-x-1/2">
+          <Link to="/" className={navLinkClass(isActive("/"))}>
             Home
           </Link>
 
           {!isShopPage && (
             <>
-              <button
-                onClick={() => scrollToSection("gallery-section")}
-                className={cn(
-                  "relative text-[13px] font-semibold tracking-wide transition-colors duration-200 py-1",
-                  "after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:bg-primary after:transition-all after:duration-300 after:ease-out after:w-0 hover:after:w-full",
-                  "text-slate-800 hover:text-primary"
-                )}
-              >
+              <button onClick={() => scrollToSection("gallery-section")} className={navLinkClass(false)}>
                 Gallery
               </button>
-              <Link
-                to="/blogs"
-                className={cn(
-                  "relative text-[13px] font-semibold tracking-wide transition-colors duration-200 py-1",
-                  "after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:bg-primary after:transition-all after:duration-300 after:ease-out",
-                  isActive("/blogs")
-                    ? "text-primary after:w-full"
-                    : "text-slate-800 hover:text-primary after:w-0 hover:after:w-full"
-                )}
-              >
+              <Link to="/blogs" className={navLinkClass(isActive("/blogs"))}>
                 Blogs
               </Link>
-              <Link
-                to="/about"
-                className={cn(
-                  "relative text-[13px] font-semibold tracking-wide transition-colors duration-200 py-1",
-                  "after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:bg-primary after:transition-all after:duration-300 after:ease-out",
-                  isActive("/about")
-                    ? "text-primary after:w-full"
-                    : "text-slate-800 hover:text-primary after:w-0 hover:after:w-full"
-                )}
-              >
+              <Link to="/about" className={navLinkClass(isActive("/about"))}>
                 About
               </Link>
-              <button
-                onClick={() => scrollToSection("contact-section")}
-                className={cn(
-                  "relative text-[13px] font-semibold tracking-wide transition-colors duration-200 py-1",
-                  "after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:bg-primary after:transition-all after:duration-300 after:ease-out after:w-0 hover:after:w-full",
-                  "text-slate-800 hover:text-primary"
-                )}
-              >
+              <button onClick={() => scrollToSection("contact-section")} className={navLinkClass(false)}>
                 Contact
               </button>
             </>
           )}
 
           {isEcommerceEnabled && (
-            <Link
-              to="/shop"
-              className={cn(
-                "relative text-[13px] font-semibold tracking-wide transition-colors duration-200 py-1",
-                "after:absolute after:left-0 after:bottom-[-2px] after:h-[2px] after:bg-primary after:transition-all after:duration-300 after:ease-out",
-                isActive("/shop")
-                  ? "text-primary after:w-full"
-                  : "text-slate-800 hover:text-primary after:w-0 hover:after:w-full"
-              )}
-            >
+            <Link to="/shop" className={navLinkClass(isActive("/shop"))}>
               Shop
             </Link>
           )}
         </div>
 
         {/* Right — CTA / Account */}
-        <div className="hidden md:flex items-center gap-4 flex-shrink-0">
+        <div className="hidden md:flex items-center gap-3 flex-shrink-0">
           {!isShopPage && (
             <button
               onClick={() => scrollToSection("contact-section")}
-              className="inline-flex items-center justify-center h-11 px-[18px] rounded-[14px] bg-primary text-primary-foreground text-[13px] font-semibold tracking-wide shadow-[0_4px_14px_rgba(249,115,22,0.25)] hover:shadow-[0_6px_20px_rgba(249,115,22,0.35)] hover:-translate-y-[1px] hover:bg-[hsl(24,95%,47%)] transition-all duration-200"
+              className="inline-flex items-center justify-center h-10 px-5 rounded-md bg-foreground text-background text-[13px] font-semibold tracking-wide hover:bg-foreground/85 transition-colors duration-200"
             >
               Get a Quote
             </button>
@@ -217,18 +187,18 @@ export const PublicNavbar = () => {
                     variant="ghost"
                     size="icon"
                     onClick={() => navigate("/dashboard/cart")}
-                    className="relative text-slate-800 hover:text-primary hover:bg-slate-50"
+                    className="relative text-foreground/70 hover:text-foreground hover:bg-secondary"
                   >
                     <ShoppingCart className="w-5 h-5" />
                     {cartCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
+                      <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-semibold">
                         {cartCount > 99 ? "99+" : cartCount}
                       </span>
                     )}
                   </Button>
                   <Button
                     onClick={() => navigate("/dashboard")}
-                    className="bg-slate-900 hover:bg-slate-800 text-white shadow-sm h-10 px-4 rounded-[14px]"
+                    className="bg-foreground hover:bg-foreground/85 text-background h-10 px-4 rounded-md"
                   >
                     <User className="w-4 h-4 mr-2" />
                     Account
@@ -237,7 +207,7 @@ export const PublicNavbar = () => {
               ) : (
                 <Button
                   onClick={() => navigate("/login")}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm h-10 px-4 rounded-[14px]"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground h-10 px-4 rounded-md"
                 >
                   <User className="w-4 h-4 mr-2" />
                   Login
@@ -254,18 +224,18 @@ export const PublicNavbar = () => {
               variant="ghost"
               size="icon"
               onClick={() => navigate("/dashboard/cart")}
-              className="relative text-slate-800 hover:text-primary"
+              className="relative text-foreground/70 hover:text-foreground"
             >
               <ShoppingCart className="w-5 h-5" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-semibold">
                   {cartCount > 99 ? "99+" : cartCount}
                 </span>
               )}
             </Button>
           )}
           <button
-            className="p-2 text-black rounded-lg hover:bg-slate-100 transition-colors"
+            className="p-2 text-foreground rounded-md hover:bg-secondary transition-colors"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -276,12 +246,12 @@ export const PublicNavbar = () => {
 
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className="md:hidden absolute top-full left-0 w-full bg-white border-t border-slate-100 shadow-lg overflow-hidden">
+        <div className="md:hidden absolute top-full left-0 w-full bg-white border-t border-border shadow-md overflow-hidden">
           <div className="py-6 max-h-[calc(100vh-5.5rem)] overflow-y-auto">
             <div className="flex flex-col gap-1 px-6">
               <Link
                 to="/"
-                className="block text-slate-800 hover:text-primary hover:bg-slate-50 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
+                className="block text-foreground/80 hover:text-foreground hover:bg-secondary transition-colors duration-200 font-medium py-3 px-4 rounded-md"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Home
@@ -291,27 +261,27 @@ export const PublicNavbar = () => {
                 <>
                   <button
                     onClick={() => scrollToSection("gallery-section")}
-                    className="block w-full text-left text-slate-800 hover:text-primary hover:bg-slate-50 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
+                    className="block w-full text-left text-foreground/80 hover:text-foreground hover:bg-secondary transition-colors duration-200 font-medium py-3 px-4 rounded-md"
                   >
                     Gallery
                   </button>
                   <Link
                     to="/blogs"
-                    className="block text-slate-800 hover:text-primary hover:bg-slate-50 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
+                    className="block text-foreground/80 hover:text-foreground hover:bg-secondary transition-colors duration-200 font-medium py-3 px-4 rounded-md"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Blogs
                   </Link>
                   <Link
                     to="/about"
-                    className="block text-slate-800 hover:text-primary hover:bg-slate-50 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
+                    className="block text-foreground/80 hover:text-foreground hover:bg-secondary transition-colors duration-200 font-medium py-3 px-4 rounded-md"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     About
                   </Link>
                   <button
                     onClick={() => scrollToSection("contact-section")}
-                    className="block w-full text-left text-slate-800 hover:text-primary hover:bg-slate-50 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
+                    className="block w-full text-left text-foreground/80 hover:text-foreground hover:bg-secondary transition-colors duration-200 font-medium py-3 px-4 rounded-md"
                   >
                     Contact
                   </button>
@@ -321,7 +291,7 @@ export const PublicNavbar = () => {
               {isEcommerceEnabled && (
                 <Link
                   to="/shop"
-                  className="block text-slate-800 hover:text-primary hover:bg-slate-50 transition-all duration-200 font-medium py-3 px-4 rounded-lg"
+                  className="block text-foreground/80 hover:text-foreground hover:bg-secondary transition-colors duration-200 font-medium py-3 px-4 rounded-md"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Shop
@@ -332,7 +302,7 @@ export const PublicNavbar = () => {
                 <div className="pt-4 px-4">
                   <button
                     onClick={() => scrollToSection("contact-section")}
-                    className="w-full inline-flex items-center justify-center h-11 px-[18px] rounded-[14px] bg-primary text-primary-foreground text-[13px] font-semibold tracking-wide shadow-[0_4px_14px_rgba(249,115,22,0.25)]"
+                    className="w-full inline-flex items-center justify-center h-11 px-5 rounded-md bg-foreground text-background text-[13px] font-semibold tracking-wide"
                   >
                     Get a Quote
                   </button>
@@ -347,7 +317,7 @@ export const PublicNavbar = () => {
                         navigate("/dashboard");
                         setIsMenuOpen(false);
                       }}
-                      className="w-full bg-slate-900 hover:bg-slate-800 text-white h-11 rounded-[14px]"
+                      className="w-full bg-foreground hover:bg-foreground/85 text-background h-11 rounded-md"
                     >
                       <User className="w-4 h-4 mr-2" />
                       My Account
@@ -358,7 +328,7 @@ export const PublicNavbar = () => {
                         navigate("/login");
                         setIsMenuOpen(false);
                       }}
-                      className="w-full bg-primary hover:bg-primary/90 h-11 rounded-[14px]"
+                      className="w-full bg-primary hover:bg-primary/90 h-11 rounded-md"
                     >
                       <User className="w-4 h-4 mr-2" />
                       Login

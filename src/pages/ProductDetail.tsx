@@ -204,7 +204,7 @@ const ProductDetail = () => {
         <main className="flex-1 pt-24 pb-16">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
-              <Skeleton className="aspect-square rounded-2xl" />
+              <Skeleton className="aspect-square rounded-lg" />
               <div className="space-y-5 pt-4">
                 <Skeleton className="h-3 w-20" />
                 <Skeleton className="h-10 w-3/4" />
@@ -227,7 +227,7 @@ const ProductDetail = () => {
         <PublicNavbar />
         <main className="flex-1 pt-24 pb-16 flex items-center justify-center">
           <div className="text-center">
-            <div className="w-20 h-20 bg-secondary/30 rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <div className="w-20 h-20 bg-secondary/30 rounded-lg flex items-center justify-center mx-auto mb-5">
               <Package className="w-10 h-10 text-muted-foreground/20" />
             </div>
             <h1 className="text-xl font-bold text-foreground mb-2">Product Not Found</h1>
@@ -723,7 +723,7 @@ const ProductDetail = () => {
                           </Card>
                         ))
                       ) : (
-                        <div className="bg-card rounded-2xl border border-border/15 p-10 sm:p-14 text-center">
+                        <div className="bg-card rounded-lg border border-border/15 p-10 sm:p-14 text-center">
                           <div className="w-14 h-14 bg-secondary/30 rounded-xl flex items-center justify-center mx-auto mb-4">
                             <MessageSquare className="w-7 h-7 text-muted-foreground/15" />
                           </div>

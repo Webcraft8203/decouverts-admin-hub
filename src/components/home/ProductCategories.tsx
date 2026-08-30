@@ -63,7 +63,7 @@ const SolutionCard = ({ solution, category, isLarge = false, delay }: SolutionCa
     <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay }}>
       <Link
         to={href}
-        className="group relative block rounded-2xl overflow-hidden bg-card border border-border transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_30px_60px_-20px_hsl(var(--primary)/0.2)] hover:border-primary/30"
+        className="group relative block rounded-lg overflow-hidden bg-card border border-border transition-all duration-300 hover:-translate-y-1 hover:border-primary/40"
       >
         <div className={`relative ${isLarge ? "aspect-[16/9]" : "aspect-square"}`}>
           {image && (
@@ -71,33 +71,30 @@ const SolutionCard = ({ solution, category, isLarge = false, delay }: SolutionCa
               src={image}
               alt={solution.title}
               loading="lazy"
-              className="absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-out group-hover:scale-105"
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
             />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-80 group-hover:opacity-60 transition-opacity duration-300" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
         </div>
 
         <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
-          <div className="relative">
-            <h3
-              className={`font-bold text-white leading-tight ${
-                isLarge ? "text-3xl md:text-5xl" : "text-2xl"
-              }`}
-            >
-              {solution.title}
-            </h3>
-            <p
-              className={`mt-3 text-white/65 leading-relaxed ${
-                isLarge ? "text-base max-w-lg" : "text-sm"
-              }`}
-            >
-              {solution.description}
-            </p>
-            <div className="mt-6 flex items-center gap-2 text-sm font-semibold text-primary">
-              <span>Learn More</span>
-              <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </div>
-            <div className="absolute bottom-[-8px] left-0 h-px w-1/3 bg-primary/50 transition-all duration-300 group-hover:w-1/2 group-hover:bg-primary" />
+          <h3
+            className={`font-bold text-white leading-tight ${
+              isLarge ? "text-3xl md:text-5xl" : "text-2xl"
+            }`}
+          >
+            {solution.title}
+          </h3>
+          <p
+            className={`mt-3 text-white/65 leading-relaxed ${
+              isLarge ? "text-base max-w-lg" : "text-sm"
+            }`}
+          >
+            {solution.description}
+          </p>
+          <div className="mt-6 flex items-center gap-2 text-sm font-semibold text-primary">
+            <span>Learn More</span>
+            <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
           </div>
         </div>
       </Link>
@@ -112,12 +109,7 @@ export const ProductCategories = () => {
   }));
 
   return (
-    <section className="relative bg-background py-24 md:py-32 overflow-hidden">
-      {/* Ambient accent */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 -left-32 w-96 h-96 rounded-full bg-primary/[0.04] blur-[120px]" />
-      </div>
-
+    <section className="relative bg-background py-20 md:py-28">
       <div className="relative max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         {/* Editorial header */}
         <motion.div

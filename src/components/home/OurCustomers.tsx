@@ -86,31 +86,25 @@ export const OurCustomers = () => {
 
   return (
     <section
-      className="relative py-24 md:py-32 bg-background overflow-hidden"
+      className="relative py-20 md:py-28 bg-background"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[400px] rounded-full bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.06),transparent_70%)] pointer-events-none" />
-
       <div className="container mx-auto px-4 relative z-10">
         {/* Header */}
-        <motion.div
-          className="text-center mb-14 md:mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary mb-5">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            Testimonials
-          </span>
+        <div className="text-center mb-14 md:mb-16">
+          <div className="flex items-center justify-center gap-3 mb-5">
+            <span className="h-px w-10 bg-primary" />
+            <p className="text-primary font-semibold tracking-[0.2em] text-xs uppercase">Testimonials</p>
+            <span className="h-px w-10 bg-primary" />
+          </div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-            What Our <span className="text-primary">Customers</span> Say
+            What Our Customers Say
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Trusted by engineers, institutions, and industry leaders worldwide
           </p>
-        </motion.div>
+        </div>
 
         {/* Spotlight */}
         <div className="max-w-4xl mx-auto">
@@ -137,7 +131,7 @@ export const OurCustomers = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                className="relative rounded-2xl border border-border bg-card shadow-[0_20px_60px_-30px_rgba(15,23,42,0.15)] p-8 md:p-12 text-center"
+                className="relative rounded-lg border border-border bg-card elevation-2 p-8 md:p-12 text-center"
               >
                 <Quote className="w-10 h-10 text-primary/40 mx-auto mb-6" />
                 <p className="text-xl md:text-2xl leading-relaxed text-foreground font-medium max-w-2xl mx-auto">

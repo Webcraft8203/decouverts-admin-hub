@@ -79,31 +79,20 @@ export function LatestInsights() {
   return (
     <section
       id="latest-insights"
-      className="relative overflow-hidden bg-white py-16 md:py-20"
+      className="relative bg-white py-20 md:py-28 border-t border-border"
     >
-      {/* Soft orange radial glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-0 h-[500px] w-[900px] -translate-x-1/2 -translate-y-1/3 rounded-full"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(255,107,0,0.07) 0%, rgba(255,107,0,0) 70%)",
-        }}
-      />
-
       <div className="relative">
         {/* Header */}
         <div className="mx-auto mb-12 max-w-4xl px-6 text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            Latest Insights
-          </span>
-          <h2 className="mt-6 text-4xl font-bold leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-[56px]">
-            Engineering Stories.{" "}
-            <span className="text-muted-foreground">Product Updates.</span>{" "}
-            <span className="text-primary">Industry News.</span>
+          <div className="flex items-center justify-center gap-3 mb-5">
+            <span className="h-px w-10 bg-primary" />
+            <p className="text-primary font-semibold tracking-[0.2em] text-xs uppercase">Latest Insights</p>
+            <span className="h-px w-10 bg-primary" />
+          </div>
+          <h2 className="text-4xl font-bold leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-[52px]">
+            Engineering Stories. Product Updates. Industry News.
           </h2>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
             Stay updated with our latest innovations, product launches,
             engineering breakthroughs, company news and research.
           </p>
@@ -128,7 +117,7 @@ export function LatestInsights() {
               onClick={() => scrollByCards(-1)}
               disabled={!canPrev}
               aria-label="Previous"
-              className="absolute left-3 md:left-6 top-1/2 z-20 -translate-y-1/2 flex h-11 w-11 md:h-12 md:w-12 items-center justify-center rounded-full bg-card hairline elevation-1 text-foreground transition-all hover:bg-primary hover:text-white hover:border-primary disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-card disabled:hover:text-foreground disabled:hover:border-border"
+              className="absolute left-3 md:left-6 top-1/2 z-20 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-md border border-border bg-card text-foreground transition-colors hover:bg-primary hover:text-white hover:border-primary disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-card disabled:hover:text-foreground disabled:hover:border-border"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
@@ -139,7 +128,7 @@ export function LatestInsights() {
               onClick={() => scrollByCards(1)}
               disabled={!canNext}
               aria-label="Next"
-              className="absolute right-3 md:right-6 top-1/2 z-20 -translate-y-1/2 flex h-11 w-11 md:h-12 md:w-12 items-center justify-center rounded-full bg-card hairline elevation-1 text-foreground transition-all hover:bg-primary hover:text-white hover:border-primary disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-card disabled:hover:text-foreground disabled:hover:border-border"
+              className="absolute right-3 md:right-6 top-1/2 z-20 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-md border border-border bg-card text-foreground transition-colors hover:bg-primary hover:text-white hover:border-primary disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-card disabled:hover:text-foreground disabled:hover:border-border"
             >
               <ArrowRight className="h-5 w-5" />
             </button>
@@ -166,7 +155,7 @@ function InsightCard({ post }: { post: Post }) {
   return (
     <Link
       to={`/blogs/${post.slug}`}
-      className="group relative flex w-[300px] sm:w-[340px] lg:w-[360px] shrink-0 flex-col overflow-hidden rounded-[18px] bg-card hairline elevation-1 transition-all duration-500 ease-out hover:-translate-y-1.5 hover:elevation-3"
+      className="group relative flex w-[300px] sm:w-[340px] lg:w-[360px] shrink-0 flex-col overflow-hidden rounded-lg bg-card border border-border transition-all duration-300 ease-out hover:-translate-y-1 hover:border-primary/40"
     >
       {/* 16:10 image */}
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-secondary">
@@ -174,19 +163,13 @@ function InsightCard({ post }: { post: Post }) {
           <img
             src={post.feature_image}
             alt={post.title}
-            className="h-full w-full object-cover transition-transform duration-[700ms] ease-out group-hover:scale-[1.05]"
+            className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
             loading="lazy"
           />
         ) : (
           <div className="h-full w-full bg-gradient-to-br from-secondary to-muted" />
         )}
-        <span
-          className="absolute left-4 top-4 inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-white backdrop-blur-md"
-          style={{
-            borderColor: "rgba(255,255,255,0.4)",
-            background: "rgba(15,20,30,0.42)",
-          }}
-        >
+        <span className="absolute left-4 top-4 inline-flex items-center rounded bg-[hsl(217,45%,9%)]/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-white">
           {categoryLabel(post.content_type, post.tags)}
         </span>
       </div>

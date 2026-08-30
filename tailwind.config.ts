@@ -76,13 +76,13 @@ export default {
           "4": "hsl(var(--chart-4))",
           "5": "hsl(var(--chart-5))",
         },
-        // Dark section colors for enterprise sections
+        // Dark section colors — deep navy ink used for premium dark sections
         dark: {
-          DEFAULT: "hsl(222, 47%, 11%)",
-          elevated: "hsl(222, 40%, 14%)",
-          accent: "hsl(222, 35%, 18%)",
-          muted: "hsl(215, 20%, 65%)",
-          border: "hsl(217, 33%, 22%)",
+          DEFAULT: "hsl(217, 45%, 9%)",
+          elevated: "hsl(217, 38%, 12%)",
+          accent: "hsl(217, 30%, 17%)",
+          muted: "hsl(220, 12%, 65%)",
+          border: "hsl(217, 25%, 20%)",
         },
       },
       borderRadius: {
@@ -133,9 +133,8 @@ export default {
         "fade-in": "fade-in 0.3s ease-out",
       },
       boxShadow: {
-        "soft": "0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)",
-        "glow": "0 0 20px rgba(251, 146, 60, 0.3)",
-        "glow-lg": "0 0 40px rgba(251, 146, 60, 0.4)",
+        "soft": "0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 16px -4px rgba(15, 23, 42, 0.06)",
+        "elevated": "0 4px 12px -2px rgba(15, 23, 42, 0.08), 0 16px 40px -8px rgba(15, 23, 42, 0.1)",
       },
     },
   },

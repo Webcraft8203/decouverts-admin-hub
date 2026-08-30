@@ -94,7 +94,7 @@ export function CompareDialog({ ids, open, onOpenChange, onRemove }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl p-0 gap-0 overflow-hidden rounded-2xl">
+      <DialogContent className="max-w-6xl p-0 gap-0 overflow-hidden rounded-lg">
         <DialogTitle className="sr-only">Compare Platforms</DialogTitle>
         <DialogDescription className="sr-only">
           Side-by-side comparison of selected Decouvertes platforms.

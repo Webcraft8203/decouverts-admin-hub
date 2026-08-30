@@ -179,7 +179,7 @@ const CategoryPage = () => {
                 <Button
                   asChild
                   size="lg"
-                  className="text-white rounded-full px-7 h-12 hover:brightness-110"
+                  className="text-white rounded-md px-7 h-12 hover:brightness-110"
                   style={{ backgroundColor: accent }}
                 >
                   <a href="#inquiry">
@@ -190,7 +190,7 @@ const CategoryPage = () => {
                   asChild
                   size="lg"
                   variant="outline"
-                  className="rounded-full px-7 h-12 border-white/30 bg-white/5 text-white hover:bg-white/15 hover:text-white"
+                  className="rounded-md px-7 h-12 border-white/30 bg-white/5 text-white hover:bg-white/15 hover:text-white"
                 >
                   <a href="#products">Explore Products</a>
                 </Button>
@@ -224,7 +224,7 @@ const CategoryPage = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-60px" }}
                   transition={{ duration: 0.55, delay: i * 0.05 }}
-                  className="group relative rounded-2xl border border-slate-200 bg-white p-6 hover:-translate-y-1 transition-all duration-500 hover:shadow-[0_30px_60px_-30px_rgba(0,0,0,0.35)]"
+                  className="group relative rounded-lg border border-slate-200 bg-white p-6 hover:-translate-y-1 transition-all duration-500 hover:shadow-[0_30px_60px_-30px_rgba(0,0,0,0.35)]"
                   style={{
                     borderTop: `2px solid transparent`,
                   }}
@@ -266,7 +266,7 @@ const CategoryPage = () => {
               {category.keyFeatures.map((k) => (
                 <div
                   key={k.title}
-                  className="rounded-2xl bg-white border border-slate-200 p-6 hover:-translate-y-1 transition-all duration-500"
+                  className="rounded-lg bg-white border border-slate-200 p-6 hover:-translate-y-1 transition-all duration-500"
                 >
                   <div
                     className="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
@@ -310,7 +310,7 @@ const CategoryPage = () => {
                 ))}
               </div>
             </div>
-            <div className="rounded-2xl bg-slate-900 text-white p-8 md:p-10 relative overflow-hidden">
+            <div className="rounded-lg bg-slate-900 text-white p-8 md:p-10 relative overflow-hidden">
               <div
                 className="absolute -top-24 -right-24 w-72 h-72 rounded-full opacity-30"
                 style={{ background: `radial-gradient(circle, ${accent}, transparent 70%)` }}
@@ -364,7 +364,7 @@ const CategoryPage = () => {
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true, margin: "-60px" }}
                   transition={{ duration: 0.5, delay: i * 0.04 }}
-                  className={`relative overflow-hidden rounded-2xl bg-slate-200 ${
+                  className={`relative overflow-hidden rounded-lg bg-slate-200 ${
                     i === 0 ? "col-span-2 row-span-2 aspect-square md:aspect-auto md:min-h-full" : "aspect-square"
                   }`}
                 >
@@ -418,7 +418,7 @@ const CategoryPage = () => {
                     <Link
                       key={p.id}
                       to={`/product/${p.slug || p.id}`}
-                      className="group rounded-2xl bg-white border border-slate-200 overflow-hidden hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(0,0,0,0.35)] transition-all duration-500"
+                      className="group rounded-lg bg-white border border-slate-200 overflow-hidden hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(0,0,0,0.35)] transition-all duration-500"
                     >
                       <div className="aspect-[4/3] overflow-hidden bg-slate-100">
                         <img
@@ -472,7 +472,7 @@ const CategoryPage = () => {
               {whyChoose.map((w) => (
                 <div
                   key={w.title}
-                  className="rounded-2xl border border-slate-200 bg-white p-6 hover:-translate-y-1 transition-all duration-500"
+                  className="rounded-lg border border-slate-200 bg-white p-6 hover:-translate-y-1 transition-all duration-500"
                 >
                   <div
                     className="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
@@ -526,7 +526,7 @@ const CategoryPage = () => {
                     <Link
                       key={b.id}
                       to={`/blogs/${b.slug}`}
-                      className="group rounded-2xl bg-white border border-slate-200 overflow-hidden hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(0,0,0,0.35)] transition-all duration-500"
+                      className="group rounded-lg bg-white border border-slate-200 overflow-hidden hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(0,0,0,0.35)] transition-all duration-500"
                     >
                       {b.feature_image && (
                         <div className="aspect-video overflow-hidden bg-slate-100">
@@ -573,7 +573,7 @@ const CategoryPage = () => {
                   <AccordionItem
                     key={i}
                     value={`item-${i}`}
-                    className="rounded-2xl border border-slate-200 bg-white px-5"
+                    className="rounded-lg border border-slate-200 bg-white px-5"
                   >
                     <AccordionTrigger className="text-left font-semibold text-slate-900 hover:no-underline">
                       {f.q}
@@ -617,7 +617,7 @@ const CategoryPage = () => {
               <div className="mt-8 space-y-3 text-white/80">
                 <div className="flex items-center gap-3">
                   <Mail className="w-5 h-5" style={{ color: accent }} />
-                  <span>sales@decouvertes.in</span>
+                  <span>hello@decouvertes.in</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <Phone className="w-5 h-5" style={{ color: accent }} />
@@ -649,7 +649,7 @@ const CategoryPage = () => {
                 }
                 inquiryMutation.mutate();
               }}
-              className="rounded-3xl bg-white/5 border border-white/15 backdrop-blur-md p-6 md:p-8 space-y-4"
+              className="rounded-lg bg-white/5 border border-white/15 backdrop-blur-md p-6 md:p-8 space-y-4"
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
@@ -683,7 +683,7 @@ const CategoryPage = () => {
                 type="submit"
                 disabled={inquiryMutation.isPending}
                 size="lg"
-                className="w-full rounded-full h-12 text-white hover:brightness-110"
+                className="w-full rounded-md h-12 text-white hover:brightness-110"
                 style={{ backgroundColor: accent }}
               >
                 {inquiryMutation.isPending ? "Sending..." : (

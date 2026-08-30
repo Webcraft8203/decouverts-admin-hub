@@ -1,10 +1,11 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useState } from "react";
-import { Instagram, Youtube, X, MessageCircle } from "lucide-react";
+import { Instagram, X, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const FloatingSocials = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
 
   const socialLinks = [
     {
@@ -26,33 +27,28 @@ export const FloatingSocials = () => {
   ];
 
   return (
-    <div className="fixed bottom-6 right-6 z-[90] flex flex-col items-end gap-4">
+    <div className="fixed bottom-6 right-6 z-[90] flex flex-col items-end gap-3">
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.8 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.8 }}
-            transition={{ duration: 0.2 }}
-            className="flex flex-col gap-3"
+            initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
+            transition={{ duration: 0.15 }}
+            className="flex flex-col gap-2.5"
           >
-            {socialLinks.map((social, index) => (
-              <motion.a
+            {socialLinks.map((social) => (
+              <a
                 key={social.name}
                 href={social.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className={`flex items-center justify-center w-12 h-12 rounded-full shadow-lg text-white transition-all duration-300 ${social.color}`}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
+                className={`flex items-center justify-center w-11 h-11 rounded-full shadow-elevated text-white transition-colors duration-200 ${social.color}`}
                 title={social.name}
               >
                 <span className="sr-only">{social.name}</span>
                 {social.icon}
-              </motion.a>
+              </a>
             ))}
           </motion.div>
         )}
@@ -60,12 +56,13 @@ export const FloatingSocials = () => {
 
       <Button
         size="icon"
-        className={`h-14 w-14 rounded-full shadow-xl transition-all duration-300 ${
-          isOpen ? "bg-slate-800 rotate-45" : "bg-primary hover:scale-110"
+        className={`h-12 w-12 rounded-full shadow-elevated transition-colors duration-200 ${
+          isOpen ? "bg-foreground" : "bg-primary hover:bg-primary/90"
         }`}
         onClick={() => setIsOpen(!isOpen)}
+        aria-label={isOpen ? "Close social links" : "Open social links"}
       >
-        {isOpen ? <X className="w-6 h-6" /> : <MessageCircle className="w-7 h-7" />}
+        {isOpen ? <X className="w-5 h-5" /> : <MessageCircle className="w-6 h-6" />}
       </Button>
     </div>
   );

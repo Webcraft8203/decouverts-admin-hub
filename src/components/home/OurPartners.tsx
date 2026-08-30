@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { motion } from "framer-motion";
 
 interface Partner {
   id: string;
@@ -99,35 +98,25 @@ export const OurPartners = () => {
     const featured = !!partner.is_featured;
     const inner = (
       <div className="group flex flex-col items-center select-none">
-        <div className="relative">
-          {featured && (
-            <span
-              aria-hidden
-              className="absolute inset-0 rounded-full ring-2 ring-primary/60 animate-pulse"
-              style={{ boxShadow: "0 0 30px hsl(var(--primary) / 0.35)" }}
-            />
-          )}
-          <div
-            className={[
-              "relative flex items-center justify-center rounded-full bg-card",
-              "border border-border shadow-[0_6px_20px_-6px_rgba(15,23,42,0.08)]",
-              "transition-all duration-300 ease-out grayscale group-hover:grayscale-0",
-              "group-hover:-translate-y-1.5 group-hover:shadow-[0_18px_40px_-12px_hsl(var(--primary)/0.35)]",
-              "group-hover:border-primary/60 group-hover:ring-2 group-hover:ring-primary/40",
-              featured
-                ? "h-[100px] w-[100px] md:h-[124px] md:w-[124px]"
-                : "h-[76px] w-[76px] md:h-[88px] md:w-[88px] lg:h-[104px] lg:w-[104px]",
-            ].join(" ")}
-          >
-            <img
-              src={partner.logo_url}
-              alt={partner.image_title}
-              title={partner.image_title}
-              loading="lazy"
-              draggable={false}
-              className="max-h-[55%] max-w-[70%] object-contain transition-transform duration-300 group-hover:scale-[1.08]"
-            />
-          </div>
+        <div
+          className={[
+            "relative flex items-center justify-center rounded-full bg-white",
+            "border border-border shadow-sm",
+            "transition-all duration-300 ease-out",
+            "group-hover:-translate-y-1 group-hover:border-primary/50 group-hover:shadow-md",
+            featured
+              ? "h-[100px] w-[100px] md:h-[124px] md:w-[124px]"
+              : "h-[76px] w-[76px] md:h-[88px] md:w-[88px] lg:h-[104px] lg:w-[104px]",
+          ].join(" ")}
+        >
+          <img
+            src={partner.logo_url}
+            alt={partner.image_title}
+            title={partner.image_title}
+            loading="lazy"
+            draggable={false}
+            className="max-h-[55%] max-w-[70%] object-contain"
+          />
         </div>
         <p className="mt-4 text-center text-[13px] md:text-sm font-semibold text-muted-foreground group-hover:text-primary transition-colors duration-300 max-w-[150px] leading-snug">
           {partner.partner_name}
@@ -155,36 +144,22 @@ export const OurPartners = () => {
   };
 
   return (
-    <section className="relative py-24 md:py-32 bg-background overflow-hidden">
-      {/* Orange radial glow behind heading */}
-      <div
-        aria-hidden
-        className="absolute left-1/2 top-8 -translate-x-1/2 w-[680px] h-[280px] pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse at center, hsl(var(--primary) / 0.06), transparent 70%)",
-        }}
-      />
-
+    <section className="relative py-20 md:py-28 bg-background">
       <div className="container mx-auto px-4 relative z-10">
-        <motion.div
-          className="text-center mb-12 md:mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
-          <span className="inline-block px-4 py-1.5 mb-5 text-[10px] font-bold tracking-[0.28em] uppercase rounded-full bg-primary/5 text-primary border border-primary/20">
-            Trusted By
-          </span>
+        <div className="text-center mb-12 md:mb-16">
+          <div className="flex items-center justify-center gap-3 mb-5">
+            <span className="h-px w-10 bg-primary" />
+            <p className="text-primary font-semibold tracking-[0.2em] text-xs uppercase">Trusted By</p>
+            <span className="h-px w-10 bg-primary" />
+          </div>
           <h2 className="text-3xl md:text-5xl font-bold text-foreground tracking-tight mb-4">
-            Trusted By Industry & <span className="text-primary">Government</span>
+            Trusted By Industry &amp; Government
           </h2>
           <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
             Collaborating with defence organizations, government agencies, research
             institutes and industry leaders to build next-generation drone technologies.
           </p>
-        </motion.div>
+        </div>
       </div>
 
       {/* Marquee */}

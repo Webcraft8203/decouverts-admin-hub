@@ -55,7 +55,7 @@ export function YouTubeEmbed({ url, title }: YouTubeEmbedProps) {
           <div className="absolute inset-0 bg-dark/30 group-hover:bg-dark/20 transition-colors" />
           {/* Play Button */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-16 h-16 md:w-20 md:h-20 bg-primary rounded-full flex items-center justify-center shadow-glow group-hover:scale-110 transition-transform">
+            <div className="w-16 h-16 md:w-20 md:h-20 bg-primary rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
               <Play className="w-8 h-8 md:w-10 md:h-10 text-primary-foreground ml-1" fill="currentColor" />
             </div>
           </div>

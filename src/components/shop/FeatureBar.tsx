@@ -21,7 +21,7 @@ export function FeatureBar() {
   return (
     <section className="relative border-y border-border/40 bg-gradient-to-b from-background to-secondary/30">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="relative rounded-2xl border border-border/50 bg-card/70 backdrop-blur-xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.15)] overflow-hidden">
+        <div className="relative rounded-lg border border-border/50 bg-card/70 backdrop-blur-xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.15)] overflow-hidden">
           {/* Animated connector line */}
           <div
             aria-hidden

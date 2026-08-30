@@ -88,7 +88,7 @@ export function Product3DViewer({ modelPath, productName }: Props) {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
-        className="relative aspect-[16/10] rounded-2xl overflow-hidden border border-border/50 bg-gradient-to-br from-white via-secondary/20 to-secondary/40 shadow-sm"
+        className="relative aspect-[16/10] rounded-lg overflow-hidden border border-border/50 bg-gradient-to-br from-white via-secondary/20 to-secondary/40 shadow-sm"
       >
         {/* Soft grid */}
         <div

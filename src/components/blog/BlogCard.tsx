@@ -25,7 +25,7 @@ export function BlogCard({ post }: BlogCardProps) {
   return (
     <Link 
       to={`/blogs/${post.slug}`}
-      className="group block bg-card border border-border rounded-2xl overflow-hidden shadow-soft hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+      className="group block bg-card border border-border rounded-lg overflow-hidden shadow-soft hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
     >
       {/* Image */}
       <div className="relative aspect-video overflow-hidden bg-muted">
@@ -48,8 +48,8 @@ export function BlogCard({ post }: BlogCardProps) {
         <Badge 
           className={cn(
             "absolute top-4 left-4",
-            post.content_type === "news" 
-              ? "bg-blue-500 text-white" 
+            post.content_type === "news"
+              ? "bg-foreground text-background"
               : "bg-primary text-primary-foreground"
           )}
         >

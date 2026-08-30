@@ -14,7 +14,7 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 export const HelpCenterDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md w-full sm:rounded-2xl p-0 gap-0 bg-white overflow-hidden border-none shadow-2xl duration-300">
+      <DialogContent className="max-w-md w-full sm:rounded-lg p-0 gap-0 bg-white overflow-hidden border-none shadow-2xl duration-300">
         <VisuallyHidden>
           <DialogTitle>Help Center</DialogTitle>
         </VisuallyHidden>
@@ -44,13 +44,13 @@ export const HelpCenterDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose
         {/* Content */}
         <div className="p-6 space-y-4 bg-slate-50/50">
           <a href="mailto:hello@decouvertes.in" className="flex items-start gap-4 p-4 bg-white border border-slate-100 rounded-xl hover:border-primary/30 hover:shadow-md transition-all group">
-            <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
+            <div className="p-2.5 bg-primary/10 text-primary rounded-lg group-hover:bg-primary group-hover:text-white transition-colors">
               <Mail className="w-5 h-5" />
             </div>
             <div>
               <h3 className="font-semibold text-slate-900 text-sm">Email Support</h3>
               <p className="text-slate-500 text-xs mt-0.5">hello@decouvertes.in</p>
-              <span className="text-[10px] text-blue-600 font-medium mt-1.5 inline-block">Response within 24h</span>
+              <span className="text-[10px] text-primary font-medium mt-1.5 inline-block">Response within 24h</span>
             </div>
           </a>
 
@@ -66,7 +66,7 @@ export const HelpCenterDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose
           </a>
 
           <div className="flex items-start gap-4 p-4 bg-white border border-slate-100 rounded-xl">
-            <div className="p-2.5 bg-orange-50 text-orange-600 rounded-lg">
+            <div className="p-2.5 bg-secondary text-foreground rounded-lg">
               <MapPin className="w-5 h-5" />
             </div>
             <div>
@@ -87,7 +87,7 @@ export const HelpCenterDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose
 export const CareersDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md w-full sm:rounded-2xl p-0 gap-0 bg-white overflow-hidden border-none shadow-2xl">
+      <DialogContent className="max-w-md w-full sm:rounded-lg p-0 gap-0 bg-white overflow-hidden border-none shadow-2xl">
         <VisuallyHidden>
           <DialogTitle>Careers at Decouverts</DialogTitle>
         </VisuallyHidden>
@@ -111,11 +111,11 @@ export const CareersDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
                 <p className="text-sm text-slate-500 mb-2">Please send your resume and portfolio to:</p>
-                <a 
-                    href="mailto:careers@decouvertes.in" 
+                <a
+                    href="mailto:hello@decouvertes.in"
                     className="text-lg font-bold text-primary hover:underline"
                 >
-                    careers@decouvertes.in
+                    hello@decouvertes.in
                 </a>
             </div>
 
@@ -136,7 +136,7 @@ export const CareersDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
 export const MadeInIndiaDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md w-full sm:rounded-2xl p-0 gap-0 bg-white overflow-hidden border-none shadow-2xl">
+      <DialogContent className="max-w-md w-full sm:rounded-lg p-0 gap-0 bg-white overflow-hidden border-none shadow-2xl">
         <VisuallyHidden>
           <DialogTitle>Proudly Made in India</DialogTitle>
         </VisuallyHidden>
@@ -190,18 +190,18 @@ export const MadeInIndiaDialog = ({ isOpen, onClose }: { isOpen: boolean; onClos
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ delay: 0.5 }}
-                    className="p-4 bg-orange-50/50 rounded-xl border border-orange-100 text-center"
+                    className="p-4 bg-primary/5 rounded-md border border-primary/15 text-center"
                 >
-                    <div className="text-orange-600 font-bold text-xl mb-1">100%</div>
+                    <div className="text-primary font-bold text-xl mb-1">100%</div>
                     <div className="text-xs text-slate-600 font-medium uppercase tracking-wide">Indigenous R&D</div>
                 </motion.div>
                 <motion.div 
                     initial={{ x: 20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ delay: 0.6 }}
-                    className="p-4 bg-green-50/50 rounded-xl border border-green-100 text-center"
+                    className="p-4 bg-success/5 rounded-md border border-success/15 text-center"
                 >
-                    <div className="text-green-600 font-bold text-xl mb-1">Global</div>
+                    <div className="text-success font-bold text-xl mb-1">Global</div>
                     <div className="text-xs text-slate-600 font-medium uppercase tracking-wide">Standards</div>
                 </motion.div>
             </div>
@@ -227,7 +227,7 @@ export const MadeInIndiaDialog = ({ isOpen, onClose }: { isOpen: boolean; onClos
 export const CopyrightDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md w-full sm:rounded-2xl p-0 gap-0 bg-white overflow-hidden border-none shadow-2xl">
+      <DialogContent className="max-w-md w-full sm:rounded-lg p-0 gap-0 bg-white overflow-hidden border-none shadow-2xl">
         <VisuallyHidden>
           <DialogTitle>Copyright & Intellectual Property</DialogTitle>
         </VisuallyHidden>
@@ -341,7 +341,7 @@ export const FAQDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl w-full sm:rounded-2xl p-0 gap-0 bg-white overflow-hidden border-none shadow-2xl duration-300 flex flex-col max-h-[90vh]">
+      <DialogContent className="max-w-2xl w-full sm:rounded-lg p-0 gap-0 bg-white overflow-hidden border-none shadow-2xl duration-300 flex flex-col max-h-[90vh]">
         <VisuallyHidden>
           <DialogTitle>Frequently Asked Questions</DialogTitle>
         </VisuallyHidden>

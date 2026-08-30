@@ -104,7 +104,7 @@ export function AerospaceCategories({ selectedId, onSelect }: Props) {
                 transition={{ duration: 0.4, delay: i * 0.04 }}
                 whileHover={{ y: -6 }}
                 onClick={() => onSelect(active ? null : c.id)}
-                className={`group relative overflow-hidden rounded-2xl border text-left p-5 sm:p-6 transition-all duration-300 ${
+                className={`group relative overflow-hidden rounded-lg border text-left p-5 sm:p-6 transition-all duration-300 ${
                   active
                     ? "border-primary bg-primary/5 shadow-[0_16px_50px_-12px_hsl(var(--primary)/0.4)]"
                     : "border-border/50 bg-card/70 backdrop-blur-sm hover:border-primary/60 hover:shadow-[0_20px_60px_-18px_hsl(var(--primary)/0.35)]"
@@ -125,7 +125,7 @@ export function AerospaceCategories({ selectedId, onSelect }: Props) {
                 {/* Animated border */}
                 <div
                   aria-hidden
-                  className="absolute inset-0 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute inset-0 rounded-lg pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"
                   style={{
                     background:
                       "linear-gradient(120deg, transparent 30%, hsl(var(--primary)/0.4) 50%, transparent 70%)",

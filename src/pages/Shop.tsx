@@ -200,7 +200,7 @@ const Shop = () => {
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div
                     key={i}
-                    className="rounded-2xl border border-border/60 overflow-hidden bg-card"
+                    className="rounded-lg border border-border/60 overflow-hidden bg-card"
                   >
                     <Skeleton className="aspect-[4/3]" />
                     <div className="p-6 space-y-3">
@@ -219,8 +219,8 @@ const Shop = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-24 rounded-2xl border border-dashed border-border/50 bg-card/40">
-                <div className="w-16 h-16 rounded-2xl bg-secondary/50 flex items-center justify-center mx-auto mb-4">
+              <div className="text-center py-24 rounded-lg border border-dashed border-border/50 bg-card/40">
+                <div className="w-16 h-16 rounded-lg bg-secondary/50 flex items-center justify-center mx-auto mb-4">
                   <Package className="w-7 h-7 text-muted-foreground/50" />
                 </div>
                 <h3 className="text-lg font-semibold text-foreground mb-1.5">

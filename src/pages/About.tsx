@@ -51,11 +51,12 @@ const Counter = ({ from, to, suffix = "" }: { from: number; to: number; suffix?:
   return <span ref={ref}>{from}{suffix}</span>;
 };
 
-/* ---------- Shared vocabulary: eyebrow pill ---------- */
+/* ---------- Shared vocabulary: eyebrow label ---------- */
 const Eyebrow = ({ children }: { children: React.ReactNode }) => (
-  <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
-    <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-    {children}
+  <span className="inline-flex items-center gap-3">
+    <span className="h-px w-10 bg-primary" />
+    <span className="text-primary font-semibold tracking-[0.2em] text-xs uppercase">{children}</span>
+    <span className="h-px w-10 bg-primary" />
   </span>
 );
 
@@ -76,11 +77,11 @@ const SpecCard = ({
   <motion.div
     variants={fadeInUp}
     whileHover={{ y: -4 }}
-    className="group relative rounded-2xl hairline bg-card elevation-1 p-7 transition-all duration-300 hover:elevation-2 hover:border-primary/30 overflow-hidden"
+    className="group relative rounded-lg hairline bg-card elevation-1 p-7 transition-all duration-300 hover:elevation-2 hover:border-primary/30 overflow-hidden"
   >
     {accent && <span className="absolute top-0 left-7 right-7 h-[2px] bg-primary/70" />}
     <div className="flex items-start justify-between mb-6">
-      <div className="w-12 h-12 rounded-xl hairline bg-background flex items-center justify-center group-hover:border-primary/40 transition-colors">
+      <div className="w-12 h-12 rounded-md hairline bg-background flex items-center justify-center group-hover:border-primary/40 transition-colors">
         <Icon className="w-5 h-5 text-primary" />
       </div>
       {index && (
@@ -114,7 +115,7 @@ const FlightLogNode = ({
       className={cn(
         "w-16 h-16 border-2 flex items-center justify-center mb-8 font-display font-bold text-base tabular-nums z-10 transition-all duration-500",
         active
-          ? "bg-primary border-primary text-white shadow-orange-glow"
+          ? "bg-primary border-primary text-white"
           : "bg-[hsl(var(--dark-surface-elevated))] border-white/10 text-white/70"
       )}
     >
@@ -122,7 +123,7 @@ const FlightLogNode = ({
     </div>
     <div
       className={cn(
-        "w-full rounded-xl p-8 border transition-all duration-300 hover:-translate-y-1",
+        "w-full rounded-md p-8 border transition-all duration-300 hover:-translate-y-1",
         active ? "bg-white/[0.04] border-primary/30" : "bg-white/[0.02] border-white/10 hover:border-white/20"
       )}
     >
@@ -146,10 +147,7 @@ const About = () => {
 
       <main className="flex-1 pt-16 md:pt-20 overflow-hidden">
         {/* Hero Section — light / blueprint */}
-        <section className="relative py-20 md:py-28 px-4 overflow-hidden bg-background">
-          <div className="absolute inset-0 grid-engineering opacity-70 pointer-events-none" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_100%_200px,hsl(var(--primary)/0.08),transparent)]" />
-
+        <section className="relative py-20 md:py-28 px-4 bg-background">
           <div className="max-w-7xl mx-auto relative z-10">
             <div className="text-center max-w-4xl mx-auto mb-16">
               <motion.div initial="hidden" animate="visible" variants={fadeInUp}>
@@ -172,7 +170,7 @@ const About = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7 }}
-              className="rounded-2xl hairline bg-card elevation-2 p-8 md:p-12 relative overflow-hidden"
+              className="rounded-lg hairline bg-card elevation-2 p-8 md:p-12 relative overflow-hidden"
             >
               <span className="absolute top-0 left-0 right-0 h-[2px] bg-primary" />
               <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -189,7 +187,7 @@ const About = () => {
                     { label: "Engineering Driven", icon: Cpu },
                     { label: "Nation First", icon: Globe },
                   ].map((item, i) => (
-                    <div key={i} className="rounded-xl hairline bg-background p-6 flex flex-col items-center justify-center text-center gap-3 transition-colors hover:border-primary/40">
+                    <div key={i} className="rounded-md hairline bg-background p-6 flex flex-col items-center justify-center text-center gap-3 transition-colors hover:border-primary/40">
                       <item.icon className="w-7 h-7 text-primary" />
                       <span className="font-bold text-foreground text-sm">{item.label}</span>
                     </div>
@@ -265,9 +263,9 @@ const About = () => {
                   key={i}
                   variants={fadeInUp}
                   whileHover={{ y: -4 }}
-                  className="bg-card p-8 rounded-2xl hairline elevation-1 hover:elevation-2 hover:border-primary/30 transition-all"
+                  className="bg-card p-8 rounded-lg hairline elevation-1 hover:elevation-2 hover:border-primary/30 transition-all"
                 >
-                  <div className="w-12 h-12 rounded-xl hairline bg-background flex items-center justify-center mb-6">
+                  <div className="w-12 h-12 rounded-md hairline bg-background flex items-center justify-center mb-6">
                     <item.icon className="w-6 h-6 text-primary" />
                   </div>
                   <h3 className="text-xl font-bold text-foreground mb-3">{item.title}</h3>
@@ -286,7 +284,7 @@ const About = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7 }}
-              className="rounded-2xl hairline elevation-2 p-8 md:p-12 relative overflow-hidden bg-card"
+              className="rounded-lg hairline elevation-2 p-8 md:p-12 relative overflow-hidden bg-card"
             >
               <span className="absolute top-0 left-0 right-0 h-[2px] bg-primary" />
               <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
@@ -319,7 +317,7 @@ const About = () => {
 
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <a href="/CompanyProfile.pdf" download="Decouvertes-Company-Profile.pdf" className="inline-block w-full sm:w-auto">
-                      <Button className="w-full sm:w-auto bg-foreground hover:bg-foreground/90 text-background h-12 rounded-xl px-8 shadow-lg group transition-all">
+                      <Button className="w-full sm:w-auto bg-foreground hover:bg-foreground/90 text-background h-12 rounded-md px-8 shadow-lg group transition-all">
                         <Download className="w-4 h-4 mr-2 group-hover:-translate-y-0.5 transition-transform" />
                         Download Company Profile
                       </Button>
@@ -334,7 +332,7 @@ const About = () => {
                 <div className="hidden md:flex justify-center relative">
                   <motion.div
                     whileHover={{ y: -10 }}
-                    className="relative w-full max-w-sm aspect-[3/4] bg-background rounded-xl hairline elevation-2 p-6 flex flex-col"
+                    className="relative w-full max-w-sm aspect-[3/4] bg-background rounded-md hairline elevation-2 p-6 flex flex-col"
                   >
                     <div className="w-full h-48 bg-secondary/50 rounded-lg mb-6 flex items-center justify-center relative overflow-hidden hairline">
                       <Globe className="w-16 h-16 text-muted-foreground/40" />
@@ -350,7 +348,7 @@ const About = () => {
                         <ArrowRight className="w-4 h-4 text-muted-foreground" />
                       </div>
                     </div>
-                    <div className="absolute -right-5 -top-5 w-16 h-16 bg-primary rounded-full flex items-center justify-center text-white font-display font-bold shadow-orange-glow rotate-12 border-4 border-background text-xs">
+                    <div className="absolute -right-5 -top-5 w-16 h-16 bg-primary rounded-full flex items-center justify-center text-white font-display font-bold rotate-12 border-4 border-background text-xs">
                       PDF
                     </div>
                   </motion.div>
@@ -361,9 +359,7 @@ const About = () => {
         </section>
 
         {/* Numbers That Matter */}
-        <section className="py-20 px-4 bg-[hsl(var(--dark-surface))] text-white relative overflow-hidden">
-          <div className="absolute inset-0 grid-engineering-dark opacity-60 pointer-events-none" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.12),transparent_70%)]"></div>
+        <section className="py-20 px-4 bg-[hsl(var(--dark-surface))] text-white relative">
           <div className="max-w-7xl mx-auto relative z-10">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 text-center">
               {[
@@ -428,9 +424,9 @@ const About = () => {
                   key={i}
                   variants={fadeInUp}
                   whileHover={{ y: -4 }}
-                  className="bg-card p-6 rounded-2xl hairline elevation-1 hover:elevation-2 hover:border-primary/30 transition-all text-center"
+                  className="bg-card p-6 rounded-lg hairline elevation-1 hover:elevation-2 hover:border-primary/30 transition-all text-center"
                 >
-                  <div className="w-12 h-12 rounded-xl hairline bg-background flex items-center justify-center mx-auto mb-4">
+                  <div className="w-12 h-12 rounded-md hairline bg-background flex items-center justify-center mx-auto mb-4">
                     <item.icon className="w-6 h-6 text-primary" />
                   </div>
                   <h3 className="font-bold text-foreground mb-2">{item.title}</h3>
@@ -472,7 +468,7 @@ const About = () => {
                     transition={{ delay: i * 0.1 }}
                     className="flex flex-col items-center text-center"
                   >
-                    <div className="w-14 h-14 rounded-xl bg-background hairline flex items-center justify-center mb-6 relative z-10">
+                    <div className="w-14 h-14 rounded-md bg-background hairline flex items-center justify-center mb-6 relative z-10">
                       <item.icon className="w-6 h-6 text-foreground" />
                       <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-[10px] font-display font-bold border-2 border-background">
                         {item.step}
@@ -488,8 +484,7 @@ const About = () => {
         </section>
 
         {/* Timeline Section — flight log */}
-        <section className="py-24 px-4 bg-[hsl(var(--dark-surface))] text-white overflow-hidden relative">
-          <div className="absolute inset-0 grid-engineering-dark opacity-60 pointer-events-none" />
+        <section className="py-24 px-4 bg-[hsl(var(--dark-surface))] text-white relative">
           <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
 
           <div className="max-w-7xl mx-auto relative z-10">
@@ -572,7 +567,7 @@ const About = () => {
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
                   whileHover={{ y: -8 }}
-                  className="bg-card rounded-2xl overflow-hidden hairline elevation-1 hover:elevation-2 hover:border-primary/30 transition-all duration-300 group"
+                  className="bg-card rounded-lg overflow-hidden hairline elevation-1 hover:elevation-2 hover:border-primary/30 transition-all duration-300 group"
                 >
                   <div className="h-64 overflow-hidden relative bg-secondary">
                     <img
@@ -598,7 +593,7 @@ const About = () => {
         {/* Roadmap */}
         <section className="py-24 px-4 bg-secondary/40 border-t border-border">
           <div className="max-w-4xl mx-auto">
-            <div className="rounded-2xl hairline bg-card elevation-1 p-8 md:p-12">
+            <div className="rounded-lg hairline bg-card elevation-1 p-8 md:p-12">
               <h2 className="text-3xl font-bold text-foreground mb-8 flex items-center gap-3 justify-center">
                 <Rocket className="w-8 h-8 text-primary" />
                 Future Roadmap
@@ -617,7 +612,7 @@ const About = () => {
                 ))}
               </div>
               <div className="mt-10 pt-8 border-t border-border text-center">
-                <Button className="bg-foreground hover:bg-foreground/90 text-background h-12 rounded-xl px-8">
+                <Button className="bg-foreground hover:bg-foreground/90 text-background h-12 rounded-md px-8">
                   Partner With Us <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
@@ -633,7 +628,7 @@ const About = () => {
             viewport={{ once: true }}
             className="max-w-3xl mx-auto"
           >
-            <div className="w-14 h-14 rounded-xl hairline bg-card flex items-center justify-center text-primary mx-auto mb-8">
+            <div className="w-14 h-14 rounded-md hairline bg-card flex items-center justify-center text-primary mx-auto mb-8">
               <Award className="w-7 h-7" />
             </div>
             <h3 className="text-3xl font-bold text-foreground mb-6">Decouvertes Future Tech Pvt. Ltd.</h3>

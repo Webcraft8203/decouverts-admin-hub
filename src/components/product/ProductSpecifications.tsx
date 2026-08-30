@@ -55,7 +55,7 @@ export function ProductSpecifications({ productId }: ProductSpecificationsProps)
         <Skeleton className="h-8 w-64 mb-8" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-20 rounded-2xl" />
+            <Skeleton key={i} className="h-20 rounded-lg" />
           ))}
         </div>
       </section>
@@ -73,8 +73,8 @@ export function ProductSpecifications({ productId }: ProductSpecificationsProps)
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
         <div className="flex items-center gap-4">
           <div className="relative">
-            <div className="absolute inset-0 bg-primary/20 blur-xl rounded-2xl" />
-            <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg">
+            <div className="absolute inset-0 bg-primary/20 blur-xl rounded-lg" />
+            <div className="relative w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg">
               <Settings2 className="w-6 h-6 text-primary-foreground" />
             </div>
           </div>
@@ -117,10 +117,10 @@ export function ProductSpecifications({ productId }: ProductSpecificationsProps)
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.25, delay: Math.min(index * 0.02, 0.2) }}
-                className="group relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm p-5 hover:border-primary/40 hover:shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.25)] transition-all duration-300"
+                className="group relative overflow-hidden rounded-lg border border-border/60 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm p-5 hover:border-primary/40 hover:shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.25)] transition-all duration-300"
               >
                 {/* Hover glow */}
-                <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-primary/0 via-primary/0 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                <div className="absolute -inset-px rounded-lg bg-gradient-to-br from-primary/0 via-primary/0 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                 {/* Accent bar */}
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-1 rounded-r-full bg-gradient-to-b from-primary to-primary/40 opacity-60 group-hover:opacity-100 group-hover:h-12 transition-all duration-300" />
 

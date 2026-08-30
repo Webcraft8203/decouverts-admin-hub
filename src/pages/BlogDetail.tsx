@@ -177,7 +177,7 @@ export default function BlogDetail() {
             <Skeleton className="h-8 w-32 mb-8" />
             <Skeleton className="h-12 w-full mb-4" />
             <Skeleton className="h-6 w-64 mb-8" />
-            <Skeleton className="w-full aspect-video rounded-2xl mb-8" />
+            <Skeleton className="w-full aspect-video rounded-lg mb-8" />
             <div className="space-y-4">
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-full" />
@@ -255,8 +255,8 @@ export default function BlogDetail() {
           <Badge 
             className={cn(
               "mb-4",
-              post.content_type === "news" 
-                ? "bg-blue-500/10 text-blue-600 border-blue-500/20" 
+              post.content_type === "news"
+                ? "bg-foreground/10 text-foreground border-foreground/20"
                 : "bg-primary/10 text-primary border-primary/20"
             )}
           >
@@ -303,7 +303,7 @@ export default function BlogDetail() {
           <img
             src={post.feature_image}
             alt={post.title}
-            className="w-full aspect-video object-cover rounded-2xl shadow-lg"
+            className="w-full aspect-video object-cover rounded-lg shadow-lg"
           />
         </div>
       )}
@@ -383,7 +383,7 @@ export default function BlogDetail() {
               {adjacent?.prev ? (
                 <Link
                   to={`/blogs/${adjacent.prev.slug}`}
-                  className="group flex items-center gap-4 p-5 rounded-2xl border border-border bg-card hover:border-primary/40 hover:shadow-lg transition-all"
+                  className="group flex items-center gap-4 p-5 rounded-lg border border-border bg-card hover:border-primary/40 hover:shadow-lg transition-all"
                 >
                   <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted shrink-0">
                     {adjacent.prev.feature_image && (
@@ -403,7 +403,7 @@ export default function BlogDetail() {
               {adjacent?.next ? (
                 <Link
                   to={`/blogs/${adjacent.next.slug}`}
-                  className="group flex items-center gap-4 p-5 rounded-2xl border border-border bg-card hover:border-primary/40 hover:shadow-lg transition-all md:text-right md:flex-row-reverse"
+                  className="group flex items-center gap-4 p-5 rounded-lg border border-border bg-card hover:border-primary/40 hover:shadow-lg transition-all md:text-right md:flex-row-reverse"
                 >
                   <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted shrink-0">
                     {adjacent.next.feature_image && (

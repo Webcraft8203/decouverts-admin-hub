@@ -37,13 +37,13 @@ export function ShopFilterBar({
           placeholder="Search products..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="h-11 pl-10 rounded-xl border-border/70 bg-card focus-visible:ring-primary/40"
+          className="h-11 pl-10 rounded-md border-border/70 bg-card focus-visible:ring-primary/40"
         />
       </div>
 
       <div className="flex items-center gap-3 sm:ml-auto">
         <Select value={availability} onValueChange={setAvailability}>
-          <SelectTrigger className="h-11 w-[150px] rounded-xl border-border/70 bg-card text-sm">
+          <SelectTrigger className="h-11 w-[150px] rounded-md border-border/70 bg-card text-sm">
             <SelectValue placeholder="Availability" />
           </SelectTrigger>
           <SelectContent>
@@ -55,7 +55,7 @@ export function ShopFilterBar({
         </Select>
 
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="h-11 w-[160px] rounded-xl border-border/70 bg-card text-sm">
+          <SelectTrigger className="h-11 w-[160px] rounded-md border-border/70 bg-card text-sm">
             <SelectValue placeholder="Sort" />
           </SelectTrigger>
           <SelectContent>

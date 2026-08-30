@@ -152,7 +152,7 @@ export const LegalModal = ({ isOpen, onClose, policyKey }: LegalModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl w-[95vw] max-h-[85vh] p-0 gap-0 bg-white border-none shadow-2xl rounded-2xl overflow-hidden flex flex-col duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+      <DialogContent className="max-w-2xl w-[95vw] max-h-[85vh] p-0 gap-0 bg-white border-none shadow-2xl rounded-lg overflow-hidden flex flex-col duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
         <VisuallyHidden>
           <DialogTitle>{policy.title}</DialogTitle>
         </VisuallyHidden>
@@ -217,7 +217,7 @@ export const LegalModal = ({ isOpen, onClose, policyKey }: LegalModalProps) => {
                 <FileText className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
                 <p className="text-xs text-slate-500 leading-relaxed">
                   This document is legally binding. If you have any questions regarding these policies, 
-                  please contact our legal team at <a href="mailto:legal@decouvertes.in" className="text-primary hover:underline">legal@decouvertes.in</a>.
+                  please contact our team at <a href="mailto:hello@decouvertes.in" className="text-primary hover:underline">hello@decouvertes.in</a>.
                 </p>
               </div>
             </div>

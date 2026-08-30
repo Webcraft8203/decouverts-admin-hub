@@ -83,7 +83,7 @@ export const ProductMediaGallery = ({ images, videoUrl, productName }: ProductMe
   if (mediaItems.length === 0) {
     return (
       <div className="space-y-4">
-        <div className="aspect-square rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center">
+        <div className="aspect-square rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center">
           <Package className="w-24 h-24 text-slate-300" />
         </div>
       </div>
@@ -94,7 +94,7 @@ export const ProductMediaGallery = ({ images, videoUrl, productName }: ProductMe
     <div className="flex flex-col gap-6 w-full">
       {/* Main Preview */}
       <div 
-        className="group relative aspect-square overflow-hidden rounded-2xl bg-white border border-slate-100 shadow-lg shadow-slate-200/50 cursor-zoom-in"
+        className="group relative aspect-square overflow-hidden rounded-lg bg-white border border-slate-100 shadow-lg shadow-slate-200/50 cursor-zoom-in"
         onClick={handleMainClick}
       >
         <AnimatePresence mode="wait">

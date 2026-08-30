@@ -35,7 +35,6 @@ const getYouTubeVideoId = (url: string): string | null => {
 export function HomepageGallery() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [modalItem, setModalItem] = useState<GalleryItem | null>(null);
   const [showVideo, setShowVideo] = useState(false);
 
@@ -85,7 +84,7 @@ export function HomepageGallery() {
         <div className="max-w-7xl mx-auto">
           <Skeleton className="h-10 w-64 mb-10 bg-white/5" />
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            <Skeleton className="lg:col-span-8 aspect-[16/10] rounded-2xl bg-white/5" />
+            <Skeleton className="lg:col-span-8 aspect-[16/10] rounded-lg bg-white/5" />
             <div className="lg:col-span-4 grid grid-cols-2 lg:grid-cols-1 gap-4">
               {[0, 1, 2, 3].map((i) => (
                 <Skeleton key={i} className="aspect-[16/10] lg:aspect-[16/9] rounded-xl bg-white/5" />
@@ -107,29 +106,11 @@ export function HomepageGallery() {
   const goPrev = () => selectIndex((activeIndex - 1 + items.length) % items.length);
   const goNext = () => selectIndex((activeIndex + 1) % items.length);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2; // -1..1
-    const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
-    setTilt({ x: -y * 4, y: x * 6 }); // rotateX, rotateY (deg)
-  };
-  const resetTilt = () => setTilt({ x: 0, y: 0 });
-
   return (
     <section
       id="gallery-section"
-      className="relative py-20 lg:py-28 px-4 bg-[#0b1220] overflow-hidden"
+      className="relative py-20 lg:py-28 px-4 bg-[hsl(217,45%,9%)]"
     >
-      {/* Subtle ambient glow */}
-      <div
-        aria-hidden
-        className="absolute inset-0 pointer-events-none opacity-[0.35]"
-        style={{
-          background:
-            "radial-gradient(ellipse 60% 50% at 30% 20%, rgba(255,107,0,0.10), transparent 60%)",
-        }}
-      />
-
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
         <motion.div
@@ -165,72 +146,21 @@ export function HomepageGallery() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
           {/* Main viewer */}
           <div className="lg:col-span-8">
-            <div
-              onMouseMove={handleMouseMove}
-              onMouseLeave={resetTilt}
-              style={{ perspective: "1400px" }}
-              className="relative w-full aspect-[16/10]"
-            >
-              <motion.div
+            <div className="relative w-full aspect-[16/10]">
+              <div
                 onClick={() => handleOpenModal(active)}
-                animate={{ rotateX: tilt.x, rotateY: tilt.y }}
-                transition={{ type: "spring", stiffness: 120, damping: 18, mass: 0.6 }}
-                style={{ transformStyle: "preserve-3d" }}
-                className="group relative w-full h-full overflow-hidden rounded-2xl border border-white/[0.08] bg-slate-900 cursor-pointer isolate shadow-[0_40px_80px_-40px_rgba(0,0,0,0.9)]"
+                className="group relative w-full h-full overflow-hidden rounded-lg border border-white/10 bg-slate-900 cursor-pointer"
               >
-                {/* 3D image stack */}
-                <div className="absolute inset-0" style={{ transformStyle: "preserve-3d" }}>
-                  <AnimatePresence mode="wait" custom={direction}>
-                    <motion.img
-                      key={active.id}
-                      src={active.image_url}
-                      alt={active.alt_text || active.title}
-                      custom={direction}
-                      initial={{
-                        opacity: 0,
-                        rotateY: direction * 35,
-                        z: -180,
-                        x: direction * 60,
-                        scale: 1.05,
-                        filter: "blur(8px) brightness(0.6)",
-                      }}
-                      animate={{
-                        opacity: 1,
-                        rotateY: 0,
-                        z: 0,
-                        x: 0,
-                        scale: 1,
-                        filter: "blur(0px) brightness(1)",
-                      }}
-                      exit={{
-                        opacity: 0,
-                        rotateY: -direction * 25,
-                        z: -80,
-                        x: -direction * 40,
-                        scale: 0.98,
-                        filter: "blur(6px) brightness(0.7)",
-                      }}
-                      transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
-                      style={{ transformStyle: "preserve-3d", backfaceVisibility: "hidden" }}
-                      className="absolute inset-0 w-full h-full object-cover"
-                    />
-                  </AnimatePresence>
-                </div>
-
-                {/* Cinematic scanline sweep during transition */}
-                <AnimatePresence>
-                  <motion.div
-                    key={active.id + "-sweep"}
-                    aria-hidden
-                    initial={{ x: "-120%", opacity: 0.9 }}
-                    animate={{ x: "120%", opacity: 0 }}
-                    transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-                    className="absolute inset-y-0 w-1/2 pointer-events-none z-[5]"
-                    style={{
-                      background:
-                        "linear-gradient(90deg, transparent 0%, rgba(255,107,0,0.15) 45%, rgba(255,255,255,0.35) 50%, rgba(255,107,0,0.15) 55%, transparent 100%)",
-                      mixBlendMode: "screen",
-                    }}
+                <AnimatePresence mode="wait" custom={direction}>
+                  <motion.img
+                    key={active.id}
+                    src={active.image_url}
+                    alt={active.alt_text || active.title}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                    className="absolute inset-0 w-full h-full object-cover"
                   />
                 </AnimatePresence>
 
@@ -305,7 +235,7 @@ export function HomepageGallery() {
                 </motion.div>
               </AnimatePresence>
 
-              </motion.div>
+              </div>
             </div>
 
 
@@ -350,7 +280,7 @@ export function HomepageGallery() {
                       "w-[75vw] xs:w-[60vw] sm:w-[280px] lg:w-full",
                       "aspect-[16/10] lg:aspect-[16/9]",
                       isActive
-                        ? "border-primary shadow-[0_0_0_1px_rgba(255,107,0,0.6),0_20px_40px_-20px_rgba(255,107,0,0.5)]"
+                        ? "border-primary"
                         : "border-white/[0.08] hover:border-white/25"
                     )}
                   >
@@ -429,7 +359,7 @@ export function HomepageGallery() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="relative w-full max-w-5xl max-h-[90vh] bg-white rounded-2xl overflow-hidden shadow-2xl"
+              className="relative w-full max-w-5xl max-h-[90vh] bg-white rounded-lg overflow-hidden shadow-elevated"
               onClick={(e) => e.stopPropagation()}
             >
               <button

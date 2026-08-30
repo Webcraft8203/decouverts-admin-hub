@@ -90,7 +90,7 @@ export function Product360Spin({ productId, fallbackFrames }: Props) {
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
-        className="relative aspect-[16/10] rounded-2xl overflow-hidden border border-border/50 bg-gradient-to-br from-secondary/40 via-background to-secondary/20 cursor-grab active:cursor-grabbing select-none touch-none"
+        className="relative aspect-[16/10] rounded-lg overflow-hidden border border-border/50 bg-gradient-to-br from-secondary/40 via-background to-secondary/20 cursor-grab active:cursor-grabbing select-none touch-none"
       >
         <div
           aria-hidden

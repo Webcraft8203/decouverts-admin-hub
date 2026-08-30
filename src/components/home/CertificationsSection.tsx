@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import { Award, Download, Search, X, ZoomIn, ZoomOut, ExternalLink, ShieldCheck, FileText, Hash, Calendar, CheckCircle, Building2, Lightbulb, Scale, Trophy, FlaskConical } from "lucide-react";
+import { Award, Download, Search, X, ZoomIn, ZoomOut, ExternalLink, ShieldCheck, FileText, CheckCircle, Lightbulb, Scale, Trophy, FlaskConical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -82,206 +81,120 @@ export const CertificationsSection = () => {
   if (!certs.length) return null;
 
   return (
-    <section className="relative bg-white py-16 md:py-24 overflow-hidden">
-      {/* Subtle background patterns */}
-      <div aria-hidden className="absolute inset-0 pointer-events-none opacity-[0.015]">
-        {/* Technical grid */}
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              "linear-gradient(to right, rgba(15,23,42,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(15,23,42,0.05) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }}
-        />
-      </div>
-
+    <section className="relative bg-white py-10 md:py-14 overflow-hidden">
       <div className="relative container mx-auto px-4">
         {/* Header */}
-        <div className="max-w-4xl mx-auto text-center mb-16 md:mb-24">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-[11px] font-semibold tracking-[0.18em] text-primary uppercase"
-          >
-            <Award className="w-3.5 h-3.5" /> Trust & Compliance
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.05 }}
-            className="mt-5 text-5xl md:text-6xl lg:text-[60px] font-extrabold tracking-tight text-foreground leading-[1.05]"
-          >
-            Certified. <span className="text-primary">Recognized.</span> Trusted.
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-            className="mt-4 text-lg md:text-xl leading-relaxed text-muted-foreground max-w-3xl mx-auto"
-          >
-            Our certifications, registrations and government recognitions reflect our commitment to
-            quality, innovation and regulatory compliance.
-          </motion.p>
+        <div className="max-w-3xl mx-auto text-center mb-8 md:mb-10">
+          <div className="flex items-center justify-center gap-2.5 mb-3">
+            <span className="h-px w-7 bg-primary" />
+            <p className="text-primary font-semibold tracking-[0.18em] text-[11px] uppercase">Trust &amp; Compliance</p>
+            <span className="h-px w-7 bg-primary" />
+          </div>
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground leading-tight">
+            Certifications &amp; Recognition
+          </h2>
+          <p className="mt-2 text-sm md:text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
+            Registrations, licences and government recognitions that reflect our commitment to quality and compliance.
+          </p>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col items-center gap-6 mb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
-            className="relative w-full max-w-xl"
-          >
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <div className="flex flex-col items-center gap-3 mb-7">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <Input
               placeholder="Search certificates…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-14 rounded-xl bg-card hairline elevation-1 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300"
+              className="pl-8 h-9 text-sm rounded-md bg-card border-border focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors duration-200"
             />
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-            className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 md:px-0 scrollbar-hide justify-center"
-          >
+          </div>
+          <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-4 px-4 md:px-0 scrollbar-hide justify-center">
             {CATEGORIES.map((c) => (
               <button
                 key={c.value}
                 onClick={() => setCategory(c.value)}
                 className={cn(
-                  "group inline-flex items-center gap-2 px-5 h-12 rounded-full text-sm font-medium whitespace-nowrap border transition-all duration-300 hover:scale-[1.02]",
+                  "group inline-flex items-center gap-1.5 px-3 h-8 rounded-md text-xs font-medium whitespace-nowrap border transition-colors duration-200",
                   category === c.value
-                    ? "bg-primary text-white border-primary/60 shadow-md shadow-primary/30"
-                    : "bg-card text-muted-foreground border-border hover:border-primary/40 hover:text-primary hover:elevation-1"
+                    ? "bg-foreground text-background border-foreground"
+                    : "bg-card text-muted-foreground border-border hover:border-primary/40 hover:text-primary"
                 )}
               >
                 <c.icon
-                  className={cn("w-4 h-4 transition-colors duration-300", category === c.value ? "text-white" : "text-muted-foreground group-hover:text-primary")}
+                  className={cn("w-3.5 h-3.5 transition-colors duration-200", category === c.value ? "text-background" : "text-muted-foreground group-hover:text-primary")}
                 />
                 {c.label}
               </button>
             ))}
-          </motion.div>
+          </div>
         </div>
 
         {/* Grid */}
-        <div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 justify-center"
-          style={{
-            gridTemplateColumns: "repeat(auto-fit, minmax(360px, 400px))",
-          }}
-        >
-          {filtered.map((cert, i) => (
-            <motion.button
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {filtered.map((cert) => (
+            <button
               key={cert.id}
               type="button"
               onClick={() => {
                 setActive(cert);
                 setZoom(1);
               }}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: Math.min(i, 6) * 0.08 }}
-              className="group relative text-left bg-card rounded-[22px] hairline elevation-1 overflow-hidden transition-all duration-500 ease-out hover:-translate-y-2 hover:border-primary/40 hover:elevation-3"
+              className="group relative text-left bg-card rounded-lg border border-border overflow-hidden transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/40"
             >
-              {/* Top accent line */}
-              <div className="absolute inset-x-6 -top-px h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-
               {/* Image */}
               <div className="relative aspect-[4/3] bg-secondary overflow-hidden">
                 {cert.image_url ? (
                   <img
                     src={cert.image_url}
                     alt={cert.title}
-                    loading="eager" // Changed to eager for better LCP on initial load
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[700ms] ease-out"
+                    loading="eager"
+                    className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-muted-foreground/40">
-                    <Award className="w-16 h-16" />
+                    <Award className="w-9 h-9" />
                   </div>
                 )}
                 {/* Category badge */}
-                <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-foreground/85 text-background backdrop-blur border border-white/20">
+                <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-foreground/85 text-background">
                   {cert.category}
                 </div>
 
-                {/* Hover CTA */}
-                <div className="absolute inset-x-0 bottom-0 z-10 p-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
-                  <Button
-                    size="sm"
-                    className="w-full rounded-full bg-primary hover:bg-primary/90 text-white text-xs font-bold uppercase tracking-wider shadow-lg shadow-primary/20"
-                  >
-                    View Certificate <ExternalLink className="w-3 h-3 ml-2" />
-                  </Button>
+                {/* Hover CTA — compact corner icon */}
+                <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/95 text-foreground shadow-sm">
+                    <ExternalLink className="w-3 h-3" />
+                  </span>
                 </div>
               </div>
 
               {/* Body */}
-              <div className="p-5">
-                <h3 className="text-2xl leading-snug font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors min-h-[60px]">
+              <div className="p-3">
+                <h3 className="text-sm font-semibold leading-snug text-foreground line-clamp-1 group-hover:text-primary transition-colors">
                   {cert.title}
                 </h3>
-                <p className="mt-1 text-base text-muted-foreground">{cert.issuing_authority}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground line-clamp-1">{cert.issuing_authority}</p>
 
-                <div className="mt-5 pt-5 border-t border-border grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-muted-foreground" />
-                    <span className="font-medium text-foreground/80">Issued By</span>
+                {(cert.certificate_number || formatDate(cert.issue_date)) && (
+                  <div className="mt-2 pt-2 border-t border-border flex items-center justify-between gap-2 text-[10px] text-muted-foreground">
+                    {cert.certificate_number && <span className="truncate">{cert.certificate_number}</span>}
+                    {formatDate(cert.issue_date) && (
+                      <span className="shrink-0 tabular-nums">{formatDate(cert.issue_date)}</span>
+                    )}
                   </div>
-                  <span className="font-semibold text-foreground truncate">{cert.issuing_authority}</span>
-                  {cert.certificate_number && (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <Hash className="w-4 h-4 text-muted-foreground" />
-                        <span className="font-medium text-foreground/80">Certificate No</span>
-                      </div>
-                      <span className="font-semibold text-foreground truncate">{cert.certificate_number}</span>
-                    </>
-                  )}
-                  {formatDate(cert.issue_date) && (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-muted-foreground" />
-                        <span className="font-medium text-foreground/80">Issued Date</span>
-                      </div>
-                      <span className="font-semibold text-foreground">{formatDate(cert.issue_date)}</span>
-                    </>
-                  )}
-                </div>
+                )}
               </div>
-
-              {/* Orange accent line */}
-              <span
-                aria-hidden
-                className="absolute bottom-0 left-0 h-[3px] w-0 transition-all duration-500 ease-out group-hover:w-full"
-                style={{ background: "var(--primary)" }}
-              />
-            </motion.button>
+            </button>
           ))}
         </div>
 
-        {filtered.length === 0 && ( // Empty state
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-center py-20 flex flex-col items-center justify-center text-muted-foreground"
-          >
-            <ShieldCheck className="w-20 h-20 text-muted-foreground/30 mb-6" />
-            <p className="text-xl font-semibold text-foreground">No certifications found.</p>
-            <p className="mt-2 text-base text-muted-foreground">Adjust your search or filters to see results.</p>
-          </motion.div>
+        {filtered.length === 0 && (
+          <div className="text-center py-12 flex flex-col items-center justify-center text-muted-foreground">
+            <ShieldCheck className="w-10 h-10 text-muted-foreground/30 mb-3" />
+            <p className="text-base font-semibold text-foreground">No certifications found.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Adjust your search or filters to see results.</p>
+          </div>
         )}
       </div>
 
@@ -346,7 +259,7 @@ export const CertificationsSection = () => {
                   {formatDate(active.expiry_date) && <div><span className="text-slate-500">Expires:</span> {formatDate(active.expiry_date)}</div>}
                 </div>
                 {active.pdf_url && (
-                  <Button asChild className="bg-orange-500 hover:bg-orange-600 text-white">
+                  <Button asChild className="bg-primary hover:bg-primary/90 text-white rounded-md">
                     <a href={active.pdf_url} target="_blank" rel="noopener noreferrer">
                       <Download className="w-4 h-4 mr-2" /> Download Certificate
                     </a>

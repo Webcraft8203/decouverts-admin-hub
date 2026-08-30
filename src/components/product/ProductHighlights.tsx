@@ -31,7 +31,7 @@ export function ProductHighlights({ productId }: Props) {
 
   return (
     <section className="mt-10">
-      <div className="rounded-2xl bg-gradient-to-br from-primary/5 via-card to-accent/5 border border-border/30 p-6 lg:p-8">
+      <div className="rounded-lg bg-gradient-to-br from-primary/5 via-card to-accent/5 border border-border/30 p-6 lg:p-8">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {data.map((h: any, i: number) => {
             const Icon = resolveIcon(h.icon);
