@@ -2,7 +2,6 @@ import { useCallback, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
-import { fetchDocumentTerms } from "@/lib/documentTerms";
 
 // ==================== UNIFIED DECOUVERTES INVOICE TEMPLATE ====================
 
@@ -930,7 +929,13 @@ export function useUnifiedInvoicePdf() {
 
     const logoBase64 = await fetchLogoAsBase64();
     const signatureBase64 = await fetchSignature();
-    const termsList = await fetchDocumentTerms("invoice", COMPANY.terms);
+    const customTerms = String((invoice as any).terms_and_conditions || "")
+      .split("\n")
+      .map((t) => t.replace(/^\s*\d+[.)]?\s*/, "").trim())
+      .filter(Boolean);
+    const termsList = customTerms.length
+      ? customTerms.map((t, i) => `${i + 1}. ${t}`)
+      : COMPANY.terms;
     renderInvoicePdf(doc, invoice, items, isIgst, totalCgst, totalSgst, totalIgst, logoBase64, signatureBase64, termsList);
     return doc.output("blob");
   }, []);

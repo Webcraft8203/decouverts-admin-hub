@@ -100,6 +100,13 @@ const invoiceStatusConfig = {
   failed: { label: "Failed", color: "bg-red-100 text-red-700 border-red-200", icon: AlertCircle },
 };
 
+const DEFAULT_INVOICE_TERMS = [
+  "Goods once sold will only be taken back or exchanged as per company policy.",
+  "Payment is due within 7 days of the invoice date. A 5% late fee will be charged on overdue payments.",
+  "All disputes are subject to Pune jurisdiction.",
+  "Warranty as per product terms and conditions.",
+].join("\n");
+
 export default function Invoices() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -135,6 +142,7 @@ export default function Invoices() {
     payment_notes: "",
     invoice_type: "proforma" as "proforma" | "final",
     proforma_status: "draft" as "draft" | "sent" | "accepted" | "rejected" | "converted",
+    terms_and_conditions: DEFAULT_INVOICE_TERMS,
   };
   const [formData, setFormData] = useState(emptyFormData);
   const [items, setItems] = useState<InvoiceItem[]>([{ description: "", hsn_code: "", quantity: 1, price: 0, gst_rate: DEFAULT_GST_RATE }]);
@@ -174,7 +182,7 @@ export default function Invoices() {
         order_id, buyer_state, seller_state, is_igst, cgst_amount, sgst_amount, igst_amount, buyer_gstin,
         category_code, financial_year, serial_number,
         payment_status, payment_method, payment_reference, payment_date, payment_notes,
-        proforma_status, converted_to_invoice_id, source_proforma_id
+        proforma_status, converted_to_invoice_id, source_proforma_id, terms_and_conditions
       `)
       .order("created_at", { ascending: false });
 
@@ -405,6 +413,7 @@ export default function Invoices() {
         seller_state: COMPANY_SETTINGS.business_state,
         buyer_gstin: formData.buyer_gstin || null,
         notes: formData.notes || null,
+        terms_and_conditions: formData.terms_and_conditions?.trim() || null,
         category_code: categoryCode,
         financial_year: financialYear,
         serial_number: serialNumber,
@@ -465,6 +474,7 @@ export default function Invoices() {
       payment_notes: (invoice as any).payment_notes || "",
       invoice_type: ((invoice.invoice_type === "final" || invoice.is_final) ? "final" : "proforma"),
       proforma_status: ((invoice as any).proforma_status || "draft") as any,
+      terms_and_conditions: (invoice as any).terms_and_conditions || DEFAULT_INVOICE_TERMS,
     });
     const its = (invoice.items || []).map((it: any) => ({
       description: it.description || "",
@@ -1102,6 +1112,21 @@ export default function Invoices() {
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   placeholder="Additional notes for this invoice"
                 />
+              </div>
+
+              {/* Terms & Conditions (per invoice) */}
+              <div>
+                <Label htmlFor="invoice-terms">Terms &amp; Conditions</Label>
+                <Textarea
+                  id="invoice-terms"
+                  value={formData.terms_and_conditions}
+                  onChange={(e) => setFormData({ ...formData, terms_and_conditions: e.target.value })}
+                  rows={5}
+                  placeholder={"One term per line. Numbering is added automatically on the PDF."}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  These terms print on this invoice only. Write one term per line.
+                </p>
               </div>
 
               {/* Payment Status (Admin only - final manual invoices) */}
@@ -1921,10 +1946,13 @@ export default function Invoices() {
                       <div>
                         <h4 className="text-[11px] font-bold text-foreground mb-1.5">Terms & Conditions</h4>
                         <div className="space-y-0.5">
-                          <p className="text-[10px] text-muted-foreground leading-relaxed">1. Goods once sold will only be taken back or exchanged as per company policy.</p>
-                          <p className="text-[10px] text-muted-foreground leading-relaxed">2. Payment is due within 7 days of the invoice date. A 5% late fee will be charged on overdue payments.</p>
-                          <p className="text-[10px] text-muted-foreground leading-relaxed">3. All disputes are subject to Pune jurisdiction.</p>
-                          <p className="text-[10px] text-muted-foreground leading-relaxed">4. Warranty as per product terms and conditions.</p>
+                          {String((inv as any).terms_and_conditions || DEFAULT_INVOICE_TERMS)
+                            .split("\n")
+                            .map((t) => t.replace(/^\s*\d+[.)]?\s*/, "").trim())
+                            .filter(Boolean)
+                            .map((t, i) => (
+                              <p key={i} className="text-[10px] text-muted-foreground leading-relaxed">{i + 1}. {t}</p>
+                            ))}
                         </div>
                       </div>
                       <div className="flex flex-col items-center shrink-0 min-w-[130px]">

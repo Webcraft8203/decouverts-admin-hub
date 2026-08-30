@@ -22,12 +22,11 @@ import { ArrowDown, ArrowUp, FileText, Pencil, Plus, ScrollText, Trash2 } from "
 import type { DocumentTerm, DocumentTermType } from "@/lib/documentTerms";
 
 const DOC_TYPES: { value: DocumentTermType; label: string }[] = [
-  { value: "invoice", label: "Invoice" },
   { value: "quotation", label: "Quotation" },
 ];
 
 export default function TermsConditions() {
-  const [docType, setDocType] = useState<DocumentTermType>("invoice");
+  const [docType, setDocType] = useState<DocumentTermType>("quotation");
   const [terms, setTerms] = useState<DocumentTerm[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -140,7 +139,7 @@ export default function TermsConditions() {
               Terms &amp; Conditions
             </h1>
             <p className="text-muted-foreground">
-              Manage the terms printed on invoices and quotations.
+              Manage the terms printed on quotations. Invoice terms are entered on each invoice.
             </p>
           </div>
           <Button onClick={openCreate}>
