@@ -33,7 +33,7 @@ const navItems: NavItem[] = [
   { to: "/admin/raw-materials", icon: Box, label: "Raw Materials" },
   { to: "/admin/invoices", icon: FileText, label: "Invoices" },
   { to: "/admin/quotations", icon: FileText, label: "Quotations" },
-  { to: "/admin/terms-conditions", icon: ScrollText, label: "Terms & Conditions" },
+  { to: "/admin/terms-conditions", icon: ScrollText, label: "Quotation Terms" },
 
   { to: "/admin/accounting", icon: Activity, label: "Accounting" },
   { to: "/admin/reports", icon: FileBarChart, label: "Reports" },

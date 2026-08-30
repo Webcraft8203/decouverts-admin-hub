@@ -1946,10 +1946,13 @@ export default function Invoices() {
                       <div>
                         <h4 className="text-[11px] font-bold text-foreground mb-1.5">Terms & Conditions</h4>
                         <div className="space-y-0.5">
-                          <p className="text-[10px] text-muted-foreground leading-relaxed">1. Goods once sold will only be taken back or exchanged as per company policy.</p>
-                          <p className="text-[10px] text-muted-foreground leading-relaxed">2. Payment is due within 7 days of the invoice date. A 5% late fee will be charged on overdue payments.</p>
-                          <p className="text-[10px] text-muted-foreground leading-relaxed">3. All disputes are subject to Pune jurisdiction.</p>
-                          <p className="text-[10px] text-muted-foreground leading-relaxed">4. Warranty as per product terms and conditions.</p>
+                          {String((inv as any).terms_and_conditions || DEFAULT_INVOICE_TERMS)
+                            .split("\n")
+                            .map((t) => t.replace(/^\s*\d+[.)]?\s*/, "").trim())
+                            .filter(Boolean)
+                            .map((t, i) => (
+                              <p key={i} className="text-[10px] text-muted-foreground leading-relaxed">{i + 1}. {t}</p>
+                            ))}
                         </div>
                       </div>
                       <div className="flex flex-col items-center shrink-0 min-w-[130px]">
