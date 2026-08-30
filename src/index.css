@@ -16,8 +16,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 217 45% 9%;
 
-    /* Primary: muted amber-gold — used sparingly as an accent, not a fill */
-    --primary: 38 62% 45%;
+    /* Primary: confident engineering orange — used sparingly as an accent, not a fill */
+    --primary: 24 92% 50%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary: cool neutral tint */
@@ -27,7 +27,7 @@
     --muted: 220 14% 96%;
     --muted-foreground: 220 9% 42%;
 
-    --accent: 38 62% 45%;
+    --accent: 24 92% 50%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 65% 48%;
@@ -36,34 +36,34 @@
     --success: 152 45% 32%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 62% 45%;
+    --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
     /* Hairline border */
     --border: 220 15% 89%;
     --input: 220 15% 89%;
-    --ring: 38 62% 45%;
+    --ring: 24 92% 50%;
 
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 217 45% 9%;
-    --sidebar-primary: 38 62% 45%;
+    --sidebar-primary: 24 92% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 14% 96%;
     --sidebar-accent-foreground: 217 45% 9%;
     --sidebar-border: 220 15% 89%;
-    --sidebar-ring: 38 62% 45%;
+    --sidebar-ring: 24 92% 50%;
 
-    --chart-1: 38 62% 45%;
+    --chart-1: 24 92% 50%;
     --chart-2: 32 50% 50%;
     --chart-3: 200 30% 40%;
     --chart-4: 217 45% 9%;
     --chart-5: 220 15% 40%;
 
-    /* Brand — Navy / Gold palette */
-    --brand-orange: 38 62% 45%;
-    --brand-amber: 38 62% 45%;
+    /* Brand — Navy / Orange palette */
+    --brand-orange: 24 92% 50%;
+    --brand-amber: 38 92% 50%;
     --brand-graphite: 220 20% 14%;
     --brand-navy: 217 45% 9%;
     --brand-matte: 217 45% 7%;
@@ -87,8 +87,8 @@
     --popover: 217 40% 11%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 38 58% 52%;
-    --primary-foreground: 217 45% 9%;
+    --primary: 24 88% 55%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 217 33% 17%;
     --secondary-foreground: 210 40% 98%;
@@ -96,8 +96,8 @@
     --muted: 217 33% 17%;
     --muted-foreground: 215 20% 65%;
 
-    --accent: 38 58% 52%;
-    --accent-foreground: 217 45% 9%;
+    --accent: 24 88% 55%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 55% 48%;
     --destructive-foreground: 0 0% 100%;
@@ -105,30 +105,30 @@
     --success: 152 40% 42%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 58% 52%;
+    --warning: 38 88% 55%;
     --warning-foreground: 217 45% 9%;
 
     --border: 217 33% 20%;
     --input: 217 33% 17%;
-    --ring: 38 58% 52%;
+    --ring: 24 88% 55%;
 
     --sidebar-background: 217 45% 9%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 38 58% 52%;
-    --sidebar-primary-foreground: 217 45% 9%;
+    --sidebar-primary: 24 88% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 217 33% 17%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217 33% 20%;
-    --sidebar-ring: 38 58% 52%;
+    --sidebar-ring: 24 88% 55%;
 
-    --chart-1: 38 58% 52%;
+    --chart-1: 24 88% 55%;
     --chart-2: 32 50% 50%;
     --chart-3: 200 30% 45%;
     --chart-4: 45 60% 55%;
     --chart-5: 16 45% 50%;
 
-    --brand-orange: 38 58% 52%;
-    --brand-amber: 38 58% 52%;
+    --brand-orange: 24 88% 55%;
+    --brand-amber: 38 88% 55%;
     --brand-navy: 217 45% 9%;
   }
 }
