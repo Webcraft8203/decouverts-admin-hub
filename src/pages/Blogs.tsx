@@ -17,10 +17,13 @@ import { useEffect } from "react";
 
 type ContentType = "all" | "blog" | "news";
 
+const TAG_LIMIT = 12;
+
 export default function Blogs() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<ContentType>("all");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [showAllTags, setShowAllTags] = useState(false);
 
   usePageSEO({
     title: "Blog | Decouvertes",
@@ -136,9 +139,9 @@ export default function Blogs() {
             {/* Tags */}
             {allTags.length > 0 && (
               <div className="mt-4 pt-4 border-t border-border">
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm text-muted-foreground mr-2">Tags:</span>
-                  {allTags.map((tag) => (
+                  {(showAllTags ? allTags : allTags.slice(0, TAG_LIMIT)).map((tag) => (
                     <Badge
                       key={tag}
                       variant={selectedTag === tag ? "default" : "secondary"}
@@ -148,6 +151,16 @@ export default function Blogs() {
                       {tag}
                     </Badge>
                   ))}
+                  {allTags.length > TAG_LIMIT && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs text-primary hover:text-primary"
+                      onClick={() => setShowAllTags((v) => !v)}
+                    >
+                      {showAllTags ? "See less" : `See more (${allTags.length - TAG_LIMIT})`}
+                    </Button>
+                  )}
                 </div>
               </div>
             )}

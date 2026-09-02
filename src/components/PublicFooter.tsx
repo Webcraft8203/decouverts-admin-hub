@@ -106,20 +106,20 @@ export const PublicFooter = () => {
   return (
     <footer className="bg-[hsl(217,45%,9%)] text-white relative border-t border-white/10">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16 py-16 lg:py-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8">
 
           {/* Brand Column */}
-          <div className="lg:col-span-4 space-y-7">
+          <div className="lg:col-span-4 space-y-6">
             <div className="flex items-center gap-3">
               <div className="p-1.5 bg-white rounded-md">
                 <img src={logo} alt="Decouvertes Logo" className="h-9 w-auto" />
               </div>
               <div className="flex flex-col justify-center">
-                <span className="font-display text-lg font-bold text-white tracking-[0.16em] uppercase leading-none">
+                <span className="font-brand text-lg font-bold text-white tracking-[0.12em] uppercase leading-none">
                   DECOUVERTES
                 </span>
-                <span className="font-display text-[10px] text-white/50 font-medium tracking-[0.22em] uppercase leading-tight mt-1.5">
-                  Defence · Tech · India
+                <span className="font-brand text-[10px] text-primary font-medium tracking-[0.045em] leading-tight mt-1.5">
+                  Discovering Future Technologies
                 </span>
               </div>
             </div>
@@ -129,19 +129,19 @@ export const PublicFooter = () => {
               for surveillance, industrial, and mission-critical operations across India.
             </p>
 
-            {/* Trust Badges */}
-            <div className="flex flex-wrap gap-x-6 gap-y-3 pt-1">
-              <div className="flex items-center gap-2 text-xs font-medium text-white/60">
-                <Cpu className="w-3.5 h-3.5 text-primary" />
-                Indigenous R&amp;D
-              </div>
-              <div className="flex items-center gap-2 text-xs font-medium text-white/60">
-                <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-                Secure Payments
-              </div>
-              <div className="flex items-center gap-2 text-xs font-medium text-white/60">
-                <span className="text-xs">🇮🇳</span>
-                Make in India
+            {/* Contact */}
+            <div className="space-y-3 pt-1">
+              <a href="mailto:hello@decouvertes.in" className="flex items-center gap-3 text-white/55 hover:text-white transition-colors text-sm">
+                <Mail className="w-4 h-4 shrink-0 text-primary" />
+                hello@decouvertes.in
+              </a>
+              <a href="tel:+919561103435" className="flex items-center gap-3 text-white/55 hover:text-white transition-colors text-sm">
+                <Phone className="w-4 h-4 shrink-0 text-primary" />
+                +91 95611 03435
+              </a>
+              <div className="flex items-start gap-3 text-white/50 text-sm leading-relaxed max-w-sm">
+                <MapPin className="w-4 h-4 shrink-0 text-primary mt-0.5" />
+                <span>A-414, Gera's Imperium Gateway, Near Nashik Phata Flyover, Opp. Bhosari Metro Station, Kasarwadi, Pimpri-Chinchwad, Pune, Maharashtra – 411034, India</span>
               </div>
             </div>
 
@@ -165,8 +165,8 @@ export const PublicFooter = () => {
           </div>
 
           {/* Quick Actions */}
-          <div className="lg:col-span-3">
-            <h3 className="font-semibold text-white mb-6 text-xs uppercase tracking-[0.16em]">
+          <div className="lg:col-span-2">
+            <h3 className="font-semibold text-white mb-5 text-xs uppercase tracking-[0.16em]">
               Quick Actions
             </h3>
             <ul className="space-y-3">
@@ -189,12 +189,12 @@ export const PublicFooter = () => {
             </ul>
           </div>
 
-          {/* Support & Legal */}
+          {/* Support */}
           <div className="lg:col-span-2">
-            <h3 className="font-semibold text-white mb-6 text-xs uppercase tracking-[0.16em]">
+            <h3 className="font-semibold text-white mb-5 text-xs uppercase tracking-[0.16em]">
               Support
             </h3>
-            <ul className="space-y-3 mb-8">
+            <ul className="space-y-3">
               {supportLinks.map((link) => (
                 <li key={link.label}>
                   {link.action === "link" ? (
@@ -212,14 +212,17 @@ export const PublicFooter = () => {
                 </li>
               ))}
             </ul>
+          </div>
 
-            <h3 className="font-semibold text-white mb-4 text-xs uppercase tracking-[0.16em]">Legal</h3>
-            <ul className="space-y-2">
+          {/* Legal */}
+          <div className="lg:col-span-2">
+            <h3 className="font-semibold text-white mb-5 text-xs uppercase tracking-[0.16em]">Legal</h3>
+            <ul className="space-y-3">
               {legalLinks.map((link) => (
                 <li key={link.key}>
                   <button
                     onClick={() => setSelectedPolicy(link.key)}
-                    className="text-white/40 hover:text-white/70 transition-colors text-xs text-left"
+                    className="text-white/55 hover:text-white transition-colors text-sm text-left"
                   >
                     {link.label}
                   </button>
@@ -228,70 +231,69 @@ export const PublicFooter = () => {
             </ul>
           </div>
 
-          {/* Newsletter & Contact */}
-          <div className="lg:col-span-3">
-            <div className="border border-white/10 rounded-lg p-6">
-              <h3 className="font-semibold text-white mb-2 text-sm">Stay Updated</h3>
-              <p className="text-white/50 text-xs mb-4 leading-relaxed">
-                Get the latest updates on new drone platforms, missions, and R&amp;D milestones.
-              </p>
-
-              <form onSubmit={handleSubscribe} className="space-y-3">
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/35" />
-                  <Input
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="bg-white/5 border-white/15 text-white placeholder:text-white/35 pl-10 h-10 text-sm focus-visible:ring-primary/50 rounded-md"
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-9 text-sm font-medium rounded-md" disabled={isSubscribing}>
-                  {isSubscribing ? <Loader2 className="h-3 w-3 animate-spin" /> : <>Subscribe <Send className="w-3 h-3 ml-2" /></>}
-                </Button>
-              </form>
-            </div>
-
-            <div className="mt-8 space-y-4">
-              <a href="mailto:hello@decouvertes.in" className="flex items-center gap-3 text-white/55 hover:text-white transition-colors text-sm">
-                <Mail className="w-4 h-4 text-white/35" />
-                hello@decouvertes.in
-              </a>
-              <a href="tel:+919561103435" className="flex items-center gap-3 text-white/55 hover:text-white transition-colors text-sm">
-                <Phone className="w-4 h-4 text-white/35" />
-                +91 9561103435
-              </a>
-              <div className="flex items-start gap-3 text-white/50 text-xs leading-relaxed">
-                <MapPin className="w-4 h-4 shrink-0 text-white/35 mt-0.5" />
-                <span>A-414, Gera's Imperium Gateway, Near Nashik Phata Flyover, Opp. Bhosari Metro Station, Kasarwadi, Pimpri-Chinchwad, Pune, Maharashtra – 411034, India</span>
+          {/* Newsletter */}
+          <div className="lg:col-span-2">
+            <h3 className="font-semibold text-white mb-5 text-xs uppercase tracking-[0.16em]">Stay Updated</h3>
+            <p className="text-white/50 text-sm mb-4 leading-relaxed">
+              Latest on new drone platforms, missions, and R&amp;D milestones.
+            </p>
+            <form onSubmit={handleSubscribe} className="space-y-3">
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/35" />
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="bg-white/5 border-white/15 text-white placeholder:text-white/35 pl-10 h-10 text-sm focus-visible:ring-primary/50 rounded-md"
+                  required
+                />
               </div>
-            </div>
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-9 text-sm font-medium rounded-md" disabled={isSubscribing}>
+                {isSubscribing ? <Loader2 className="h-3 w-3 animate-spin" /> : <>Subscribe <Send className="w-3 h-3 ml-2" /></>}
+              </Button>
+            </form>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-white/10 mt-16 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <button
-            onClick={() => setShowCopyright(true)}
-            className="text-white/40 text-sm hover:text-white/70 transition-colors text-left"
-          >
-            © {new Date().getFullYear()} DECOUVERTES. All rights reserved.
-          </button>
-          <button
-            onClick={() => setShowMadeInIndia(true)}
-            className="inline-flex items-center gap-2.5 px-4 py-2 rounded-md border border-white/10 hover:border-primary/40 transition-colors"
-          >
-            <span className="flex items-center gap-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FF9933]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-white" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#138808]" />
-            </span>
-            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/60">
-              Made in <span className="text-primary">India</span>
-            </span>
-          </button>
+        <div className="border-t border-white/10 mt-14 pt-8 space-y-6">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <div className="flex items-center gap-2 text-xs font-medium text-white/50">
+              <Cpu className="w-3.5 h-3.5 text-primary" />
+              Indigenous R&amp;D
+            </div>
+            <div className="flex items-center gap-2 text-xs font-medium text-white/50">
+              <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+              Secure Payments
+            </div>
+            <div className="flex items-center gap-2 text-xs font-medium text-white/50">
+              <span className="text-xs">🇮🇳</span>
+              Make in India
+            </div>
+          </div>
+
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <button
+              onClick={() => setShowCopyright(true)}
+              className="text-white/40 text-sm hover:text-white/70 transition-colors text-left"
+            >
+              © {new Date().getFullYear()} DECOUVERTES. All rights reserved.
+            </button>
+            <button
+              onClick={() => setShowMadeInIndia(true)}
+              className="inline-flex items-center gap-2.5 px-4 py-2 rounded-md border border-white/10 hover:border-primary/40 transition-colors"
+            >
+              <span className="flex items-center gap-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#FF9933]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#138808]" />
+              </span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/60">
+                Made in <span className="text-primary">India</span>
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 
