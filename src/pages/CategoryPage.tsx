@@ -571,7 +571,7 @@ const CategoryPage = () => {
                 </div>
                 <div className="flex items-center gap-3">
                   <Phone className="w-5 h-5" style={{ color: accent }} />
-                  <span>+91 90000 00000</span>
+                  <span>+91 95611 03435</span>
                 </div>
               </div>
 
