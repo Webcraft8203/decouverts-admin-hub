@@ -74,12 +74,16 @@ const Home = () => {
           <FeaturedProducts />
         </CinematicSection>
 
-        <CinematicSection variant="pan" tone="light">
-          <OurCustomers />
+        <CinematicSection variant="scale" tone="dark">
+          <HomepageGallery />
         </CinematicSection>
 
         <CinematicSection variant="rise" tone="light">
           <CertificationsSection />
+        </CinematicSection>
+
+        <CinematicSection variant="pan" tone="light">
+          <OurCustomers />
         </CinematicSection>
 
         <CinematicSection variant="pan" tone="light">
@@ -88,10 +92,6 @@ const Home = () => {
 
         <CinematicSection variant="rise" tone="light">
           <LatestInsights />
-        </CinematicSection>
-
-        <CinematicSection variant="scale" tone="dark">
-          <HomepageGallery />
         </CinematicSection>
 
         <CinematicSection variant="rise" delay={80} tone="light">

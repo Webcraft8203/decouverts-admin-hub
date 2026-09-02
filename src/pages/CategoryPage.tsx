@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Link, useParams, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -107,20 +107,6 @@ const CategoryPage = () => {
     onError: (e: Error) => toast.error(e.message || "Failed to submit inquiry"),
   });
 
-  /* ---------- Gallery (uses hero image + related product images) ---------- */
-  const gallery = useMemo(() => {
-    if (!category) return [];
-    const base = category.gallery ?? [];
-    const fromProducts = relatedProducts
-      .flatMap((p: { images: string[] | null }) => p.images ?? [])
-      .filter(Boolean)
-      .slice(0, 8);
-    const combined = [...base, ...fromProducts];
-    return combined.length > 0
-      ? combined.slice(0, 8)
-      : [category.image, category.image, category.image, category.image];
-  }, [category, relatedProducts]);
-
   if (!category) return <Navigate to="/" replace />;
   const accent = category.accent;
 
@@ -202,7 +188,7 @@ const CategoryPage = () => {
         {/* APPLICATIONS */}
         <section className="py-20 md:py-28 bg-white">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-2xl mb-14">
+            <div className="max-w-2xl mb-12 md:mb-16">
               <p
                 className="text-[10px] font-bold tracking-[0.24em] uppercase mb-3"
                 style={{ color: accent }}
@@ -213,31 +199,30 @@ const CategoryPage = () => {
                 className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
-                Engineered for real missions.
+                Where {category.title.toLowerCase()} deliver value
               </h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-slate-200 border border-slate-200 rounded-lg overflow-hidden">
               {category.applications.map((a, i) => (
                 <motion.div
                   key={a.title}
-                  initial={{ opacity: 0, y: 24 }}
+                  initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-60px" }}
-                  transition={{ duration: 0.55, delay: i * 0.05 }}
-                  className="group relative rounded-lg border border-slate-200 bg-white p-6 hover:-translate-y-1 transition-all duration-500 hover:shadow-[0_30px_60px_-30px_rgba(0,0,0,0.35)]"
-                  style={{
-                    borderTop: `2px solid transparent`,
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.borderTopColor = accent)}
-                  onMouseLeave={(e) => (e.currentTarget.style.borderTopColor = "transparent")}
+                  transition={{ duration: 0.5, delay: i * 0.04 }}
+                  className="group relative bg-white p-7 md:p-8 transition-colors duration-300 hover:bg-slate-50"
                 >
-                  <div
-                    className="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
-                    style={{ backgroundColor: `${accent}18`, border: `1px solid ${accent}44` }}
+                  <span
+                    className="absolute left-0 top-7 md:top-8 h-6 w-0.5"
+                    style={{ backgroundColor: accent }}
+                  />
+                  <span
+                    className="text-sm font-bold tabular-nums"
+                    style={{ color: accent }}
                   >
-                    <Sparkles className="w-5 h-5" style={{ color: accent }} />
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-900">{a.title}</h3>
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <h3 className="mt-3 text-lg font-bold text-slate-900">{a.title}</h3>
                   <p className="mt-2 text-sm text-slate-600 leading-relaxed">{a.description}</p>
                 </motion.div>
               ))}
@@ -248,36 +233,50 @@ const CategoryPage = () => {
         {/* KEY FEATURES */}
         <section className="py-20 md:py-28 bg-slate-50">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-2xl mb-14">
-              <p
-                className="text-[10px] font-bold tracking-[0.24em] uppercase mb-3"
-                style={{ color: accent }}
-              >
-                Key Features
-              </p>
-              <h2
-                className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight"
-                style={{ fontFamily: "'Montserrat', sans-serif" }}
-              >
-                Purpose-built engineering.
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {category.keyFeatures.map((k) => (
-                <div
-                  key={k.title}
-                  className="rounded-lg bg-white border border-slate-200 p-6 hover:-translate-y-1 transition-all duration-500"
+            <div className="grid lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] gap-10 lg:gap-16">
+              <div className="lg:sticky lg:top-28 self-start">
+                <p
+                  className="text-[10px] font-bold tracking-[0.24em] uppercase mb-3"
+                  style={{ color: accent }}
                 >
-                  <div
-                    className="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
-                    style={{ backgroundColor: `${accent}18`, border: `1px solid ${accent}44` }}
+                  Key Features
+                </p>
+                <h2
+                  className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight"
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                >
+                  Engineering that holds up in the field
+                </h2>
+                <p className="mt-4 text-slate-600 leading-relaxed">
+                  Airframe, avionics, payload and ground control are designed, integrated and
+                  flight-tested in-house — so every subsystem is accountable to the same standard.
+                </p>
+              </div>
+              <div className="divide-y divide-slate-200 border-t border-slate-200">
+                {category.keyFeatures.map((k, i) => (
+                  <motion.div
+                    key={k.title}
+                    initial={{ opacity: 0, y: 12 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-60px" }}
+                    transition={{ duration: 0.45, delay: i * 0.04 }}
+                    className="flex gap-5 py-6"
                   >
-                    <CheckCircle2 className="w-5 h-5" style={{ color: accent }} />
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-900">{k.title}</h3>
-                  <p className="mt-2 text-sm text-slate-600 leading-relaxed">{k.description}</p>
-                </div>
-              ))}
+                    <span
+                      className="shrink-0 text-sm font-bold tabular-nums pt-0.5"
+                      style={{ color: accent }}
+                    >
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900">{k.title}</h3>
+                      <p className="mt-1.5 text-sm text-slate-600 leading-relaxed">
+                        {k.description}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -335,47 +334,6 @@ const CategoryPage = () => {
                   </div>
                 ))}
               </dl>
-            </div>
-          </div>
-        </section>
-
-        {/* GALLERY */}
-        <section className="py-20 md:py-28 bg-slate-50">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-2xl mb-14">
-              <p
-                className="text-[10px] font-bold tracking-[0.24em] uppercase mb-3"
-                style={{ color: accent }}
-              >
-                Gallery
-              </p>
-              <h2
-                className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight"
-                style={{ fontFamily: "'Montserrat', sans-serif" }}
-              >
-                In the field.
-              </h2>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-              {gallery.map((src, i) => (
-                <motion.div
-                  key={`${src}-${i}`}
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true, margin: "-60px" }}
-                  transition={{ duration: 0.5, delay: i * 0.04 }}
-                  className={`relative overflow-hidden rounded-lg bg-slate-200 ${
-                    i === 0 ? "col-span-2 row-span-2 aspect-square md:aspect-auto md:min-h-full" : "aspect-square"
-                  }`}
-                >
-                  <img
-                    src={src}
-                    alt={`${category.title} ${i + 1}`}
-                    loading="lazy"
-                    className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-                  />
-                </motion.div>
-              ))}
             </div>
           </div>
         </section>
@@ -454,7 +412,7 @@ const CategoryPage = () => {
         {/* WHY CHOOSE */}
         <section className="py-20 md:py-28 bg-slate-50">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-2xl mb-14">
+            <div className="max-w-2xl mb-12 md:mb-16">
               <p
                 className="text-[10px] font-bold tracking-[0.24em] uppercase mb-3"
                 style={{ color: accent }}
@@ -465,23 +423,15 @@ const CategoryPage = () => {
                 className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
-                The indigenous advantage.
+                Designed, built and supported in India
               </h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-200 border border-slate-200 rounded-lg bg-white overflow-hidden">
               {whyChoose.map((w) => (
-                <div
-                  key={w.title}
-                  className="rounded-lg border border-slate-200 bg-white p-6 hover:-translate-y-1 transition-all duration-500"
-                >
-                  <div
-                    className="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
-                    style={{ backgroundColor: `${accent}18`, border: `1px solid ${accent}44` }}
-                  >
-                    <w.icon className="w-5 h-5" style={{ color: accent }} />
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-900">{w.title}</h3>
-                  <p className="mt-2 text-sm text-slate-600">{w.desc}</p>
+                <div key={w.title} className="p-7 md:p-8">
+                  <w.icon className="w-5 h-5 mb-4" style={{ color: accent }} />
+                  <h3 className="text-base font-bold text-slate-900">{w.title}</h3>
+                  <p className="mt-1.5 text-sm text-slate-600 leading-relaxed">{w.desc}</p>
                 </div>
               ))}
             </div>
