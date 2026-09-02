@@ -1,8 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Award, Download, Search, X, ZoomIn, ZoomOut, ExternalLink, ShieldCheck, FileText, CheckCircle, Lightbulb, Scale, Trophy, FlaskConical } from "lucide-react";
+import { Award, Download, X, ZoomIn, ZoomOut, ExternalLink, ShieldCheck, FileText, CheckCircle, Lightbulb, Scale, Trophy, FlaskConical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -46,7 +45,6 @@ const formatDate = (iso: string | null) => {
 };
 
 export const CertificationsSection = () => {
-  const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string>("all");
   const [active, setActive] = useState<Certification | null>(null);
   const [zoom, setZoom] = useState(1);
@@ -66,17 +64,8 @@ export const CertificationsSection = () => {
   });
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return certs.filter((c) => {
-      const catOk = category === "all" || c.category === category;
-      const sOk =
-        !q ||
-        c.title.toLowerCase().includes(q) ||
-        c.issuing_authority.toLowerCase().includes(q) ||
-        (c.certificate_number ?? "").toLowerCase().includes(q);
-      return catOk && sOk;
-    });
-  }, [certs, search, category]);
+    return certs.filter((c) => category === "all" || c.category === category);
+  }, [certs, category]);
 
   if (!certs.length) return null;
 
@@ -100,15 +89,6 @@ export const CertificationsSection = () => {
 
         {/* Filters */}
         <div className="flex flex-col items-center gap-3 mb-7">
-          <div className="relative w-full max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-            <Input
-              placeholder="Search certificates…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 h-9 text-sm rounded-md bg-card border-border focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors duration-200"
-            />
-          </div>
           <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-4 px-4 md:px-0 scrollbar-hide justify-center">
             {CATEGORIES.map((c) => (
               <button
@@ -131,7 +111,7 @@ export const CertificationsSection = () => {
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="flex flex-wrap justify-center gap-4">
           {filtered.map((cert) => (
             <button
               key={cert.id}
@@ -140,7 +120,7 @@ export const CertificationsSection = () => {
                 setActive(cert);
                 setZoom(1);
               }}
-              className="group relative text-left bg-card rounded-lg border border-border overflow-hidden transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/40"
+              className="group relative text-left bg-card rounded-lg border border-border overflow-hidden transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/40 w-[calc(50%-0.5rem)] sm:w-[220px] lg:w-[230px] xl:w-[240px]"
             >
               {/* Image */}
               <div className="relative aspect-[4/3] bg-secondary overflow-hidden">
@@ -176,12 +156,9 @@ export const CertificationsSection = () => {
                 </h3>
                 <p className="mt-0.5 text-xs text-muted-foreground line-clamp-1">{cert.issuing_authority}</p>
 
-                {(cert.certificate_number || formatDate(cert.issue_date)) && (
-                  <div className="mt-2 pt-2 border-t border-border flex items-center justify-between gap-2 text-[10px] text-muted-foreground">
-                    {cert.certificate_number && <span className="truncate">{cert.certificate_number}</span>}
-                    {formatDate(cert.issue_date) && (
-                      <span className="shrink-0 tabular-nums">{formatDate(cert.issue_date)}</span>
-                    )}
+                {formatDate(cert.issue_date) && (
+                  <div className="mt-2 pt-2 border-t border-border flex items-center justify-end gap-2 text-[10px] text-muted-foreground">
+                    <span className="shrink-0 tabular-nums">{formatDate(cert.issue_date)}</span>
                   </div>
                 )}
               </div>
@@ -193,7 +170,7 @@ export const CertificationsSection = () => {
           <div className="text-center py-12 flex flex-col items-center justify-center text-muted-foreground">
             <ShieldCheck className="w-10 h-10 text-muted-foreground/30 mb-3" />
             <p className="text-base font-semibold text-foreground">No certifications found.</p>
-            <p className="mt-1 text-sm text-muted-foreground">Adjust your search or filters to see results.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Try a different category to see results.</p>
           </div>
         )}
       </div>
@@ -254,7 +231,6 @@ export const CertificationsSection = () => {
               <div className="px-5 py-4 border-t border-slate-800 bg-slate-950 flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-sm text-slate-300">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-1">
                   <div><span className="text-slate-500">Authority:</span> {active.issuing_authority}</div>
-                  {active.certificate_number && <div><span className="text-slate-500">No.:</span> {active.certificate_number}</div>}
                   {formatDate(active.issue_date) && <div><span className="text-slate-500">Issued:</span> {formatDate(active.issue_date)}</div>}
                   {formatDate(active.expiry_date) && <div><span className="text-slate-500">Expires:</span> {formatDate(active.expiry_date)}</div>}
                 </div>
