@@ -379,6 +379,15 @@ export default function Invoices() {
       serialNumber = row.serial_number;
     }
 
+    if (
+      formData.invoice_type === "final" &&
+      formData.payment_status === "partially_paid" &&
+      !(Number(formData.amount_paid) > 0)
+    ) {
+      toast({ title: "Validation Error", description: "Enter the amount received for a partially paid invoice", variant: "destructive" });
+      return;
+    }
+
     const isFinalType = formData.invoice_type === "final";
     const hasPayment = formData.payment_status === "paid" || formData.payment_status === "partially_paid";
     const isLockedPaid =
@@ -498,70 +507,27 @@ export default function Invoices() {
   };
 
   const handleConvertToFinal = async (proforma: Invoice) => {
-    if ((proforma as any).converted_to_invoice_id) {
-      toast({ title: "Already converted", description: "This proforma has already been converted to a final invoice.", variant: "destructive" });
+    if (proforma.invoice_type === "final" || proforma.is_final) {
+      toast({ title: "Already final", description: "This invoice is already a final tax invoice.", variant: "destructive" });
       return;
     }
-    if (!window.confirm(`Convert ${proforma.invoice_number} to a Final Tax Invoice?\n\nA new final invoice will be generated using all the proforma data.`)) return;
+    if (!window.confirm(`Convert ${proforma.invoice_number} to a Final Tax Invoice?\n\nThe same invoice number will be retained and it will move to the Final Invoices tab.`)) return;
 
     setIsConverting(true);
     try {
-      // Generate new unified invoice number for final invoice
-      const { data: numData, error: numErr } = await supabase.rpc(
-        "generate_structured_invoice_number" as any,
-        {}
-      );
-      if (numErr || !numData) throw new Error(numErr?.message || "Failed to generate invoice number");
-      const row: any = Array.isArray(numData) ? numData[0] : numData;
-
-      const insertPayload: any = {
-        invoice_number: row.invoice_number,
-        invoice_type: "final",
-        is_final: true,
-        client_name: proforma.client_name,
-        client_email: proforma.client_email || null,
-        client_phone: (proforma as any).client_phone || null,
-        client_address: proforma.client_address || null,
-        items: JSON.parse(JSON.stringify(proforma.items || [])),
-        subtotal: proforma.subtotal,
-        tax_amount: proforma.tax_amount,
-        total_amount: proforma.total_amount,
-        cgst_amount: proforma.cgst_amount || 0,
-        sgst_amount: proforma.sgst_amount || 0,
-        igst_amount: proforma.igst_amount || 0,
-        is_igst: proforma.is_igst || false,
-        buyer_state: proforma.buyer_state || null,
-        seller_state: COMPANY_SETTINGS.business_state,
-        buyer_gstin: proforma.buyer_gstin || null,
-        notes: proforma.notes || null,
-        category_code: row.category_code,
-        financial_year: row.financial_year,
-        serial_number: row.serial_number,
-        payment_status: "unpaid",
-        source_proforma_id: proforma.id,
-        created_by: user?.id,
-      };
-
-      const { data: inserted, error: insErr } = await supabase
-        .from("invoices")
-        .insert([insertPayload])
-        .select("id, invoice_number")
-        .single();
-      if (insErr) throw insErr;
-
-      // Mark proforma as converted + link
       const { error: updErr } = await supabase
         .from("invoices")
         .update({
+          invoice_type: "final",
+          is_final: true,
           proforma_status: "converted",
-          converted_to_invoice_id: inserted!.id,
         } as any)
         .eq("id", proforma.id);
       if (updErr) throw updErr;
 
       toast({
         title: "Converted to Final Invoice",
-        description: `${proforma.invoice_number} → ${inserted!.invoice_number}`,
+        description: `${proforma.invoice_number} is now a final tax invoice.`,
       });
       fetchData();
     } catch (e: any) {
@@ -1191,6 +1157,23 @@ export default function Invoices() {
                             </SelectContent>
                           </Select>
                         </div>
+                        {formData.payment_status === "partially_paid" && (
+                          <div className="md:col-span-2">
+                            <Label>Amount Received *</Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              step="0.01"
+                              value={formData.amount_paid}
+                              onChange={(e) => setFormData({ ...formData, amount_paid: e.target.value })}
+                              placeholder="e.g. 25000"
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Invoice total ₹{totals.grandTotal.toLocaleString("en-IN")} · Balance ₹
+                              {Math.max(0, totals.grandTotal - Number(formData.amount_paid || 0)).toLocaleString("en-IN")}
+                            </p>
+                          </div>
+                        )}
                         <div>
                           <Label>Payment Date</Label>
                           <Input
