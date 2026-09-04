@@ -140,6 +140,7 @@ export default function Invoices() {
     payment_reference: "",
     payment_date: "",
     payment_notes: "",
+    amount_paid: "",
     invoice_type: "proforma" as "proforma" | "final",
     proforma_status: "draft" as "draft" | "sent" | "accepted" | "rejected" | "converted",
     terms_and_conditions: DEFAULT_INVOICE_TERMS,
@@ -181,7 +182,7 @@ export default function Invoices() {
         total_amount, subtotal, tax_amount, items, notes, pdf_url, created_at, delivery_date,
         order_id, buyer_state, seller_state, is_igst, cgst_amount, sgst_amount, igst_amount, buyer_gstin,
         category_code, financial_year, serial_number,
-        payment_status, payment_method, payment_reference, payment_date, payment_notes,
+        payment_status, payment_method, payment_reference, payment_date, payment_notes, amount_paid,
         proforma_status, converted_to_invoice_id, source_proforma_id, terms_and_conditions
       `)
       .order("created_at", { ascending: false });
@@ -379,6 +380,7 @@ export default function Invoices() {
     }
 
     const isFinalType = formData.invoice_type === "final";
+    const hasPayment = formData.payment_status === "paid" || formData.payment_status === "partially_paid";
     const isLockedPaid =
       !!editingInvoice &&
       (editingInvoice.invoice_type === "final" || editingInvoice.is_final) &&
@@ -419,12 +421,19 @@ export default function Invoices() {
         serial_number: serialNumber,
         proforma_status: isFinalType ? null : (formData.proforma_status || "draft"),
         payment_status: isFinalType ? (formData.payment_status || "unpaid") : "unpaid",
-        payment_method: isFinalType && formData.payment_status === "paid" ? (formData.payment_method || null) : null,
-        payment_reference: isFinalType && formData.payment_status === "paid" ? (formData.payment_reference || null) : null,
-        payment_date: isFinalType && formData.payment_status === "paid"
+        payment_method: isFinalType && hasPayment ? (formData.payment_method || null) : null,
+        payment_reference: isFinalType && hasPayment ? (formData.payment_reference || null) : null,
+        payment_date: isFinalType && hasPayment
           ? (formData.payment_date ? new Date(formData.payment_date).toISOString() : new Date().toISOString())
           : null,
-        payment_notes: isFinalType && formData.payment_status === "paid" ? (formData.payment_notes || null) : null,
+        payment_notes: isFinalType && hasPayment ? (formData.payment_notes || null) : null,
+        amount_paid: !isFinalType
+          ? 0
+          : formData.payment_status === "paid"
+            ? totals.grandTotal
+            : formData.payment_status === "partially_paid"
+              ? Math.min(Number(formData.amount_paid || 0), totals.grandTotal)
+              : 0,
       };
     }
 
@@ -472,6 +481,7 @@ export default function Invoices() {
       payment_reference: (invoice as any).payment_reference || "",
       payment_date: (invoice as any).payment_date ? String((invoice as any).payment_date).slice(0, 10) : "",
       payment_notes: (invoice as any).payment_notes || "",
+      amount_paid: (invoice as any).amount_paid ? String((invoice as any).amount_paid) : "",
       invoice_type: ((invoice.invoice_type === "final" || invoice.is_final) ? "final" : "proforma"),
       proforma_status: ((invoice as any).proforma_status || "draft") as any,
       terms_and_conditions: (invoice as any).terms_and_conditions || DEFAULT_INVOICE_TERMS,
