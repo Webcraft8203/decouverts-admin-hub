@@ -847,6 +847,7 @@ export type Database = {
       }
       invoices: {
         Row: {
+          amount_paid: number
           buyer_gstin: string | null
           buyer_state: string | null
           category_code: string | null
@@ -891,6 +892,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          amount_paid?: number
           buyer_gstin?: string | null
           buyer_state?: string | null
           category_code?: string | null
@@ -935,6 +937,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          amount_paid?: number
           buyer_gstin?: string | null
           buyer_state?: string | null
           category_code?: string | null
