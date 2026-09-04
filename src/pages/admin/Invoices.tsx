@@ -140,6 +140,7 @@ export default function Invoices() {
     payment_reference: "",
     payment_date: "",
     payment_notes: "",
+    amount_paid: "",
     invoice_type: "proforma" as "proforma" | "final",
     proforma_status: "draft" as "draft" | "sent" | "accepted" | "rejected" | "converted",
     terms_and_conditions: DEFAULT_INVOICE_TERMS,
@@ -181,7 +182,7 @@ export default function Invoices() {
         total_amount, subtotal, tax_amount, items, notes, pdf_url, created_at, delivery_date,
         order_id, buyer_state, seller_state, is_igst, cgst_amount, sgst_amount, igst_amount, buyer_gstin,
         category_code, financial_year, serial_number,
-        payment_status, payment_method, payment_reference, payment_date, payment_notes,
+        payment_status, payment_method, payment_reference, payment_date, payment_notes, amount_paid,
         proforma_status, converted_to_invoice_id, source_proforma_id, terms_and_conditions
       `)
       .order("created_at", { ascending: false });
@@ -378,7 +379,17 @@ export default function Invoices() {
       serialNumber = row.serial_number;
     }
 
+    if (
+      formData.invoice_type === "final" &&
+      formData.payment_status === "partially_paid" &&
+      !(Number(formData.amount_paid) > 0)
+    ) {
+      toast({ title: "Validation Error", description: "Enter the amount received for a partially paid invoice", variant: "destructive" });
+      return;
+    }
+
     const isFinalType = formData.invoice_type === "final";
+    const hasPayment = formData.payment_status === "paid" || formData.payment_status === "partially_paid";
     const isLockedPaid =
       !!editingInvoice &&
       (editingInvoice.invoice_type === "final" || editingInvoice.is_final) &&
@@ -419,12 +430,19 @@ export default function Invoices() {
         serial_number: serialNumber,
         proforma_status: isFinalType ? null : (formData.proforma_status || "draft"),
         payment_status: isFinalType ? (formData.payment_status || "unpaid") : "unpaid",
-        payment_method: isFinalType && formData.payment_status === "paid" ? (formData.payment_method || null) : null,
-        payment_reference: isFinalType && formData.payment_status === "paid" ? (formData.payment_reference || null) : null,
-        payment_date: isFinalType && formData.payment_status === "paid"
+        payment_method: isFinalType && hasPayment ? (formData.payment_method || null) : null,
+        payment_reference: isFinalType && hasPayment ? (formData.payment_reference || null) : null,
+        payment_date: isFinalType && hasPayment
           ? (formData.payment_date ? new Date(formData.payment_date).toISOString() : new Date().toISOString())
           : null,
-        payment_notes: isFinalType && formData.payment_status === "paid" ? (formData.payment_notes || null) : null,
+        payment_notes: isFinalType && hasPayment ? (formData.payment_notes || null) : null,
+        amount_paid: !isFinalType
+          ? 0
+          : formData.payment_status === "paid"
+            ? totals.grandTotal
+            : formData.payment_status === "partially_paid"
+              ? Math.min(Number(formData.amount_paid || 0), totals.grandTotal)
+              : 0,
       };
     }
 
@@ -472,6 +490,7 @@ export default function Invoices() {
       payment_reference: (invoice as any).payment_reference || "",
       payment_date: (invoice as any).payment_date ? String((invoice as any).payment_date).slice(0, 10) : "",
       payment_notes: (invoice as any).payment_notes || "",
+      amount_paid: (invoice as any).amount_paid ? String((invoice as any).amount_paid) : "",
       invoice_type: ((invoice.invoice_type === "final" || invoice.is_final) ? "final" : "proforma"),
       proforma_status: ((invoice as any).proforma_status || "draft") as any,
       terms_and_conditions: (invoice as any).terms_and_conditions || DEFAULT_INVOICE_TERMS,
@@ -488,70 +507,27 @@ export default function Invoices() {
   };
 
   const handleConvertToFinal = async (proforma: Invoice) => {
-    if ((proforma as any).converted_to_invoice_id) {
-      toast({ title: "Already converted", description: "This proforma has already been converted to a final invoice.", variant: "destructive" });
+    if (proforma.invoice_type === "final" || proforma.is_final) {
+      toast({ title: "Already final", description: "This invoice is already a final tax invoice.", variant: "destructive" });
       return;
     }
-    if (!window.confirm(`Convert ${proforma.invoice_number} to a Final Tax Invoice?\n\nA new final invoice will be generated using all the proforma data.`)) return;
+    if (!window.confirm(`Convert ${proforma.invoice_number} to a Final Tax Invoice?\n\nThe same invoice number will be retained and it will move to the Final Invoices tab.`)) return;
 
     setIsConverting(true);
     try {
-      // Generate new unified invoice number for final invoice
-      const { data: numData, error: numErr } = await supabase.rpc(
-        "generate_structured_invoice_number" as any,
-        {}
-      );
-      if (numErr || !numData) throw new Error(numErr?.message || "Failed to generate invoice number");
-      const row: any = Array.isArray(numData) ? numData[0] : numData;
-
-      const insertPayload: any = {
-        invoice_number: row.invoice_number,
-        invoice_type: "final",
-        is_final: true,
-        client_name: proforma.client_name,
-        client_email: proforma.client_email || null,
-        client_phone: (proforma as any).client_phone || null,
-        client_address: proforma.client_address || null,
-        items: JSON.parse(JSON.stringify(proforma.items || [])),
-        subtotal: proforma.subtotal,
-        tax_amount: proforma.tax_amount,
-        total_amount: proforma.total_amount,
-        cgst_amount: proforma.cgst_amount || 0,
-        sgst_amount: proforma.sgst_amount || 0,
-        igst_amount: proforma.igst_amount || 0,
-        is_igst: proforma.is_igst || false,
-        buyer_state: proforma.buyer_state || null,
-        seller_state: COMPANY_SETTINGS.business_state,
-        buyer_gstin: proforma.buyer_gstin || null,
-        notes: proforma.notes || null,
-        category_code: row.category_code,
-        financial_year: row.financial_year,
-        serial_number: row.serial_number,
-        payment_status: "unpaid",
-        source_proforma_id: proforma.id,
-        created_by: user?.id,
-      };
-
-      const { data: inserted, error: insErr } = await supabase
-        .from("invoices")
-        .insert([insertPayload])
-        .select("id, invoice_number")
-        .single();
-      if (insErr) throw insErr;
-
-      // Mark proforma as converted + link
       const { error: updErr } = await supabase
         .from("invoices")
         .update({
+          invoice_type: "final",
+          is_final: true,
           proforma_status: "converted",
-          converted_to_invoice_id: inserted!.id,
         } as any)
         .eq("id", proforma.id);
       if (updErr) throw updErr;
 
       toast({
         title: "Converted to Final Invoice",
-        description: `${proforma.invoice_number} → ${inserted!.invoice_number}`,
+        description: `${proforma.invoice_number} is now a final tax invoice.`,
       });
       fetchData();
     } catch (e: any) {
@@ -1181,6 +1157,23 @@ export default function Invoices() {
                             </SelectContent>
                           </Select>
                         </div>
+                        {formData.payment_status === "partially_paid" && (
+                          <div className="md:col-span-2">
+                            <Label>Amount Received *</Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              step="0.01"
+                              value={formData.amount_paid}
+                              onChange={(e) => setFormData({ ...formData, amount_paid: e.target.value })}
+                              placeholder="e.g. 25000"
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Invoice total ₹{totals.grandTotal.toLocaleString("en-IN")} · Balance ₹
+                              {Math.max(0, totals.grandTotal - Number(formData.amount_paid || 0)).toLocaleString("en-IN")}
+                            </p>
+                          </div>
+                        )}
                         <div>
                           <Label>Payment Date</Label>
                           <Input
