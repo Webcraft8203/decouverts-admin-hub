@@ -148,12 +148,15 @@ export default function Accounting() {
       const isFinal = (i: any) => i.invoice_type === "final" || i.is_final === true;
       const isPaid = (i: any) => i.payment_status === "paid";
       const amt = (i: any) => Number(i.total_amount || 0);
+      // Amount actually received (supports partial payments)
+      const paidAmt = (i: any) =>
+        i.payment_status === "paid" ? amt(i) : Math.min(Number(i.amount_paid || 0), amt(i));
 
       const finals = list.filter(isFinal);
       const proformas = list.filter((i) => !isFinal(i));
-      const paid = list.filter(isPaid);
-      const outstandingList = finals.filter((i) => !isPaid(i));
-      const proformaPendingList = proformas.filter((i) => !isPaid(i));
+      const paid = list.filter((i) => paidAmt(i) > 0);
+      const outstandingList = finals.filter((i) => paidAmt(i) < amt(i));
+      const proformaPendingList = proformas.filter((i) => paidAmt(i) < amt(i));
 
       const totalCgst = finals.reduce((s, i) => s + Number(i.cgst_amount || 0), 0);
       const totalSgst = finals.reduce((s, i) => s + Number(i.sgst_amount || 0), 0);
@@ -166,11 +169,11 @@ export default function Accounting() {
         finalValue,
         proformaCount: proformas.length,
         proformaValue: proformas.reduce((s, i) => s + amt(i), 0),
-        proformaPending: proformaPendingList.reduce((s, i) => s + amt(i), 0),
+        proformaPending: proformaPendingList.reduce((s, i) => s + (amt(i) - paidAmt(i)), 0),
         proformaPendingCount: proformaPendingList.length,
-        totalReceived: paid.reduce((s, i) => s + amt(i), 0),
+        totalReceived: list.reduce((s, i) => s + paidAmt(i), 0),
         receivedCount: paid.length,
-        outstanding: outstandingList.reduce((s, i) => s + amt(i), 0),
+        outstanding: outstandingList.reduce((s, i) => s + (amt(i) - paidAmt(i)), 0),
         outstandingCount: outstandingList.length,
         totalCgst,
         totalSgst,
@@ -223,7 +226,7 @@ export default function Accounting() {
       });
       paid.forEach((inv: any) => {
         const key = format(startOfMonth(new Date(inv.payment_date || inv.created_at)), "MMM yy");
-        ensure(key).received += amt(inv);
+        ensure(key).received += paidAmt(inv);
       });
       setMonthlyData(Object.values(buckets));
 
@@ -236,7 +239,7 @@ export default function Accounting() {
         }
         clientMap[key].invoices += 1;
         clientMap[key].billed += amt(inv);
-        if (isPaid(inv)) clientMap[key].received += amt(inv);
+        clientMap[key].received += paidAmt(inv);
         if (!clientMap[key].gstin && inv.buyer_gstin) clientMap[key].gstin = inv.buyer_gstin;
       });
       setTopClients(Object.values(clientMap).sort((a, b) => b.billed - a.billed).slice(0, 10));
