@@ -343,7 +343,9 @@ export default function Accounting() {
         </div>
       </div>
 
-      {isBulkDownloading && progress > 0 && <Progress value={progress} className="h-2" />}
+      {isBulkDownloading && progress.total > 0 && (
+        <Progress value={(progress.current / progress.total) * 100} className="h-2" />
+      )}
 
       {/* Primary KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
