@@ -337,7 +337,7 @@ export default function Accounting() {
               ) : (
                 <FileDown className="h-4 w-4 mr-2" />
               )}
-              Report PDF
+              Report Excel
             </Button>
           )}
         </div>
