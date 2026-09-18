@@ -759,7 +759,7 @@ export function useBulkInvoiceDownload() {
     }
   }, []);
 
-  // Download invoice report (summary PDF)
+  // Download invoice report (Excel)
   const downloadInvoiceReport = useCallback(async (options: {
     dateFrom?: string;
     dateTo?: string;
@@ -772,7 +772,7 @@ export function useBulkInvoiceDownload() {
         .from("invoices")
         .select("*")
         .eq("is_final", true)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: true });
 
       if (options.dateFrom) {
         query = query.gte("created_at", options.dateFrom);
