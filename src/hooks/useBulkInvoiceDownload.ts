@@ -471,6 +471,92 @@ function generateInvoicePdf(invoice: Invoice): Blob {
   return doc.output("blob");
 }
 
+// Build invoice report Excel workbook (invoice-wise with product rows)
+const PAYMENT_LABELS: Record<string, string> = {
+  paid: "Paid",
+  unpaid: "Unpaid",
+  partially_paid: "Partially Paid",
+  pending: "Pending",
+  refunded: "Refunded",
+  failed: "Failed",
+};
+
+function buildInvoiceReportWorkbook(invoices: Invoice[], dateRange: string): Blob {
+  const header = [
+    "S.No.", "Invoice Date", "Customer Name", "GSTIN", "Invoice No.",
+    "Product / Category", "HSN Code", "Rate (Rs.)", "Qty", "Taxable (Rs.)",
+    "GST %", "GST Amount (INR)", "Grand Total (INR)", "Payment Status", "Comment",
+  ];
+
+  const rows: (string | number)[][] = [];
+
+  invoices.forEach((inv, idx) => {
+    const anyInv = inv as any;
+    const items = (inv.items || []).map(normalizeInvoiceItem);
+    const list = items.length ? items : [normalizeInvoiceItem({ description: "-", quantity: 0, price: 0 })];
+    const paymentStatus = PAYMENT_LABELS[anyInv.payment_status] || anyInv.payment_status || "-";
+    const invDate = inv.created_at ? format(new Date(inv.created_at), "dd-MM-yyyy") : "-";
+
+    list.forEach((item, i) => {
+      const anyItem = item as any;
+      const taxable = Number(item.taxable_value) || Number(item.quantity) * Number(item.price);
+      const gstRate = Number(item.gst_rate) || 0;
+      const gstAmt =
+        (Number(item.cgst_amount) || 0) + (Number(item.sgst_amount) || 0) + (Number(item.igst_amount) || 0) ||
+        (taxable * gstRate) / 100;
+
+      rows.push([
+        i === 0 ? idx + 1 : "",
+        i === 0 ? invDate : "",
+        i === 0 ? inv.client_name || "-" : "",
+        i === 0 ? inv.buyer_gstin || "-" : "",
+        i === 0 ? inv.invoice_number : "",
+        item.description,
+        anyItem.hsn_code || anyItem.hsn || "-",
+        Number(item.price) || 0,
+        Number(item.quantity) || 0,
+        Number(taxable.toFixed(2)),
+        gstRate,
+        Number(gstAmt.toFixed(2)),
+        i === 0 ? Number(Number(inv.total_amount || 0).toFixed(2)) : "",
+        i === 0 ? paymentStatus : "",
+        i === 0 ? inv.notes || "" : "",
+      ]);
+    });
+  });
+
+  const totalTaxable = rows.reduce((s, r) => s + (Number(r[9]) || 0), 0);
+  const totalGst = rows.reduce((s, r) => s + (Number(r[11]) || 0), 0);
+  const grandTotal = invoices.reduce((s, i) => s + Number(i.total_amount || 0), 0);
+
+  rows.push([]);
+  rows.push(["", "", "", "", "", "TOTAL", "", "", "", Number(totalTaxable.toFixed(2)), "", Number(totalGst.toFixed(2)), Number(grandTotal.toFixed(2)), "", ""]);
+
+  const aoa = [
+    [`${COMPANY_SETTINGS.business_name} - Invoice Report`],
+    [`Period: ${dateRange}`],
+    [],
+    header,
+    ...rows,
+  ];
+
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws["!cols"] = [
+    { wch: 6 }, { wch: 13 }, { wch: 28 }, { wch: 18 }, { wch: 20 },
+    { wch: 34 }, { wch: 12 }, { wch: 12 }, { wch: 7 }, { wch: 14 },
+    { wch: 8 }, { wch: 16 }, { wch: 18 }, { wch: 16 }, { wch: 30 },
+  ];
+  ws["!merges"] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 14 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 14 } },
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Invoice Report");
+  const out = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+  return new Blob([out], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+}
+
 // Generate invoice report PDF
 function generateInvoiceReportPdf(invoices: Invoice[], dateRange: string): Blob {
   const doc = new jsPDF({
