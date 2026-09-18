@@ -366,7 +366,7 @@ export default function Invoices() {
     } else {
       const { data: numData, error: numErr } = await supabase.rpc(
         "generate_structured_invoice_number" as any,
-        {}
+        { _doc_type: formData.invoice_type === "final" ? "INV" : "PI" }
       );
       if (numErr || !numData || (Array.isArray(numData) && numData.length === 0)) {
         toast({ title: "Error", description: numErr?.message || "Failed to generate invoice number", variant: "destructive" });
@@ -511,13 +511,26 @@ export default function Invoices() {
       toast({ title: "Already final", description: "This invoice is already a final tax invoice.", variant: "destructive" });
       return;
     }
-    if (!window.confirm(`Convert ${proforma.invoice_number} to a Final Tax Invoice?\n\nThe same invoice number will be retained and it will move to the Final Invoices tab.`)) return;
+    if (!window.confirm(`Convert ${proforma.invoice_number} to a Final Tax Invoice?\n\nA new final invoice number (INV series) will be assigned in sequence and it will move to the Final Invoices tab.`)) return;
 
     setIsConverting(true);
     try {
+      const { data: numData, error: numErr } = await supabase.rpc(
+        "generate_structured_invoice_number" as any,
+        { _doc_type: "INV" }
+      );
+      if (numErr || !numData || (Array.isArray(numData) && numData.length === 0)) {
+        throw new Error(numErr?.message || "Failed to generate final invoice number");
+      }
+      const row: any = Array.isArray(numData) ? numData[0] : numData;
+
       const { error: updErr } = await supabase
         .from("invoices")
         .update({
+          invoice_number: row.invoice_number,
+          category_code: row.category_code,
+          financial_year: row.financial_year,
+          serial_number: row.serial_number,
           invoice_type: "final",
           is_final: true,
           proforma_status: "converted",
@@ -527,7 +540,7 @@ export default function Invoices() {
 
       toast({
         title: "Converted to Final Invoice",
-        description: `${proforma.invoice_number} is now a final tax invoice.`,
+        description: `${proforma.invoice_number} is now final invoice ${row.invoice_number}.`,
       });
       fetchData();
     } catch (e: any) {
