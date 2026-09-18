@@ -865,9 +865,11 @@ export default function Invoices() {
               {/* Invoice numbering info */}
               <div className="rounded-md border bg-muted/40 px-3 py-2">
                 <p className="text-xs text-muted-foreground">
-                  Invoice number is generated automatically in the format{" "}
-                  <code className="font-mono">INV/2026-27/0001</code>
-                  {editingInvoiceId && " (existing number is kept when editing)"}
+                  Numbers are generated automatically: proforma uses{" "}
+                  <code className="font-mono">PI/2026-27/0001</code> and final tax invoices use a
+                  separate sequence <code className="font-mono">INV/2026-27/0001</code>. A final
+                  number is assigned only when an invoice becomes final.
+                  {editingInvoiceId && " Existing numbers are kept when editing."}
                 </p>
               </div>
 
