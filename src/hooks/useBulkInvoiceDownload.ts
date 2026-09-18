@@ -801,18 +801,18 @@ export function useBulkInvoiceDownload() {
           ? `${format(new Date(options.dateFrom), "dd MMM yyyy")} - ${format(new Date(options.dateTo), "dd MMM yyyy")}`
           : "All Time");
 
-      const pdfBlob = generateInvoiceReportPdf(normalizedInvoices, dateRangeText);
+      const blob = buildInvoiceReportWorkbook(normalizedInvoices, dateRangeText);
 
-      const url = URL.createObjectURL(pdfBlob);
+      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `Invoice-Report_${format(new Date(), "yyyy-MM-dd")}.pdf`;
+      link.download = `Invoice-Report_${format(new Date(), "yyyy-MM-dd")}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      toast.success(`Report generated with ${invoices.length} invoice(s)`);
+      toast.success(`Excel report generated with ${invoices.length} invoice(s)`);
     } catch (e: any) {
       console.error("Report generation error:", e);
       toast.error(e?.message || "Failed to generate report");
